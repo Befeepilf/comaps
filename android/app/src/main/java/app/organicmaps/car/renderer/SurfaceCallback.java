@@ -21,8 +21,6 @@ class SurfaceCallback extends SurfaceCallbackBase
   private static final String TAG = SurfaceCallback.class.getSimpleName();
 
   private static final String VIRTUAL_DISPLAY_NAME = "OM_Android_Auto_Display";
-  private static final int VIRTUAL_DISPLAY_FLAGS =
-      DisplayManager.VIRTUAL_DISPLAY_FLAG_PRESENTATION | DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY;
 
   @NonNull
   private final MapController mMapController;
@@ -59,7 +57,7 @@ class SurfaceCallback extends SurfaceCallbackBase
     mVirtualDisplay =
         mCarContext.getSystemService(DisplayManager.class)
             .createVirtualDisplay(VIRTUAL_DISPLAY_NAME, surfaceContainer.getWidth(), surfaceContainer.getHeight(),
-                                  surfaceContainer.getDpi(), surfaceContainer.getSurface(), VIRTUAL_DISPLAY_FLAGS);
+                                  surfaceContainer.getDpi(), surfaceContainer.getSurface(), 0);
     mPresentation = new Presentation(mCarContext, mVirtualDisplay.getDisplay());
 
     mPresentation.setContentView(prepareViewForPresentation(mMapController.getView()));
