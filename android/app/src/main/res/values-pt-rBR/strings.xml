@@ -413,7 +413,6 @@
     <string name="editor_edit_place_category_title">Categoria</string>
     <string name="detailed_problem_description">Descrição detalhada do problema</string>
     <string name="editor_report_problem_other_title">Um problema diferente</string>
-    <string name="placepage_add_business_button">Adicionar uma empresa</string>
     <string name="message_invalid_feature_position">Nenhum objeto pode ser posicionado aqui</string>
     <!-- Text in About and OSM Login screens. First %@ is replaced by a local, human readable date. -->
     <string name="osm_presentation">Dados do OpenStreetMap criados pela comunidade até %s. Saiba mais sobre como editar e atualizar o mapa em OpenStreetMap.org</string>
@@ -849,4 +848,12 @@
     <string name="existence_confirmed_time_ago">Existência confirmada %s</string>
     <string name="hours_confirmed_time_ago">Confirmado %s</string>
     <string name="pref_tts_no_system_tts_short">Nenhum mecanismo de conversão de texto em voz encontrado, verifique as configurações do aplicativo</string>
+    <string name="unknown_power_output">potência desconhecida</string>
+    <string name="charge_socket_type2">Tipo 2 (sem cabo)</string>
+    <string name="charge_socket_type2_cable">Tipo 2 (com cabo)</string>
+    <string name="charge_socket_type2_combo">Combo tipo 2</string>
+    <string name="charge_socket_type1">Tipo 1</string>
+    <string name="charge_socket_nacs">NACS</string>
+    <string name="unknown_socket_type">tomada desconhecida</string>
+    <string name="charge_socket_chademo">CHAdeMO</string>
 </resources>

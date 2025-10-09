@@ -442,7 +442,6 @@
     <string name="editor_report_problem_desription_2">Eða gerðu það sjálf/ur á https://www.openstreetmap.org/</string>
     <string name="edit_opening_hours">Breyta opnunartímum</string>
     <string name="register_at_openstreetmap">Skráðu þig á OpenStreetMap</string>
-    <string name="placepage_add_business_button">Bæta við fyrirtæki</string>
     <string name="download_over_mobile_header">Sækja í gegnum gagnatengingu farsíma?</string>
     <string name="download_over_mobile_message">Þetta gæti verið dýrt á sumum tegundum áskrifta eða ef verið sé á reiki.</string>
     <string name="editor_osm_notes">Minnispunktar þínir við gögn korts</string>

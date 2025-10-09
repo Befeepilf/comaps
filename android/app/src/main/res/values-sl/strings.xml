@@ -101,7 +101,6 @@
     <string name="copied_to_clipboard">Kopirano na odložišče: %s</string>
     <string name="done">Končano</string>
     <string name="data_version">Podatki OpenStreetMap: %s</string>
-    <string name="osm_log_out_confirmation">Ali ste prepričani, da se želite odjaviti iz svojega računa OpenStreetMap?</string>
     <string name="tracks_title">Poti</string>
     <string name="length">Dolžina</string>
     <string name="share_my_location">Deli mojo lokacijo</string>
@@ -297,7 +296,6 @@
     <string name="editor_edit_place_category_title">Kategorija</string>
     <string name="detailed_problem_description">Podroben opis težave</string>
     <string name="editor_report_problem_other_title">Druga težava</string>
-    <string name="placepage_add_business_button">Dodaj podjetje</string>
     <string name="message_invalid_feature_position">Tukaj ni mogoče postaviti objekta</string>
     <string name="osm_presentation">Javno ustvarjeni podatki OpenStreetMap z dne %s. Več o urejanju in posodabljanju zemljevida izveste na OpenStreetMap.org</string>
     <string name="login_osm_presentation">OpenStreetMap.org (OSM) je projekt splošne javnosti za izdelavo brezplačnega in odprtega zemljevida. Je glavni vir zemljepisnih podatkov v CoMaps in deluje na podoben način kot Wikipedija. Lahko dodajate in urejate kraje, ti pa bodo potem na voljo milijonom ljudi povsem svetu. \nPridružite se skupnosti in pomagajte izboljšati zemljevid za vse!</string>

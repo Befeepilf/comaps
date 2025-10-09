@@ -285,7 +285,6 @@
     <string name="editor_add_place_title">যোগ করা হচ্ছে</string>
     <string name="editor_edit_place_name_hint">স্থানের নাম</string>
     <string name="editor_edit_place_title">সম্পাদনা</string>
-    <string name="placepage_add_business_button">ব্যবসা যোগ করুন</string>
     <string name="add_street">একটি রাস্তা অ্যাড করুন</string>
     <string name="empty_street_name_error">অনুগ্রহ করে রাস্তার নামটি লিখুন</string>
     <string name="choose_language">একটি ভাষা বেছে নিন</string>

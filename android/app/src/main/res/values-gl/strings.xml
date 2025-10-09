@@ -136,7 +136,6 @@
     <string name="history">Historial</string>
     <string name="dialog_routing_location_turn_on">Activar servizos de localización</string>
     <string name="prefs_group_information">Información</string>
-    <string name="placepage_add_business_button">Engadir organización</string>
     <string name="category_atm">Caixeiro automático</string>
     <string name="prefs_group_route">Navegación</string>
     <string name="on">Activado</string>
@@ -606,4 +605,12 @@
     <string name="existence_confirmed_time_ago">Existencia confirmada %s</string>
     <string name="share_track">Compartir ruta</string>
     <string name="pref_tts_no_system_tts_short">Non se atopa un motor texto-a-fala, comproba os axustes da app</string>
+    <string name="unknown_power_output">potencia descoñecida</string>
+    <string name="charge_socket_type2">Tipo 2 (sen cable)</string>
+    <string name="charge_socket_type2_cable">Tipo 2 (con cable)</string>
+    <string name="charge_socket_type2_combo">Tipo 2 combo</string>
+    <string name="charge_socket_type1">Tipo 1</string>
+    <string name="charge_socket_nacs">NACS</string>
+    <string name="charge_socket_chademo">CHAdeMO</string>
+    <string name="unknown_socket_type">engache descoñecido</string>
 </resources>
