@@ -6,6 +6,23 @@
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
 		<string>%#@value@</string>
+		<key>value</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>zero</key>
+			<string>Brez zaznamkov</string>
+			<key>one</key>
+			<string>%d zaznamek</string>
+			<key>two</key>
+			<string>%d zaznamka</string>
+			<key>few</key>
+			<string>%d zaznamki</string>
+			<key>other</key>
+			<string>%d zaznamki</string>
+		</dict>
 	</dict>
 </dict>
 </plist>

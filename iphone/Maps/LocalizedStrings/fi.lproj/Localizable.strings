@@ -325,7 +325,7 @@
 "report_incorrect_map_bug" = "Ilmoita tai korjaa virheelliset karttatiedot";
 
 /* Button in the About screen */
-"volunteer" = "Auta parantamaan CoMapsia";
+"volunteer" = "Tee vapaaehtoistyötä ja paranna CoMapsia";
 
 /* "Social media" section header in the About screen */
 "follow_us" = "Ota yhteyttä";
@@ -826,7 +826,7 @@
 "avoid_ferry" = "Vältä lautan käyttöä";
 "avoid_motorways" = "Vältä moottoritietä";
 "unable_to_calc_alert_title" = "Reittiä ei voi luoda";
-"unable_to_calc_alert_subtitle" = "Valitettavasti emme voineet luoda reittiä valituilla vaihtoehdoilla. Vaihda asetuksia ja yritä uudelleen";
+"unable_to_calc_alert_subtitle" = "Reittiä ei löytynyt. Tämä voi johtua reititysasetuksistasi tai puutteellisista OpenStreetMap-tiedoista. Muuta reititysvaihtoehtoja ja yritä uudelleen.";
 "define_to_avoid_btn" = "Määritä vältettävät tiet";
 "change_driving_options_btn" = "Reititysvalinnat ovat päällä";
 "toll_road" = "Maksullinen tie";
@@ -984,7 +984,7 @@
 "app_tip_09" = "Päätavoitteemme on rakentaa nopeita, yksityisyyteen keskittyviä, helppokäyttöisiä karttoja, joista pidät.";
 
 /* Text on the Android Auto or CarPlay placeholder screen that maps are displayed on the phone screen */
-"car_used_on_the_phone_screen" = "Käytät nyt puhelimen näytöllä CoMaps -palvelua.";
+"car_used_on_the_phone_screen" = "Käytät nyt CoMapsia puhelimen näytöllä";
 
 /* Text on the phone placeholder screen that maps are displayed on the car screen */
 "car_used_on_the_car_screen" = "Käytät nyt CoMaps auton näytöllä";
@@ -1039,10 +1039,10 @@
 "icloud_synchronization_error_alert_title" = "iCloud-synkronoinnin epäonnistuminen";
 
 /* iCloud error message: Failed to synchronize due to connection error */
-"icloud_synchronization_error_connection_error" = "Virhe: Synkronointi epäonnistui yhteysvirheen vuoksi.";
+"icloud_synchronization_error_connection_error" = "Virhe: Synkronointi epäonnistui yhteysvirheen vuoksi";
 
 /* iCloud error message: Failed to synchronize due to iCloud quota exceeded */
-"icloud_synchronization_error_quota_exceeded" = "Virhe: iCloud-kiintiön ylittymisen vuoksi synkronointi epäonnistui.";
+"icloud_synchronization_error_quota_exceeded" = "Virhe: iCloud-kiintiön ylittymisen vuoksi synkronointi epäonnistui";
 
 /* iCloud error message: iCloud is not available */
 "icloud_synchronization_error_cloud_is_unavailable" = "Virhe: iCloud ei ole käytettävissä";
@@ -1097,3 +1097,7 @@
 "pref_maplanguage_local" = "Paikallinen kieli";
 "existence_confirmed_time_ago" = "Olemassaolo varmistettu %@";
 "hours_confirmed_time_ago" = "Varmistettu %@";
+"offline_explanation_text" = "Alueen katseluun ja navigointiin tarvitaan kartta.\nLataa karttoja alueille, joille haluat matkustaa.";
+"offline_explanation_title" = "Ei-verkkotilassa olevat kartat";
+"avoid_steps" = "Vältä portaita";
+"editor_place_doesnt_exist_description" = "Kuvaile, miltä paikka näyttää nyt, lähettääksesi virheilmoituksen OpenStreetMap-yhteisölle";

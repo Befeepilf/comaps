@@ -3,3 +3,4 @@
 "type.addr_interpolation" = "Naslov/blok";
 "type.aerialway.cable_car" = "Žičnica";
 "type.cuisine.noodles" = "Nudli";
+"type.addr_interpolation.even" = "Naslov/Blok";

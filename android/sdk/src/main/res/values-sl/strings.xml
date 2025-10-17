@@ -2,4 +2,5 @@
 <resources>
     <string name="core_my_position">Moj položaj</string>
     <string name="core_my_places">Moji kraji</string>
+    <string name="gb">GB</string>
 </resources>

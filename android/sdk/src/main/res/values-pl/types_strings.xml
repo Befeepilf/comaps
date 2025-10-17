@@ -431,7 +431,6 @@
     <string name="type.highway.pedestrian.area">Obszar deptaka</string>
     <!-- These translations are used for all type.highway.*.bridge. -->
     <string name="type.highway.pedestrian.bridge">Most dla pieszych</string>
-
     <string name="type.highway.pedestrian.square">Plac</string>
     <!-- These translations are used for all type.highway.*.tunnel. -->
     <string name="type.highway.pedestrian.tunnel">Tunel dla pieszych</string>
@@ -1395,4 +1394,7 @@
     <string name="type.amenity.ranger_station">Budynek obsługi parku</string>
     <string name="type.power.portal">Portal elektroenergetyczny</string>
     <string name="type.office.security">Biuro ochrony</string>
+    <string name="type.shop.lighting">Sklep oświetleniowy</string>
+    <string name="type.barrier.wicket_gate">Furtka</string>
+    <string name="type.leisure.escape_game">Escape Room</string>
 </resources>

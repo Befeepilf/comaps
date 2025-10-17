@@ -463,5 +463,6 @@
 "shop-alcohol|@category_food|@shop": "Магазин за алкохол|4алкохол|5спиртни напитки|U+1F377",
 "shop-caravan|@category_rv|@shop": "Автокъща за кемпери|кемпери|каравани|къщи на колела",
 "leisure-dance|@category_entertainment": "Зала за танци|Танцово училище|Танцова школа|танци",
-"leisure-firepit": "4Огнище"
+"leisure-firepit": "4Огнище",
+"amenity-arts_centre|@category_tourism": "3Арт център|Център за изкуства"
 }

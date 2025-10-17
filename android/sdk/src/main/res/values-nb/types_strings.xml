@@ -1259,4 +1259,19 @@
     <string name="type.barrier.cycle_barrier">Sykkelbarriere</string>
     <string name="type.highway.ladder">Stige</string>
     <string name="type.barrier.guard_rail">Autovern</string>
+    <string name="type.piste_type.sled">Akebakke</string>
+    <string name="type.piste_type.sled.area">Akebakke</string>
+    <string name="type.man_made.pipeline">Rørledning</string>
+    <string name="type.man_made.survey_point">Landmålingspunkt</string>
+    <string name="type.man_made.cairn">Varde</string>
+    <string name="type.man_made">Menneskeskapt</string>
+    <string name="type.landuse.retail">Butikkområde</string>
+    <string name="type.landuse.quarry">Steinbrudd</string>
+    <string name="type.landuse.military">Militært område</string>
+    <string name="type.landuse.industrial">Industriområde</string>
+    <string name="type.barrier.retaining_wall">Støttemur</string>
+    <string name="type.recycling.cartons">Kartonger</string>
+    <string name="type.recycling.green_waste">Organisk avfall</string>
+    <string name="type.recycling.cans">Bokser</string>
+    <string name="type.recycling.cardboard">Papp</string>
 </resources>
