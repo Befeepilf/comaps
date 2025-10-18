@@ -145,7 +145,7 @@
 @hotel_label: #54413B;
 @healthcare_label: #A6454B;
 @industry_label: #494F54;
-@public_transport_label: #1F4366;
+@public_transport_label: #234B73;
 
 /* ROADS LABELS */
 @shield_text: #000000;
