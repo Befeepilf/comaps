@@ -9,6 +9,7 @@ namespace
 {
 // List of country names where mwm should be generated without speed cameras.
 std::vector<std::string> kSpeedCamerasProhibitedCountries = {
+    "Germany",
     "Macedonia",
     "Switzerland",
     "Turkey",
@@ -17,7 +18,6 @@ std::vector<std::string> kSpeedCamerasProhibitedCountries = {
 // List of country names where an end user should be warned about speed cameras.
 std::vector<std::string> kSpeedCamerasPartlyProhibitedCountries = {
     "France",
-    "Germany",
 };
 
 bool IsMwmContained(platform::CountryFile const & mwm, std::vector<std::string> const & countryList)
