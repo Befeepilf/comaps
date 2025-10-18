@@ -195,7 +195,7 @@
               android:layout_marginTop="@dimen/margin_quarter"
               android:gravity="center_vertical"
               android:textAppearance="@style/MwmTextAppearance.Body1"
-              tools:text="Italian, russian, russian, russian, russian, russian, russian, russian, russian"
+              tools:text="italian, russian, coffee_shop, sandwich, dessert, cake, regional, sausage, sandwich, breakfast, pizza"
               app:drawableEndCompat="@drawable/ic_arrow_down" />
           <View
               android:layout_width="match_parent"
