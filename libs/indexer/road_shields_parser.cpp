@@ -473,7 +473,7 @@ class ItalyRoadShieldParser : public SimpleRoadShieldParser
 {
 public:
   explicit ItalyRoadShieldParser(std::string const & baseRoadNumber)
-    : SimpleRoadShieldParser(baseRoadNumber, {{"A", RoadShieldType::Generic_Green},
+    : SimpleRoadShieldParser(baseRoadNumber, {{"A", RoadShieldType::Italy_Autostrada},
                                               {"SS", RoadShieldType::Generic_Blue},
                                               {"SR", RoadShieldType::Generic_Blue},
                                               {"SP", RoadShieldType::Generic_Blue}})
@@ -877,6 +877,7 @@ std::string DebugPrint(RoadShieldType shieldType)
   case RoadShieldType::US_Interstate: return "US interstate";
   case RoadShieldType::US_Highway: return "US highway";
   case RoadShieldType::UK_Highway: return "UK highway";
+  case RoadShieldType::Italy_Autostrada: return "Italy autostrada";
   case RoadShieldType::Hidden: return "hidden";
   case RoadShieldType::Count: CHECK(false, ("RoadShieldType::Count is not to be used as a type"));
   }

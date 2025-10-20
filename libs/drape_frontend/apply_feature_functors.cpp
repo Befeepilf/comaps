@@ -195,7 +195,7 @@ m2::PointF GetOffset(int offsetX, int offsetY)
 
 bool IsSymbolRoadShield(ftypes::RoadShield const & shield)
 {
-  return shield.m_type == ftypes::RoadShieldType::US_Interstate || shield.m_type == ftypes::RoadShieldType::US_Highway;
+  return shield.m_type == ftypes::RoadShieldType::US_Interstate || shield.m_type == ftypes::RoadShieldType::US_Highway || shield.m_type == ftypes::RoadShieldType::Italy_Autostrada;
 }
 
 std::string GetRoadShieldSymbolName(ftypes::RoadShield const & shield, double fontScale)
@@ -206,6 +206,8 @@ std::string GetRoadShieldSymbolName(ftypes::RoadShield const & shield, double fo
     result = shield.m_name.size() <= 2 ? "shield-us-i-thin" : "shield-us-i-wide";
   else if (shield.m_type == ftypes::RoadShieldType::US_Highway)
     result = shield.m_name.size() <= 2 ? "shield-us-hw-thin" : "shield-us-hw-wide";
+  else if (shield.m_type == ftypes::RoadShieldType::Italy_Autostrada)
+    result = "shield-it-a";
   else
     ASSERT(false, ("This shield type doesn't support symbols:", shield.m_type));
 
@@ -301,7 +303,8 @@ dp::Color GetRoadShieldTextColor(dp::Color const & baseColor, ftypes::RoadShield
       {RoadShieldType::Generic_Pill_Orange_Bordered, kRoadShieldBlackTextColor},
       {RoadShieldType::US_Interstate, kRoadShieldWhiteTextColor},
       {RoadShieldType::US_Highway, kRoadShieldBlackTextColor},
-      {RoadShieldType::UK_Highway, kRoadShieldUKYellowTextColor}};
+      {RoadShieldType::UK_Highway, kRoadShieldUKYellowTextColor},
+      {RoadShieldType::Italy_Autostrada, kRoadShieldWhiteTextColor}};
 
   if (auto const * cl = kColors.Find(shield.m_type); cl)
     return df::GetColorConstant(*cl);

@@ -36,6 +36,7 @@ enum class RoadShieldType
   US_Interstate,
   US_Highway,
   UK_Highway,
+  Italy_Autostrada,
   Hidden,
   Count
 };
