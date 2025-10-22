@@ -269,6 +269,11 @@ node|z17-[railway=station]::int_name,
 node|z17-[railway=halt]::int_name,
 {text-offset: 1;font-size: 12;text-halo-opacity: 0.9;}
 
+node|z12-14[railway=station][station=light_rail],
+{icon-image: train_light-s.svg;}
+node|z15-[railway=station][station=light_rail],
+{icon-image: train_light-m.svg;}
+
 /* 3.2 Road Icons */
 
 node|z19-[highway=traffic_signals],
