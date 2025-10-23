@@ -885,7 +885,7 @@ node|z15-[leisure=sports_centre][sport=swimming],
 node|z17-[highway=ladder],
 node|z18-[amenity=dojo],
 node|z18-[amenity=vending_machine],
-node|z18-[amenity=fire_station],
+node|z17-[amenity=fire_station],
 node|z18-[amenity=internet_cafe],
 node|z18-[emergency=defibrillator],
 node|z18-[emergency=assembly_point],
@@ -1411,7 +1411,7 @@ node|z17-[leisure=bowling_alley],
 node|z18-[leisure=bowling_alley],
 {font-size: 11;}
 
-node|z17-[amenity=police],
+node|z16-[amenity=police],
 {icon-image: police-m.svg;}
 node|z18-[amenity=police],
 {font-size: 11;}
@@ -1537,8 +1537,10 @@ node|z17-[amenity=bureau_de_change],
 node|z17-[amenity=money_transfer],
 {icon-image: banknote-m.svg;font-size: 11;}
 
+node|z16-[amenity=fire_station],
+{icon-image: fire_station-m.svg;}
 node|z18-[amenity=fire_station],
-{icon-image: fire_station-m.svg;font-size: 11;}
+{font-size: 11;}
 node|z18-[amenity=toilets],
 {icon-image: toilets-m.svg;font-size: 11;}
 node|z18-[amenity=atm],
