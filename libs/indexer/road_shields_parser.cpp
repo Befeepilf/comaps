@@ -454,7 +454,7 @@ class GreeceRoadShieldParser : public SimpleRoadShieldParser
 public:
   explicit GreeceRoadShieldParser(std::string const & baseRoadNumber)
     : SimpleRoadShieldParser(baseRoadNumber,
-                             {{"Α", RoadShieldType::Generic_Green}, {"Ε", RoadShieldType::Generic_Blue}})
+                             {{"Α", RoadShieldType::Highway_Hexagon_Green}, {"Ε", RoadShieldType::Generic_Blue}})
   {}
 };
 
@@ -477,6 +477,15 @@ public:
                                               {"SS", RoadShieldType::Generic_Blue},
                                               {"SR", RoadShieldType::Generic_Blue},
                                               {"SP", RoadShieldType::Generic_Blue}})
+  {}
+};
+
+class TurkeyRoadShieldParser : public SimpleRoadShieldParser
+{
+public:
+  explicit TurkeyRoadShieldParser(std::string const & baseRoadNumber)
+    : SimpleRoadShieldParser(baseRoadNumber, {{"O", RoadShieldType::Highway_Hexagon_Turkey},
+                                              {"D", RoadShieldType::Generic_Blue}})
   {}
 };
 
@@ -524,7 +533,7 @@ class SerbiaRoadShieldParser : public SimpleRoadShieldParser
 {
 public:
   explicit SerbiaRoadShieldParser(std::string const & baseRoadNumber)
-    : SimpleRoadShieldParser(baseRoadNumber, {{"A", RoadShieldType::Generic_Green}})
+    : SimpleRoadShieldParser(baseRoadNumber, {{"A", RoadShieldType::Highway_Hexagon_Green}})
   {}
 };
 
@@ -540,7 +549,7 @@ class SloveniaRoadShieldParser : public SimpleRoadShieldParser
 {
 public:
   explicit SloveniaRoadShieldParser(std::string const & baseRoadNumber)
-    : SimpleRoadShieldParser(baseRoadNumber, {{"A", RoadShieldType::Generic_Green}})
+    : SimpleRoadShieldParser(baseRoadNumber, {{"A", RoadShieldType::Highway_Hexagon_Green}})
   {}
 };
 
@@ -548,7 +557,7 @@ class SwitzerlandRoadShieldParser : public SimpleRoadShieldParser
 {
 public:
   explicit SwitzerlandRoadShieldParser(std::string const & baseRoadNumber)
-    : SimpleRoadShieldParser(baseRoadNumber, {{"A", RoadShieldType::Generic_Red}})
+    : SimpleRoadShieldParser(baseRoadNumber, {{"A", RoadShieldType::Highway_Hexagon_Red}})
   {}
 };
 
@@ -556,7 +565,7 @@ class LiechtensteinRoadShieldParser : public SimpleRoadShieldParser
 {
 public:
   explicit LiechtensteinRoadShieldParser(std::string const & baseRoadNumber)
-    : SimpleRoadShieldParser(baseRoadNumber, {{"A", RoadShieldType::Generic_Red}})
+    : SimpleRoadShieldParser(baseRoadNumber, {{"A", RoadShieldType::Highway_Hexagon_Red}})
   {}
 };
 
@@ -600,7 +609,7 @@ class GermanyRoadShieldParser : public SimpleRoadShieldParser
 {
 public:
   explicit GermanyRoadShieldParser(std::string const & baseRoadNumber)
-    : SimpleRoadShieldParser(baseRoadNumber, {{"A", RoadShieldType::Generic_Blue},
+    : SimpleRoadShieldParser(baseRoadNumber, {{"A", RoadShieldType::Highway_Hexagon_Blue},
                                               {"B", RoadShieldType::Generic_Orange_Bordered},
                                               {"L", RoadShieldType::Generic_White_Bordered},
                                               {"K", RoadShieldType::Generic_White_Bordered}})
@@ -782,6 +791,8 @@ RoadShieldsSetT GetRoadShields(std::string const & mwmName, std::string const & 
     return IrelandRoadShieldParser(roadNumber).GetRoadShields();
   if (mwmName == "Italy")
     return ItalyRoadShieldParser(roadNumber).GetRoadShields();
+  if (mwmName == "Turkey")
+    return TurkeyRoadShieldParser(roadNumber).GetRoadShields();
   if (mwmName == "Lativa")
     return LativaRoadShieldParser(roadNumber).GetRoadShields();
   if (mwmName == "Moldova")
@@ -874,6 +885,10 @@ std::string DebugPrint(RoadShieldType shieldType)
   case RoadShieldType::Generic_Pill_Blue_Bordered: return "blue pill bordered";
   case RoadShieldType::Generic_Pill_Red_Bordered: return "red pill bordered";
   case RoadShieldType::Generic_Pill_Orange_Bordered: return "orange pill bordered";
+  case RoadShieldType::Highway_Hexagon_Green: return "highway hexagon green";
+  case RoadShieldType::Highway_Hexagon_Blue: return "highway hexagon blue";
+  case RoadShieldType::Highway_Hexagon_Red: return "highway hexagon red";
+  case RoadShieldType::Highway_Hexagon_Turkey: return "highway hexagon turkey";
   case RoadShieldType::US_Interstate: return "US interstate";
   case RoadShieldType::US_Highway: return "US highway";
   case RoadShieldType::UK_Highway: return "UK highway";

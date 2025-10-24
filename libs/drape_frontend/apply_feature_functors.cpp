@@ -196,14 +196,22 @@ m2::PointF GetOffset(int offsetX, int offsetY)
 
 bool IsSymbolRoadShield(ftypes::RoadShield const & shield)
 {
-  return shield.m_type == ftypes::RoadShieldType::US_Interstate || shield.m_type == ftypes::RoadShieldType::US_Highway || shield.m_type == ftypes::RoadShieldType::Italy_Autostrada;
+  return shield.m_type == ftypes::RoadShieldType::Highway_Hexagon_Green || shield.m_type == ftypes::RoadShieldType::Highway_Hexagon_Blue || shield.m_type == ftypes::RoadShieldType::Highway_Hexagon_Red ||  shield.m_type == ftypes::RoadShieldType::Highway_Hexagon_Turkey || shield.m_type == ftypes::RoadShieldType::US_Interstate || shield.m_type == ftypes::RoadShieldType::US_Highway || shield.m_type == ftypes::RoadShieldType::Italy_Autostrada;
 }
 
 std::string GetRoadShieldSymbolName(ftypes::RoadShield const & shield, double fontScale)
 {
   ASSERT(IsSymbolRoadShield(shield), ());
   std::string result = "";
-  if (shield.m_type == ftypes::RoadShieldType::US_Interstate)
+  if (shield.m_type == ftypes::RoadShieldType::Highway_Hexagon_Green)
+    result = "shield-highway_hexagon_green";
+  else if (shield.m_type == ftypes::RoadShieldType::Highway_Hexagon_Blue)
+    result = "shield-highway_hexagon_blue";
+  else if (shield.m_type == ftypes::RoadShieldType::Highway_Hexagon_Red)
+    result = "shield-highway_hexagon_red";
+  else if (shield.m_type == ftypes::RoadShieldType::Highway_Hexagon_Turkey)
+    result = "shield-highway_hexagon_turkey";
+  else if (shield.m_type == ftypes::RoadShieldType::US_Interstate)
     result = shield.m_name.size() <= 2 ? "shield-us-i-thin" : "shield-us-i-wide";
   else if (shield.m_type == ftypes::RoadShieldType::US_Highway)
     result = shield.m_name.size() <= 2 ? "shield-us-hw-thin" : "shield-us-hw-wide";
@@ -306,6 +314,10 @@ dp::Color GetRoadShieldTextColor(dp::Color const & baseColor, ftypes::RoadShield
       {RoadShieldType::Generic_Pill_Blue_Bordered, kRoadShieldWhiteTextColor},
       {RoadShieldType::Generic_Pill_Red_Bordered, kRoadShieldWhiteTextColor},
       {RoadShieldType::Generic_Pill_Orange_Bordered, kRoadShieldBlackTextColor},
+      {RoadShieldType::Highway_Hexagon_Green, kRoadShieldWhiteTextColor},
+      {RoadShieldType::Highway_Hexagon_Blue, kRoadShieldWhiteTextColor},
+      {RoadShieldType::Highway_Hexagon_Red, kRoadShieldWhiteTextColor},
+      {RoadShieldType::Highway_Hexagon_Turkey, kRoadShieldBlackTextColor},
       {RoadShieldType::US_Interstate, kRoadShieldWhiteTextColor},
       {RoadShieldType::US_Highway, kRoadShieldBlackTextColor},
       {RoadShieldType::UK_Highway, kRoadShieldUKYellowTextColor},
