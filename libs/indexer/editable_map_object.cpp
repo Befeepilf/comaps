@@ -490,8 +490,8 @@ bool EditableMapObject::ValidatePhoneList(string const & phone)
   if (phone.empty())
     return true;
 
-  auto const kMaxNumberLen = 15;
-  auto const kMinNumberLen = 5;
+  auto constexpr kMaxNumberLen = 15;
+  auto constexpr kMinNumberLen = 5;
 
   if (phone.size() < kMinNumberLen)
     return false;

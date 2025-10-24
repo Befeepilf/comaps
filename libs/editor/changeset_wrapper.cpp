@@ -177,7 +177,7 @@ editor::XMLFeature ChangesetWrapper::GetMatchingNodeFeatureFromOSM(m2::PointD co
 
 editor::XMLFeature ChangesetWrapper::GetMatchingAreaFeatureFromOSM(std::vector<m2::PointD> const & geometry)
 {
-  auto const kSamplePointsCount = 3;
+  auto constexpr kSamplePointsCount = 3;
   bool hasRelation = false;
   // Try several points in case of poor osm response.
   for (auto const & pt : NaiveSample(geometry, kSamplePointsCount))

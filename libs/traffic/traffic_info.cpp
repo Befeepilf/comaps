@@ -73,7 +73,7 @@ string MakeRemoteURL(string const & name, uint64_t version)
   return ss.str();
 }
 
-char const kETag[] = "etag";
+char constexpr kETag[] = "etag";
 }  // namespace
 
 // TrafficInfo::RoadSegmentId -----------------------------------------------------------------

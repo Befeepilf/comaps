@@ -46,7 +46,7 @@ dp::Color ToDrapeColor(uint32_t src)
 
 namespace
 {
-double const kMinVisibleFontSize = 8.0;
+double constexpr kMinVisibleFontSize = 8.0;
 
 df::ColorConstant const kPoiDeletedMaskColor = "PoiDeletedMask";
 df::ColorConstant const kRoadShieldBlackTextColor = "RoadShieldBlackText";
@@ -58,8 +58,8 @@ df::ColorConstant const kRoadShieldRedBackgroundColor = "RoadShieldRedBackground
 df::ColorConstant const kRoadShieldOrangeBackgroundColor = "RoadShieldOrangeBackground";
 df::ColorConstant const kRoadShieldUKYellowTextColor = "RoadShieldUKYellowText";
 
-uint32_t const kPathTextBaseTextIndex = 128;
-uint32_t const kShieldBaseTextIndex = 0;
+uint32_t constexpr kPathTextBaseTextIndex = 128;
+uint32_t constexpr kShieldBaseTextIndex = 0;
 
 #ifdef LINES_GENERATION_CALC_FILTERED_POINTS
 class LinesStat
