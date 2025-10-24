@@ -172,10 +172,10 @@ node|z15-[natural=geyser],
 node|z17-[natural=geyser],
 {font-size: 11;}
 
-node|z16-[amenity=water_point],
-node|z16-[amenity=drinking_water],
-node|z16-[man_made=water_tap],
-node|z16-[man_made=water_well],
+node|z17-[amenity=water_point],
+node|z17-[amenity=drinking_water],
+node|z17-[man_made=water_tap],
+node|z17-[man_made=water_well],
 {icon-image: drinking-water-s.svg;}
 node|z18-[amenity=water_point],
 node|z18-[amenity=drinking_water],
