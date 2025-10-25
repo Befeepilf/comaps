@@ -635,9 +635,11 @@ node|z17-[attraction=bumper_car],
 
 node|z15-[amenity=community_centre],
 node|z16-[amenity=conference_centre],
-node|z16-[amenity=events_venue],
 node|z16-[amenity=exhibition_centre],
 {icon-image: community-m.svg;icon-min-distance: 24;}
+
+node|z16-[amenity=events_venue],
+{icon-image: events_venue-m.svg;icon-min-distance: 24;}
 
 /* 4.2 Apartment */
 
