@@ -2192,9 +2192,8 @@ node|z16-[amenity=parking][location=underground][fee?],
 node|z16-[amenity=parking][access=private],
 node|z16-[amenity=parking][parking=street_side],
 node|z16-[amenity=parking][parking=lane],
-/* =no doesn't work in kothic */
-/* node|z16-[amenity=parking][access=no], */
-/* area|z16-[amenity=parking][access=no], */
+node|z16-[amenity=parking][access=not],
+area|z16-[amenity=parking][access=not],
 node|z16-[amenity=parking][parking=street_side][fee?],
 node|z16-[amenity=parking][parking=lane][fee?],
 {icon-image: none; icon-min-distance: 0;}
@@ -2215,8 +2214,8 @@ node|z19-[amenity=parking_entrance][access=private],
 {icon-image: parking_entrance_private-m.svg; text: name;}
 
 node|z18-[amenity=parking][access=private],
-/* node|z18-[amenity=parking][access=no], */
-/* area|z18-[amenity=parking][access=no], */
+node|z18-[amenity=parking][access=not],
+area|z18-[amenity=parking][access=not],
 {icon-image:parking_private-m.svg;}
 node|z18-[amenity=parking][location=underground][access=private],
 {icon-image:parking_underground_private-m.svg;}

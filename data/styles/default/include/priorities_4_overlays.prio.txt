@@ -1324,7 +1324,7 @@ power-generator-wind                                # icon z15- (also has captio
 === 120
 
 amenity-parking-lane-private                        # icon z19- (also has caption(optional) z19-, area z17-)
-amenity-parking-no-access                           # icon z16- (also has caption(optional) z18-, area z15-)
+amenity-parking-no-access                           # icon z18- (also has caption(optional) z18-, area z15-)
 amenity-parking-private                             # icon z18- (also has caption(optional) z18-, area z17-)
 amenity-parking-street_side-private                 # icon z18- (also has caption(optional) z18-, area z17-)
 amenity-parking-underground-private                 # icon z18- (also has caption(optional) z18-)
@@ -2278,7 +2278,7 @@ leisure-swimming_pool-private                       # icon z17- (also has captio
 # === -9880
 
 # amenity-parking-lane-private                      # caption(optional) z19- (also has icon z19-, area z17-)
-# amenity-parking-no-access                         # caption(optional) z18- (also has icon z16-, area z15-)
+# amenity-parking-no-access                         # caption(optional) z18- (also has icon z18-, area z15-)
 # amenity-parking-private                           # caption(optional) z18- (also has icon z18-, area z17-)
 # amenity-parking-street_side-private               # caption(optional) z18- (also has icon z18-, area z17-)
 # amenity-parking-underground-private               # caption(optional) z18- (also has icon z18-)
