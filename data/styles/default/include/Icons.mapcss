@@ -2006,7 +2006,7 @@ node|z17-[shop=newsagent],
 node|z17-[shop=variety_store],
 {icon-image: shop-m.svg;}
 node|z17-[shop=massage],
-{icon-image: public_bath-m.svg;icon-min-distance: 24;}
+{icon-image: massage_salon-m.svg;icon-min-distance: 24;}
 node|z17-[shop=money_lender],
 {icon-image: bank-m.svg;icon-min-distance: 24;}
 node|z17-[shop=pawnbroker],
