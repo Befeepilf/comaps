@@ -51,6 +51,7 @@ double const kMinVisibleFontSize = 8.0;
 df::ColorConstant const kPoiDeletedMaskColor = "PoiDeletedMask";
 df::ColorConstant const kRoadShieldBlackTextColor = "RoadShieldBlackText";
 df::ColorConstant const kRoadShieldWhiteTextColor = "RoadShieldWhiteText";
+df::ColorConstant const kRoadShieldWhiteBackgroundColor = "RoadShieldWhiteBackground";
 df::ColorConstant const kRoadShieldGreenBackgroundColor = "RoadShieldGreenBackground";
 df::ColorConstant const kRoadShieldBlueBackgroundColor = "RoadShieldBlueBackground";
 df::ColorConstant const kRoadShieldRedBackgroundColor = "RoadShieldRedBackground";
@@ -252,18 +253,22 @@ dp::Color GetRoadShieldColor(dp::Color const & baseColor, ftypes::RoadShield con
   using ftypes::RoadShieldType;
 
   static base::SmallMapBase<ftypes::RoadShieldType, df::ColorConstant> kColors = {
+      {RoadShieldType::Generic_White, kRoadShieldWhiteBackgroundColor},
       {RoadShieldType::Generic_Green, kRoadShieldGreenBackgroundColor},
       {RoadShieldType::Generic_Blue, kRoadShieldBlueBackgroundColor},
       {RoadShieldType::Generic_Red, kRoadShieldRedBackgroundColor},
       {RoadShieldType::Generic_Orange, kRoadShieldOrangeBackgroundColor},
+      {RoadShieldType::Generic_White_Bordered, kRoadShieldWhiteBackgroundColor},
       {RoadShieldType::Generic_Green_Bordered, kRoadShieldGreenBackgroundColor},
       {RoadShieldType::Generic_Blue_Bordered, kRoadShieldBlueBackgroundColor},
       {RoadShieldType::Generic_Red_Bordered, kRoadShieldRedBackgroundColor},
       {RoadShieldType::Generic_Orange_Bordered, kRoadShieldOrangeBackgroundColor},
+      {RoadShieldType::Generic_Pill_White, kRoadShieldWhiteBackgroundColor},
       {RoadShieldType::Generic_Pill_Green, kRoadShieldGreenBackgroundColor},
       {RoadShieldType::Generic_Pill_Blue, kRoadShieldBlueBackgroundColor},
       {RoadShieldType::Generic_Pill_Red, kRoadShieldRedBackgroundColor},
       {RoadShieldType::Generic_Pill_Orange, kRoadShieldOrangeBackgroundColor},
+      {RoadShieldType::Generic_Pill_White_Bordered, kRoadShieldWhiteBackgroundColor},
       {RoadShieldType::Generic_Pill_Green_Bordered, kRoadShieldGreenBackgroundColor},
       {RoadShieldType::Generic_Pill_Blue_Bordered, kRoadShieldBlueBackgroundColor},
       {RoadShieldType::Generic_Pill_Red_Bordered, kRoadShieldRedBackgroundColor},
