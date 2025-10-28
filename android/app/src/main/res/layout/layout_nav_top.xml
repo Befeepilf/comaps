@@ -20,7 +20,7 @@
     android:layout_marginTop="@dimen/margin_half_plus"
     android:layout_marginStart="@dimen/nav_street_left"
     android:layout_marginEnd="@dimen/margin_quarter"
-    app:cardCornerRadius="8dp"
+    app:cardCornerRadius="@dimen/margin_half"
     android:elevation="@dimen/nav_elevation"
     app:layout_constraintTop_toBottomOf="@+id/statutbar"
     android:clickable="true"
@@ -136,7 +136,7 @@
       app:lanesActiveLaneTintColor="?navLaneArrowActiveColor"
       app:lanesInactiveLaneTintColor="?navLaneArrowInactiveColor"
       app:lanesBackgroundColor="?navLanesBackgroundColor"
-      app:lanesCornerRadius="@dimen/margin_quarter"
+      app:lanesCornerRadius="@dimen/margin_half"
       app:lanesEditModeLanesCount="5"
       tools:visibility="visible" />
 

@@ -19,7 +19,7 @@
     android:layout_height="wrap_content"
     android:layout_marginTop="@dimen/margin_half_plus_eight"
     android:layout_marginEnd="@dimen/margin_quarter"
-    app:cardCornerRadius="8dp"
+    app:cardCornerRadius="@dimen/margin_half"
     android:elevation="@dimen/nav_elevation"
     app:layout_constraintTop_toBottomOf="@+id/statutbar"
     app:layout_constraintStart_toEndOf="@+id/nav_next_turn_container"
@@ -133,7 +133,7 @@
       app:lanesActiveLaneTintColor="?navLaneArrowActiveColor"
       app:lanesInactiveLaneTintColor="?navLaneArrowInactiveColor"
       app:lanesBackgroundColor="?colorPrimary"
-      app:lanesCornerRadius="@dimen/margin_quarter"
+      app:lanesCornerRadius="@dimen/margin_half"
       app:lanesEditModeLanesCount="10"
       tools:visibility="visible" />
 
