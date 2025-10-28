@@ -674,6 +674,7 @@ uint64_t GetPopulationByRadius(double r);
 enum class HighwayClass
 {
   Undefined = 0,  // There has not been any attempt of calculating HighwayClass.
+  Motorway,
   Trunk,
   Primary,
   Secondary,

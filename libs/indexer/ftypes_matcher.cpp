@@ -30,8 +30,8 @@ public:
     m_map[c.GetTypeByPath({"route", "ferry"})] = HighwayClass::Transported;
     m_map[c.GetTypeByPath({"route", "shuttle_train"})] = HighwayClass::Transported;
 
-    m_map[c.GetTypeByPath({"highway", "motorway"})] = HighwayClass::Trunk;
-    m_map[c.GetTypeByPath({"highway", "motorway_link"})] = HighwayClass::Trunk;
+    m_map[c.GetTypeByPath({"highway", "motorway"})] = HighwayClass::Motorway;
+    m_map[c.GetTypeByPath({"highway", "motorway_link"})] = HighwayClass::Motorway;
     m_map[c.GetTypeByPath({"highway", "trunk"})] = HighwayClass::Trunk;
     m_map[c.GetTypeByPath({"highway", "trunk_link"})] = HighwayClass::Trunk;
 
@@ -83,6 +83,7 @@ char const * HighwayClassToString(HighwayClass const cls)
   {
   case HighwayClass::Undefined: return "Undefined";
   case HighwayClass::Transported: return "Transported";
+  case HighwayClass::Motorway: return "Motorway";
   case HighwayClass::Trunk: return "Trunk";
   case HighwayClass::Primary: return "Primary";
   case HighwayClass::Secondary: return "Secondary";
