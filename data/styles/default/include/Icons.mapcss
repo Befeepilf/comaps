@@ -1726,6 +1726,7 @@ node|z16-[shop=laundry],
 node|z16-[shop=lighting],
 node|z16-[shop=dry_cleaning],
 node|z16-[shop=mobile_phone],
+node|z16-[shop=telecommunication],
 node|z16-[shop=optician],
 node|z16-[shop=outdoor],
 node|z16-[shop=rental],
@@ -1892,6 +1893,7 @@ node|z16[shop=laundry],
 node|z16[shop=dry_cleaning],
 {icon-image:dry_cleaning-m.svg;}
 node|z16[shop=mobile_phone],
+node|z16[shop=telecommunication],
 {icon-image: mobile_phone-m.svg;}
 node|z16[shop=optician],
 {icon-image: optician-m.svg;}
@@ -2038,6 +2040,7 @@ node|z17-[shop=laundry],
 node|z17-[shop=dry_cleaning],
 {icon-image:dry_cleaning-m.svg;icon-min-distance: 24;}
 node|z17-[shop=mobile_phone],
+node|z17-[shop=telecommunication],
 {icon-image: mobile_phone-m.svg;icon-min-distance: 24;}
 node|z17-[shop=optician],
 {icon-image: optician-m.svg;icon-min-distance: 24;}

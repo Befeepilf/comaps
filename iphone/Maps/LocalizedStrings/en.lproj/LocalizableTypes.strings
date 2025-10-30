@@ -1350,6 +1350,7 @@
 "type.shop.supermarket" = "Supermarket";
 "type.shop.tattoo" = "Tattoo Parlour";
 "type.shop.tea" = "Tea Shop";
+"type.shop.telecommunication" = "Telecommunication Shop";
 "type.shop.ticket" = "Ticket Shop";
 "type.shop.toys" = "Toy Store";
 "type.shop.travel_agency" = "Travel Agency";
