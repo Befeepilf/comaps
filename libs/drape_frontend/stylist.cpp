@@ -63,7 +63,7 @@ void CaptionDescription::Init(FeatureType & f, int8_t deviceLang, int zoomLevel,
   
   if (ftypes::IsPublicTransportStopChecker::Instance()(feature::TypesHolder(f))) {
     auto const lRef = f.GetMetadata(feature::Metadata::FMD_LOCAL_REF);
-    if (!lRef.empty()) {
+    if (!m_mainText.empty() && !lRef.empty()) {
       //m_mainText.append(" (").append(lRef).append(")");
       m_auxText = lRef;
     }
