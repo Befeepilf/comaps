@@ -113,7 +113,7 @@
     <item name="elevationProfileAxisLabelColor">@color/black_54</item>
     <item name="elevationProfileYourLocationPinBg">@drawable/bg_your_location_pin</item>
     <item name="elevationProfileSelectedPointBg">@drawable/bg_point_desc</item>
-    <item name="elevationProfileSelectedPointTriangle">@drawable/ic_triangle</item>
+    <item name="elevationProfileSelectedPointTriangle">@drawable/ic_ascent</item>
     <item name="elevationProfileFloatingTriangle">@drawable/ic_triangle_elevation</item>
     <item name="elevationProfileColor">@color/elevation_profile</item>
     <item name="android:popupMenuStyle">@style/PopupMenu</item>

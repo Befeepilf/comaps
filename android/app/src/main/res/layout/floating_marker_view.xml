@@ -24,10 +24,11 @@
     tools:ignore="UnusedAttribute">
     <com.google.android.material.imageview.ShapeableImageView
       android:id="@+id/floating_triangle"
-      android:layout_width="@dimen/margin_half"
-      android:layout_height="@dimen/margin_base"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
       android:elevation="@dimen/margin_eighth"
       android:layout_centerVertical="true"
+      app:tint="@android:color/white"
       app:srcCompat="?elevationProfileFloatingTriangle" />
     <RelativeLayout
       android:id="@+id/floating_text_container"
@@ -72,6 +73,7 @@
           android:id="@+id/triangle"
           android:layout_width="@dimen/margin_half_plus_eight"
           android:layout_height="@dimen/margin_half_plus_eight"
+          app:tint="?colorControlNormal"
           app:srcCompat="?elevationProfileSelectedPointTriangle" />
         <com.google.android.material.textview.MaterialTextView
           android:id="@+id/altitude"
