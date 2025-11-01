@@ -15,8 +15,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/phone_input"
-        app:srcCompat="@drawable/ic_phone"
-        tools:ignore="ContentDescription" />
+        app:srcCompat="@drawable/ic_phone" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/phone_input"
@@ -46,7 +45,6 @@
       app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintTop_toTopOf="parent"
       app:layout_constraintStart_toEndOf="@+id/phone_input"
-      app:srcCompat="@drawable/ic_delete"
-      tools:ignore="ContentDescription" />
+      app:srcCompat="@drawable/ic_delete" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

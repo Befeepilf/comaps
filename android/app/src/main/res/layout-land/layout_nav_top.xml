@@ -27,8 +27,7 @@
     app:cardBackgroundColor="?colorPrimary">
     <RelativeLayout
       android:layout_width="match_parent"
-      android:layout_height="@dimen/nav_street_height"
-      tools:ignore="UselessParent">
+      android:layout_height="@dimen/nav_street_height">
       <com.google.android.material.textview.MaterialTextView
         android:id="@+id/street"
         style="@style/MwmWidget.TextView.NavStreet"

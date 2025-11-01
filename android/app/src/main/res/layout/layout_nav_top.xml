@@ -28,8 +28,7 @@
     <RelativeLayout
       android:layout_width="match_parent"
       android:layout_height="match_parent"
-      android:minHeight="60dp"
-      tools:ignore="UselessParent">
+      android:minHeight="60dp">
       <com.google.android.material.textview.MaterialTextView
         android:id="@+id/street"
         style="@style/MwmWidget.TextView.NavStreet"
