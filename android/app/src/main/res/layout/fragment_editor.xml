@@ -64,7 +64,8 @@
     </com.google.android.material.card.MaterialCardView>
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv__charging_station"
-        style="@style/MwmWidget.Editor.CardView">
+        style="@style/MwmWidget.Editor.CardView"
+        android:visibility="gone">
       <LinearLayout
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
