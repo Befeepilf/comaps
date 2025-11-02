@@ -1308,7 +1308,7 @@ node|z15-[landuse=industrial][industrial=mine],
 {icon-image: mine-m.svg;text-offset: 1;font-size: 10;}
 
 node|z16-[leisure=water_park],
-{icon-image: swimming-m.svg;icon-min-distance: 30;}
+{icon-image: swimming-centre-m.svg;icon-min-distance: 30;}
 node|z17-[leisure=water_park],
 {icon-min-distance: 20;}
 
