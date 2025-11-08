@@ -73,6 +73,7 @@ node[amenity=place_of_worship]
 node[amenity=social_facility],
 node[historic=ship],
 node[leisure=hackerspace],
+node[social_facility],
 node[tourism=attraction],
 node[tourism=gallery],
 node[tourism=museum],

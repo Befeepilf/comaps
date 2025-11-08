@@ -629,11 +629,11 @@ deprecated|deprecated;506;x
 deprecated|deprecated;507;x
 deprecated|deprecated;508;x
 amenity|car_pooling;509;
-deprecated|deprecated;510;x
-deprecated|deprecated;511;x
-deprecated|deprecated;512;x
+social_facility|soup_kitchen;510;
+social_facility|food_bank;511;
+amenity|food_sharing;512;
 sport|curling;513;
-deprecated|deprecated;514;x
+amenity|give_box;514;
 man_made|telescope;515;
 man_made|telescope|optical;[man_made=telescope][telescope:type=optical];;name;int_name;516;
 man_made|telescope|radio;[man_made=telescope][telescope:type=radio];;name;int_name;517;

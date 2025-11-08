@@ -1146,6 +1146,10 @@ isoline-step_10                                     # pathtext z17- (also has li
 isoline-zero                                        # pathtext z17- (also has line z15-)
 === 1000
 
+social_facility-food_bank                           # icon z17- (also has caption(optional) z17-)
+social_facility-soup_kitchen                        # icon z17- (also has caption(optional) z17-)
+=== 851
+
 amenity-grave_yard                                  # icon z17- (also has caption(optional) z17-, area z10-)
 amenity-grave_yard-christian                        # icon z17- (also has caption(optional) z17-, area z10-)
 amenity-nursing_home                                # icon z17- (also has caption(optional) z17-)
@@ -2160,6 +2164,10 @@ leisure-swimming_pool-private                       # icon z17- (also has captio
 # natural-spring-drinking_water_no                  # caption(optional) z15- (also has icon z14-)
 # === -8800
 
+# social_facility-food_bank                         # caption(optional) z17- (also has icon z17-)
+# social_facility-soup_kitchen                      # caption(optional) z17- (also has icon z17-)
+# === -9149
+
 # amenity-grave_yard                                # caption(optional) z17- (also has icon z17-, area z10-)
 # amenity-grave_yard-christian                      # caption(optional) z17- (also has icon z17-, area z10-)
 # amenity-nursing_home                              # caption(optional) z17- (also has icon z17-)
@@ -2328,6 +2336,8 @@ amenity-telephone                                   # icon z17- (also has captio
 entrance                                            # icon z17- (also has caption(optional) z19-)
 === -9960
 
+amenity-food_sharing                                # icon z18- (also has caption(optional) z18-)
+amenity-give_box                                    # icon z18- (also has caption(optional) z18-)
 amenity-parking_space                               # caption z19-
 amenity-parking_space-disabled                      # icon z18- (also has caption(optional) z19-)
 amenity-parking_space-permissive                    # caption z19-
@@ -2363,6 +2373,8 @@ power-substation                                    # icon z17- (also has captio
 
 # amenity-bench                                     # caption(optional) z19- (also has icon z18-)
 # amenity-bench-backless                            # caption(optional) z19- (also has icon z18-)
+# amenity-food_sharing                              # caption(optional) z18- (also has icon z18-)
+# amenity-give_box                                  # caption(optional) z18- (also has icon z18-)
 amenity-loading_dock                                # icon z18- (also has caption(optional) z19-)
 # amenity-loading_dock                              # caption(optional) z19- (also has icon z18-)
 # amenity-lounger                                   # caption(optional) z19- (also has icon z18-)

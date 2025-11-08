@@ -848,6 +848,8 @@ node|z17-[leisure=indoor_play],
 node|z17-[amenity=courthouse],
 node|z17-[amenity=nursing_home],
 node|z17-[amenity=social_facility],
+node|z17-[social_facility=food_bank],
+node|z17-[social_facility=soup_kitchen],
 node|z17-[amenity=animal_shelter],
 node|z17-[amenity=kindergarten],
 node|z17-[amenity=childcare],
@@ -915,6 +917,8 @@ node|z15-[leisure=sports_centre][sport=swimming],
 node|z17-[highway=ladder],
 node|z18-[amenity=dojo],
 node|z18-[amenity=vending_machine],
+node|z18-[amenity=food_sharing],
+node|z18-[amenity=give_box],
 node|z18-[man_made=telescope],
 node|z17-[man_made=telescope][telescope:type=optical],
 node|z17-[man_made=telescope][telescope:type=radio],
@@ -1441,6 +1445,12 @@ node|z17-[amenity=nursing_home],
 node|z17-[amenity=social_facility],
 {icon-image: social_facility-m.svg;}
 
+node|z17-[social_facility=soup_kitchen],
+{icon-image: soup_kitchen-m.svg;}
+
+node|z17-[social_facility=food_bank],
+{icon-image: food_bank-m.svg;}
+
 node|z17-[amenity=cinema],
 {icon-image: cinema-m.svg;}
 node|z18-[amenity=cinema],
@@ -1580,6 +1590,11 @@ node|z17-[amenity=parcel_locker],
 
 node|z18-[amenity=vending_machine][vending=fuel],
 {icon-image: fuel-dispenser-m.svg;}
+
+node|z18-[amenity=food_sharing],
+{icon-image: food_sharing-m.svg;}
+node|z18-[amenity=give_box],
+{icon-image: give_box-m.svg;}
 
 node|z18-[man_made=telescope],
 {icon-image: telescope-m.svg;}

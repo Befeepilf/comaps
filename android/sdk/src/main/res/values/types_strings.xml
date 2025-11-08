@@ -1446,6 +1446,10 @@
     <string name="type.self_service.no">No self-service</string>
     <!-- https://wiki.openstreetmap.org/wiki/Key:social_facility -->
     <string name="type.amenity.social_facility">Social Facility</string>
+    <string name="type.amenity.soup_kitchen">Soup Kitchen</string>
+    <string name="type.amenity.food_bank">Food Bank</string>
+    <string name="type.amenity.food_sharing">Food Sharing</string>
+    <string name="type.amenity.give_box">Give Box</string>
     <!-- https://wiki.openstreetmap.org/wiki/Tag:emergency=emergency_ward_entrance -->
     <string name="type.emergency.emergency_ward_entrance">Emergency Ward Entrance</string>
     <!-- https://wiki.openstreetmap.org/wiki/Tag:amenity=dojo -->
