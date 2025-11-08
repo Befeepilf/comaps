@@ -123,6 +123,7 @@
     <string name="type.amenity.parking_space.private">Parking Space</string>
     <string name="type.amenity.parking_space.underground">Parking Space</string>
     <string name="type.amenity.parking_space.disabled">Disabled Parking Space</string>
+    <string name="type.amenity.car_pooling">Car Pooling</string>
     <string name="type.amenity.payment_centre">Payment Centre</string>
     <string name="type.amenity.payment_terminal">Payment Terminal</string>
     <string name="type.amenity.pharmacy">Pharmacy</string>

@@ -14,6 +14,7 @@
 # - BG-top: water (linear and areal)
 # - BG-by-size: landcover areas sorted by their size
 
+amenity-car_pooling                                 # area z15- (also has icon z15-, caption(optional) z16-)
 amenity-motorcycle_parking                          # area z17- (also has icon z17-)
 amenity-parking                                     # area z15- (also has icon z15-, caption(optional) z16-)
 amenity-parking-fee                                 # area z15- (also has icon z15-, caption(optional) z16-)

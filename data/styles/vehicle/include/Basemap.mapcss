@@ -294,6 +294,7 @@ area|z14-[landuse=cemetery],
 area|z14-[amenity=university],
 area|z15-[leisure=stadium],
 area|z15-[amenity=parking],
+area|z15-[amenity=car_pooling],
 {fill-opacity: 1;}
 
 /* 7.1 Industrial */
@@ -385,8 +386,10 @@ area|z14-[landuse=farmyard],
 /* Parking */
 
 area|z15-[amenity=parking],
+area|z15-[amenity=car_pooling],
 {fill-color: @parking;fill-opacity: 1;}
 area|z17-[amenity=parking],
+area|z17-[amenity=car_pooling],
 {fill-color: @parking_l;fill-opacity: 1;}
 
 area|z15-[amenity=parking][location=underground],

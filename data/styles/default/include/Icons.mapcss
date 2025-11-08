@@ -2157,6 +2157,7 @@ node|z17-[amenity=bicycle_parking],
 node|z17-[amenity=motorcycle_parking],
 node|z17-[amenity=car_wash],
 node|z18-[amenity=parking],
+node|z18-[amenity=car_pooling],
 node|z18-[amenity=car_rental],
 node|z18-[amenity=car_sharing],
 {text: name;text-color: @poi_label;text-offset: 1;font-size: 10;}
@@ -2230,6 +2231,11 @@ node|z16-[amenity=parking],
 {icon-image: parking-s.svg;icon-min-distance: 5;}
 node|z17-[amenity=parking],
 {icon-image: parking-m.svg;font-size: 11;icon-min-distance: 10}
+
+node|z16-[amenity=car_pooling],
+{icon-image: parking-pooling-s.svg;icon-min-distance: 5;}
+node|z17-[amenity=car_pooling],
+{icon-image: parking-pooling-m.svg;font-size: 11;icon-min-distance: 10}
 
 node|z16-[amenity=parking][location=underground],
 {icon-image:parking_underground-m.svg;}

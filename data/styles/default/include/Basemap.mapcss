@@ -428,6 +428,7 @@ area|z14-[area:highway=living_street],
 area|z14-[amenity=grave_yard],
 area|z14-[landuse=cemetery],
 area|z15-[amenity=parking],
+area|z15-[amenity=car_pooling],
 area|z16-[public_transport=platform],
 area|z16-[railway=platform],
 {fill-opacity: 1;}
@@ -590,6 +591,7 @@ area|z10-[landuse=farmyard],
 /* Parking */
 
 area|z15-[amenity=parking],
+area|z15-[amenity=car_pooling],
 {fill-color: @parking;}
 
 area|z15-[amenity=parking][location=underground],

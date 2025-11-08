@@ -140,6 +140,7 @@ railway-platform                                    # area z16- (also has captio
 
 amenity-bicycle_parking                             # area z15- (also has icon z17-, caption(optional) z17-)
 amenity-bicycle_parking-covered                     # area z15- (also has icon z17-, caption(optional) z17-)
+amenity-car_pooling                                 # area z15- (also has icon z16-, caption(optional) z18-)
 amenity-motorcycle_parking                          # area z15- (also has icon z17-, caption(optional) z17-)
 amenity-parking                                     # area z15- (also has icon z16-, caption(optional) z18-)
 amenity-parking-fee                                 # area z15- (also has icon z16-, caption(optional) z18-)

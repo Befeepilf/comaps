@@ -234,6 +234,7 @@ amenity-sanitary_dump_station                       # icon z15- (also has captio
 shop-caravan                                        # icon z17-
 === 2600
 
+amenity-car_pooling                                 # icon z15- (also has caption(optional) z16-, area z15-)
 amenity-parking                                     # icon z15- (also has caption(optional) z16-, area z15-)
 amenity-parking-fee                                 # icon z15- (also has caption(optional) z16-, area z15-)
 amenity-parking-multi-storey                        # icon z15- (also has caption(optional) z16-, area z15-)
@@ -819,6 +820,7 @@ entrance-main                                       # icon z18- (also has captio
 # amenity-sanitary_dump_station                     # caption(optional) z15- (also has icon z15-)
 # === -7400
 
+# amenity-car_pooling                               # caption(optional) z16- (also has icon z15-, area z15-)
 # amenity-parking                                   # caption(optional) z16- (also has icon z15-, area z15-)
 # amenity-parking-fee                               # caption(optional) z16- (also has icon z15-, area z15-)
 # amenity-parking-multi-storey                      # caption(optional) z16- (also has icon z15-, area z15-)

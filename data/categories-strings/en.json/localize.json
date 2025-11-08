@@ -419,6 +419,7 @@
 "amenity-internet_cafe": "3Internet Cafe",
 "amenity-motorcycle_parking": "4Motorcycle Parking",
 "amenity-parking_space-disabled|@category_parking": "Disabled Parking Space",
+"amenity-car_pooling|@category_parking": "Car Pooling",
 "amenity-nursing_home": "4Nursing Home",
 "amenity-payment_terminal": "Payment Terminal",
 "amenity-payment_centre": "Payment Centre",
