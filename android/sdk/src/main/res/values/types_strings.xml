@@ -43,6 +43,11 @@
     <string name="type.amenity.motorcycle_rental">Motorcycle Rental</string>
     <string name="type.amenity.car_sharing">Car Sharing</string>
     <string name="type.amenity.car_wash">Car Wash</string>
+    <string name="type.man_made.telescope">Telescope</string>
+    <string name="type.man_made.telescope.optical">Telescope (Optical)</string>
+    <string name="type.man_made.telescope.radio">Telescope (Radio)</string>
+    <string name="type.man_made.telescope.gamma">Telescope (Gamma)</string>
+    <string name="type.man_made.observatory">Observatory</string>
     <string name="type.amenity.casino">Casino</string>
     <string name="type.amenity.gambling">Gambling</string>
     <string name="type.leisure.adult_gaming_centre">Adult Gaming Centre</string>

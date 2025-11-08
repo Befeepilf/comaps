@@ -269,6 +269,9 @@ node|z16-[man_made=survey_point],
 area|z14-[highway=rest_area],
 {icon-image: picnic-m.svg;}
 
+node|z15-[man_made=observatory],
+{icon-image: observatory-m.svg;}
+
 node|z15-[amenity=toilets],
 {icon-image: toilets-m.svg; font-size: 11;}
 

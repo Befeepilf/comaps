@@ -345,6 +345,8 @@
 "shop-dry_cleaning": "3Dry Cleaner|cleaning",
 "shop-tyres|@shop": "3Tyre|tyres",
 "amenity-car_wash": "3Car Wash",
+"man_made-telescope|man_made-telescope-optical|man_made-telescope-radio|man_made-telescope-gamma": "5Telescope",
+"man_made-observatory": "4Observatory",
 "amenity-veterinary": "Veterinary Doctor|4veterinary",
 "amenity-animal_shelter": "Animal Shelter",
 "@charging_station": "4Charging Station|charging",

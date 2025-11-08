@@ -634,11 +634,11 @@ deprecated|deprecated;511;x
 deprecated|deprecated;512;x
 sport|curling;513;
 deprecated|deprecated;514;x
-deprecated|deprecated;515;x
-deprecated|deprecated;516;x
-deprecated|deprecated;517;x
-deprecated|deprecated;518;x
-deprecated|deprecated;519;x
+man_made|telescope;515;
+man_made|telescope|optical;[man_made=telescope][telescope:type=optical];;name;int_name;516;
+man_made|telescope|radio;[man_made=telescope][telescope:type=radio];;name;int_name;517;
+man_made|telescope|gamma;[man_made=telescope][telescope:type=gamma];;name;int_name;518;
+man_made|observatory;519;
 sport|diving;520;
 #~270k uses.
 man_made|utility_pole;521;

@@ -989,6 +989,7 @@ leisure-escape_game                                 # icon z17- (also has captio
 leisure-fitness_centre                              # icon z16- (also has caption(optional) z17-)
 leisure-hackerspace                                 # icon z17- (also has caption(optional) z17-)
 leisure-sauna                                       # icon z17- (also has caption(optional) z17-)
+man_made-observatory                                # icon z15- (also has caption(optional) z16-)
 office-estate_agent                                 # icon z18- (also has caption(optional) z18-)
 office-government                                   # icon z18- (also has caption(optional) z18-)
 office-insurance                                    # icon z18- (also has caption(optional) z18-)
@@ -1134,6 +1135,8 @@ amenity-vending_machine-public_transport_tickets    # icon z17- (also has captio
 amenity-water_point-drinking_water_no               # icon z14- (also has caption(optional) z14-)
 highway-elevator                                    # icon z17-
 leisure-picnic_table                                # icon z15- (also has caption(optional) z16-)
+man_made-telescope-gamma                            # icon z17- (also has caption(optional) z17-)
+man_made-telescope-radio                            # icon z17- (also has caption(optional) z17-)
 man_made-water_tap-drinking_water_no                # icon z14- (also has caption(optional) z14-)
 man_made-water_well-drinking_water_no               # icon z14- (also has caption(optional) z14-)
 natural-spring-drinking_water_no                    # icon z12- (also has caption(optional) z14-)
@@ -2012,6 +2015,7 @@ leisure-swimming_pool-private                       # icon z17- (also has captio
 # leisure-fitness_centre                            # caption(optional) z17- (also has icon z16-)
 # leisure-hackerspace                               # caption(optional) z17- (also has icon z17-)
 # leisure-sauna                                     # caption(optional) z17- (also has icon z17-)
+# man_made-observatory                              # caption(optional) z16- (also has icon z15-)
 # office-estate_agent                               # caption(optional) z18- (also has icon z18-)
 # office-government                                 # caption(optional) z18- (also has icon z18-)
 # office-insurance                                  # caption(optional) z18- (also has icon z18-)
@@ -2152,6 +2156,8 @@ leisure-swimming_pool-private                       # icon z17- (also has captio
 # amenity-vending_machine-public_transport_tickets  # caption(optional) z17- (also has icon z17-)
 # amenity-water_point-drinking_water_no             # caption(optional) z14- (also has icon z14-)
 # leisure-picnic_table                              # caption(optional) z16- (also has icon z15-)
+# man_made-telescope-gamma                          # caption(optional) z17- (also has icon z17-)
+# man_made-telescope-radio                          # caption(optional) z17- (also has icon z17-)
 # man_made-water_tap-drinking_water_no              # caption(optional) z14- (also has icon z14-)
 # man_made-water_well-drinking_water_no             # caption(optional) z14- (also has icon z14-)
 # natural-spring-drinking_water_no                  # caption(optional) z14- (also has icon z12-)
@@ -2343,6 +2349,7 @@ amenity-vending_machine-food                        # icon z18- (also has captio
 amenity-vending_machine-newspapers                  # icon z18- (also has caption(optional) z18-)
 amenity-vending_machine-sweets                      # icon z18- (also has caption(optional) z18-)
 building-address                                    # caption z16-
+man_made-telescope-optical                          # icon z17- (also has caption(optional) z17-)
 === -9970
 
 amenity-bench                                       # icon z18- (also has caption(optional) z19-)
@@ -2352,6 +2359,7 @@ amenity-waste_disposal                              # icon z18- (also has captio
 emergency-assembly_point                            # icon z18- (also has caption(optional) z18-)
 emergency-defibrillator                             # icon z18- (also has caption(optional) z18-)
 emergency-phone                                     # icon z17-
+man_made-telescope                                  # icon z18- (also has caption(optional) z18-)
 === -9980
 
 amenity-waste_basket                                # icon z18- (also has caption(optional) z19-)
@@ -2385,6 +2393,8 @@ entrance-exit                                       # icon z17- (also has captio
 # entrance-exit                                     # caption(optional) z19- (also has icon z17-)
 # man_made-cairn                                    # caption(optional) z17- (also has icon z17-)
 # man_made-survey_point                             # caption(optional) z15- (also has icon z14-)
+# man_made-telescope                                # caption(optional) z18- (also has icon z18-)
+# man_made-telescope-optical                        # caption(optional) z17- (also has icon z17-)
 # power-substation                                  # caption(optional) z18- (also has icon z17-, area z13-)
 # tourism-information                               # caption(optional) z15- (also has icon z15-)
 # tourism-information-board                         # caption(optional) z15- (also has icon z15-)

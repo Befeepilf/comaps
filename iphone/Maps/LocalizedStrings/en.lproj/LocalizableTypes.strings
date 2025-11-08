@@ -44,6 +44,11 @@
 "type.amenity.motorcycle_rental" = "Motorcycle Rental";
 "type.amenity.car_sharing" = "Car Sharing";
 "type.amenity.car_wash" = "Car Wash";
+"type.man_made.telescope" = "Telescope";
+"type.man_made.telescope.optical" = "Telescope (Optical)";
+"type.man_made.telescope.radio" = "Telescope (Radio)";
+"type.man_made.telescope.gamma" = "Telescope (Gamma)";
+"type.man_made.observatory" = "Observatory";
 "type.amenity.casino" = "Casino";
 "type.amenity.gambling" = "Gambling";
 "type.amenity.studio" = "Media Studio";
