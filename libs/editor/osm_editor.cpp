@@ -1107,16 +1107,17 @@ void Editor::CreateNote(ms::LatLon const & latLon, FeatureID const & fid, featur
   std::ostringstream sstr;
   auto canCreate = true;
 
-  if (!note.empty())
-    sstr << '"' << note << "\"\n";
-
   switch (type)
   {
   case NoteProblemType::PlaceDoesNotExist:
   {
-    sstr << "The place has gone or never existed. A CoMaps user reported "
-            "that the POI was visible on the map (see snapshot date below), but was not found "
-            "on the ground.\n";
+    sstr << "This place does not exist:\n";
+
+    if (!note.empty())
+      sstr << '"' << note << "\"\n";
+
+    sstr << "A CoMaps user reported that the POI was visible on the map (see snapshot date below), "
+            "but was not found on the ground.\n";
     auto const features = m_features.Get();
     auto const isCreated = GetFeatureStatusImpl(*features, fid.m_mwmId, fid.m_index) == FeatureStatus::Created;
     auto const createdAndUploaded = (isCreated && IsFeatureUploadedImpl(*features, fid.m_mwmId, fid.m_index));
@@ -1129,7 +1130,12 @@ void Editor::CreateNote(ms::LatLon const & latLon, FeatureID const & fid, featur
 
     break;
   }
-  case NoteProblemType::General: break;
+  case NoteProblemType::General:
+  {
+    if (!note.empty())
+      sstr << '"' << note << "\"\n";
+    break;
+  }
   }
 
   if (!canCreate)
