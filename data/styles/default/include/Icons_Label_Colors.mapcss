@@ -158,3 +158,6 @@ node[healthcare],
 node[amenity=bicycle_rental],
 node[amenity=taxi],
 {text-color: @public_transport_label;text-halo-radius: 0.1;text-halo-opacity: 0.7;text-halo-color: @label_halo_light;}
+
+node[emergency=access_point],
+{text-color: @emergency_label;text-halo-radius: 0.1;text-halo-opacity: 0.7;text-halo-color: @label_halo_light;}

@@ -359,6 +359,7 @@
 "type.cuisine.vegetarian" = "Vegetarisch";
 "type.cuisine.vietnamese" = "Vietnamesisch";
 "type.emergency" = "Notfall";
+"type.emergency.access_point" = "Rettungspunkt";
 "type.emergency.assembly_point" = "Notfall-Sammelpunkt";
 "type.emergency.defibrillator" = "Defibrillator";
 "type.emergency.fire_hydrant" = "Hydrant";

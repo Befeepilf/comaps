@@ -854,6 +854,12 @@ IsPlatformChecker::IsPlatformChecker()
   m_types.push_back(c.GetTypeByPath({"public_transport", "platform"}));
 }
 
+IsEmergencyAccessPointChecker::IsEmergencyAccessPointChecker()
+{
+  Classificator const & c = classif();
+  m_types.push_back(c.GetTypeByPath({"emergency", "access_point"}));
+}
+
 IsAddressInterpolChecker::IsAddressInterpolChecker() : BaseChecker(1 /* level */)
 {
   Classificator const & c = classif();

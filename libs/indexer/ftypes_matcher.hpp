@@ -629,6 +629,14 @@ public:
   DECLARE_CHECKER_INSTANCE(IsPlatformChecker);
 };
 
+class IsEmergencyAccessPointChecker : public BaseChecker
+{
+  IsEmergencyAccessPointChecker();
+
+public:
+  DECLARE_CHECKER_INSTANCE(IsEmergencyAccessPointChecker);
+};
+
 class IsAddressInterpolChecker : public BaseChecker
 {
   IsAddressInterpolChecker();

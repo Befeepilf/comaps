@@ -169,7 +169,7 @@ highway|residential|bridge;[highway=residential][bridge?];;name;int_name;81;
 # railway|rail|service|bridge;[railway=rail][service?][service!=spur][bridge?];...
 railway|rail|bridge;[railway=rail][bridge?][dont=match];;name;int_name;82;
 deprecated:boundary|administrative|10:04.2024;[boundary=administrative][admin_level=10];x;name;int_name;83;
-deprecated:boundary|administrative|6:04.2024;[boundary=administrative][admin_level=6];x;name;int_name;84;
+emergency|access_point;[emergency=access_point];;name;;84;
 highway|secondary|bridge;[highway=secondary][bridge?];;name;int_name;85;
 highway|tertiary|bridge;[highway=tertiary][bridge?];;name;int_name;86;
 barrier|bollard;87;

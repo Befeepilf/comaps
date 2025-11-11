@@ -371,6 +371,7 @@
     <string name="type.cuisine.vegetarian">Vegetarian</string>
     <string name="type.cuisine.vietnamese">Vietnamese</string>
     <string name="type.emergency">Emergency</string>
+    <string name="type.emergency.access_point">Emergency Rescue Point</string>
     <string name="type.emergency.assembly_point">Emergency Assembly Point</string>
     <string name="type.emergency.defibrillator">Defibrillator</string>
     <string name="type.emergency.fire_hydrant">Fire Hydrant</string>
