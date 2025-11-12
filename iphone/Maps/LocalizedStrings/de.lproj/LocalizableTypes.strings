@@ -368,6 +368,39 @@
 
 /* A place where a lifeguard is on duty. */
 "type.emergency.lifeguard" = "Rettungsschwimmer";
+"type.beacon.cardinal.east" = "Kardinalbake";
+"type.beacon.cardinal.north" = "Kardinalbake";
+"type.beacon.cardinal.south" = "Kardinalbake";
+"type.beacon.cardinal.west" = "Kardinalbake";
+"type.beacon.isolated_danger" = "Einzelgefahrenbake";
+"type.beacon.lateral.port" = "Lateralbake";
+"type.beacon.lateral.starboard" = "Lateralbake";
+"type.beacon.safe_water" = "Mittefahrwasserbarke";
+"type.beacon.special_purpose" = "Spezialbake";
+"type.buoy.cardinal.east" = "Kardinalboje";
+"type.buoy.cardinal.north" = "Kardinalboje";
+"type.buoy.cardinal.south" = "Kardinalboje";
+"type.buoy.cardinal.west" = "Kardinalboje";
+"type.buoy.isolated_danger" = "Einzelgefahrenboje";
+"type.buoy.lateral.port" = "Lateralboje";
+"type.buoy.lateral.starboard" = "Lateralboje";
+"type.buoy.safe_water" = "Mittefahrwasserboje";
+"type.buoy.special_purpose" = "Spezialboje";
+"type.spherical_buoy.cardinal.east" = "Kugelförmige Kardinalboje";
+"type.spherical_buoy.cardinal.north" = "Kugelförmige Kardinalboje";
+"type.spherical_buoy.cardinal.south" = "Kugelförmige Kardinalboje";
+"type.spherical_buoy.cardinal.west" = "Kugelförmige Kardinalboje";
+"type.spherical_buoy.isolated_danger" = "Kugelförmige Einzelgefahrenboje";
+"type.spherical_buoy.lateral.port" = "Kugelförmige Lateralboje";
+"type.spherical_buoy.lateral.starboard" = "Kugelförmige Lateralboje";
+"type.spherical_buoy.safe_water" = "Kugelförmige Mittefahrwasserboje";
+"type.spherical_buoy.special_purpose" = "Kugelförmige Spezialboje";
+"type.lateral.port" = "Backbord";
+"type.lateral.starboard" = "Steuerbord";
+"type.cardinal.east" = "Ost";
+"type.cardinal.north" = "Nord";
+"type.cardinal.south" = "Süd";
+"type.cardinal.west" = "West";
 
 /* A mountain rescue base for search and rescue activities. */
 "type.emergency.mountain_rescue" = "Bergrettungsstation";

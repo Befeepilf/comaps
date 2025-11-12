@@ -382,6 +382,39 @@
     <string name="type.emergency.phone">Emergency Phone</string>
     <!-- A place where a lifeguard is on duty. -->
     <string name="type.emergency.lifeguard">Lifeguard</string>
+    <string name="type.beacon.cardinal.east">Cardinal Beacon</string>
+    <string name="type.beacon.cardinal.north">Cardinal Beacon</string>
+    <string name="type.beacon.cardinal.south">Cardinal Beacon</string>
+    <string name="type.beacon.cardinal.west">Cardinal Beacon</string>
+    <string name="type.beacon.isolated_danger">Isolated Danger Beacon</string>
+    <string name="type.beacon.lateral.port">Lateral Beacon</string>
+    <string name="type.beacon.lateral.starboard">Lateral Beacon</string>
+    <string name="type.beacon.safe_water">Safe Water Beacon</string>
+    <string name="type.beacon.special_purpose">Special Purpose Beacon</string>
+    <string name="type.buoy.cardinal.east">Cardinal Buoy</string>
+    <string name="type.buoy.cardinal.north">Cardinal Buoy</string>
+    <string name="type.buoy.cardinal.south">Cardinal Buoy</string>
+    <string name="type.buoy.cardinal.west">Cardinal Buoy</string>
+    <string name="type.buoy.isolated_danger">Isolated Danger Buoy</string>
+    <string name="type.buoy.lateral.port">Lateral Buoy</string>
+    <string name="type.buoy.lateral.starboard">Lateral Buoy</string>
+    <string name="type.buoy.safe_water">Safe Water Buoy</string>
+    <string name="type.buoy.special_purpose">Special Purpose Buoy</string>
+    <string name="type.spherical_buoy.cardinal.east">Spherical Cardinal Buoy</string>
+    <string name="type.spherical_buoy.cardinal.north">Spherical Cardinal Buoy</string>
+    <string name="type.spherical_buoy.cardinal.south">Spherical Cardinal Buoy</string>
+    <string name="type.spherical_buoy.cardinal.west">Spherical Cardinal Buoy</string>
+    <string name="type.spherical_buoy.isolated_danger">Spherical Isolated Danger Buoy</string>
+    <string name="type.spherical_buoy.lateral.port">Spherical Lateral Buoy</string>
+    <string name="type.spherical_buoy.lateral.starboard">Spherical Lateral Buoy</string>
+    <string name="type.spherical_buoy.safe_water">Spherical Safe Water Buoy</string>
+    <string name="type.spherical_buoy.special_purpose">Spherical Special Purpose Buoy</string>
+    <string name="type.lateral.port">Port</string>
+    <string name="type.lateral.starboard">Starboard</string>
+    <string name="type.cardinal.east">East</string>
+    <string name="type.cardinal.north">North</string>
+    <string name="type.cardinal.south">South</string>
+    <string name="type.cardinal.west">West</string>
     <!-- A mountain rescue base for search and rescue activities. -->
     <string name="type.emergency.mountain_rescue">Mountain Rescue Station</string>
     <!-- This is for secondary entrances, for main entrances see type.entrance.main -->

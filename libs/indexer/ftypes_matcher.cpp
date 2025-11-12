@@ -740,6 +740,13 @@ IsPublicTransportStopChecker::IsPublicTransportStopChecker()
   m_types.push_back(c.GetTypeByPath({"railway", "tram_stop"}));
 }
 
+IsDirectionalChecker::IsDirectionalChecker() : ftypes::BaseChecker(1 /* level */)
+{
+  Classificator const & c = classif();
+  m_types.push_back(c.GetTypeByPath({"cardinal"}));
+  m_types.push_back(c.GetTypeByPath({"lateral"}));
+}
+
 IsTaxiChecker::IsTaxiChecker()
 {
   Classificator const & c = classif();

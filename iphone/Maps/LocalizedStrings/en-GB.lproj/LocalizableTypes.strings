@@ -379,6 +379,39 @@
 
 /* A place where a lifeguard is on duty. */
 "type.emergency.lifeguard" = "Lifeguard";
+"type.beacon.cardinal.east" = "Cardinal Beacon";
+"type.beacon.cardinal.north" = "Cardinal Beacon";
+"type.beacon.cardinal.south" = "Cardinal Beacon";
+"type.beacon.cardinal.west" = "Cardinal Beacon";
+"type.beacon.isolated_danger" = "Isolated Danger Beacon";
+"type.beacon.lateral.port" = "Lateral Beacon";
+"type.beacon.lateral.starboard" = "Lateral Beacon";
+"type.beacon.safe_water" = "Safe Water Beacon";
+"type.beacon.special_purpose" = "Special Purpose Beacon";
+"type.buoy.cardinal.east" = "Cardinal Buoy";
+"type.buoy.cardinal.north" = "Cardinal Buoy";
+"type.buoy.cardinal.south" = "Cardinal Buoy";
+"type.buoy.cardinal.west" = "Cardinal Buoy";
+"type.buoy.isolated_danger" = "Isolated Danger Buoy";
+"type.buoy.lateral.port" = "Lateral Buoy";
+"type.buoy.lateral.starboard" = "Lateral Buoy";
+"type.buoy.safe_water" = "Safe Water Buoy";
+"type.buoy.special_purpose" = "Special Purpose Buoy";
+"type.spherical_buoy.cardinal.east" = "Spherical Cardinal Buoy";
+"type.spherical_buoy.cardinal.north" = "Spherical Cardinal Buoy";
+"type.spherical_buoy.cardinal.south" = "Spherical Cardinal Buoy";
+"type.spherical_buoy.cardinal.west" = "Spherical Cardinal Buoy";
+"type.spherical_buoy.isolated_danger" = "Spherical Isolated Danger Buoy";
+"type.spherical_buoy.lateral.port" = "Spherical Lateral Buoy";
+"type.spherical_buoy.lateral.starboard" = "Spherical Lateral Buoy";
+"type.spherical_buoy.safe_water" = "Spherical Safe Water Buoy";
+"type.spherical_buoy.special_purpose" = "Spherical Special Purpose Buoy";
+"type.lateral.port" = "Port";
+"type.lateral.starboard" = "Starboard";
+"type.cardinal.east" = "East";
+"type.cardinal.north" = "North";
+"type.cardinal.south" = "South";
+"type.cardinal.west" = "West";
 
 /* A mountain rescue base for search and rescue activities. */
 "type.emergency.mountain_rescue" = "Mountain Rescue Station";

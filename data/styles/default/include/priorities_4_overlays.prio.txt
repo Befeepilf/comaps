@@ -1302,6 +1302,35 @@ barrier-entrance                                    # icon z16- (also has captio
 entrance-main                                       # icon z16- (also has caption(optional) z18-)
 === 220
 
+spherical_buoy-cardinal-east                        # icon z17-
+spherical_buoy-cardinal-north                       # icon z17-
+spherical_buoy-cardinal-south                       # icon z17-
+spherical_buoy-cardinal-west                        # icon z17-
+spherical_buoy-isolated_danger                      # icon z17-
+spherical_buoy-lateral-port                         # icon z17-
+spherical_buoy-lateral-starboard                    # icon z17-
+spherical_buoy-safe_water                           # icon z17-
+spherical_buoy-special_purpose                      # icon z17-
+=== 216
+
+beacon-cardinal-east                                # icon z16-
+beacon-cardinal-north                               # icon z16-
+beacon-cardinal-south                               # icon z16-
+beacon-cardinal-west                                # icon z16-
+beacon-isolated_danger                              # icon z16-
+beacon-lateral-port                                 # icon z16-
+beacon-lateral-starboard                            # icon z16-
+beacon-safe_water                                   # icon z16-
+beacon-special_purpose                              # icon z16-
+buoy-cardinal-east                                  # icon z16-
+buoy-cardinal-north                                 # icon z16-
+buoy-cardinal-south                                 # icon z16-
+buoy-cardinal-west                                  # icon z16-
+buoy-isolated_danger                                # icon z16-
+buoy-lateral-port                                   # icon z16-
+buoy-lateral-starboard                              # icon z16-
+buoy-safe_water                                     # icon z16-
+buoy-special_purpose                                # icon z16-
 highway-traffic_signals                             # icon z19-
 === 215
 
