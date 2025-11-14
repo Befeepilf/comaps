@@ -668,7 +668,7 @@ void Editor::UploadChanges(string const & oauthToken, ChangesetTags tags, Finish
               {}
 
               // Add tags to XMLFeature
-              UpdateXMLFeatureTags(feature, journal);
+              UpdateXMLFeatureTags(feature, journal, changeset);
 
               // Upload XMLFeature to OSM
               LOG(LDEBUG, ("CREATE Feature (newEditor)", feature));
@@ -686,7 +686,7 @@ void Editor::UploadChanges(string const & oauthToken, ChangesetTags tags, Finish
               XMLFeature feature = GetMatchingFeatureFromOSM(changeset, fti.m_object);
 
               // Update tags of XMLFeature
-              UpdateXMLFeatureTags(feature, journal);
+              UpdateXMLFeatureTags(feature, journal, changeset);
 
               // Upload XMLFeature to OSM
               LOG(LDEBUG, ("MODIFIED Feature (newEditor)", feature));
@@ -1321,7 +1321,8 @@ bool Editor::IsFeatureUploadedImpl(FeaturesContainer const & features, MwmId con
   return info && info->m_uploadStatus == kUploaded;
 }
 
-void Editor::UpdateXMLFeatureTags(editor::XMLFeature & feature, std::list<JournalEntry> const & journal)
+void Editor::UpdateXMLFeatureTags(editor::XMLFeature & feature, std::list<JournalEntry> const & journal,
+                                  ChangesetWrapper & changeset)
 {
   for (JournalEntry const & entry : journal)
   {
@@ -1335,6 +1336,13 @@ void Editor::UpdateXMLFeatureTags(editor::XMLFeature & feature, std::list<Journa
     }
     case JournalEntryType::ObjectCreated: break;
     case JournalEntryType::LegacyObject: ASSERT_FAIL(("Legacy Objects can not be edited with the new editor")); break;
+    case JournalEntryType::BusinessReplacement:
+    {
+      BusinessReplacementData const & businessReplacementData = std::get<BusinessReplacementData>(entry.data);
+      feature.OSMBusinessReplacement(businessReplacementData.old_type, businessReplacementData.new_type);
+      changeset.AddChangesetTag("info:place_marked_as_disused", "yes");
+      break;
+    }
     }
   }
 }
