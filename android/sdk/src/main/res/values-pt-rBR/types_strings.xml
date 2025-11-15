@@ -1440,4 +1440,6 @@
     <string name="type.amenity.food_bank">Banco de alimentos</string>
     <string name="type.amenity.food_sharing">Compartilhamento de alimentos</string>
     <string name="type.amenity.give_box">Caixa de doação</string>
+    <string name="type.emergency.access_point">Ponto de Resgate de Emergência</string>
+    <string name="type.emergency.life_ring">Boia salva-vidas</string>
 </resources>

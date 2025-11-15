@@ -524,21 +524,21 @@
 "autodownload" = "自动下载";
 
 /* Place Page opening hours text */
-"closed_now" = "已歇业";
+"closed_now" = "已关闭";
 
 /* Place Page opening hours text */
 "daily" = "每天";
-"twentyfour_seven" = "24/7 全天候营业";
-"day_off_today" = "今天不营业";
-"day_off" = "不营业";
+"twentyfour_seven" = "24/7";
+"day_off_today" = "今天关闭";
+"day_off" = "关闭";
 "today" = "今天";
-"opens_tomorrow_at" = "明天 %@ 营业";
-"opens_dayoftheweek_at" = "%1$@ %2$@ 营业";
-"opens_at" = "%@ 营业";
-"opens_in" = "将于 %@ 后营业";
-"closes_at" = "%@ 不营业";
-"closes_in" = "将于 %@ 后不营业";
-"closed" = "已停止营业";
+"opens_tomorrow_at" = "明天 %@ 开放";
+"opens_dayoftheweek_at" = "%1$@ %2$@ 开放";
+"opens_at" = "%@ 开放";
+"opens_in" = "%@ 开放";
+"closes_at" = "%@ 关闭";
+"closes_in" = "%@ 关闭";
+"closed" = "已关闭";
 "add_opening_hours" = "添加营业时间";
 
 /* OpenStreetMap */
@@ -820,7 +820,7 @@
 "avoid_tolls" = "避开收费公路";
 
 /* Recommended length for CarPlay and Android Auto is around 25-27 characters */
-"avoid_unpaved" = "避开未铺砌道路";
+"avoid_unpaved" = "避开非铺装道路‌";
 
 /* Recommended length for CarPlay and Android Auto is around 25-27 characters */
 "avoid_ferry" = "避开轮渡";
@@ -830,7 +830,7 @@
 "define_to_avoid_btn" = "选择要避开的道路";
 "change_driving_options_btn" = "绕行设置已开启";
 "toll_road" = "收费公路";
-"unpaved_road" = "未铺砌道路";
+"unpaved_road" = "非铺装道路‌";
 "ferry_crossing" = "轮渡";
 "trip_start" = "出发";
 "pick_destination" = "目的地";
@@ -1105,3 +1105,4 @@
 "unknown" = "未知";
 "voice_explanation_before_version26" = "可以在系统设置中的 *辅助功能*、*朗读内容*、*声音*下选择更好的声音。";
 "voice_explanation" = "可以在系统设置中的 *辅助功能*、*阅读与朗读*、*声音*下选择更好的声音。";
+"avoid_paved" = "避开铺装道路";

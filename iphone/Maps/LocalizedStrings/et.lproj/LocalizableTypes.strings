@@ -354,14 +354,14 @@
 "type.cuisine.vegan" = "Täistaimetoidukoht";
 "type.cuisine.vegetarian" = "Taimetoit";
 "type.cuisine.vietnamese" = "Vietnami";
-"type.emergency" = "Pääste- ja abiteenused";
+"type.emergency" = "Pääste- ja hädaolukorra teenused";
 "type.emergency.assembly_point" = "Kogunemiskoht hädaolukorras";
 "type.emergency.defibrillator" = "Defibrillaator";
 "type.emergency.fire_hydrant" = "Tuletõrjehüdrant";
 "type.emergency.phone" = "Hädaabi telefon";
 
 /* A place where a lifeguard is on duty. */
-"type.emergency.lifeguard" = "Päästja";
+"type.emergency.lifeguard" = "Vetelpäästja";
 
 /* A mountain rescue base for search and rescue activities. */
 "type.emergency.mountain_rescue" = "Mäepäästejaam";
@@ -1542,3 +1542,6 @@
 "type.amenity.payment_centre" = "Maksekeskus";
 "type.leisure.indoor_play" = "Mängusaal/Mängutuba";
 "type.shop.telecommunication" = "Sideteenuste pood";
+"type.emergency.access_point" = "Asukohatuvastuspunkt hädaolukorras";
+"type.emergency.life_ring" = "Päästerõngas";
+"type.shop.beauty.day_spa" = "Päevaspaa";

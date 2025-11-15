@@ -886,4 +886,12 @@
     <string name="charge_socket_type1">Type 1</string>
     <string name="edit_socket_info_tooltip">Opprett nye kontakter eller rediger eksisterende.</string>
     <string name="avoid_paved">Unngå asfalterte veier</string>
+    <plurals name="minutes_short">
+        <item quantity="one">%d min</item>
+        <item quantity="other">%d min</item>
+    </plurals>
+    <string name="closes_day_at">Stenger %1$s %2$s</string>
+    <string name="opens_day_at">Åpner %1$s %2$s</string>
+    <string name="closes_at">Stenger %s</string>
+    <string name="opens_at">Åpner %s</string>
 </resources>

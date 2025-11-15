@@ -155,4 +155,12 @@
     <string name="type.man_made.telescope.radio">Teleskops (radio)</string>
     <string name="type.amenity.soup_kitchen">Zupas virtuve</string>
     <string name="type.amenity.food_sharing">Ēdiena kopīgošana</string>
+    <string name="type.emergency.life_ring">Glābšanas boja</string>
+    <string name="type.emergency.defibrillator">Defibrillators</string>
+    <string name="type.emergency.fire_hydrant">Ugunsdzēsēju ūdens ņemšanas vieta</string>
+    <string name="type.emergency.phone">Ārkārtas tālrunis</string>
+    <string name="type.emergency.access_point">Ārkārtas glābšanas punkts</string>
+    <string name="type.emergency.assembly_point">Ārkārtas tikšanās punkts</string>
+    <string name="type.shop.beauty.day_spa">Dienas spa</string>
+    <string name="type.shop.massage">Masāžas salons</string>
 </resources>

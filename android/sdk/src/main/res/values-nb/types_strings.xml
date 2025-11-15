@@ -200,7 +200,7 @@
     <string name="type.craft.carpenter">Snekker</string>
     <string name="type.craft.confectionery">Konditori</string>
     <string name="type.craft.electrician">Elektriker</string>
-    <string name="type.craft.electronics_repair">Elektronikk reparasjon</string>
+    <string name="type.craft.electronics_repair">Elektronikkreparasjon</string>
     <string name="type.craft.gardener">Anleggsgartner</string>
     <string name="type.craft.grinding_mill">Slipemølle</string>
     <string name="type.craft.handicraft">Kunsthåndverk</string>
@@ -994,7 +994,7 @@
     <string name="type.shop.department_store">Varehus</string>
     <string name="type.shop.doityourself">Jernvareforretning</string>
     <string name="type.shop.dry_cleaning">Renseri</string>
-    <string name="type.shop.electronics">Elektronikk forhandler</string>
+    <string name="type.shop.electronics">Elektronikkbutikk</string>
     <string name="type.shop.erotic">Erotisk butikk</string>
     <string name="type.shop.fabric">Butikk</string>
     <string name="type.shop.farm">Gårdsmatbutikk</string>
@@ -1066,7 +1066,7 @@
     <string name="type.shop.cheese">Ostebutikk</string>
     <string name="type.shop.craft">Kunst og Håndverk</string>
     <string name="type.shop.dairy">Meieriprodukter</string>
-    <string name="type.shop.electrical">Elektronisk butikk</string>
+    <string name="type.shop.electrical">Elektroforretning</string>
     <string name="type.shop.fishing">Fiskeutstyrsbutikk</string>
     <string name="type.shop.interior_decoration">Interiørdekorasjoner</string>
     <string name="type.shop.lottery">Lotteribilletter</string>
@@ -1372,4 +1372,5 @@
     <string name="type.shop.telecommunication">Telekommunikasjonsbutikk</string>
     <string name="type.amenity.boat_rental">Båtutleie</string>
     <string name="type.man_made.observatory">Observatorium</string>
+    <string name="type.emergency.life_ring">Livbøye</string>
 </resources>

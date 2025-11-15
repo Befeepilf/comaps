@@ -345,13 +345,13 @@
     <string name="type.cuisine.vegan">Täistaimetoidukoht</string>
     <string name="type.cuisine.vegetarian">Taimetoit</string>
     <string name="type.cuisine.vietnamese">Vietnami</string>
-    <string name="type.emergency">Pääste- ja abiteenused</string>
+    <string name="type.emergency">Pääste- ja hädaolukorra teenused</string>
     <string name="type.emergency.assembly_point">Kogunemiskoht hädaolukorras</string>
     <string name="type.emergency.defibrillator">Defibrillaator</string>
     <string name="type.emergency.fire_hydrant">Tuletõrjehüdrant</string>
     <string name="type.emergency.phone">Hädaabi telefon</string>
     <!-- A place where a lifeguard is on duty. -->
-    <string name="type.emergency.lifeguard">Päästja</string>
+    <string name="type.emergency.lifeguard">Vetelpäästja</string>
     <!-- A mountain rescue base for search and rescue activities. -->
     <string name="type.emergency.mountain_rescue">Mäepäästejaam</string>
     <!-- This is for secondary entrances, for main entrances see type.entrance.main -->
@@ -1451,4 +1451,7 @@
     <string name="type.amenity.food_bank">Toidupank</string>
     <string name="type.amenity.food_sharing">Toidujagamine</string>
     <string name="type.amenity.give_box">Annetuskast</string>
+    <string name="type.emergency.access_point">Asukohatuvastuspunkt hädaolukorras</string>
+    <string name="type.emergency.life_ring">Päästerõngas</string>
+    <string name="type.shop.beauty.day_spa">Päevaspaa</string>
 </resources>

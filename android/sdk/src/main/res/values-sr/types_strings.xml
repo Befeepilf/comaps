@@ -1393,7 +1393,7 @@
     <string name="type.amenity.ranger_station">Станица за ренџер</string>
     <string name="type.leisure.escape_game">Соба за бекство (Escape Room)</string>
     <string name="type.barrier.wicket_gate">Вратница</string>
-    <string name="type.amenity.animal_shelter">Волонтирајте и побољшајте CoMaps</string>
+    <string name="type.amenity.animal_shelter">Азил за животиње</string>
     <string name="type.office.security">Канцеларија обезбеђења</string>
     <string name="type.building.guardhouse">Кућица обезбеђења</string>
     <string name="type.power.portal">Носач електричних водова</string>
@@ -1451,4 +1451,7 @@
     <string name="type.leisure.fitness_centre.sport.yoga">Јога студио</string>
     <string name="type.shop.telecommunication">Продавница мобилног оператера</string>
     <string name="type.disusedbusiness">Некоришћен пословни простор</string>
+    <string name="type.shop.beauty.day_spa">Дневни спа</string>
+    <string name="type.emergency.life_ring">Појас за спасавање</string>
+    <string name="type.emergency.access_point">Спасилачка тачка</string>
 </resources>

@@ -355,10 +355,10 @@
 "type.cuisine.vegetarian" = "Vegetarian";
 "type.cuisine.vietnamese" = "Vietnamese";
 "type.emergency" = "Emergency";
-"type.emergency.assembly_point" = "Emergency Assembly Point";
-"type.emergency.defibrillator" = "Defibrillator";
-"type.emergency.fire_hydrant" = "Fire Hydrant";
-"type.emergency.phone" = "Emergency Phone";
+"type.emergency.assembly_point" = "Ārkārtas tikšanās punkts";
+"type.emergency.defibrillator" = "Defibrillators";
+"type.emergency.fire_hydrant" = "Ugunsdzēsēju ūdens ņemšanas vieta";
+"type.emergency.phone" = "Ārkārtas tālrunis";
 
 /* A place where a lifeguard is on duty. */
 "type.emergency.lifeguard" = "Glābējs";
@@ -1243,7 +1243,7 @@
 "type.shop.kitchen" = "Kitchen Store";
 "type.shop.laundry" = "Laundry";
 "type.shop.mall" = "Mall";
-"type.shop.massage" = "Massage Salon";
+"type.shop.massage" = "Masāžas salons";
 "type.shop.mobile_phone" = "Viedtālruņa veikals";
 "type.shop.money_lender" = "Money Lender";
 "type.shop.motorcycle" = "Motorcycle Shop";
@@ -1536,3 +1536,6 @@
 "type.amenity.soup_kitchen" = "Zupas virtuve";
 "type.man_made.telescope" = "Teleskops";
 "type.man_made.telescope.gamma" = "Teleskops (Gamma)";
+"type.emergency.access_point" = "Ārkārtas glābšanas punkts";
+"type.emergency.life_ring" = "Glābšanas boja";
+"type.shop.beauty.day_spa" = "Dienas spa";

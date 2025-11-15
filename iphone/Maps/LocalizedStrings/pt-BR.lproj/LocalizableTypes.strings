@@ -1542,3 +1542,5 @@
 "type.amenity.payment_centre" = "Centro de pagamentos";
 "type.leisure.indoor_play" = "Centro de recreação interno";
 "type.shop.telecommunication" = "Loja de Telecomunicação";
+"type.emergency.access_point" = "Ponto de Resgate de Emergência";
+"type.emergency.life_ring" = "Boia salva-vidas";

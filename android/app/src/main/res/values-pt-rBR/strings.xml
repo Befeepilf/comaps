@@ -871,4 +871,13 @@
     <string name="editor_place_doesnt_exist_description">Descreva com detalhes como está o local agora mesmo para enviar uma nota de erro à comunidade do OpenStreetMap</string>
     <string name="list_description_empty">Edite a lista para adicionar uma descrição</string>
     <string name="avoid_paved">Evitar vias pavimentadas</string>
+    <string name="opens_at">Abre às %s</string>
+    <string name="closes_at">Fecha às %s</string>
+    <string name="opens_day_at">Abre %1$s às %2$s</string>
+    <string name="closes_day_at">Fecha %1$s às %2$s</string>
+    <plurals name="minutes_short">
+        <item quantity="one">%d min</item>
+        <item quantity="many">%d min</item>
+        <item quantity="other">%d min</item>
+    </plurals>
 </resources>

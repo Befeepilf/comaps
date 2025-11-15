@@ -1484,7 +1484,7 @@
 "type.amenity.bicycle_parking.covered" = "Покривени паркинг за бицикле";
 "type.post_office.post_partner" = "Поштански партнер";
 "type.barrier.wicket_gate" = "Вратница";
-"type.amenity.animal_shelter" = "Волонтирајте и побољшајте CoMaps";
+"type.amenity.animal_shelter" = "Азил за животиње";
 "type.office.security" = "Канцеларија обезбеђења";
 "type.power.portal" = "Носач електричних водова";
 "type.building.guardhouse" = "Кућица обезбеђења";
@@ -1542,3 +1542,6 @@
 "type.leisure.fitness_centre.sport.yoga" = "Јога студио";
 "type.shop.telecommunication" = "Продавница мобилног оператера";
 "type.disusedbusiness" = "Некоришћен пословни простор";
+"type.shop.beauty.day_spa" = "Дневни спа";
+"type.emergency.life_ring" = "Појас за спасавање";
+"type.emergency.access_point" = "Спасилачка тачка";

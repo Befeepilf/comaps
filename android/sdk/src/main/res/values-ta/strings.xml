@@ -1,3 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="core_my_position">எனது நிலை</string>
+    <string name="core_my_places">எனது இடங்கள்</string>
+    <string name="category_wifi">வைஃபை</string>
+    <string name="m">மீ</string>
+    <string name="mi">மை</string>
+    <string name="ft">அடி</string>
+    <string name="today">இன்று</string>
+    <string name="yesterday">நேற்று</string>
+    <string name="days_ago">%s நாட்களுக்கு முன்</string>
+    <string name="weeks_ago">%s வாரங்களுக்கு முன்</string>
+    <string name="months_ago">%s மாதங்களுக்கு முன்</string>
+    <string name="years_ago">%s வருடங்களுக்கு முன்</string>
+    <string name="km">கி.மீ</string>
+    <string name="postal_code">குறியீடு</string>
+    <string name="core_placepage_unknown_place">வரைபட புள்ளி</string>
+    <string name="core_exit">வெளியேறு</string>
+    <string name="core_entrance">நுழைவாயில்</string>
+    <string name="subway_data_unavailable">சுரங்கப்பாதை வரைபடம் கிடைக்கவில்லை</string>
+    <string name="mb">MB</string>
+    <string name="gb">GB</string>
 </resources>
