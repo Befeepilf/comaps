@@ -1161,6 +1161,7 @@
     <string name="type.shop.bakery">Bäckerei</string>
     <string name="type.shop.bathroom_furnishing">Badezimmerausstattung</string>
     <string name="type.shop.beauty">Schönheitssalon</string>
+    <string name="type.shop.beauty.nails">Nagelstudio</string>
     <string name="type.shop.beverages">Getränkemarkt</string>
     <string name="type.shop.bicycle">Fahrradladen</string>
     <string name="type.shop.bookmaker">Wettbüro</string>

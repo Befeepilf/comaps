@@ -578,7 +578,7 @@ boundary|administrative|4;[boundary=administrative][admin_level=4];;;;459;
 # ~100k usages.
 railway|station;460;
 sport|handball;461;
-deprecated:boundary|administrative|city:04.2024;[boundary=administrative][border_type=city];x;name;int_name;462;
+shop|beauty|nails;[shop=beauty][beauty=nails];;name;int_name;462;
 piste:type|downhill|freeride;[piste:type=downhill][piste:difficulty=freeride],[piste:type=downhill][piste:grooming=backcountry][!piste:difficulty];;name;int_name;463;
 # _path_grade is a surrogate tag which combines sac_scale and trail_visibility, see osm2type.cpp
 highway|path|difficult;[highway=path][_path_grade=difficult];;name;int_name;464;

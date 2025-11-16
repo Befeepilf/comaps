@@ -2160,6 +2160,8 @@ node|z17-[shop=pastry],
 {icon-image: bakery-m.svg;icon-min-distance: 24;}
 node|z17-[shop=beauty],
 {icon-image: beauty-m.svg;icon-min-distance: 24;}
+node|z17-[shop=beauty][beauty=nails],
+{icon-image: nails-m.svg;icon-min-distance: 24;}
 node|z17-[shop=cosmetics],
 {icon-image: beauty-m.svg;icon-min-distance: 24;}
 node|z17-[shop=beverages],

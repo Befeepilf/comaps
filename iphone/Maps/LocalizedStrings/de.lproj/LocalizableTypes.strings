@@ -1269,6 +1269,7 @@
 "type.shop.bakery" = "Bäckerei";
 "type.shop.bathroom_furnishing" = "Badezimmerausstattung";
 "type.shop.beauty" = "Schönheitssalon";
+"type.shop.beauty.nails" = "Nagelstudio";
 "type.shop.beverages" = "Getränkemarkt";
 "type.shop.bicycle" = "Fahrradladen";
 "type.shop.bookmaker" = "Wettbüro";
