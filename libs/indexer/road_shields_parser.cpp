@@ -505,7 +505,8 @@ public:
                                    {{"A", HighwayClass::Motorway, RoadShieldType::Generic_Blue_Bordered},
                                     {"S", HighwayClass::Trunk, RoadShieldType::Generic_Blue_Bordered},
                                     {"B", HighwayClass::Primary, RoadShieldType::Generic_Blue},
-                                    {"L", HighwayClass::Secondary, RoadShieldType::Generic_Pill_White_Bordered}})
+                                    {"L", HighwayClass::Secondary, RoadShieldType::Generic_Pill_White_Bordered},
+                                    {"L", HighwayClass::Tertiary, RoadShieldType::Generic_Pill_White_Bordered}})
   {}
 };
 
