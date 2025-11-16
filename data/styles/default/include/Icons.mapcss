@@ -1677,7 +1677,7 @@ node|z18-[amenity=motorcycle_rental],
 {font-size: 11;}
 
 node|z17-[amenity=boat_rental],
-{icon-image: boat-rental.svg;}
+{icon-image: boat_rental-m.svg;}
 node|z18-[amenity=boat_rental],
 {font-size: 11;}
 
