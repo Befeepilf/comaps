@@ -1579,7 +1579,7 @@ node|z17-[man_made=petroleum_well],
 {icon-image: pole-m.svg;}
 
 node|z16-[amenity=taxi],
-{icon-image: taxi-m.svg;icon-min-distance: 30;}
+{icon-image: taxi-xm.svg;icon-min-distance: 30;}
 node|z17-[amenity=taxi],
 {icon-min-distance: 20;}
 
@@ -1680,7 +1680,7 @@ node|z18-[amenity=boat_rental],
 {font-size: 11;}
 
 node|z17-[amenity=bicycle_rental],
-{icon-image: bicycle-rental.svg;}
+{icon-image: bicycle-rental-xm.svg;}
 node|z18-[amenity=bicycle_rental],
 {font-size: 11;}
 
