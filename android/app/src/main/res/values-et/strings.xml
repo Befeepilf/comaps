@@ -516,8 +516,8 @@
     <!-- Displayed when saving some edits to the map to warn against publishing personal data -->
     <string name="editor_share_to_all_dialog_title">Kas soovid saata selle kõigile kasutajatele?</string>
     <!-- Dialog before publishing the modifications to the public map. -->
-    <string name="editor_share_to_all_dialog_message_1">Palun kontrolli, et sa ei sisestanud isiklikke andmeid</string>
-    <string name="editor_share_to_all_dialog_message_2">OpenStreetMapi haldajad kontrollivad muudatused üle ja võtavad küsimuste korral sinuga ühendust</string>
+    <string name="editor_share_to_all_dialog_message_1">Palun kontrolli, et sa ei sisestanud isiklikke andmeid.</string>
+    <string name="editor_share_to_all_dialog_message_2">OpenStreetMapi haldajad kontrollivad muudatused üle ja võtavad küsimuste korral sinuga ühendust.</string>
     <string name="navigation_stop_button">Lõpeta</string>
     <!-- Shown as toast when starting the recent track recording -->
     <string name="track_recording">Rada on salvestamisel</string>

@@ -371,7 +371,7 @@
 
 /* This is for main/primary entrances, for secondary entrances see type.entrance */
 "type.entrance.main" = "Hovedinngang";
-"type.entrance.exit" = "Utgang";
+"type.entrance.exit" = "Utgang (bare)";
 "type.fee.yes" = "$";
 "type.fee.no" = "Gratis";
 "type.healthcare.laboratory" = "Medisinsk laboratorium";
@@ -1535,3 +1535,12 @@
 "type.shop.telecommunication" = "Telekommunikasjonsbutikk";
 "type.amenity.boat_rental" = "Båtutleie";
 "type.emergency.life_ring" = "Livbøye";
+"type.natural.sand" = "Sand";
+"type.natural.tree" = "Tre";
+"type.cardinal.south" = "Sør";
+"type.cardinal.north" = "Nord";
+"type.cardinal.east" = "Øst";
+"type.cardinal.west" = "Vest";
+"type.xmas.tree" = "Juletre";
+"type.entrance.emergency" = "Nødutgang";
+"type.entrance.entry" = "Inngang (bare)";

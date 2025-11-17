@@ -505,8 +505,8 @@
     <!-- Displayed when saving some edits to the map to warn against publishing personal data -->
     <string name="editor_share_to_all_dialog_title">Chcete změnu odeslat všem uživatelům?</string>
     <!-- Dialog before publishing the modifications to the public map. -->
-    <string name="editor_share_to_all_dialog_message_1">Ujistěte se, že jste nezadali žádná soukromá nebo osobní data</string>
-    <string name="editor_share_to_all_dialog_message_2">Editoři OpenStreetMap zkontrolují změny a budou vás kontaktovat, pokud budou mít nějaké dotazy</string>
+    <string name="editor_share_to_all_dialog_message_1">Ujistěte se, že jste nezadali žádná soukromá nebo osobní data.</string>
+    <string name="editor_share_to_all_dialog_message_2">Editoři OpenStreetMap zkontrolují změny a budou vás kontaktovat, pokud budou mít nějaké dotazy.</string>
     <!-- Shown as toast when starting the recent track recording -->
     <string name="track_recording">Záznam trasy</string>
     <!-- For the first routing -->

@@ -235,3 +235,12 @@
 "type.amenity.vending_machine.newspapers" = "Avtomat za časopis";
 "type.amenity.vending_machine.parking_tickets" = "Avtomat za parkirne listke";
 "type.amenity.vending_machine.sweets" = "Avtomat za sladkarije";
+"type.entrance.emergency" = "Izhod v sili";
+"type.fee.yes" = "€";
+"type.fee.no" = "Plačilo";
+"type.healthcare.physiotherapist" = "Fizioterapevt";
+"type.healthcare.alternative" = "Alternativno zdravljenje";
+"type.healthcare.audiologist" = "Strokovnjak za sluh";
+"type.healthcare.blood_donation" = "Središče za darovanje krvi";
+"type.healthcare.optometrist" = "Optometrist";
+"type.healthcare.podiatrist" = "Podiater";

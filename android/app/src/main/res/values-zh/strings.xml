@@ -530,8 +530,8 @@
     <!-- Displayed when saving some edits to the map to warn against publishing personal data -->
     <string name="editor_share_to_all_dialog_title">您想要发送给所有用户吗？</string>
     <!-- Dialog before publishing the modifications to the public map. -->
-    <string name="editor_share_to_all_dialog_message_1">请确保您没有输入任何私人或个人数据</string>
-    <string name="editor_share_to_all_dialog_message_2">OpenStreetMap 编辑人员将检查更改，如有任何疑问，将与您联系</string>
+    <string name="editor_share_to_all_dialog_message_1">请确保您没有输入任何私人或个人数据。</string>
+    <string name="editor_share_to_all_dialog_message_2">OpenStreetMap 编辑人员将检查更改，如有任何疑问，将与您联系。</string>
     <string name="navigation_stop_button">停止</string>
     <!-- Shown as toast when starting the recent track recording -->
     <string name="track_recording">记录轨迹</string>
@@ -634,7 +634,7 @@
     <!-- Recommended length for CarPlay and Android Auto is around 25-27 characters -->
     <string name="avoid_tolls">避开收费公路</string>
     <!-- Recommended length for CarPlay and Android Auto is around 25-27 characters -->
-    <string name="avoid_unpaved">避开非铺装道路‌</string>
+    <string name="avoid_unpaved">避开非铺装道路</string>
     <!-- Recommended length for CarPlay and Android Auto is around 25-27 characters -->
     <string name="avoid_ferry">避开轮渡</string>
     <string name="avoid_motorways">避开高速公路</string>
@@ -643,7 +643,7 @@
     <string name="define_to_avoid_btn">选择要避开的道路</string>
     <string name="change_driving_options_btn">绕行设置已开启</string>
     <string name="toll_road">收费公路</string>
-    <string name="unpaved_road">非铺装道路‌</string>
+    <string name="unpaved_road">非铺装道路</string>
     <string name="ferry_crossing">轮渡</string>
     <!-- A generic "Yes" button in dialogs -->
     <string name="yes">是</string>

@@ -371,7 +371,7 @@
 
 /* This is for main/primary entrances, for secondary entrances see type.entrance */
 "type.entrance.main" = "Hoofdingang";
-"type.entrance.exit" = "Ga naar";
+"type.entrance.exit" = "Uitgang (enig)";
 "type.fee.yes" = "€";
 "type.fee.no" = "Gratis";
 "type.healthcare.laboratory" = "Medisch laboratorium";
@@ -451,8 +451,8 @@
 
 /* Hiking trail tagged as sac_scale=alpine_hiking (4+ of 6) or trail_visibility=horrible or more extreme. */
 "type.highway.path.expert" = "Zeer moeilijk of niet te onderscheiden spoor";
-"type.highway.path.bicycle" = "Fietspad";
-"type.highway.footway.bicycle" = "Fietspad";
+"type.highway.path.bicycle" = "Fiets- & voetpad";
+"type.highway.footway.bicycle" = "Fiets- & voetpad";
 
 /* These translations are used for all type.highway.*.bridge. */
 "type.highway.path.bridge" = "Brug";
@@ -1544,3 +1544,42 @@
 "type.amenity.sailing_school" = "Zeilschool";
 "type.amenity.flight_school" = "Vliegschool";
 "type.amenity.prep_school" = "Bijscholing";
+"type.natural.sand" = "Zand";
+"type.cardinal.east" = "Oost";
+"type.cardinal.north" = "Noorden";
+"type.cardinal.south" = "Zuiden";
+"type.natural.tree" = "Boom";
+"type.beacon.cardinal.east" = "Kardinaal baken";
+"type.beacon.cardinal.north" = "Kardinaal baken";
+"type.beacon.cardinal.south" = "Kardinaal baken";
+"type.beacon.cardinal.west" = "Kardinaal baken";
+"type.beacon.lateral.port" = "Lateraal baken";
+"type.beacon.lateral.starboard" = "Lateraal baken";
+"type.beacon.safe_water" = "Scheidingsbaken";
+"type.beacon.special_purpose" = "Speciaal baken";
+"type.buoy.cardinal.east" = "Kardinale boei";
+"type.buoy.cardinal.north" = "Kardinale boei";
+"type.buoy.cardinal.south" = "Kardinale boei";
+"type.buoy.cardinal.west" = "Kardinale boei";
+"type.buoy.lateral.port" = "Laterale boei";
+"type.buoy.lateral.starboard" = "Laterale boei";
+"type.buoy.safe_water" = "Scheidingsboei";
+"type.buoy.special_purpose" = "Speciale boei";
+"type.spherical_buoy.cardinal.east" = "Sferische kardinale boei";
+"type.spherical_buoy.cardinal.north" = "Sferische kardinale boei";
+"type.spherical_buoy.cardinal.south" = "Sferische kardinale boei";
+"type.spherical_buoy.cardinal.west" = "Sferische kardinale boei";
+"type.spherical_buoy.lateral.port" = "Sferische laterale boei";
+"type.spherical_buoy.lateral.starboard" = "Sferische laterale boei";
+"type.spherical_buoy.safe_water" = "Sferische scheidingsboei";
+"type.spherical_buoy.special_purpose" = "Sferische speciale boei";
+"type.lateral.port" = "Haven";
+"type.lateral.starboard" = "Stuurboord";
+"type.cardinal.west" = "West";
+"type.entrance.house" = "Huis entree";
+"type.entrance.garage" = "Garage entree";
+"type.entrance.service" = "Dienstingang";
+"type.entrance.entry" = "Ingang (enig)";
+"type.entrance.emergency" = "Nooduitgang";
+"type.xmas.tree" = "Kerstboom";
+"type.shop.beauty.day_spa" = "Schoonheidssalon";

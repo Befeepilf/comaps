@@ -314,7 +314,7 @@
     <string name="type.entrance">Inngang</string>
     <!-- This is for main/primary entrances, for secondary entrances see type.entrance -->
     <string name="type.entrance.main">Hovedinngang</string>
-    <string name="type.entrance.exit">Utgang</string>
+    <string name="type.entrance.exit">Utgang (bare)</string>
     <string name="type.fee.no">Gratis</string>
     <string name="type.healthcare.laboratory">Medisinsk laboratorium</string>
     <string name="type.healthcare.physiotherapist">Fysioterapeut</string>
@@ -1373,4 +1373,13 @@
     <string name="type.amenity.boat_rental">Båtutleie</string>
     <string name="type.man_made.observatory">Observatorium</string>
     <string name="type.emergency.life_ring">Livbøye</string>
+    <string name="type.natural.sand">Sand</string>
+    <string name="type.natural.tree">Tre</string>
+    <string name="type.cardinal.south">Sør</string>
+    <string name="type.cardinal.north">Nord</string>
+    <string name="type.cardinal.east">Øst</string>
+    <string name="type.cardinal.west">Vest</string>
+    <string name="type.xmas.tree">Juletre</string>
+    <string name="type.entrance.emergency">Nødutgang</string>
+    <string name="type.entrance.entry">Inngang (bare)</string>
 </resources>

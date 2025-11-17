@@ -236,4 +236,13 @@
     <string name="type.amenity.vending_machine.newspapers">Avtomat za časopis</string>
     <string name="type.amenity.vending_machine.parking_tickets">Avtomat za parkirne listke</string>
     <string name="type.amenity.vending_machine.sweets">Avtomat za sladkarije</string>
+    <string name="type.entrance.emergency">Izhod v sili</string>
+    <string name="type.fee.yes">€</string>
+    <string name="type.fee.no">Plačilo</string>
+    <string name="type.healthcare.physiotherapist">Fizioterapevt</string>
+    <string name="type.healthcare.alternative">Alternativno zdravljenje</string>
+    <string name="type.healthcare.audiologist">Strokovnjak za sluh</string>
+    <string name="type.healthcare.blood_donation">Središče za darovanje krvi</string>
+    <string name="type.healthcare.optometrist">Optometrist</string>
+    <string name="type.healthcare.podiatrist">Podiater</string>
 </resources>
