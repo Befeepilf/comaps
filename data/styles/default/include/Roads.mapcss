@@ -739,7 +739,8 @@ line|z15-[highway=track][bridge?]::bridgewhite,
 line|z15-[highway=bridleway][bridge?]::bridgewhite,
 line|z15-[highway=steps][bridge?]::bridgewhite,
 line|z16-[highway=road][bridge?]::bridgewhite,
-line|z16-[highway=service][bridge?]::bridgewhite
+line|z15-[highway=service][bridge?]::bridgewhite,
+line|z15-[highway=busway][bridge?]::bridgewhite
 {casing-linecap: butt;casing-color:@bridge_background;casing-opacity: 0.8;}
 line|z13-[highway=pedestrian][bridge?]::bridgeblack,
 line|z17-[highway=footway][bridge?]::bridgeblack,
@@ -749,7 +750,8 @@ line|z17-[highway=track][bridge?]::bridgeblack,
 line|z17-[highway=bridleway][bridge?]::bridgeblack,
 line|z17-[highway=steps][bridge?]::bridgeblack,
 line|z16-[highway=road][bridge?]::bridgeblack,
-line|z16-[highway=service][bridge?]::bridgeblack
+line|z15-[highway=service][bridge?]::bridgeblack,
+line|z15-[highway=busway][bridge?]::bridgeblack,
 {casing-linecap: butt;casing-color:@bridge_casing;casing-opacity: 0.7;}
 line|z15-[highway=track],
 {color: @track;opacity: 0.6;}
