@@ -702,7 +702,7 @@
     <string name="type.railway.narrow_gauge">Smalsporet jernbane</string>
     <string name="type.railway.platform">Jernbaneplattform</string>
     <string name="type.railway.preserved">Museumsjernbane</string>
-    <string name="type.railway.rail">Toglinje</string>
+    <string name="type.railway.rail">Jernbane</string>
     <string name="type.railway.rail.highspeed">Høyhastighetsjernbane</string>
     <string name="type.railway.rail.tourism">Turistjernbane</string>
     <string name="type.railway.rail.main">Jernbane</string>

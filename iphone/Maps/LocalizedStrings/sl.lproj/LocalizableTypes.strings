@@ -244,3 +244,16 @@
 "type.healthcare.blood_donation" = "Središče za darovanje krvi";
 "type.healthcare.optometrist" = "Optometrist";
 "type.healthcare.podiatrist" = "Podiater";
+"type.amenity.sailing_school" = "Šola jadranja";
+"type.amenity.flight_school" = "Letalska šola";
+"type.recycling.batteries" = "Baterije";
+"type.recycling.clothes" = "Oblačila";
+"type.recycling.glass_bottles" = "Steklenice";
+"type.recycling.cartons" = "Kartoni";
+"type.amenity.school" = "Šola";
+"type.amenity.shelter" = "Zavetje";
+"type.amenity.shelter.lean_to" = "Izpostavljen nadstrešek";
+"type.amenity.water_point.drinking_water_no" = "Polnilna postaja rezervoarja z vodo";
+"type.barrier" = "Ovira";
+"type.barrier.yes" = "Ovira";
+"type.barrier.block" = "Klada";

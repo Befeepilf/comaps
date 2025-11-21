@@ -409,3 +409,16 @@
 "pref_tts_other_section_title" = "Drugo";
 "volunteer" = "Postanite prostovoljec in izboljšajte CoMaps";
 "follow_us" = "Povežite se z nami";
+"panoramax_picture" = "Slika Panoramax";
+"report_incorrect_map_bug" = "Poročaj ali popravi napako v podatkih zemljevida";
+"email_error_title" = "Napaka v pošiljanju el. pošte";
+"pref_calibration_title" = "Umerjanje kompasa";
+"downloader_available_maps" = "Na voljo";
+"downloader_search_results" = "Najdeni";
+"downloader_status_outdated" = "Posodobi";
+"downloader_status_failed" = "Neuspelo";
+"downloader_delete_map_while_routing_dialog" = "Za izbris zemljevida, prosimo, ustavite potno usmerjanje";
+"bookmark" = "zaznamek";
+"dialog_routing_download_files" = "Prenesi zahtevane datoteke";
+"dialog_routing_download_and_update_maps" = "Prenesi in posodobi vse zemljevide vzdolž predvidene poti za izračun točne poti.";
+"search_not_found" = "Ups, zadetkov.";

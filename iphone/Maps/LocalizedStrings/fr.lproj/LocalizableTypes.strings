@@ -703,7 +703,7 @@
 "type.leisure.ice_rink" = "Patinoire";
 "type.leisure.marina" = "Marina";
 "type.leisure.nature_reserve" = "Réserve naturelle";
-"type.leisure.outdoor_seating" = "Sièges extérieurs";
+"type.leisure.outdoor_seating" = "Places en terrasse";
 "type.leisure.park" = "Parc";
 "type.leisure.park.no.access" = "Parc";
 "type.leisure.park.permissive" = "Parc";

@@ -1589,3 +1589,5 @@
 "type.natural.tree" = "Árbol";
 "type.shop.beauty.day_spa" = "Spa";
 "type.xmas.tree" = "Árbol de Navidad";
+"type.man_made.mast.communication" = "Mástil de telecomunicaciones";
+"type.shop.beauty.nails" = "Salón de manicura";

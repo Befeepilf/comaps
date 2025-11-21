@@ -913,7 +913,7 @@
 "type.railway.preserved" = "Museumsjernbane";
 "type.railway.preserved.bridge" = "Preserved Rail Bridge";
 "type.railway.preserved.tunnel" = "Preserved Rail Tunnel";
-"type.railway.rail" = "Toglinje";
+"type.railway.rail" = "Jernbane";
 "type.railway.rail.highspeed" = "Høyhastighetsjernbane";
 "type.railway.rail.tourism" = "Turistjernbane";
 "type.railway.rail.main" = "Jernbane";

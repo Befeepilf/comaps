@@ -614,7 +614,7 @@
     <string name="type.leisure.miniature_golf">Minigolf</string>
     <string name="type.leisure.ice_rink">Patinoire</string>
     <string name="type.leisure.nature_reserve">Réserve naturelle</string>
-    <string name="type.leisure.outdoor_seating">Sièges extérieurs</string>
+    <string name="type.leisure.outdoor_seating">Places en terrasse</string>
     <string name="type.leisure.park">Parc</string>
     <string name="type.leisure.park.no.access">Parc</string>
     <string name="type.leisure.park.permissive">Parc</string>

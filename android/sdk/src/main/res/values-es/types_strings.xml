@@ -1499,4 +1499,6 @@
     <string name="type.natural.tree">Árbol</string>
     <string name="type.shop.beauty.day_spa">Spa</string>
     <string name="type.xmas.tree">Árbol de Navidad</string>
+    <string name="type.man_made.mast.communication">Mástil de telecomunicaciones</string>
+    <string name="type.shop.beauty.nails">Salón de manicura</string>
 </resources>

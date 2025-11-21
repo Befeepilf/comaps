@@ -245,4 +245,17 @@
     <string name="type.healthcare.blood_donation">Središče za darovanje krvi</string>
     <string name="type.healthcare.optometrist">Optometrist</string>
     <string name="type.healthcare.podiatrist">Podiater</string>
+    <string name="type.amenity.sailing_school">Šola jadranja</string>
+    <string name="type.amenity.flight_school">Letalska šola</string>
+    <string name="type.recycling.batteries">Baterije</string>
+    <string name="type.recycling.clothes">Oblačila</string>
+    <string name="type.recycling.glass_bottles">Steklenice</string>
+    <string name="type.recycling.cartons">Kartoni</string>
+    <string name="type.amenity.school">Šola</string>
+    <string name="type.amenity.shelter">Zavetje</string>
+    <string name="type.amenity.shelter.lean_to">Izpostavljen nadstrešek</string>
+    <string name="type.amenity.water_point.drinking_water_no">Polnilna postaja rezervoarja z vodo</string>
+    <string name="type.barrier">Ovira</string>
+    <string name="type.barrier.yes">Ovira</string>
+    <string name="type.barrier.block">Klada</string>
 </resources>
