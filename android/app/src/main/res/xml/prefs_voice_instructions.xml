@@ -6,12 +6,14 @@
   <SwitchPreferenceCompat
       android:key="@string/pref_tts_enabled"
       android:title="@string/pref_tts_enable_title"
+      android:widgetLayout="@layout/preference_switch"
       app:iconSpaceReserved="false"/>
   <SwitchPreferenceCompat
       android:key="@string/pref_tts_street_names"
       android:title="@string/pref_tts_street_names_title"
       app:isPreferenceVisible="false"
       android:summary="@string/pref_tts_street_names_description"
+      android:widgetLayout="@layout/preference_switch"
       android:defaultValue="false"
       app:iconSpaceReserved="false"/>
   <ListPreference
