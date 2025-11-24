@@ -355,8 +355,8 @@ public:
     Entry(std::string_view name, HighwayClass highwayClass, RoadShieldType type, bool isRedundant = false, bool shouldTrimName = false) : m_name(name), m_type(type), m_highwayClass(highwayClass), m_isRedundant(isRedundant), m_shouldTrimName(shouldTrimName) {}
 
     std::string_view m_name;
-    HighwayClass m_highwayClass = HighwayClass::Undefined;
     RoadShieldType m_type = RoadShieldType::Default;
+    HighwayClass m_highwayClass = HighwayClass::Undefined;
     /* Hides a specific secondary etc. sign, if there is a primary one */
     bool m_isRedundant = false;
     bool m_shouldTrimName = false;
