@@ -879,7 +879,6 @@
     <string name="charge_socket_power">Effekt (kW)</string>
     <string name="ruler">Linjal</string>
     <string name="unknown_socket_type">ukjent kontakt</string>
-    <string name="unknow_socket_type">ukjent kontakt</string>
     <string name="charging_station_available_sockets">Tilgjengelige kontakter</string>
     <string name="charge_socket_unknown_other">Annen eller ukjent</string>
     <string name="editor_socket">Rediger kontakt</string>

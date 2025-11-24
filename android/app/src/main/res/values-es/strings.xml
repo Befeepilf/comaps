@@ -888,7 +888,6 @@
     <string name="unknown_count">desconocido</string>
     <string name="avoid_steps">Evitar escaleras</string>
     <string name="unknown_socket_type">enchufe desconocido</string>
-    <string name="unknow_socket_type">enchufe desconocido</string>
     <string name="edit_socket_info_tooltip">Crear nuevo enchufe o editar existentes.</string>
     <string name="charging_station_available_sockets">Enchufes disponibles</string>
     <string name="charge_socket_unknown_other">Otros o desconocido</string>

@@ -889,7 +889,6 @@
     <string name="charge_socket_nacs">NACS</string>
     <string name="charge_socket_chademo">CHAdeMO</string>
     <string name="unknown_socket_type">nieznane gniazdo</string>
-    <string name="unknow_socket_type">nieznane gniazdo</string>
     <string name="edit_socket_info_tooltip">Stwórz nowe gniazda lub edytuj już istniejące.</string>
     <string name="charging_station_available_sockets">Dostępne gniazda</string>
     <string name="charge_socket_unknown_other">Inne lub nieznane</string>

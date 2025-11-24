@@ -878,7 +878,6 @@
     <string name="charge_socket_type1">Tipo 1</string>
     <string name="charge_socket_nacs">NACS</string>
     <string name="unknown_socket_type">Presa sconosciuta</string>
-    <string name="unknow_socket_type">Presa sconosciuta</string>
     <string name="editor_place_doesnt_exist_description">Descrivi come appare il posto per inviare una nota alla comunità di OpenStreetMap</string>
     <string name="offline_explanation_title">Mappe scaricate</string>
     <string name="offline_explanation_text">Per esplorare e navigare la zona, scarica la mappa.\nScarica le mappe delle zone dove vuoi viaggiare.</string>

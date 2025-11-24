@@ -625,7 +625,6 @@
     <string name="charge_socket_nacs">NACS</string>
     <string name="charge_socket_chademo">சேட்மோ</string>
     <string name="unknown_socket_type">தெரியாத சாக்கெட்</string>
-    <string name="unknow_socket_type">தெரியாத சாக்கெட்</string>
     <string name="edit_socket_info_tooltip">புதிய சாக்கெட்டுகளை உருவாக்கவும் அல்லது ஏற்கனவே உள்ளவற்றைத் திருத்தவும்.</string>
     <string name="charging_station_available_sockets">கிடைக்கும் சாக்கெட்டுகள்</string>
     <string name="charge_socket_unknown_other">மற்றவை அல்லது தெரியாதவை</string>

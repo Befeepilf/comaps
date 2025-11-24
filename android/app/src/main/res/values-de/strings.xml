@@ -880,7 +880,6 @@
     <string name="charge_socket_type1">Typ 1</string>
     <string name="charge_socket_nacs">NACS</string>
     <string name="unknown_socket_type">Unbekannter Anschluss</string>
-    <string name="unknow_socket_type">Unbekannter Anschluss</string>
     <string name="edit_socket_info_tooltip">Neue Anschlüsse erstellen oder Existierende bearbeiten.</string>
     <string name="charging_station_available_sockets">Verfügbare Anschlüsse</string>
     <string name="charge_socket_unknown_other">Andere oder unbekannt</string>

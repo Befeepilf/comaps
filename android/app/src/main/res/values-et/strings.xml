@@ -874,7 +874,6 @@
     <string name="charge_socket_nacs">NACS</string>
     <string name="charge_socket_chademo">CHAdeMO</string>
     <string name="unknown_socket_type">pistik pole teada</string>
-    <string name="unknow_socket_type">pistik pole teada</string>
     <string name="charge_socket_count">Pistikuid</string>
     <string name="edit_socket_info_tooltip">Lisa uusi pistikuid või muuda olemasolevaid.</string>
     <string name="charging_station_available_sockets">Saadaval pistikud</string>

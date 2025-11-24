@@ -618,7 +618,6 @@
     <string name="charge_socket_nacs">NACS (severnoameriško polnilno omrežje)</string>
     <string name="charge_socket_chademo">CHAdeMO (japonski standard za polnjenje vozil)</string>
     <string name="unknown_socket_type">neznana vtičnica</string>
-    <string name="unknow_socket_type">neznana vtičnica</string>
     <string name="edit_socket_info_tooltip">Ustvari nove vtičnice ali uredi obstoječe.</string>
     <string name="charging_station_available_sockets">Razpoložljive vtičnice</string>
     <string name="charge_socket_unknown_other">Druge ali neznane</string>

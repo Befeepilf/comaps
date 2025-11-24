@@ -881,7 +881,6 @@
     <string name="charge_socket_nacs">NACS</string>
     <string name="charge_socket_chademo">CHAdeMO</string>
     <string name="unknown_socket_type">未知充电接口</string>
-    <string name="unknow_socket_type">未知充电接口</string>
     <string name="edit_socket_info_tooltip">创建新充电接口或编辑现有充电接口。</string>
     <string name="charging_station_available_sockets">可用的充电接口</string>
     <string name="charge_socket_unknown_other">其他或未知</string>

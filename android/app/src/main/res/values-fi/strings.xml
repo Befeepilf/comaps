@@ -882,7 +882,6 @@
     <string name="charge_socket_type2_combo">Tyyppi 2 combo</string>
     <string name="charge_socket_type1">Tyyppi 1</string>
     <string name="unknown_socket_type">tuntematon pistoke</string>
-    <string name="unknow_socket_type">tuntematon pistoke</string>
     <string name="edit_socket_info_tooltip">Luo uusia pistokkeita tai muokkaa olemassa olevia.</string>
     <string name="charging_station_available_sockets">Saatavilla olevat pistokkeet</string>
     <string name="charge_socket_unknown_other">Muu tai tuntematon</string>

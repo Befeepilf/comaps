@@ -856,7 +856,6 @@
     <string name="unknown_socket_type">tomada desconhecida</string>
     <string name="charge_socket_chademo">CHAdeMO</string>
     <string name="avoid_steps">Evitar escadas</string>
-    <string name="unknow_socket_type">tomada desconhecida</string>
     <string name="edit_socket_info_tooltip">Criar novas tomadas ou editar existentes.</string>
     <string name="charging_station_available_sockets">Tomadas disponíveis</string>
     <string name="charge_socket_unknown_other">Outra ou desconhecida</string>
