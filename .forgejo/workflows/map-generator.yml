@@ -46,7 +46,7 @@ env:
   MWMCONTINUE: ${{ inputs.map-generator-continue }}
   MWMCOUNTRIES: ${{ inputs.map-generator-countries }}
   DEBIAN_FRONTEND: noninteractive
-  TZ: Etc/UTC 
+  TZ: Etc/UTC
 
 jobs:
   clone-repos:
@@ -467,6 +467,10 @@ jobs:
       group: ${{ github.workflow }}-map-generator-${{ github.event.pull_request.number || github.ref }}
       cancel-in-progress: true
     steps:
+      - uses: actions/cache@v4
+        with:
+          path: "~"
+          key: cache-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Write config file
         run: |
           mkdir -p ~/.config/rclone/
@@ -498,4 +502,3 @@ jobs:
             --data-urlencode topic=codeberg-bot \
             --data-urlencode 'content=Upload is done!'
 
-          
