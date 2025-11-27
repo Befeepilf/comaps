@@ -38,11 +38,11 @@ public class Track extends MapObject
 
   @Keep
   @SuppressWarnings("unused")
-  private Track(long id, long categoryId, String name, Distance length, int color, double exploredFraction)
+  private Track(long trackId, long categoryId, String name, Distance length, int color, double exploredFraction)
   {
-    super(TRACK, name, "", "", "", 0, 0, "", null, OPENING_MODE_PREVIEW_PLUS, "", "",
+    super(FeatureId.EMPTY, TRACK, name, "", "", "", 0, 0, "", null, OPENING_MODE_PREVIEW_PLUS, null, "",
           RoadWarningMarkType.UNKNOWN.ordinal(), null);
-    mId = id;
+    mTrackId = trackId;
     mCategoryId = categoryId;
     mName = name;
     mLength = length;

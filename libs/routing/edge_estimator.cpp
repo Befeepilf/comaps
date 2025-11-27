@@ -645,7 +645,7 @@ public:
   {}
 
   PedestrianEstimator(double maxWeightSpeedKMpH, SpeedKMpH const & offroadSpeedKMpH, TrailRoutingOptions const & trailOptions)
-    : EdgeEstimator(maxWeightSpeedKMpH, offroadSpeedKMpH)
+    : EdgeEstimator(VehicleType::Pedestrian, maxWeightSpeedKMpH, offroadSpeedKMpH)
   {}
 
   // EdgeEstimator overrides:
@@ -697,7 +697,7 @@ public:
   {}
 
   BicycleEstimator(double maxWeightSpeedKMpH, SpeedKMpH const & offroadSpeedKMpH, TrailRoutingOptions const & trailOptions)
-    : EdgeEstimator(maxWeightSpeedKMpH, offroadSpeedKMpH)
+    : EdgeEstimator(VehicleType::Bicycle, maxWeightSpeedKMpH, offroadSpeedKMpH)
     {}
 
   // EdgeEstimator overrides:
