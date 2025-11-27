@@ -1624,31 +1624,6 @@ JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_Framework_nativeIsStreetPixe
   return static_cast<jboolean>(frm()->LoadStreetPixelsEnabled());
 }
 
-JNIEXPORT void Java_app_organicmaps_sdk_Framework_nativeSetHikingLayerEnabled(JNIEnv *, jclass, jboolean enabled)
-{
-  frm()->SetHikingEnabled(enabled);
-}
-
-JNIEXPORT jboolean Java_app_organicmaps_sdk_Framework_nativeIsHikingLayerEnabled(JNIEnv *, jclass)
-{
-  return static_cast<jboolean>(frm()->IsHikingEnabled());
-}
-
-JNIEXPORT void Java_app_organicmaps_sdk_Framework_nativeSetCyclingLayerEnabled(JNIEnv *, jclass, jboolean enabled)
-{
-  frm()->SetCyclingEnabled(enabled);
-}
-
-JNIEXPORT jboolean Java_app_organicmaps_sdk_Framework_nativeIsCyclingLayerEnabled(JNIEnv *, jclass)
-{
-  return static_cast<jboolean>(frm()->IsCyclingEnabled());
-}
-
-JNIEXPORT jboolean Java_app_organicmaps_sdk_Framework_nativeNeedUpdateForRoutes(JNIEnv *, jclass)
-{
-  return frm()->NeedUpdateForRoutes();
-}
-
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeSaveSettingSchemeEnabled(JNIEnv * env, jclass, jboolean enabled)
 {
   frm()->SaveTransitSchemeEnabled(static_cast<bool>(enabled));

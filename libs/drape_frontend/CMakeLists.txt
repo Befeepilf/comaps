@@ -221,6 +221,7 @@ target_link_libraries(${PROJECT_NAME}
   traffic
   transit
   shaders
+  healpix
 )
 
 omim_add_test_subdirectory(drape_frontend_tests)

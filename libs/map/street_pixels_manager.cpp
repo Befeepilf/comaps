@@ -14,6 +14,7 @@
 #include "drape/color.hpp"
 
 #include "indexer/classificator.hpp"
+#include "indexer/data_source_helpers.hpp"
 #include "indexer/feature.hpp"
 #include "indexer/feature_decl.hpp"
 #include "indexer/features_vector.hpp"
@@ -708,7 +709,7 @@ void StreetPixelsManager::UpdateStreetStats(double lat, double lon, size_t numNe
         featureUpdates[ft.GetID()].insert(pixelIndex);
       }
     },
-    centerMercator);
+    centerMercator, 0.0);
 
   if (featureUpdates.empty())
     return;

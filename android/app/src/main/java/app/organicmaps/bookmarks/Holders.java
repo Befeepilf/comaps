@@ -336,6 +336,8 @@ public class Holders
     private final MaterialTextView mDistance;
     @NonNull
     private final MaterialTextView mExplored;
+    @NonNull
+    private final ShapeableImageView mMoreButton;
 
     BookmarkViewHolder(@NonNull View itemView)
     {
@@ -384,6 +386,7 @@ public class Holders
     private final MaterialTextView mDistance;
     @NonNull
     private final MaterialTextView mExplored;
+    @NonNull
     private final ShapeableImageView mMoreButton;
 
     TrackViewHolder(@NonNull View itemView)
