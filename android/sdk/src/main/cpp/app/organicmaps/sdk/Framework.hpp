@@ -74,6 +74,7 @@ private:
   void TrafficStateChanged(TrafficManager::TrafficState state);
   void TransitSchemeStateChanged(TransitReadManager::TransitSchemeState state);
   void IsolinesSchemeStateChanged(IsolinesManager::IsolinesState state);
+  void StreetPixelsStateChanged(bool enabled, StreetPixelsManager::StreetPixelsStatus status, storage::CountryId const & countryId);
 
   void MyPositionModeChanged(location::EMyPositionMode mode, bool routingActive);
 
@@ -82,6 +83,7 @@ private:
   TrafficManager::TrafficStateChangedFn m_onTrafficStateChangedFn;
   TransitReadManager::TransitStateChangedFn m_onTransitStateChangedFn;
   IsolinesManager::IsolinesStateChangedFn m_onIsolinesStateChangedFn;
+  StreetPixelsManager::StreetPixelsStateChangedFn m_onStreetPixelsStateChangedFn;
 
   ChoosePositionMode m_isChoosePositionMode = ChoosePositionMode::None;
   bool m_isSurfaceDestroyed = false;
@@ -175,6 +177,7 @@ public:
   void SetTrafficStateListener(TrafficManager::TrafficStateChangedFn const & fn);
   void SetTransitSchemeListener(TransitReadManager::TransitStateChangedFn const & fn);
   void SetIsolinesListener(IsolinesManager::IsolinesStateChangedFn const & fn);
+  void SetStreetPixelsListener(StreetPixelsManager::StreetPixelsStateChangedFn const & fn);
 
   bool IsTrafficEnabled();
   void EnableTraffic();

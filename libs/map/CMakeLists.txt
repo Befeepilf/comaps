@@ -19,12 +19,16 @@ set(SRC
   everywhere_search_callback.cpp
   everywhere_search_callback.hpp
   everywhere_search_params.hpp
+  explore_stats_service.cpp
+  explore_stats_service.hpp
   extrapolation/extrapolator.cpp
   extrapolation/extrapolator.hpp
   features_fetcher.cpp
   features_fetcher.hpp
   framework.cpp
   framework.hpp
+  friends_manager.cpp
+  friends_manager.hpp
   gps_track_collection.cpp
   gps_track_collection.hpp
   gps_track_filter.cpp
@@ -35,6 +39,8 @@ set(SRC
   gps_track.hpp
   gps_tracker.cpp
   gps_tracker.hpp
+  identity_store.cpp
+  identity_store.hpp
   isolines_manager.cpp
   isolines_manager.hpp
   mwm_url.cpp
@@ -55,6 +61,10 @@ set(SRC
   search_mark.cpp
   search_mark.hpp
   search_product_info.hpp
+  street_pixels_manager.cpp
+  street_pixels_manager.hpp
+  street_stats_db.cpp
+  street_stats_db.hpp
   track.cpp
   track.hpp
   track_statistics.cpp
@@ -94,6 +104,7 @@ target_link_libraries(${PROJECT_NAME}
     drape_frontend
     editor
     geometry
+    healpix
     i18n
     indexer
     kml
@@ -101,6 +112,7 @@ target_link_libraries(${PROJECT_NAME}
     routing
     routing_common
     search
+    sqlite
     storage
     traffic
     transit

@@ -15,6 +15,7 @@ import app.organicmaps.sdk.location.LocationHelper;
 import app.organicmaps.sdk.location.LocationProviderFactory;
 import app.organicmaps.sdk.location.SensorHelper;
 import app.organicmaps.sdk.maplayer.isolines.IsolinesManager;
+import app.organicmaps.sdk.maplayer.streetpixels.StreetPixelsManager;
 import app.organicmaps.sdk.maplayer.subway.SubwayManager;
 import app.organicmaps.sdk.maplayer.traffic.TrafficManager;
 import app.organicmaps.sdk.routing.RoutingController;
@@ -45,6 +46,8 @@ public final class OrganicMaps implements DefaultLifecycleObserver
   @NonNull
   private final IsolinesManager mIsolinesManager;
   @NonNull
+  private final StreetPixelsManager mStreetPixelsManager;
+  @NonNull
   private final SubwayManager mSubwayManager;
 
   @NonNull
@@ -65,6 +68,12 @@ public final class OrganicMaps implements DefaultLifecycleObserver
   public SensorHelper getSensorHelper()
   {
     return mSensorHelper;
+  }
+
+  @NonNull
+  public StreetPixelsManager getStreetPixelsManager()
+  {
+    return mStreetPixelsManager;
   }
 
   @NonNull
@@ -107,6 +116,7 @@ public final class OrganicMaps implements DefaultLifecycleObserver
     mSensorHelper = new SensorHelper(mContext);
     mLocationHelper = new LocationHelper(mContext, mSensorHelper, locationProviderFactory);
     mIsolinesManager = new IsolinesManager();
+    mStreetPixelsManager = new StreetPixelsManager();
     mSubwayManager = new SubwayManager(mContext);
   }
 
