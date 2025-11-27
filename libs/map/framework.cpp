@@ -28,6 +28,7 @@
 #include "storage/country.hpp"
 #include "storage/country_decl.hpp"
 #include "storage/country_info_getter.hpp"
+#include "storage/country_name_getter.hpp"
 #include "storage/storage.hpp"
 #include "storage/storage_helpers.hpp"
 
@@ -129,6 +130,7 @@ std::string_view constexpr kMapModeDrivingTrafficKey = "DrivingModeHasTraffic";
 std::string_view constexpr kMapModePublicTransportTransitLinesKey = "PublicTransportModeHasTransitLines";
 std::string_view constexpr kContourLinesKey = "HasContourLinesLayer";
 std::string_view constexpr kOutdoorKey = "HasOutdoorLayer";
+std::string_view constexpr kStreetPixelsEnabledKey = "StreetPixelsEnabled";
 std::string_view constexpr kTrafficSimplifiedColorsKey = "TrafficSimplifiedColors";
 std::string_view constexpr kLargeFontsSize = "LargeFontsSize";
 std::string_view constexpr kFontScaleFactor = "FontScaleFactor";
@@ -224,6 +226,7 @@ void Framework::OnLocationUpdate(GpsInfo const & info)
     /// State changed (Started OR Stopped) -> Refresh 3D Buildings
     Refresh3dMode();
   }
+  m_streetPixelsManager->OnLocationUpdate(rInfo);
 }
 
 void Framework::OnCompassUpdate(CompassInfo const & info)
@@ -259,6 +262,62 @@ void Framework::SetMyPositionModeListener(TMyPositionModeChanged && fn)
 EMyPositionMode Framework::GetMyPositionMode() const
 {
   return m_drapeEngine ? m_drapeEngine->GetMyPositionMode() : PendingPosition;
+}
+
+void Framework::EnableExploreSharing(bool enabled)
+{
+  if (m_exploreStatsService)
+    m_exploreStatsService->EnableSharing(enabled);
+}
+
+bool Framework::IsExploreSharingEnabled() const
+{
+  return m_exploreStatsService && m_exploreStatsService->IsSharingEnabled();
+}
+
+void Framework::TriggerExploreStatsUpload()
+{
+  if (m_exploreStatsService)
+    m_exploreStatsService->TryUpload();
+}
+
+void Framework::GetExploreStatsRegions(std::vector<std::pair<std::string, std::string>> & outRegions) const
+{
+  outRegions.clear();
+  if (!m_exploreStatsService)
+    return;
+  std::vector<ExploreStatsService::StatsEntry> entries;
+  m_exploreStatsService->GetEntries(entries);
+  std::unordered_set<std::string> unique;
+  for (auto const & e : entries)
+    unique.insert(e.m_regionId);
+  storage::CountryNameGetter nameGetter;
+  nameGetter.SetLocale(platform::GetCurrentLocale().m_language);
+  outRegions.reserve(unique.size());
+  for (auto const & id : unique)
+    outRegions.emplace_back(id, nameGetter(id));
+}
+
+void Framework::GetExploreStatsAggregatedWeeks(std::vector<std::pair<uint64_t, uint64_t>> & outWeeks,
+                                               std::string const & regionIdFilter) const
+{
+  outWeeks.clear();
+  if (!m_exploreStatsService)
+    return;
+  std::vector<ExploreStatsService::StatsEntry> entries;
+  m_exploreStatsService->GetEntries(entries);
+  std::unordered_map<uint64_t, uint64_t> sums;
+  bool const filter = !regionIdFilter.empty();
+  for (auto const & e : entries)
+  {
+    if (filter && e.m_regionId != regionIdFilter)
+      continue;
+    sums[e.m_weekStartSec] += e.m_exploredPixels;
+  }
+  outWeeks.reserve(sums.size());
+  for (auto const & kv : sums)
+    outWeeks.emplace_back(kv.first, kv.second);
+  std::sort(outWeeks.begin(), outWeeks.end(), [](auto const & a, auto const & b) { return a.first < b.first; });
 }
 
 // Direct access to managers only for legacy Android listener support. So please dont use directly anymore!
@@ -320,7 +379,9 @@ void Framework::OnViewportChanged(ScreenBase const & screen)
 }
 
 Framework::Framework(FrameworkParams const & params, bool loadMaps)
-  : m_enabledDiffs(params.m_enableDiffs)
+  : m_streetPixelsManager(std::make_unique<StreetPixelsManager>(m_featuresFetcher.GetDataSource()))
+  , m_exploreStatsService(std::make_unique<ExploreStatsService>())
+  , m_enabledDiffs(params.m_enableDiffs)
   , m_isRenderingEnabled(true)
   , m_transitManager(m_featuresFetcher.GetDataSource(),
                      [this](FeatureCallback const & fn, vector<FeatureID> const & features)
@@ -378,17 +439,57 @@ Framework::Framework(FrameworkParams const & params, bool loadMaps)
   LOG(LDEBUG, ("Search API initialized, part 1"));
 
   m_bmManager = make_unique<BookmarkManager>(BookmarkManager::Callbacks(
-      [this]() -> StringsBundle const & { return m_stringsBundle; }, [this]() -> SearchAPI & { return GetSearchAPI(); },
-      [this](vector<BookmarkInfo> const & marks) { GetSearchAPI().OnBookmarksCreated(marks); },
-      [this](vector<BookmarkInfo> const & marks) { GetSearchAPI().OnBookmarksUpdated(marks); },
-      [this](vector<kml::MarkId> const & marks) { GetSearchAPI().OnBookmarksDeleted(marks); },
-      [this](vector<BookmarkGroupInfo> const & marks) { GetSearchAPI().OnBookmarksAttached(marks); },
-      [this](vector<BookmarkGroupInfo> const & marks) { GetSearchAPI().OnBookmarksDetached(marks); }));
+    [this]() -> StringsBundle const & { return m_stringsBundle; },
+    [this]() -> SearchAPI & { return GetSearchAPI(); },
+    [this](vector<BookmarkInfo> const & marks) {
+      LOG(LINFO, ("Bookmarks created", marks.size()));
+      GetSearchAPI().OnBookmarksCreated(marks);
+      GetStreetPixelsManager().UpdateExploredPixels();
+    },
+    [this](vector<BookmarkInfo> const & marks) {
+      LOG(LINFO, ("Bookmarks updated", marks.size()));
+      GetSearchAPI().OnBookmarksUpdated(marks);
+      // GetStreetPixelsManager().UpdateExploredPixels();
+    },
+    [this](vector<kml::MarkId> const & marks) {
+      LOG(LINFO, ("Bookmarks deleted", marks.size()));
+      GetSearchAPI().OnBookmarksDeleted(marks);
+      // GetStreetPixelsManager().UpdateExploredPixels();
+    },
+    [this](vector<BookmarkGroupInfo> const & marks) { GetSearchAPI().OnBookmarksAttached(marks); },
+    [this](vector<BookmarkGroupInfo> const & marks) { GetSearchAPI().OnBookmarksDetached(marks); })
+  );
+  
+  m_bmManager->AddAsyncLoadingCallbacks({
+    []() { LOG(LINFO, ("Started loading bookmarks")); },
+    [this]()
+    {
+      LOG(LINFO, ("Finnished loading bookmarks"));
+      GetStreetPixelsManager().OnBookmarksCreated();
+    },
+    [](std::string const & filePath, bool isTemporaryFile)
+    {
+      LOG(LINFO, ("Finnished loading bookmarks file", filePath));
+    },
+    [](std::string const & filePath, bool isTemporaryFile)
+    {
+      LOG(LWARNING, ("Failed loading bookmarks file", filePath));
+    }
+  });
 
   m_bmManager->InitRegionAddressGetter(m_featuresFetcher.GetDataSource(), *m_infoGetter);
 
   m_routingManager.SetBookmarkManager(m_bmManager.get());
   m_searchMarks.SetBookmarkManager(m_bmManager.get());
+
+  m_streetPixelsManager->SetBookmarkManager(m_bmManager.get());
+  m_streetPixelsManager->SetExplorationListener(
+    [this](StreetPixelsManager::ExplorationDelta const & d)
+    {
+      if (m_exploreStatsService)
+        m_exploreStatsService->OnExplorationDelta(d.m_regionId, d.m_newPixels, d.m_eventTimeSec);
+    }
+  );
 
   m_routingManager.SetTransitManager(&m_transitManager);
 
@@ -450,7 +551,7 @@ void Framework::ShowNode(storage::CountryId const & countryId)
   ShowRect(CalcLimitRect(countryId, GetStorage(), GetCountryInfoGetter()));
 }
 
-void Framework::OnCountryFileDownloaded(storage::CountryId const &, storage::LocalFilePtr const localFile)
+void Framework::OnCountryFileDownloaded(storage::CountryId const & countryId, storage::LocalFilePtr const localFile)
 {
   // Soft reset to signal that mwm file may be out of date in routing caches.
   m_routingManager.ResetRoutingSession();
@@ -468,6 +569,9 @@ void Framework::OnCountryFileDownloaded(storage::CountryId const &, storage::Loc
   m_trafficManager.Invalidate();
   m_transitManager.Invalidate();
   m_isolinesManager.Invalidate();
+
+  if (m_lastReportedCountry == countryId)
+    m_streetPixelsManager->OnUpdateCurrentCountry(countryId, localFile);
 
   InvalidateRect(rect);
   GetSearchAPI().ClearCaches();
@@ -594,6 +698,7 @@ void Framework::LoadBookmarks()
 {
   GetBookmarkManager().LoadBookmarks();
 }
+
 
 kml::MarkGroupId Framework::AddCategory(string const & categoryName)
 {
@@ -1241,6 +1346,9 @@ void Framework::OnUpdateCurrentCountry(m2::PointD const & pt, int zoomLevel)
     if (m_currentCountryChanged != nullptr)
       m_currentCountryChanged(newCountryId);
   });
+
+  auto localFile = GetStorage().GetLatestLocalFile(newCountryId);
+  GetStreetPixelsManager().OnUpdateCurrentCountry(newCountryId, localFile);
 }
 
 void Framework::SetCurrentCountryChangedListener(TCurrentCountryChanged listener)
@@ -1603,6 +1711,8 @@ void Framework::CreateDrapeEngine(ref_ptr<dp::GraphicsContextFactory> contextFac
     GpsTracker::Instance().Connect(bind(&Framework::OnUpdateGpsTrackPointsCallback, this, _1, _2, _3));
 
   GetBookmarkManager().SetDrapeEngine(make_ref(m_drapeEngine));
+  GetStreetPixelsManager().SetDrapeEngine(make_ref(m_drapeEngine));
+  GetStreetPixelsManager().SetEnabled(LoadStreetPixelsEnabled());
   m_drapeApi.SetDrapeEngine(make_ref(m_drapeEngine));
   m_routingManager.SetDrapeEngine(make_ref(m_drapeEngine), allow3d);
   m_trafficManager.SetDrapeEngine(make_ref(m_drapeEngine));
@@ -1680,6 +1790,7 @@ void Framework::DestroyDrapeEngine()
     m_isolinesManager.SetDrapeEngine(nullptr);
     m_searchMarks.SetDrapeEngine(nullptr);
     GetBookmarkManager().SetDrapeEngine(nullptr);
+    GetStreetPixelsManager().SetDrapeEngine(nullptr);
 
     m_trafficManager.Teardown();
     GpsTracker::Instance().Disconnect();
@@ -2002,6 +2113,18 @@ BookmarkManager const & Framework::GetBookmarkManager() const
 {
   ASSERT(m_bmManager != nullptr, ("Bookmark manager is not initialized."));
   return *m_bmManager.get();
+}
+
+StreetPixelsManager & Framework::GetStreetPixelsManager()
+{
+  ASSERT(m_streetPixelsManager != nullptr, ("Street pixel manager is not initialized."));
+  return *m_streetPixelsManager.get();
+}
+
+StreetPixelsManager const & Framework::GetStreetPixelsManager() const
+{
+  ASSERT(m_streetPixelsManager != nullptr, ("Street pixel manager is not initialized."));
+  return *m_streetPixelsManager.get();
 }
 
 void Framework::SetPlacePageListeners(PlacePageEvent::OnOpen onOpen, PlacePageEvent::OnClose onClose,
@@ -2906,6 +3029,18 @@ void Framework::SwitchToUsingVehicleStyle(bool const shouldUseVehicleStyle)
       SetMapStyle(MapStyleVehicleLight);
   else
     SwitchToMapMode(CurrentMapMode(), true);
+}
+
+bool Framework::LoadStreetPixelsEnabled()
+{
+  bool enabled;
+  if (!settings::Get(kStreetPixelsEnabledKey, enabled))
+    enabled = false;
+  return enabled;
+}
+
+void Framework::SaveStreetPixelsEnabled(bool enabled) {
+  settings::Set(kStreetPixelsEnabledKey, enabled);
 }
 
 void Framework::EnableChoosePositionMode(bool enable, bool enableBounds, m2::PointD const * optionalPosition)

@@ -2,6 +2,7 @@
 
 #include "map/api_mark_point.hpp"
 #include "map/bookmark_manager.hpp"
+#include "map/explore_stats_service.hpp"
 #include "map/features_fetcher.hpp"
 #include "map/isolines_manager.hpp"
 #include "map/mwm_url.hpp"
@@ -12,6 +13,7 @@
 #include "map/routing_mark.hpp"
 #include "map/search_api.hpp"
 #include "map/search_mark.hpp"
+#include "map/street_pixels_manager.hpp"
 #include "map/track.hpp"
 #include "map/track_statistics.hpp"
 #include "map/traffic_manager.hpp"
@@ -215,6 +217,9 @@ protected:
 
   std::unique_ptr<BookmarkManager> m_bmManager;
 
+  std::unique_ptr<StreetPixelsManager> m_streetPixelsManager;
+  std::unique_ptr<ExploreStatsService> m_exploreStatsService;
+
   SearchMarks m_searchMarks;
 
   df::DrapeApi m_drapeApi;
@@ -382,6 +387,16 @@ public:
 
   BookmarkManager & GetBookmarkManager();
   BookmarkManager const & GetBookmarkManager() const;
+
+  StreetPixelsManager & GetStreetPixelsManager();
+  StreetPixelsManager const & GetStreetPixelsManager() const;
+
+  void EnableExploreSharing(bool enabled);
+  bool IsExploreSharingEnabled() const;
+  void TriggerExploreStatsUpload();
+  void GetExploreStatsRegions(std::vector<std::pair<std::string, std::string>> & outRegions) const;
+  void GetExploreStatsAggregatedWeeks(std::vector<std::pair<uint64_t, uint64_t>> & outWeeks,
+                                      std::string const & regionIdFilter) const;
 
   /// @name Visualize utilities, used in desktop only. Implemented in framework_visualize.cpp
   /// @{
@@ -822,6 +837,9 @@ public:
   bool LoadTrafficSimplifiedColors();
   void SaveTrafficSimplifiedColors(bool simplified);
   void SetTrafficSimplifiedColors(bool simplified);
+
+  bool LoadStreetPixelsEnabled();
+  void SaveStreetPixelsEnabled(bool enabled);
 
   dp::ApiVersion LoadPreferredGraphicsAPI();
   void SavePreferredGraphicsAPI(dp::ApiVersion apiVersion);

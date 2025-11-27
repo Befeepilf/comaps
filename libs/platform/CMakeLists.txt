@@ -62,6 +62,8 @@ set(SRC
   string_storage_base.hpp
   utm_mgrs_utils.cpp
   utm_mgrs_utils.hpp
+  vibration.cpp
+  vibration.hpp
 )
 
 if (PLATFORM_IPHONE)

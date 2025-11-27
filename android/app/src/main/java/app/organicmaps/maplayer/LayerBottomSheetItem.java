@@ -35,28 +35,27 @@ public class LayerBottomSheetItem
     @DrawableRes
     int drawableResId = 0;
     @StringRes
-    int buttonTextResource = switch (mode)
-    {
-      case OUTDOORS ->
-      {
-        drawableResId = R.drawable.ic_layers_outdoors;
-        yield R.string.button_layer_outdoor;
-      }
-      case SUBWAY ->
-      {
-        drawableResId = R.drawable.ic_layers_subway;
-        yield R.string.subway;
-      }
-      case ISOLINES ->
-      {
-        drawableResId = R.drawable.ic_layers_isoline;
-        yield R.string.button_layer_isolines;
-      }
-      case TRAFFIC ->
-      {
-        drawableResId = R.drawable.ic_layers_traffic;
-        yield R.string.button_layer_traffic;
-      }
+    int buttonTextResource = switch (mode) {
+        case OUTDOORS -> {
+            drawableResId = R.drawable.ic_layers_outdoors;
+            yield R.string.button_layer_outdoor;
+        }
+        case SUBWAY -> {
+            drawableResId = R.drawable.ic_layers_subway;
+            yield R.string.subway;
+        }
+        case ISOLINES -> {
+            drawableResId = R.drawable.ic_layers_isoline;
+            yield R.string.button_layer_isolines;
+        }
+        case TRAFFIC -> {
+            drawableResId = R.drawable.ic_layers_traffic;
+            yield R.string.button_layer_traffic;
+        }
+        case STREET_PIXELS -> {
+          drawableResId = R.drawable.ic_layers_traffic;  // TODO: Add proper drawable for street pixels
+          yield R.string.button_layer_street_pixels;
+        }
     };
     return new LayerBottomSheetItem(drawableResId, buttonTextResource, mode, layerItemClickListener);
   }
