@@ -15,6 +15,8 @@
 #include "drape_frontend/render_node.hpp"
 #include "drape_frontend/route_shape.hpp"
 #include "drape_frontend/selection_shape.hpp"
+#include "drape_frontend/street_pixel.hpp"
+#include "drape_frontend/tile_key.hpp"
 #include "drape_frontend/tile_utils.hpp"
 #include "drape_frontend/traffic_generator.hpp"
 #include "drape_frontend/transit_scheme_builder.hpp"
@@ -35,6 +37,8 @@
 #include <map>
 #include <mutex>
 #include <optional>
+#include <span>
+#include <utility>
 #include <vector>
 
 namespace df
@@ -894,7 +898,8 @@ public:
   enum Destination
   {
     GpsTrack,
-    RoutePreview
+    RoutePreview,
+    StreetPixel
   };
 
   CacheCirclesPackMessage(uint32_t pointsCount, Destination dest) : m_pointsCount(pointsCount), m_destination(dest) {}
@@ -947,6 +952,46 @@ class ClearGpsTrackPointsMessage : public Message
 {
 public:
   Type GetType() const override { return Type::ClearGpsTrackPoints; }
+};
+
+class EnableStreetPixelsMessage : public Message
+{
+public:
+  EnableStreetPixelsMessage(bool enabled)
+    : m_enabled(enabled)
+  {}
+
+  Type GetType() const override { return Type::EnableStreetPixels; }
+
+  bool IsEnabled() const { return m_enabled; }
+
+private:
+  bool m_enabled;
+};
+
+class UpdateStreetPixelsMessage : public Message
+{
+public:
+  UpdateStreetPixelsMessage(std::span<StreetPixel> & toAdd)
+    : m_toAdd(toAdd)
+  {}
+
+  Type GetType() const override { return Type::UpdateStreetPixels; }
+
+  std::span<StreetPixel> & GetToAdd() { return m_toAdd; }
+
+private:
+  std::span<StreetPixel> & m_toAdd;
+};
+
+class ClearStreetPixelsMessage : public BaseBlockingMessage
+{
+public:
+  explicit ClearStreetPixelsMessage(Blocker & blocker)
+    : BaseBlockingMessage(blocker)
+  {}
+
+  Type GetType() const override { return Type::ClearStreetPixels; }
 };
 
 class OnEnterForegroundMessage : public Message

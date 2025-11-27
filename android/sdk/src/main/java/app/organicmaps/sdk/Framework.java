@@ -298,6 +298,9 @@ public class Framework
 
   public static native boolean nativeIsOutdoorsLayerEnabled();
 
+  public static native void nativeSetStreetPixelsLayerEnabled(boolean enabled);
+  public static native boolean nativeIsStreetPixelsLayerEnabled();
+
   @NonNull
   public static native MapObject nativeDeleteBookmarkFromMapObject();
 
@@ -352,6 +355,7 @@ public class Framework
 
   public static native void nativeMemoryWarning();
   public static native void nativeSaveRoute();
+  
   public static native void nativeSetCustomMapDownloadUrl(String url);
 
   public static void applyCustomMapDownloadUrl(@NonNull Context context, @Nullable String url)
@@ -368,4 +372,12 @@ public class Framework
       out = out + "/";
     return out;
   }
+
+  @Nullable
+  public static native String nativeGetUsername();
+  public static native boolean nativeHasUsername();
+  public static native boolean nativeSetUsername(@NonNull String username);
+  public static native boolean nativeGetExploreSharingEnabled();
+  public static native void nativeSetExploreSharingEnabled(boolean enabled);
+  public static native void nativeTriggerExploreStatsUpload();
 }

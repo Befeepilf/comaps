@@ -52,6 +52,10 @@ public class LayerBottomSheetItem
             drawableResId = R.drawable.ic_layers_traffic;
             yield R.string.button_layer_traffic;
         }
+        case STREET_PIXELS -> {
+          drawableResId = R.drawable.ic_layers_traffic;  // TODO: Add proper drawable for street pixels
+          yield R.string.button_layer_street_pixels;
+        }
     };
       return new LayerBottomSheetItem(drawableResId, buttonTextResource, mode, layerItemClickListener);
   }
