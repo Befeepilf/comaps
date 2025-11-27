@@ -220,6 +220,7 @@ target_link_libraries(${PROJECT_NAME}
     coding
     drape
     geometry
+    healpix
     i18n
     indexer
     kml
