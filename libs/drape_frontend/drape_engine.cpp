@@ -23,6 +23,7 @@
 
 #include "indexer/feature_decl.hpp"
 
+#include "platform/platform.hpp"
 #include "platform/settings.hpp"
 #include "routing/base/followed_polyline.hpp"
 
@@ -31,7 +32,8 @@
 #include "base/timer.hpp"
 
 #include "3party/ankerl/unordered_dense.h"
-#include "platform/platform.hpp"
+
+#include <span>
 
 namespace df
 {
@@ -709,6 +711,28 @@ void DrapeEngine::ClearGpsTrackPoints()
 {
   m_threadCommutator->PostMessage(ThreadsCommutator::RenderThread, make_unique_dp<ClearGpsTrackPointsMessage>(),
                                   MessagePriority::Normal);
+}
+
+void DrapeEngine::EnableStreetPixels(bool enable)
+{
+  m_threadCommutator->PostMessage(ThreadsCommutator::RenderThread, make_unique_dp<EnableStreetPixelsMessage>(enable),
+                                  MessagePriority::Normal);
+}
+
+void DrapeEngine::UpdateStreetPixels(std::span<df::StreetPixel> & toAdd)
+{
+  m_threadCommutator->PostMessage(ThreadsCommutator::RenderThread, make_unique_dp<UpdateStreetPixelsMessage>(toAdd),
+                                  MessagePriority::Normal);
+}
+
+void DrapeEngine::ClearStreetPixels()
+{
+  {
+    BaseBlockingMessage::Blocker blocker;
+    m_threadCommutator->PostMessage(ThreadsCommutator::RenderThread, make_unique_dp<ClearStreetPixelsMessage>(blocker),
+                                    MessagePriority::Normal);
+    blocker.Wait();
+  }
 }
 
 void DrapeEngine::EnableChoosePositionMode(bool enable, std::vector<m2::TriangleD> && boundAreaTriangles,
