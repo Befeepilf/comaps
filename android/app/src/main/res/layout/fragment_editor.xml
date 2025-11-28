@@ -260,7 +260,7 @@
               android:layout_marginStart="@dimen/editor_margin_left"
               android:layout_toStartOf="@+id/sw__wifi"
               android:text="@string/category_wifi"/>
-          <androidx.appcompat.widget.SwitchCompat
+          <com.google.android.material.materialswitch.MaterialSwitch
               android:id="@+id/sw__wifi"
               android:layout_width="wrap_content"
               android:layout_height="wrap_content"
@@ -314,7 +314,7 @@
               android:layout_marginStart="@dimen/editor_margin_left"
               android:layout_toStartOf="@+id/sw__outdoor_seating"
               android:text="@string/outdoor_seating"/>
-          <androidx.appcompat.widget.SwitchCompat
+          <com.google.android.material.materialswitch.MaterialSwitch
               android:id="@+id/sw__outdoor_seating"
               android:layout_width="wrap_content"
               android:layout_height="wrap_content"

@@ -173,10 +173,10 @@
         android:text="@string/editor_time_allday"
         android:textAppearance="@style/MwmTextAppearance.Body1"/>
 
-      <androidx.appcompat.widget.SwitchCompat
+      <com.google.android.material.materialswitch.MaterialSwitch
         android:id="@+id/sw__allday"
-        android:layout_width="48dp"
-        android:layout_height="48dp"/>
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 
     </LinearLayout>
 

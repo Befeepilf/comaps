@@ -15,14 +15,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AutoCompleteTextView;
 import android.widget.GridLayout;
-import android.widget.Toast;
+
 import androidx.annotation.CallSuper;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
-import androidx.appcompat.widget.SwitchCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import app.organicmaps.R;
@@ -44,9 +43,9 @@ import app.organicmaps.util.Graphics;
 import app.organicmaps.util.InputUtils;
 import app.organicmaps.util.UiUtils;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.android.material.textview.MaterialTextView;
@@ -117,9 +116,9 @@ public class EditorFragment extends BaseMwmFragment implements View.OnClickListe
   private MaterialTextView mPhone;
   private MaterialButton mEditPhoneLink;
   private MaterialTextView mCuisine;
-  private SwitchCompat mWifi;
+  private MaterialSwitch mWifi;
   private MaterialTextView mSelfService;
-  private SwitchCompat mOutdoorSeating;
+  private MaterialSwitch mOutdoorSeating;
 
   // Default Metadata entries.
   private static final class MetadataEntry
