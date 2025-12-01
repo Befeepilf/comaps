@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
   <style name="MwmTheme.Base" parent="Theme.Material3.DayNight.NoActionBar">
-    <item name="materialCalendarStyle">@style/Widget.MaterialComponents.MaterialCalendar</item>
+    <item name="materialCalendarStyle">@style/Widget.Material3.MaterialCalendar</item>
     <item name="materialCalendarFullscreenTheme">@style/MwmWidget.MaterialCalendar.Theme.FullScreen.Dark</item>
     <item name="materialCalendarTheme">@style/MwmWidget.MaterialCalendar.Theme.Dark</item>
     <item name="android:listViewStyle">@style/MwmWidget.ListView</item>
