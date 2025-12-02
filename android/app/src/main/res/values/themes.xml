@@ -116,7 +116,7 @@
     <item name="elevationProfileSelectedPointTriangle">@drawable/ic_ascent</item>
     <item name="elevationProfileFloatingTriangle">@drawable/ic_triangle_elevation</item>
     <item name="elevationProfileColor">@color/elevation_profile</item>
-    <item name="android:popupMenuStyle">@style/PopupMenu</item>
+    <item name="android:popupMenuStyle">@style/Widget.Material3.PopupMenu</item>
 
     <!-- Style used for bottom sheet behavior components -->
     <item name="bottomSheetStyle">@style/MwmWidget.BottomSheet</item>
