@@ -7,11 +7,11 @@ on:
         required: false
         default: false
         type: boolean
-      run-copy-coasts:
-        description: 'Copy last used coastlines?'
-        required: false
-        default: true
-        type: boolean
+#      run-copy-coasts:
+#        description: 'Copy last used coastlines?'
+#        required: false
+#        default: true
+#        type: boolean
       run-isolines:
         description: 'Update altitude isolines?'
         required: false
@@ -52,23 +52,23 @@ on:
         required: false
         default: false
         type: boolean
-      map-generator-countries:
-        description: 'Generate specific MWMs? (i.e. "US_New York_*, foo")'
-        required: false
-        type: string
+#      map-generator-countries:
+#        description: 'Generate specific MWMs? (i.e. "US_New York_*, foo")'
+#        required: false
+#        type: string
       run-upload:
         description: 'Upload latest maps to CDN?'
         required: false
         default: false
         type: boolean
-      reset:
-        description: 'Reset part of the system?'
-        required: false
-        default: 'no'
-        type: choice
-        options:
-          - 'no'
-          - wiki-ratelimit
+#      reset:
+#        description: 'Reset part of the system?'
+#        required: false
+#        default: 'no'
+#        type: choice
+#        options:
+#          - 'no'
+#          - wiki-ratelimit
 
 ## RCLONE_CONF is multi-line text containing keys and credentials for us2,ru1,fi1,de1 servers
 
@@ -80,7 +80,7 @@ env:
   ZULIP_API_KEY: ${{ secrets.ZULIP_API_KEY }}
   MWMTEST: ${{ inputs.map-generator-test }}
   MWMCONTINUE: ${{ inputs.map-generator-continue }}
-  MWMCOUNTRIES: ${{ inputs.map-generator-countries }}
+  # MWMCOUNTRIES: ${{ inputs.map-generator-countries }}
   DEBIAN_FRONTEND: noninteractive
   TZ: Etc/UTC
 
@@ -118,7 +118,7 @@ jobs:
           git clone https://codeberg.org/comaps/subways.git
 
   copy-coasts:
-    if: inputs.run-copy-coasts
+    # if: inputs.run-copy-coasts
     name: Copy Previously Generated Coasts
     runs-on: mapfilemaker
     container:
