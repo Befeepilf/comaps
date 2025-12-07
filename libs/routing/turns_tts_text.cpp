@@ -92,7 +92,8 @@ void FormatFullRoadName(RouteSegment::RoadNameInfo & road, std::string & name)
     if (!road.m_name.empty())
       outArr.emplace_back(road.m_name);
   }
-  name = strings::JoinStrings(outArr.begin(), outArr.end(), ";");
+
+  name = strings::JoinStrings(outArr.begin(), outArr.end(), "; ");
 
   strings::Trim(name);
 }
