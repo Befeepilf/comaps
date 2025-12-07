@@ -6,6 +6,8 @@
 
 namespace osm
 {
+static int constexpr kMaximumOsmChars = 255;
+
 std::string ValidateAndFormat_website(std::string const & v);
 std::string ValidateAndFormat_facebook(std::string const & v);
 std::string ValidateAndFormat_instagram(std::string const & v);

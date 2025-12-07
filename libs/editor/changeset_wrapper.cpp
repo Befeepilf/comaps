@@ -243,14 +243,11 @@ void ChangesetWrapper::Modify(editor::XMLFeature node)
 
 void ChangesetWrapper::AddChangesetTag(std::string key, std::string value)
 {
-  value = strings::EscapeForXML(value);
+  // Truncate to 254 characters as OSM has a length limit of 255
+  if (strings::Truncate(value, kMaximumOsmChars))
+    value += "…";
 
-  //OSM has a length limit of 255 characters
-  if (value.length() > kMaximumOsmChars)
-  {
-    LOG(LWARNING, ("value is too long for OSM 255 char limit: ", value));
-    value = value.substr(0, kMaximumOsmChars - 3).append("...");
-  }
+  value = strings::EscapeForXML(value);
 
   m_changesetComments.insert_or_assign(std::move(key), std::move(value));
 }

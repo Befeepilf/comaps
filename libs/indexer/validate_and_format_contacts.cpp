@@ -408,6 +408,10 @@ bool ValidateWebsite(string const & site)
 
   auto const startPos = GetProtocolNameLength(site);
 
+  // check lengt and leave room for addition of 'http://'
+  if (strings::CountChar(site) > (IsProtocolSpecified(site) ? kMaximumOsmChars : kMaximumOsmChars - 7))
+    return false;
+
   if (startPos >= site.size())
     return false;
 
@@ -428,6 +432,9 @@ bool ValidateFacebookPage(string const & page)
 {
   if (page.empty())
     return true;
+
+  if (strings::CountChar(page) > kMaximumOsmChars)
+    return false;
 
   // Check if 'page' contains valid Facebook username or page name.
   // * length >= 5
@@ -452,6 +459,9 @@ bool ValidateInstagramPage(string const & page)
   if (page.empty())
     return true;
 
+  if (strings::CountChar(page) > kMaximumOsmChars)
+    return false;
+
   // Rules are defined here: https://blog.jstassen.com/2016/03/code-regex-for-instagram-username-and-hashtags/
   if (regex_match(page, s_instaRegex))
     return true;
@@ -468,6 +478,9 @@ bool ValidateTwitterPage(string const & page)
   if (page.empty())
     return true;
 
+  if (strings::CountChar(page) > kMaximumOsmChars)
+    return false;
+
   if (!ValidateWebsite(page))
     return regex_match(page, s_twitterRegex);  // Rules are defined here: https://stackoverflow.com/q/11361044
 
@@ -479,6 +492,9 @@ bool ValidateVkPage(string const & page)
 {
   if (page.empty())
     return true;
+
+  if (strings::CountChar(page) > kMaximumOsmChars)
+    return false;
 
   {
     // Check that page contains valid username. Rules took here: https://vk.com/faq18038
@@ -513,6 +529,9 @@ bool ValidateLinePage(string const & page)
   if (page.empty())
     return true;
 
+  if (strings::CountChar(page) > kMaximumOsmChars)
+    return false;
+
   {
     // Check that linePage contains valid page name.
     // Rules are defined here: https://help.line.me/line/?contentId=10009904
@@ -535,6 +554,9 @@ bool ValidateFediversePage(string const & page)
 {
   if (page.empty())
     return true;
+
+  if (strings::CountChar(page) > kMaximumOsmChars)
+    return false;
 
   // Match @username@instance.name format
   if (regex_match(page, s_fediverseRegex))
@@ -574,6 +596,9 @@ bool ValidateBlueskyPage(string const & page)
   // A valid username can be any domain name, so the username rules don't apply.
   if (page.empty())
     return true;
+
+  if (strings::CountChar(page) > kMaximumOsmChars)
+    return false;
 
   // Match {@?}{user/domain.name} format
   if (regex_match(page, s_blueskyRegex))
