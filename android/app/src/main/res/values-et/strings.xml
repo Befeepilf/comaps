@@ -905,4 +905,10 @@
     <string name="charge_socket_schuko">EU-sisene</string>
     <string name="prefs_speed_cameras_information">Kiiruskaamerate teavitused on nendes riikides lülitatud välja, kus seda keelab kohalik seadusandlus.</string>
     <string name="navigation_start_tts_message">"Alustan tee juhatamist, hääljuhiste keel: "</string>
+    <string name="place_page_map_too_old_title">Kaardiandmed on aegunud</string>
+    <string name="place_page_map_too_old_description">Sinu kasutatavad kaardiandmed on väga vanad. Palun uuenda andmeid.</string>
+    <string name="place_page_app_too_old_description">Sinu kasutatavad kaardiandmed on väga vanad. Palun uuenda CoMapsi rakendust.</string>
+    <string name="place_page_update_too_old_map">Uuenda piirkonna kaardiandmeid</string>
+    <string name="place_page_too_old_to_edit">Kuna kaardiandmed on liiga vanad, siis OpenStreetMapi muutmise võimalus on lülitatud välja.</string>
+    <string name="navigation_start_tts_disabled_message">Hääljuhiste kasutamine on lülitatud välja: kõnesünteesimootorit pole saadaval</string>
 </resources>

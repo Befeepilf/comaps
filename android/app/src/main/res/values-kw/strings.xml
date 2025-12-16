@@ -371,4 +371,6 @@
     <string name="error_value_must_be_positive">Res an niver positiv</string>
     <string name="error_invalid_number">Niver anewn</string>
     <string name="offline_explanation_title">Mappys Dhywarlinen</string>
+    <string name="category_shopping">Gwerthjiow</string>
+    <string name="edit">Golegi</string>
 </resources>

@@ -162,7 +162,7 @@
 "type.amenity.public_bath" = "Baños públicos";
 "type.amenity.shower" = "Ducha";
 "type.amenity.stripclub" = "Club de estriptis";
-"type.amenity.taxi" = "Sitio de taxis";
+"type.amenity.taxi" = "Parada de taxis";
 "type.amenity.telephone" = "Teléfono";
 "type.amenity.theatre" = "Teatro";
 "type.amenity.toilets" = "WC";
@@ -492,7 +492,7 @@
 "type.highway.residential.bridge" = "Puente";
 
 /* These translations are used for all type.highway.*.tunnel. */
-"type.highway.residential.tunnel" = "Túnel de calle residencial";
+"type.highway.residential.tunnel" = "Túnel";
 "type.highway.rest_area" = "Área de descanso";
 "type.highway.road" = "Carretera";
 
@@ -510,7 +510,7 @@
 "type.highway.secondary.bridge" = "Puente";
 
 /* These translations are used for all type.highway.*.tunnel. */
-"type.highway.secondary.tunnel" = "Túnel de carretera secundaria";
+"type.highway.secondary.tunnel" = "Túnel";
 "type.highway.secondary_link" = "Enlace de carretera secundaria";
 
 /* These translations are used for all type.highway.*.bridge. */

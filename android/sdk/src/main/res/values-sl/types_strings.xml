@@ -352,4 +352,21 @@
     <string name="type.cuisine.argentinian">Argentinska kuhinja</string>
     <string name="type.cuisine.asian">Azijska kuhinja</string>
     <string name="type.cuisine.austrian">Avstrijska kuhinja</string>
+    <string name="type.cuisine.chinese">Kitajska kuhinja</string>
+    <string name="type.cuisine.crepe">Krep</string>
+    <string name="type.cuisine.donut">Donat</string>
+    <string name="type.cuisine.fish">Ribe</string>
+    <string name="type.cuisine.fish_and_chips">Riba s krompirčkom</string>
+    <string name="type.cuisine.french">Francoska kuhinja</string>
+    <string name="type.cuisine.grill">Žar</string>
+    <string name="type.cuisine.hotdog">Hot dog</string>
+    <string name="type.craft.electronics_repair">Popravilo elektronike</string>
+    <string name="type.craft.gardener">Vrtnar</string>
+    <string name="type.craft.hvac">Ogrevanje, prezračevanje, klimatizacija</string>
+    <string name="type.craft.key_cutter">Ključavničar</string>
+    <string name="type.shop.camera">Trgovina s fotoaparati</string>
+    <string name="type.craft.plumber">Vodovodar</string>
+    <string name="type.cuisine.breakfast">Zajtrk</string>
+    <string name="type.cuisine.bubble_tea">Čaj s tapiokinimi kroglicami (\'Bubble Tea\')</string>
+    <string name="type.cuisine.chicken">Piščanec</string>
 </resources>

@@ -40,7 +40,7 @@
 "country_status_download_without_size" = "دانلود نقشه";
 
 /* Message to display at the center of the screen when the country download has failed */
-"country_status_download_failed" = "دانلود با شکست مواجه شد";
+"country_status_download_failed" = "بارگیری ناکام بود";
 
 /* Text in About screen */
 "about_proposition_1" = "آفلاین، سریع و آسان برای استفاده";
@@ -48,13 +48,13 @@
 /* Text in About screen */
 "about_proposition_2" = "متمرکز بر حریم خصوصی و بدون تبلیغات";
 "close" = "بستن";
-"download" = "دانلود";
+"download" = "بارگیری";
 
 /* REMOVE THIS STRING AFTER REFACTORING */
 "continue_button" = "ادامه";
 
 /* "Add new bookmark list" dialog title */
-"add_new_set" = "اضافه کردن مجموعه جدید";
+"add_new_set" = "افزودن پهرستی نو";
 
 /* Add Bookmark list dialog - hint when the list name is empty */
 "bookmark_set_name" = "Bookmark List Name";
@@ -1085,7 +1085,7 @@
 "edit_track" = "ویرایش مسیر";
 "osm_profile_view_notes" = "مشاهده یادداشت‌ها";
 "osm_profile_view_edit_history" = "مشاهده تاریخچه ویرایش‌ها";
-"about_headline" = "رایگان برای همه، ساخته شده با عشق";
+"about_headline" = "پروژه‌ای باز نیرو گرفته از انجمن";
 "about_proposition_3" = "شفاف و نه برای سود";
 "pref_mapappearance_title" = "ظاهر نقشه";
 "pref_maplanguage_title" = "زبان نقشه";

@@ -899,4 +899,11 @@
     <string name="navigation_start_tts_disabled_message">Taleveiledninger deaktivert: TTS-motor ikke tilgjengelig</string>
     <string name="navigation_start_tts_message">"Starter navigering, taleveiledningsspråk: "</string>
     <string name="prefs_speed_cameras_information">Fotoboksvarsler er deaktivert i land hvor varsler er forbudt i henhold til lokal lovgivning.</string>
+    <string name="place_page_map_too_old_title">Kartdata utdatert</string>
+    <string name="place_page_map_too_old_description">Gjeldende kartdata er gamle, oppdater kartet.</string>
+    <string name="place_page_app_too_old_description">Gjeldende kartdata er gamle, oppdater CoMaps-appen.</string>
+    <string name="place_page_update_too_old_map">Oppdater kartregion</string>
+    <string name="place_page_too_old_to_edit">OpenStreetMap-redigering er deaktivert fordi kartdataene er for gamle.</string>
+    <string name="osm_note_hint">Alternativt, så kan du legge til et notat i OpenStreetMap, slik at noen andre kan redigere eller legge til stedet.</string>
+    <string name="osm_note_toast">Notatet vil bli sendt til OpenStreetMap</string>
 </resources>

@@ -160,7 +160,7 @@
     <string name="type.amenity.public_bath">Baños públicos</string>
     <string name="type.amenity.shower">Ducha</string>
     <string name="type.amenity.stripclub">Club de estriptis</string>
-    <string name="type.amenity.taxi">Sitio de taxis</string>
+    <string name="type.amenity.taxi">Parada de taxis</string>
     <string name="type.amenity.telephone">Teléfono</string>
     <string name="type.amenity.theatre">Teatro</string>
     <string name="type.amenity.toilets">WC</string>
@@ -455,7 +455,7 @@
     <!-- These translations are used for all type.highway.*.bridge. -->
     <string name="type.highway.residential.bridge">Puente</string>
     <!-- These translations are used for all type.highway.*.tunnel. -->
-    <string name="type.highway.residential.tunnel">Túnel de calle residencial</string>
+    <string name="type.highway.residential.tunnel">Túnel</string>
     <string name="type.highway.rest_area">Área de descanso</string>
     <string name="type.highway.road">Carretera</string>
     <!-- These translations are used for all type.highway.*.bridge. -->
@@ -468,7 +468,7 @@
     <!-- These translations are used for all type.highway.*.bridge. -->
     <string name="type.highway.secondary.bridge">Puente</string>
     <!-- These translations are used for all type.highway.*.tunnel. -->
-    <string name="type.highway.secondary.tunnel">Túnel de carretera secundaria</string>
+    <string name="type.highway.secondary.tunnel">Túnel</string>
     <string name="type.highway.secondary_link">Enlace de carretera secundaria</string>
     <!-- These translations are used for all type.highway.*.bridge. -->
     <string name="type.highway.secondary_link.bridge">Puente</string>
