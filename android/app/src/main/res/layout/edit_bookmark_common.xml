@@ -60,7 +60,7 @@
       android:layout_below="@id/tv__bookmark_set_title"
       android:layout_centerVertical="true"
       android:layout_marginEnd="@dimen/margin_quadruple"
-      android:background="?attr/selectableItemBackground"
+      android:background="?selectableItemBackground"
       android:clickable="true"
       android:paddingTop="@dimen/margin_quarter_plus"
       android:paddingBottom="@dimen/margin_half_plus"
