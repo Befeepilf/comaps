@@ -384,7 +384,7 @@
 "shop-outpost": "4Pickup Point|4Parcel Pickup",
 "amenity-vending_machine-fuel|@category_fuel": "Fuel Dispenser|Gas Pump",
 "building-garage": "Garage",
-"highway-rest_area|highway-services": "4Rest area|4Service area|station",
+"highway-rest_area|highway-services": "4Rest area|4Service area|station|rest stop",
 "man_made-chimney": "Chimney",
 "man_made-crane": "Crane",
 "man_made-tower|man_made-flare": "Tower",
