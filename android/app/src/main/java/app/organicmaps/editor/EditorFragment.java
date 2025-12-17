@@ -948,7 +948,7 @@ public class EditorFragment extends BaseMwmFragment implements View.OnClickListe
 
     mDisused.setVisibility(Editor.nativeCanMarkPlaceAsDisused() ? View.VISIBLE : View.GONE);
 
-    if (Editor.nativeIsMapObjectUploaded())
+    if (Editor.nativeAreSomeFeatureChangesUploaded())
     {
       mReset.setText(R.string.editor_place_doesnt_exist);
       return;
@@ -966,7 +966,7 @@ public class EditorFragment extends BaseMwmFragment implements View.OnClickListe
 
   private void reset()
   {
-    if (Editor.nativeIsMapObjectUploaded())
+    if (Editor.nativeAreSomeFeatureChangesUploaded())
     {
       placeDoesntExist();
       return;
