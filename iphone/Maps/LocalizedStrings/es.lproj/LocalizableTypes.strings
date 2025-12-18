@@ -779,7 +779,7 @@
 "type.natural.beach.sand" = "Playa de arena";
 "type.natural.beach.gravel" = "Playa de grava";
 "type.natural.cape" = "Cabo";
-"type.natural.cave_entrance" = "Cueva";
+"type.natural.cave_entrance" = "Entrada de cueva";
 "type.natural.cliff" = "Acantilado";
 "type.natural.earth_bank" = "Talud de tierra";
 "type.man_made.embankment" = "Terraplén";
@@ -815,7 +815,7 @@
 "type.natural.wetland.marsh" = "Ciénaga";
 "type.noexit" = "Sin salida";
 "type.office" = "Oficina";
-"type.office.company" = "Oficina";
+"type.office.company" = "Oficina de compañía";
 "type.office.estate_agent" = "Agente inmobiliario";
 "type.office.government" = "Oficina gubernamental";
 "type.office.insurance" = "Oficina de seguros";
@@ -859,13 +859,13 @@
 "type.place.state.USA" = "Estado";
 
 /* Named part of a city or town, bigger than place=quarter (Wiki: https://wiki.openstreetmap.org/wiki/Tag:place%3Dsuburb) */
-"type.place.suburb" = "Barrio";
+"type.place.suburb" = "Suburbio";
 "type.place.town" = "Pueblo";
 "type.place.village" = "Pueblo";
 "type.power" = "Energía";
 "type.power.generator" = "Generador";
 "type.power.generator.solar" = "Generador solar";
-"type.power.generator.wind" = "Generador de viento";
+"type.power.generator.wind" = "Aerogenerador";
 "type.power.generator.gas" = "Planta termoeléctrica de gas";
 "type.power.generator.hydro" = "Planta hidroeléctrica";
 "type.power.line" = "Línea eléctrica";
@@ -947,10 +947,10 @@
 "type.railway.station" = "Estación de tren";
 "type.railway.station.funicular" = "Funicular";
 "type.railway.station.light_rail" = "Estación de tren";
-"type.railway.station.light_rail.berlin" = "Estación de tren";
+"type.railway.station.light_rail.berlin" = "Estación de tren (S-Bahn)";
 "type.railway.station.light_rail.london" = "Estación de tren";
-"type.railway.station.light_rail.porto" = "Estación de tren";
-"type.railway.station.monorail" = "Estación de tren";
+"type.railway.station.light_rail.porto" = "Estación de metro";
+"type.railway.station.monorail" = "Estación de monoriel";
 "type.railway.station.subway" = "Estación de metro";
 "type.railway.station.subway.adana" = "Estación de metro";
 "type.railway.station.subway.algiers" = "Estación de metro";
@@ -1306,7 +1306,7 @@
 "type.shop.tobacco" = "Tabaco";
 "type.shop.trade" = "Suministros comerciales";
 "type.shop.watches" = "Relojes";
-"type.shop.wholesale" = "Almacén al por mayor";
+"type.shop.wholesale" = "Tienda al por mayor";
 "type.sport" = "Deporte";
 "type.sport.american_football" = "Fútbol americano";
 "type.sport.archery" = "Tiro al arco";
@@ -1348,7 +1348,7 @@
 
 /* Typically serviced, staff is present and food is available (compared to wilderness_hut). */
 "type.tourism.alpine_hut" = "Albergue de montaña";
-"type.tourism.apartment" = "Apartamento de vacaciones";
+"type.tourism.apartment" = "Apartamento vacacional";
 "type.tourism.artwork" = "Obra de arte";
 "type.tourism.artwork.architecture" = "Arte arquitectónico";
 "type.tourism.artwork.painting" = "Pintura";

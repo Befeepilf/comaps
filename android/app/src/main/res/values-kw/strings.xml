@@ -373,4 +373,6 @@
     <string name="offline_explanation_title">Mappys Dhywarlinen</string>
     <string name="category_shopping">Gwerthjiow</string>
     <string name="edit">Golegi</string>
+    <string name="downloader_no_space_title">Nyns eus lowr dalghuster</string>
+    <string name="translated_om_site_url">https://comaps.app/</string>
 </resources>
