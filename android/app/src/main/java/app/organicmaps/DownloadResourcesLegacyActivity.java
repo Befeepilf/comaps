@@ -450,11 +450,15 @@ public class DownloadResourcesLegacyActivity extends BaseMwmFragmentActivity
                            .setTitle(titleId)
                            .setMessage(messageId)
                            .setCancelable(true)
-                           .setOnCancelListener((dialog) -> setAction(PAUSE))
+                           .setOnCancelListener((dialog) -> setAction(RESUME))
                            .setPositiveButton(R.string.try_again,
                                               (dialog, which) -> {
                                                 setAction(TRY_AGAIN);
                                                 onTryAgainClicked();
+                                              })
+                           .setNegativeButton(R.string.cancel,
+                                              (dialog, which) -> {
+                                                setAction(RESUME);
                                               })
                            .setOnDismissListener(dialog -> mAlertDialog = null)
                            .show();

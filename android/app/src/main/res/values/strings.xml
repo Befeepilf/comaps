@@ -966,6 +966,8 @@
     <string name="offline_explanation_title">Offline Maps</string>
     <string name="offline_explanation_text">A map needs to be downloaded to view and navigate the area.\nDownload maps for areas you want to travel.</string>
     <string name="list_description_empty">Edit the list to add a description</string>
+    <!-- Settings: Advanced group -->
+    <string name="advanced">Advanced</string>
     <!-- Custom Download URL -->
     <string name="download_resources_custom_url_title">Custom Map Server</string>
     <string name="download_resources_custom_url_message">Override the default map download server used for map downloads. Leave empty to use CoMaps default server.</string>
