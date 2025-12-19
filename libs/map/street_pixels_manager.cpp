@@ -440,7 +440,7 @@ void StreetPixelsManager::UpdateExploredPixels()
         if (HasExploredFraction(ti.id))
           continue;
 
-        // UpdateStreetStatsForTrack(ti.geom);
+        UpdateStreetStatsForTrack(ti.geom);
 
         LOG(LINFO, ("Computing track pixels for", ti.id));
 
@@ -456,33 +456,33 @@ void StreetPixelsManager::UpdateExploredPixels()
           {
             pixel->SetExplored(true);
             msync(pixel, sizeof(df::StreetPixel), MS_ASYNC);
-            // renderNew.insert(pix);
+            renderNew.insert(pix);
           }
-          // if (!m_accountedBits.empty())
-          // {
-          //   size_t index = GetPixelIndex(pixel);
-          //   if (!IsAccountedIndex(index))
-          //   {
-          //     SetAccountedIndex(index);
-          //     ++statsNew;
-          //   }
-          // }
+          if (!m_accountedBits.empty())
+          {
+            size_t index = GetPixelIndex(pixel);
+            if (!IsAccountedIndex(index))
+            {
+              SetAccountedIndex(index);
+              ++statsNew;
+            }
+          }
         }
 
-        // trackExploredFraction[ti.id] =
-        //   trackPixels.empty() ? 0.0
-        //                       : static_cast<double>(renderNew.size()) / static_cast<double>(m_streetPixels.size());
+        trackExploredFraction[ti.id] =
+          trackPixels.empty() ? 0.0
+                              : static_cast<double>(renderNew.size()) / static_cast<double>(m_streetPixels.size());
 
-        // LOG(LINFO, ("Track", ti.id, "explored fraction:", trackExploredFraction[ti.id]));
+        LOG(LINFO, ("Track", ti.id, "explored fraction:", trackExploredFraction[ti.id]));
 
-        // if (statsNew > 0 && m_explorationListener)
-        // {
-        //   ExplorationDelta d;
-        //   d.m_regionId = countryId;
-        //   d.m_newPixels = static_cast<uint32_t>(statsNew);
-        //   d.m_eventTimeSec = static_cast<double>(kml::ToSecondsSinceEpoch(ti.ts));
-        //   m_explorationListener(d);
-        // }
+        if (statsNew > 0 && m_explorationListener)
+        {
+          ExplorationDelta d;
+          d.m_regionId = countryId;
+          d.m_newPixels = static_cast<uint32_t>(statsNew);
+          d.m_eventTimeSec = static_cast<double>(kml::ToSecondsSinceEpoch(ti.ts));
+          m_explorationListener(d);
+        }
       }
 
       {
@@ -494,16 +494,16 @@ void StreetPixelsManager::UpdateExploredPixels()
         }
       }
 
-      // {
-      //   std::lock_guard<std::mutex> lock(m_fractionMutex);
-      //   m_trackExploredFraction = std::move(trackExploredFraction);
-      // }
+        {
+          std::lock_guard<std::mutex> lock(m_fractionMutex);
+          m_trackExploredFraction = std::move(trackExploredFraction);
+        }
 
-      // LOG(LINFO, ("Calculated explored fractions"));
+        LOG(LINFO, ("Calculated explored fractions"));
 
-      // SaveExploredFractions();
-      // if (m_accountedDirty)
-      //   SaveAccountedBits();
+        SaveExploredFractions();
+        if (m_accountedDirty)
+          SaveAccountedBits();
 
       // Notify UI that exploration data updated even if status unchanged.
       if (m_onStateChangedFn)
