@@ -55,6 +55,11 @@
 #include <sstream>
 #include <string>
 
+// File types:
+// .pix: list of explorable healpix ids; left most bit indicates if pixel has been explored
+// .pixa: bitmap of healpixels; each bit corresponds to index in the .pix file; used to calculate exploration stats by tracking which pixels have already been accounted for in the stats
+// .pixf: stores explored fraction for each track; each line is formatted as "track_id explored_fraction"
+
 namespace hp
 {
 T_Healpix_Base<std::int64_t> const & GetHealpixBase()
@@ -435,7 +440,7 @@ void StreetPixelsManager::UpdateExploredPixels()
         if (HasExploredFraction(ti.id))
           continue;
 
-        UpdateStreetStatsForTrack(ti.geom);
+        // UpdateStreetStatsForTrack(ti.geom);
 
         LOG(LINFO, ("Computing track pixels for", ti.id));
 
@@ -451,33 +456,33 @@ void StreetPixelsManager::UpdateExploredPixels()
           {
             pixel->SetExplored(true);
             msync(pixel, sizeof(df::StreetPixel), MS_ASYNC);
-            renderNew.insert(pix);
+            // renderNew.insert(pix);
           }
-          if (!m_accountedBits.empty())
-          {
-            size_t idx = GetPixelIndex(pixel);
-            if (!IsAccountedIndex(idx))
-            {
-              SetAccountedIndex(idx);
-              ++statsNew;
-            }
-          }
+          // if (!m_accountedBits.empty())
+          // {
+          //   size_t index = GetPixelIndex(pixel);
+          //   if (!IsAccountedIndex(index))
+          //   {
+          //     SetAccountedIndex(index);
+          //     ++statsNew;
+          //   }
+          // }
         }
 
-        trackExploredFraction[ti.id] =
-          trackPixels.empty() ? 0.0
-                              : static_cast<double>(renderNew.size()) / static_cast<double>(m_streetPixels.size());
+        // trackExploredFraction[ti.id] =
+        //   trackPixels.empty() ? 0.0
+        //                       : static_cast<double>(renderNew.size()) / static_cast<double>(m_streetPixels.size());
 
-        LOG(LINFO, ("Track", ti.id, "explored fraction:", trackExploredFraction[ti.id]));
+        // LOG(LINFO, ("Track", ti.id, "explored fraction:", trackExploredFraction[ti.id]));
 
-        if (statsNew > 0 && m_explorationListener)
-        {
-          ExplorationDelta d;
-          d.m_regionId = countryId;
-          d.m_newPixels = static_cast<uint32_t>(statsNew);
-          d.m_eventTimeSec = static_cast<double>(kml::ToSecondsSinceEpoch(ti.ts));
-          m_explorationListener(d);
-        }
+        // if (statsNew > 0 && m_explorationListener)
+        // {
+        //   ExplorationDelta d;
+        //   d.m_regionId = countryId;
+        //   d.m_newPixels = static_cast<uint32_t>(statsNew);
+        //   d.m_eventTimeSec = static_cast<double>(kml::ToSecondsSinceEpoch(ti.ts));
+        //   m_explorationListener(d);
+        // }
       }
 
       {
@@ -489,16 +494,16 @@ void StreetPixelsManager::UpdateExploredPixels()
         }
       }
 
-      {
-        std::lock_guard<std::mutex> lock(m_fractionMutex);
-        m_trackExploredFraction = std::move(trackExploredFraction);
-      }
+      // {
+      //   std::lock_guard<std::mutex> lock(m_fractionMutex);
+      //   m_trackExploredFraction = std::move(trackExploredFraction);
+      // }
 
-      LOG(LINFO, ("Calculated explored fractions"));
+      // LOG(LINFO, ("Calculated explored fractions"));
 
-      SaveExploredFractions();
-      if (m_accountedDirty)
-        SaveAccountedBits();
+      // SaveExploredFractions();
+      // if (m_accountedDirty)
+      //   SaveAccountedBits();
 
       // Notify UI that exploration data updated even if status unchanged.
       if (m_onStateChangedFn)
@@ -515,6 +520,7 @@ void StreetPixelsManager::UpdateExploredPixels()
 
 void StreetPixelsManager::UpdateStreetStatsForTrack(kml::MultiGeometry::LineT const & line)
 {
+  // TODO: this method is super slow
   LOG(LINFO, ("UpdateStreetStatsForTrack"));
 
   if (line.empty())
@@ -897,7 +903,6 @@ void StreetPixelsManager::SetAccountedIndex(size_t idx)
   if (idx >= m_streetPixels.size())
     return;
 
-  // Resize m_accountedBits if necessary
   size_t requiredBytes = (idx + 8) / 8;  // +8 to round up
   if (m_accountedBits.size() < requiredBytes)
     m_accountedBits.resize(requiredBytes, 0);
