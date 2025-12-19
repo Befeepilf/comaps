@@ -107,8 +107,6 @@ void StreetPixelRenderer::Render(ref_ptr<dp::GraphicsContext> context, ref_ptr<g
 
   if (m_needUpdate)
   {
-    LOG(LINFO, ("Reconstruct render data"));
-
     // Check if there are render data.
     if (m_renderData.empty() && !m_waitForRenderData)
     {
