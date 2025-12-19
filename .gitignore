@@ -213,3 +213,6 @@ tools/unix/maps/settings.sh
 # VS Code
 .vscode
 .cache
+
+# Sentry Config File
+sentry.properties
