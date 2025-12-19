@@ -457,4 +457,12 @@
     <string name="type.entrance.exit">Izhod (samo)</string>
     <string name="type.healthcare.laboratory">Zdravstveni laboratorij</string>
     <string name="type.healthcare.psychotherapist">Psihoterapevt</string>
+    <string name="type.highway.cycleway.tunnel">Predor</string>
+    <string name="type.highway.elevator">Dvigalo</string>
+    <string name="type.highway.footway">Pešpot</string>
+    <string name="type.highway.footway.sidewalk">Pločnik</string>
+    <string name="type.highway.footway.crossing">Prehod za pešce</string>
+    <string name="type.highway.footway.area">Površina za pešce</string>
+    <string name="type.highway.footway.bridge">Most za pešce</string>
+    <string name="type.highway.footway.tunnel">Predor za pešce</string>
 </resources>

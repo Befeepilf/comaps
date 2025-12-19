@@ -456,3 +456,11 @@
 "type.entrance.exit" = "Izhod (samo)";
 "type.healthcare.laboratory" = "Zdravstveni laboratorij";
 "type.healthcare.psychotherapist" = "Psihoterapevt";
+"type.highway.cycleway.tunnel" = "Predor";
+"type.highway.elevator" = "Dvigalo";
+"type.highway.footway" = "Pešpot";
+"type.highway.footway.sidewalk" = "Pločnik";
+"type.highway.footway.crossing" = "Prehod za pešce";
+"type.highway.footway.area" = "Površina za pešce";
+"type.highway.footway.bridge" = "Most za pešce";
+"type.highway.footway.tunnel" = "Predor za pešce";
