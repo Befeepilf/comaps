@@ -118,6 +118,7 @@ private:
   BookmarkManager * m_bmManager = nullptr;
 
   std::span<df::StreetPixel> m_streetPixels;
+  mutable std::recursive_mutex m_streetPixelsMutex;
 
   std::unique_ptr<MmapReader> m_mmapReader;
 

@@ -168,9 +168,12 @@ void StreetPixelsManager::LoadStreetPixels(storage::LocalFilePtr const & localFi
     }
   }
 
-  m_drapeEngine.SafeCall(&df::DrapeEngine::UpdateStreetPixels, m_streetPixels);
+  {
+    std::lock_guard<std::recursive_mutex> lock(m_streetPixelsMutex);
+    m_drapeEngine.SafeCall(&df::DrapeEngine::UpdateStreetPixels, m_streetPixels);
 
-  LOG(LINFO, ("Loaded", m_streetPixels.size(), "total street pixels"));
+    LOG(LINFO, ("Loaded", m_streetPixels.size(), "total street pixels"));
+  }
   LoadAccountedBits();
 }
 
@@ -180,6 +183,8 @@ void StreetPixelsManager::LoadStreetPixelsFromFile(storage::CountryId const & co
 
   std::string filePath = GetPlatform().WritablePathForFile(countryId + ".pix");
   LOG(LINFO, ("Trying to memory-map existing pix file for", countryId));
+  
+  std::lock_guard<std::recursive_mutex> lock(m_streetPixelsMutex);
   m_mmapReader = std::make_unique<MmapReader>(filePath, MmapReader::Advice::Sequential, true);
   m_streetPixels = m_mmapReader->DataSpan<df::StreetPixel>();
   LOG(LINFO, ("Mapped", m_streetPixels.size(), "pixels for", countryId));
@@ -447,31 +452,36 @@ void StreetPixelsManager::UpdateExploredPixels()
         auto trackPixels = ComputeTrackPixels(ti.geom);
         size_t statsNew = 0;
         std::set<int64_t> renderNew;
-        for (auto pix : trackPixels)
+        size_t totalPixels = 0;
         {
-          auto * pixel = FindStreetPixel(pix);
-          if (pixel == nullptr)
-            continue;
-          if (!pixel->IsExplored())
+          std::lock_guard<std::recursive_mutex> lock(m_streetPixelsMutex);
+          totalPixels = m_streetPixels.size();
+          for (auto pix : trackPixels)
           {
-            pixel->SetExplored(true);
-            msync(pixel, sizeof(df::StreetPixel), MS_ASYNC);
-            renderNew.insert(pix);
-          }
-          if (!m_accountedBits.empty())
-          {
-            size_t index = GetPixelIndex(pixel);
-            if (!IsAccountedIndex(index))
+            auto * pixel = FindStreetPixel(pix);
+            if (pixel == nullptr)
+              continue;
+            if (!pixel->IsExplored())
             {
-              SetAccountedIndex(index);
-              ++statsNew;
+              pixel->SetExplored(true);
+              msync(pixel, sizeof(df::StreetPixel), MS_ASYNC);
+              renderNew.insert(pix);
+            }
+            if (!m_accountedBits.empty())
+            {
+              size_t index = GetPixelIndex(pixel);
+              if (!IsAccountedIndex(index))
+              {
+                SetAccountedIndex(index);
+                ++statsNew;
+              }
             }
           }
         }
 
         trackExploredFraction[ti.id] =
-          trackPixels.empty() ? 0.0
-                              : static_cast<double>(renderNew.size()) / static_cast<double>(m_streetPixels.size());
+          trackPixels.empty() || totalPixels == 0 ? 0.0
+                                                  : static_cast<double>(renderNew.size()) / static_cast<double>(totalPixels);
 
         LOG(LINFO, ("Track", ti.id, "explored fraction:", trackExploredFraction[ti.id]));
 
@@ -596,6 +606,8 @@ void StreetPixelsManager::OnLocationUpdate(location::GpsInfo const & info)
   std::set<std::int64_t> pixels;
   AddPixelsInRadius(info.m_latitude, info.m_longitude, pixels);
   size_t numNewlyExploredPixels = 0;
+
+  std::lock_guard<std::recursive_mutex> lock(m_streetPixelsMutex);
   for (auto const & pix : pixels)
   {
     auto * pixel = FindStreetPixel(pix);
@@ -847,6 +859,7 @@ void StreetPixelsManager::SaveExploredFractions() const
 
 double StreetPixelsManager::GetTotalExploredFraction() const
 {
+  std::lock_guard<std::recursive_mutex> lock(m_streetPixelsMutex);
   size_t total = m_streetPixels.size();
   if (total == 0)
     return 0.0;
@@ -861,8 +874,11 @@ void StreetPixelsManager::ClearPixels()
 {
   LOG(LINFO, ("Clearing pixels and unmapping pix file"));
   m_drapeEngine.SafeCall(&df::DrapeEngine::ClearStreetPixels);
-  m_streetPixels = {};
-  m_mmapReader.reset();
+  {
+    std::lock_guard<std::recursive_mutex> lock(m_streetPixelsMutex);
+    m_streetPixels = {};
+    m_mmapReader.reset();
+  }
   m_accountedBits.clear();
   m_accountedDirty = false;
 
@@ -884,6 +900,7 @@ std::string StreetPixelsManager::GetAccountedFilePath() const
 
 size_t StreetPixelsManager::GetPixelIndex(df::StreetPixel const * ptr) const
 {
+  std::lock_guard<std::recursive_mutex> lock(m_streetPixelsMutex);
   if (m_streetPixels.empty())
     return 0;
   return ptr - m_streetPixels.data();
@@ -900,7 +917,13 @@ bool StreetPixelsManager::IsAccountedIndex(size_t idx) const
 
 void StreetPixelsManager::SetAccountedIndex(size_t idx)
 {
-  if (idx >= m_streetPixels.size())
+  size_t totalPixels = 0;
+  {
+    std::lock_guard<std::recursive_mutex> lock(m_streetPixelsMutex);
+    totalPixels = m_streetPixels.size();
+  }
+
+  if (idx >= totalPixels)
     return;
 
   size_t requiredBytes = (idx + 8) / 8;  // +8 to round up
