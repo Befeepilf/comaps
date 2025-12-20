@@ -445,7 +445,7 @@ void StreetPixelsManager::UpdateExploredPixels()
         if (HasExploredFraction(ti.id))
           continue;
 
-        UpdateStreetStatsForTrack(ti.geom);
+        // UpdateStreetStatsForTrack(ti.geom);
 
         LOG(LINFO, ("Computing track pixels for", ti.id));
 
