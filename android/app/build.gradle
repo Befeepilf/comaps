@@ -16,7 +16,23 @@ buildscript {
 }
 
 plugins {
-    id 'io.sentry.android.gradle' version '5.12.2'
+  id 'io.sentry.android.gradle' version '5.12.2'
+}
+
+sentry {
+  org = "comaps-dl"
+  projectName = "android"
+
+  // this will upload your source code to Sentry to show it as part of the stack traces
+  // disable if you don't want to expose your sources
+  includeSourceContext = true
+
+  uploadNativeSymbols = true
+  includeNativeSources = true
+  autoUploadProguardMapping = true
+
+  // Optional: Enable debug logging for the Sentry plugin to troubleshoot upload issues
+  debug = false
 }
 
 apply plugin: 'com.android.application'
@@ -418,14 +434,4 @@ huaweiPublish {
 
 tasks.withType(JavaCompile).configureEach {
   options.compilerArgs << '-Xlint:unchecked' << '-Xlint:deprecation'
-}
-
-
-sentry {
-    org = "comaps-dl"
-    projectName = "android"
-
-    // this will upload your source code to Sentry to show it as part of the stack traces
-    // disable if you don't want to expose your sources
-    includeSourceContext = true
 }
