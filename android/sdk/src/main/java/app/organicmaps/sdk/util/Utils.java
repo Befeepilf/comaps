@@ -9,6 +9,8 @@ import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Build;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.view.View;
@@ -352,5 +354,68 @@ public class Utils
   {
     return (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
  == Configuration.UI_MODE_NIGHT_YES;
+  }
+
+  // Called from JNI.
+  @Keep
+  @SuppressWarnings("unused")
+  public static void vibrate(@NonNull Context context, long durationMs)
+  {
+    Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+    if (vibrator == null)
+      return;
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+    {
+      VibrationEffect effect = VibrationEffect.createOneShot(durationMs, VibrationEffect.DEFAULT_AMPLITUDE);
+      vibrator.vibrate(effect);
+    }
+    else
+    {
+      vibrator.vibrate(durationMs);
+    }
+  }
+
+  // Called from JNI.
+  @Keep
+  @SuppressWarnings("unused")
+  public static void vibratePattern(@NonNull Context context, long[] durations, long[] delays)
+  {
+    Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+    if (vibrator == null)
+      return;
+
+    try
+    {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+      {
+        int count = durations.length;
+        // Build timing pattern: [wait, vibrate, wait, vibrate, ...]
+        // Initial wait = 0
+        long[] pattern = new long[count * 2];
+        pattern[0] = 0;
+        for (int i = 0; i < count; i++)
+        {
+          // vibrate duration
+          pattern[i * 2 + 1] = durations[i];
+          // delay before next vibration, except after last
+          if (i < count - 1)
+            pattern[i * 2 + 2] = delays[i];
+        }
+        VibrationEffect effect = VibrationEffect.createWaveform(pattern, -1);
+        vibrator.vibrate(effect);
+      }
+      else
+      {
+        if (durations.length > 0)
+        {
+          vibrator.vibrate(durations[0]);
+        }
+      }
+    }
+    catch (SecurityException se)
+    {
+      Logger.e(TAG, "Vibrate permission missing", se);
+    }
   }
 }
