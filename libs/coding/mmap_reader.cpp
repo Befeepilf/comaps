@@ -22,13 +22,15 @@ public:
   explicit MmapData(std::string const & fileName, Advice advice, bool writable)
   {
 #ifdef OMIM_OS_WINDOWS
-    m_hFile = CreateFileA(fileName.c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    DWORD const fileAccess = writable ? (GENERIC_READ | GENERIC_WRITE) : GENERIC_READ;
+    m_hFile = CreateFileA(fileName.c_str(), fileAccess, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
     if (m_hFile == INVALID_HANDLE_VALUE)
       MYTHROW(Reader::OpenException, ("Can't open file:", fileName, "win last error:", GetLastError()));
 
     SCOPE_GUARD(fileGuard, [this] { CloseHandle(m_hFile); });
 
-    m_hMapping = CreateFileMappingA(m_hFile, nullptr, PAGE_READONLY, 0, 0, nullptr);
+    DWORD const mappingProtect = writable ? PAGE_READWRITE : PAGE_READONLY;
+    m_hMapping = CreateFileMappingA(m_hFile, nullptr, mappingProtect, 0, 0, nullptr);
     if (!m_hMapping)
       MYTHROW(Reader::OpenException,
               ("Can't create file's Windows mapping:", fileName, "win last error:", GetLastError()));
@@ -40,7 +42,8 @@ public:
       MYTHROW(Reader::OpenException, ("Can't get file size:", fileName, "win last error:", GetLastError()));
 
     m_size = fileSize.QuadPart;
-    m_memory = static_cast<uint8_t *>(MapViewOfFile(m_hMapping, FILE_MAP_READ, 0, 0, 0));
+    DWORD const viewAccess = writable ? FILE_MAP_WRITE : FILE_MAP_READ;
+    m_memory = static_cast<uint8_t *>(MapViewOfFile(m_hMapping, viewAccess, 0, 0, 0));
     if (!m_memory)
       MYTHROW(Reader::OpenException,
               ("Can't create file's Windows mapping:", fileName, "win last error:", GetLastError()));
@@ -68,7 +71,6 @@ public:
       m_memory = static_cast<uint8_t *>(mmap(0, static_cast<size_t>(m_size), PROT_READ, MAP_PRIVATE, m_fd, 0));
     }
 
-    m_memory = static_cast<uint8_t *>(mmap(0, static_cast<size_t>(m_size), PROT_READ, MAP_PRIVATE, m_fd, 0));
     if (m_memory == MAP_FAILED)
     {
       close(m_fd);
