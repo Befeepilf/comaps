@@ -2,6 +2,15 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 plugins {
   id 'com.android.library'
+  id 'io.sentry.android.gradle' version '5.12.2'
+}
+
+sentry {
+    org = "comaps-dl"
+    projectName = "android"
+
+    uploadNativeSymbols = true
+    includeNativeSources = true
 }
 
 android {
