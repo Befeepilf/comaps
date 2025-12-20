@@ -4,6 +4,14 @@ import java.util.Locale
 plugins {
     id("com.android.library")
     alias(libs.plugins.kotlin.android)
+    id("io.sentry.android.gradle") version "5.12.2"
+}
+
+sentry {
+    org.set("comaps-dl")
+    projectName.set("android")
+    uploadNativeSymbols.set(true)
+    includeNativeSources.set(true)
 }
 
 /** Sanitizes property values to either "ON" or "OFF". Nonsensical values default to "OFF". */

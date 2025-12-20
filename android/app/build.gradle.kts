@@ -453,4 +453,8 @@ sentry {
     org.set("comaps-dl")
     projectName.set("android")
     includeSourceContext.set(true)
+    uploadNativeSymbols.set(true)
+    includeNativeSources.set(true)
+    autoUploadProguardMapping.set(true)
+    debug.set(false)
 }
