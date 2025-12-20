@@ -22,6 +22,7 @@ set(SRC
   app/organicmaps/sdk/util/Distance.hpp
   app/organicmaps/sdk/util/FeatureIdBuilder.hpp
   app/organicmaps/sdk/vulkan/android_vulkan_context_factory.hpp
+  app/organicmaps/sdk/UserMarkHelper.hpp
 
   # JNI sources
   app/organicmaps/sdk/search/DisplayedCategories.cpp
@@ -36,6 +37,7 @@ set(SRC
   app/organicmaps/sdk/routing/RouteRecommendationType.hpp
   app/organicmaps/sdk/routing/RoutingInfo.hpp
   app/organicmaps/sdk/routing/RoutingOptions.cpp
+  app/organicmaps/sdk/routing/TrailRoutingOptions.cpp
   app/organicmaps/sdk/routing/TransitRouteInfo.hpp
   app/organicmaps/sdk/routing/TransitStepInfo.hpp
   app/organicmaps/sdk/ChoosePositionMode.cpp
@@ -55,6 +57,7 @@ set(SRC
   app/organicmaps/sdk/editor/OpeningHours.cpp
   app/organicmaps/sdk/editor/OsmOAuth.cpp
   app/organicmaps/sdk/Framework.cpp
+  app/organicmaps/sdk/friends/FriendsManager.cpp
   app/organicmaps/sdk/isolines/IsolinesManager.cpp
   app/organicmaps/sdk/LocationState.cpp
   app/organicmaps/sdk/Map.cpp
@@ -62,6 +65,8 @@ set(SRC
   app/organicmaps/sdk/settings/UnitLocale.cpp
   app/organicmaps/sdk/settings/MapLanguageCode.cpp
   app/organicmaps/sdk/sound/tts.cpp
+  app/organicmaps/sdk/stats/ExploreStats.cpp
+  app/organicmaps/sdk/streetpixels/StreetPixelsManager.cpp
   app/organicmaps/sdk/subway/SubwayManager.cpp
   app/organicmaps/sdk/TrackRecorder.cpp
   app/organicmaps/sdk/TrafficState.cpp
