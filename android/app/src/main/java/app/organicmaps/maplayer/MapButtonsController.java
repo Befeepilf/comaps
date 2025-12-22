@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -203,6 +204,8 @@ public class MapButtonsController extends Fragment
     }
 
     mExplorationBadge = mFrame.findViewById(R.id.exploration_percentage);
+    if (mExplorationBadge != null)
+      mButtonsMap.put(MapButtons.explorationBanner, mExplorationBadge);
   }
 
   private void applyLeftButton()
@@ -255,6 +258,9 @@ public class MapButtonsController extends Fragment
     case search: mSearchWheel.show(show);
     case bookmarks:
     case menu: UiUtils.showIf(show, buttonView); break;
+    case explorationBanner:
+      UiUtils.showIf(show, buttonView);
+      break;
     case trackRecordingStatus:
       UiUtils.showIf(show, buttonView);
       animateIconBlinking(show, (FloatingActionButton) buttonView);
@@ -349,29 +355,34 @@ public class MapButtonsController extends Fragment
 
   private void updateExplorationBadge(@Nullable StreetPixelsState state)
   {
-    if (mExplorationBadge == null)
-      return;
-    Context ctx = getContext();
-    if (ctx == null)
+    if (state == null)
       return;
 
-    if (state == null || state.getStatus() == StreetPixelsState.Status.NOT_READY) {
-      UiUtils.showIf(false, mExplorationBadge);
-      return;
-    }
-
-    if (state.getStatus() == StreetPixelsState.Status.LOADING) {
+    if (state.getStatus() == StreetPixelsState.Status.LOADING)
+    {
       mExplorationBadge.setText("Loading exploration progress...");
-    } else {
-      double frac = MwmApplication.from(ctx).getStreetPixelsManager().getTotalExploredFraction();
-      double percent = Math.round(frac * 100 * 10) / 10.0;
-      String countryId = state.getCountryId();
-      CountryItem country = (TextUtils.isEmpty(countryId) ? null : CountryItem.fill(countryId));
-      String countryName = country != null ? country.name : "Unknown";
-      mExplorationBadge.setText(countryName + " • " + percent + "%");
+      showButton(true, MapButtons.explorationBanner);
     }
-
-    UiUtils.showIf(true, mExplorationBadge);
+    else if (state.getStatus() == StreetPixelsState.Status.READY)
+    {
+      Log.i("MapButtonsController", "updateExplorationBadge: READY");
+      Context ctx = getContext();
+      if (ctx != null)
+      {
+        double frac = MwmApplication.from(ctx).getStreetPixelsManager().getTotalExploredFraction();
+        double percent = Math.round(frac * 100 * 10) / 10.0;
+        String countryId = state.getCountryId();
+        CountryItem country = (TextUtils.isEmpty(countryId) ? null : CountryItem.fill(countryId));
+        String countryName = country != null ? country.name : "Unknown";
+        mExplorationBadge.setText(countryName + " • " + percent + "%");
+        showButton(true, MapButtons.explorationBanner);
+      } else {
+        Log.i("MapButtonsController", "updateExplorationBadge: CONTEXT IS NULL");
+      }
+    } else {
+      Log.i("MapButtonsController", "updateExplorationBadge: NOT_READY");
+      showButton(false, MapButtons.explorationBanner);
+    }
   }
 
   private boolean isBehindPlacePage(View v)
@@ -571,6 +582,7 @@ public class MapButtonsController extends Fragment
     bookmarks,
     menu,
     help,
+    explorationBanner,
     trackRecordingStatus
   }
 
