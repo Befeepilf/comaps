@@ -205,6 +205,7 @@ public final class OrganicMaps implements DefaultLifecycleObserver
     TrafficManager.INSTANCE.initialize();
     mSubwayManager.initialize();
     mIsolinesManager.initialize();
+    mStreetPixelsManager.initialize();
     ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
 
     Logger.i(TAG, "Framework initialized");

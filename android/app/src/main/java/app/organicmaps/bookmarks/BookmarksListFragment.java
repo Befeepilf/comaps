@@ -221,7 +221,6 @@ public class BookmarksListFragment extends BaseMwmRecyclerFragment<ConcatAdapter
     BookmarkManager.INSTANCE.addSortingListener(this);
     BookmarkManager.INSTANCE.addSharingListener(this);
 
-    MwmApplication.from(requireContext()).getStreetPixelsManager().initialize();
     StreetPixelsManager.registerCallback(mStreetPixelsCallback);
   }
 
