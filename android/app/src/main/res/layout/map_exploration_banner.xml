@@ -5,7 +5,7 @@
     android:id="@+id/exploration_percentage"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    style="@style/MwmWidget.M3.FAB.Primary"
+    style="@style/MwmWidget.ExtendedFAB"
     app:icon="@null"
     android:maxLines="1"
     android:autoSizeTextType="uniform"
