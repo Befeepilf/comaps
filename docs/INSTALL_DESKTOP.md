@@ -68,6 +68,10 @@ and apply the [Ubuntu workarounds accordingly](#workarounds-for-older-ubuntu-ver
 
 ```bash
 sudo dnf install -y \
+    awk \
+    wget \
+    optipng \
+    git \
     clang \
     cmake \
     ninja-build \
@@ -80,8 +84,13 @@ sudo dnf install -y \
     qt6-qtpositioning \
     qt6-qtpositioning-devel \
     qt6-qtsvg-devel \
-    python3-protobuf \
-    sqlite-devel
+    python3-pip \
+    sqlite-devel \
+    libXrandr-devel \
+    libXinerama-devel \
+    libXcursor-devel \
+    libXi-devel
+pip3 install "protobuf<3.21" --break-system-packages
 ```
 
 #### Alpine
