@@ -549,6 +549,9 @@ void Framework::OnCountryFileDownloaded(storage::CountryId const & countryId, st
   if (localFile && localFile->OnDisk(MapFileType::Map))
   {
     auto const res = RegisterMap(*localFile);
+    if (res.second == MwmSet::RegResult::Success)
+      m_streetPixelsManager->CleanupStreetPixels(countryId);
+
     MwmSet::MwmId const & id = res.first;
     if (id.IsAlive())
       rect = id.GetInfo()->m_bordersRect;
@@ -574,6 +577,7 @@ bool Framework::OnCountryFileDelete(storage::CountryId const & countryId, storag
     m_lastReportedCountry = kInvalidCountryId;
 
   GetSearchAPI().CancelAllSearches();
+  GetStreetPixelsManager().CleanupStreetPixels(countryId);
 
   m2::RectD rect = mercator::Bounds::FullRect();
 
@@ -598,6 +602,8 @@ void Framework::OnMapDeregistered(platform::LocalCountryFile const & localFile)
     m_isolinesManager.OnMwmDeregistered(localFile);
     m_trafficManager.OnMwmDeregistered(localFile);
     m_popularityLoader.OnMwmDeregistered(localFile);
+
+    m_streetPixelsManager->CleanupStreetPixels(localFile.GetCountryName());
 
     m_storage.DeleteCustomCountryVersion(localFile);
   };
