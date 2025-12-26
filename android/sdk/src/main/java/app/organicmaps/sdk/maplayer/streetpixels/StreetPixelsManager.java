@@ -70,7 +70,6 @@ public class StreetPixelsManager
   private static native void nativeAddListener(@NonNull OnStreetPixelsChangedListener listener);
   private static native void nativeRemoveListener(@NonNull OnStreetPixelsChangedListener listener);
   private static native boolean nativeShouldShowNotification();
-  private static native double nativeGetTrackExploredFraction(long trackId);
   private static native double nativeGetTotalExploredFraction();
 
   public void attach(@NonNull StreetPixelsErrorDialogListener listener)
@@ -86,11 +85,6 @@ public class StreetPixelsManager
   public boolean shouldShowNotification()
   {
     return nativeShouldShowNotification();
-  }
-
-  public double getTrackExploredFraction(long trackId)
-  {
-    return nativeGetTrackExploredFraction(trackId);
   }
 
   public double getTotalExploredFraction()

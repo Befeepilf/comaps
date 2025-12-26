@@ -42,15 +42,6 @@ Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeShouldS
   return static_cast<jboolean>(enabled);
 }
 
-JNIEXPORT jdouble JNICALL Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeGetTrackExploredFraction(
-  JNIEnv * env, jclass clazz, jlong trackId)
-{
-  CHECK(g_framework, ("Framework isn't created yet!"));
-  auto const & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
-  double frac = manager.GetExploredFraction(static_cast<kml::TrackId>(trackId));
-  return static_cast<jdouble>(frac);
-}
-
 JNIEXPORT jdouble JNICALL Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeGetTotalExploredFraction(
   JNIEnv * env, jclass clazz)
 {

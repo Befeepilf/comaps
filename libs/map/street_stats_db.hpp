@@ -1,6 +1,8 @@
 #pragma once
 
 #include "indexer/mwm_set.hpp"
+#include "kml/type_utils.hpp"
+#include "storage/storage_defines.hpp"
 
 #include <cstdint>
 #include <mutex>
@@ -26,6 +28,9 @@ public:
   void SaveBitmask(MwmSet::MwmId const & mwmId, uint32_t featureId, Bitmask const & bitmask);
 
   void DeleteMwmData(std::string const & mwmName);
+
+  bool IsTrackProcessed(std::int64_t const geometryHash, storage::CountryId const & countryId);
+  void MarkTrackProcessed(std::int64_t const geometryHash, storage::CountryId const & countryId);
 
   template <typename TFn>
   void WithTransaction(TFn && fn)

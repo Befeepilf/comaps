@@ -389,12 +389,10 @@ Framework::Framework(FrameworkParams const & params, bool loadMaps)
     [this](vector<BookmarkInfo> const & marks) {
       LOG(LINFO, ("Bookmarks updated", marks.size()));
       GetSearchAPI().OnBookmarksUpdated(marks);
-      // GetStreetPixelsManager().UpdateExploredPixels();
     },
     [this](vector<kml::MarkId> const & marks) {
       LOG(LINFO, ("Bookmarks deleted", marks.size()));
       GetSearchAPI().OnBookmarksDeleted(marks);
-      // GetStreetPixelsManager().UpdateExploredPixels();
     },
     [this](vector<BookmarkGroupInfo> const & marks) { GetSearchAPI().OnBookmarksAttached(marks); },
     [this](vector<BookmarkGroupInfo> const & marks) { GetSearchAPI().OnBookmarksDetached(marks); })

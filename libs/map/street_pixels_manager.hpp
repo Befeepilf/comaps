@@ -23,11 +23,7 @@
 
 #include <healpix_base.h>
 
-#include <atomic>
-#include <chrono>
 #include <cstdint>
-#include <map>
-#include <memory>
 #include <mutex>
 #include <set>
 #include <span>
@@ -39,6 +35,13 @@ namespace hp
 {
 T_Healpix_Base<std::int64_t> const & GetHealpixBase();
 }  // namespace hp
+
+struct TrackInfo
+{
+  kml::TrackId id;
+  kml::MultiGeometry::LineT geom;
+  kml::Timestamp ts;
+};
 
 class StreetPixelsManager
 {
@@ -84,10 +87,6 @@ public:
 
   void UpdateExploredPixels();
 
-  bool HasExploredFraction(kml::TrackId const & trackId) const;
-
-  double GetExploredFraction(kml::TrackId const & trackId) const;
-
   double GetTotalExploredFraction() const;
 
   void OnUpdateCurrentCountry(storage::CountryId const & countryId, storage::LocalFilePtr const & localFile);
@@ -128,23 +127,19 @@ private:
 
   bool m_tracksLoaded = false;
 
-  mutable std::mutex m_fractionMutex;
-  std::unordered_map<kml::TrackId, double> m_trackExploredFraction;
-
-  void LoadExploredFractions();
-  void SaveExploredFractions() const;
-
   void UpdateStreetStatsForTrack(kml::MultiGeometry::LineT const & line);
 
   void SegmentizeStreet(m2::PointD const & p1, m2::PointD const & p2,
                         std::function<void(m2::PointD const &, double)> const & callback);
 
-  std::set<int64_t> ComputeTrackPixels(kml::MultiGeometry::LineT const & line) const;
+  std::int64_t ComputeGeometryHash(const TrackInfo & trackInfo);
+  std::set<std::int64_t> ComputeTrackPixels(const TrackInfo & trackInfo) const;
   void AddPixelsInRadius(double lat, double lon, std::set<std::int64_t> & pixels) const;
   bool IsExplorable(FeatureType & ft) const;
 
   std::string GetCurrentCountryId() const;
   ExplorationListener m_explorationListener;
+
 
   // Updates heuristic stats for each street in the explore radius. Needed for routing to prefer streets with more
   // unexplored pixels.
