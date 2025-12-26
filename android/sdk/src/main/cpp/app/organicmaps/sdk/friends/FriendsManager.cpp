@@ -18,7 +18,7 @@ jobjectArray ToJavaFriendsArray(JNIEnv * env, std::vector<FriendRecord> const & 
 {
   if (!g_FriendClazz)
   {
-    g_FriendClazz = jni::GetGlobalClassRef(env, "app/organicmaps/friends/Friends$Friend");
+    g_FriendClazz = jni::GetGlobalClassRef(env, "app/organicmaps/sdk/friends/Friends$Friend");
     g_FriendCtor = jni::GetConstructorID(env, g_FriendClazz, "(Ljava/lang/String;Ljava/lang/String;)V");
   }
   jobjectArray arr = env->NewObjectArray(static_cast<jsize>(v.size()), g_FriendClazz, nullptr);
@@ -41,10 +41,10 @@ JNIEXPORT jobject JNICALL Java_app_organicmaps_sdk_friends_Friends_nativeGetList
   (void)g_friends.EnsureCacheLoaded();
   if (!g_FriendsPayloadClazz)
   {
-    g_FriendsPayloadClazz = jni::GetGlobalClassRef(env, "app/organicmaps/friends/Friends$FriendsPayload");
+    g_FriendsPayloadClazz = jni::GetGlobalClassRef(env, "app/organicmaps/sdk/friends/Friends$FriendsPayload");
     g_FriendsPayloadCtor = jni::GetConstructorID(env, g_FriendsPayloadClazz,
-                                                 "([Lapp/organicmaps/friends/Friends$Friend;[Lapp/organicmaps/friends/"
-                                                 "Friends$Friend;[Lapp/organicmaps/friends/Friends$Friend;)V");
+                                                 "([Lapp/organicmaps/sdk/friends/Friends$Friend;[Lapp/organicmaps/sdk/friends/"
+                                                 "Friends$Friend;[Lapp/organicmaps/sdk/friends/Friends$Friend;)V");
   }
   auto const & lists = g_friends.GetLists();
   jobjectArray accepted = ToJavaFriendsArray(env, lists.m_accepted);
