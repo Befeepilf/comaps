@@ -209,6 +209,28 @@ void StreetPixelsManager::SaveStreetPixelsToFile(std::set<std::int64_t> const & 
   writer.reset();
 }
 
+void StreetPixelsManager::CleanupStreetPixels(storage::CountryId const & countryId)
+{
+  GetPlatform().RunTask(Platform::Thread::Background, [this, countryId]() {
+    LOG(LINFO, ("Cleaning up street pixels files for", countryId));
+
+    {
+      std::lock_guard<std::mutex> lock(m_countryIdMutex);
+      if (m_countryId == countryId)
+      {
+        m_countryId.clear();
+        ClearPixels();
+      }
+    }
+
+    street_stats::StreetStatsDB::Instance().DeleteMwmData(countryId);
+
+    std::vector<std::string> extensions = {".pix", ".pixa", ".pixf"};
+    for (auto const & ext : extensions)
+      Platform::RemoveFileIfExists(GetPlatform().WritablePathForFile(countryId + ext));
+  });
+}
+
 std::set<std::int64_t> StreetPixelsManager::DeriveStreetPixelsFromFeatures(FeaturesVectorTest & featuresVector)
 {
   LOG(LINFO, ("DeriveStreetPixelsFromFeatures"));
@@ -265,29 +287,32 @@ std::set<std::int64_t> StreetPixelsManager::DeriveStreetPixelsFromFeatures(Featu
     });
 
   auto & db = street_stats::StreetStatsDB::Instance();
-  for (auto const & [fid, pixelIndices] : featurePixelIndices)
-  {
-    auto bitmask = db.GetBitmask(fid.m_mwmId, fid.m_index);
-    if (!bitmask)
+  db.WithTransaction([&]() {
+    for (auto const & [fid, pixelIndices] : featurePixelIndices)
     {
-      if (!featureLengths.count(fid))
-        continue;
-      size_t const numPixels = static_cast<size_t>(std::ceil(featureLengths[fid] / kSegmentLengthMeters));
-      size_t const numBytes = (numPixels + 7) / 8;
-      bitmask.emplace(numBytes, 0);
-    }
-
-    for (uint32_t pixelIndex : pixelIndices)
-    {
-      size_t const byteIndex = pixelIndex / 8;
-      if (byteIndex < bitmask->size())
+      auto bitmask = db.GetBitmask(fid.m_mwmId, fid.m_index);
+      if (!bitmask)
       {
-        uint8_t const bitIndex = pixelIndex % 8;
-        (*bitmask)[byteIndex] |= (1 << bitIndex);
+        if (!featureLengths.count(fid))
+          continue;
+        size_t const numPixels =
+          static_cast<size_t>(std::ceil(featureLengths[fid] / kSegmentLengthMeters));
+        size_t const numBytes = (numPixels + 7) / 8;
+        bitmask.emplace(numBytes, 0);
       }
+
+      for (uint32_t pixelIndex : pixelIndices)
+      {
+        size_t const byteIndex = pixelIndex / 8;
+        if (byteIndex < bitmask->size())
+        {
+          uint8_t const bitIndex = pixelIndex % 8;
+          (*bitmask)[byteIndex] |= (1 << bitIndex);
+        }
+      }
+      db.SaveBitmask(fid.m_mwmId, fid.m_index, *bitmask);
     }
-    db.SaveBitmask(fid.m_mwmId, fid.m_index, *bitmask);
-  }
+  });
 
   std::set<std::int64_t> streetPixels;
   for (auto const & point : points)
@@ -733,32 +758,34 @@ void StreetPixelsManager::UpdateStreetStats(double lat, double lon, size_t numNe
     return;
 
   auto & db = street_stats::StreetStatsDB::Instance();
-  for (auto const & [fid, pixelIndices] : featureUpdates)
-  {
-    auto bitmask = db.GetBitmask(fid.m_mwmId, fid.m_index);
-    // If bitmask does not exist, it means the stats for this MWM have not been generated.
-    // We should not create it on the fly, as we don't know the full feature length.
-    if (!bitmask)
-      continue;
-
-    bool updated = false;
-    for (uint32_t pixelIndex : pixelIndices)
+  db.WithTransaction([&]() {
+    for (auto const & [fid, pixelIndices] : featureUpdates)
     {
-      size_t const byteIndex = pixelIndex / 8;
-      if (byteIndex < bitmask->size())
+      auto bitmask = db.GetBitmask(fid.m_mwmId, fid.m_index);
+      // If bitmask does not exist, it means the stats for this MWM have not been generated.
+      // We should not create it on the fly, as we don't know the full feature length.
+      if (!bitmask)
+        continue;
+
+      bool updated = false;
+      for (uint32_t pixelIndex : pixelIndices)
       {
-        uint8_t const bitIndex = pixelIndex % 8;
-        if (!((*bitmask)[byteIndex] & (1 << bitIndex)))
+        size_t const byteIndex = pixelIndex / 8;
+        if (byteIndex < bitmask->size())
         {
-          (*bitmask)[byteIndex] |= (1 << bitIndex);
-          updated = true;
+          uint8_t const bitIndex = pixelIndex % 8;
+          if (!((*bitmask)[byteIndex] & (1 << bitIndex)))
+          {
+            (*bitmask)[byteIndex] |= (1 << bitIndex);
+            updated = true;
+          }
         }
       }
-    }
 
-    if (updated)
-      db.SaveBitmask(fid.m_mwmId, fid.m_index, *bitmask);
-  }
+      if (updated)
+        db.SaveBitmask(fid.m_mwmId, fid.m_index, *bitmask);
+    }
+  });
 }
 
 std::string StreetPixelsManager::GetCurrentCountryId() const
@@ -775,23 +802,22 @@ void StreetPixelsManager::OnUpdateCurrentCountry(storage::CountryId const & coun
   {
     std::lock_guard<std::mutex> lock(m_countryIdMutex);
     LOG(LINFO, ("Country changed from", m_countryId, "to", countryId));
-    if (countryId == m_countryId)
-      return;
     m_countryId = countryId;
   }
 
-  ClearPixels();
-  if (countryId.empty())
-    return;
-
-  if (!localFile || !localFile->OnDisk(MapFileType::Map))
-    return;
-
-  LoadExploredFractions();
   ChangeState(StreetPixelsState{m_state.enabled, StreetPixelsStatus::Loading});
+
   GetPlatform().RunTask(Platform::Thread::Background,
                         [this, countryId, localFile]()
                         {
+                          ClearPixels();
+                          if (countryId.empty() || !localFile || !localFile->OnDisk(MapFileType::Map))
+                          {
+                            ChangeState(StreetPixelsState{m_state.enabled, StreetPixelsStatus::NotReady});
+                            return;
+                          }
+
+                          LoadExploredFractions();
                           LOG(LINFO, ("Loading street pixels in background thread because country changed to", countryId));
                           LoadStreetPixels(localFile);
                           ChangeState(StreetPixelsState{m_state.enabled, StreetPixelsStatus::Ready});
