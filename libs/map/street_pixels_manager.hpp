@@ -78,6 +78,8 @@ public:
   void LoadStreetPixelsFromFile(storage::CountryId const & countryId);
   void SaveStreetPixelsToFile(std::set<std::int64_t> const & streetPixels);
 
+  void CleanupStreetPixels(storage::CountryId const & countryId);
+
   void ClearPixels();
 
   void UpdateExploredPixels();
