@@ -1,5 +1,3 @@
-#include "map/street_pixels_manager.hpp"
-
 #include "base/assert.hpp"
 #include "base/logging.hpp"
 #include "base/math.hpp"
@@ -25,6 +23,8 @@
 #include "geometry/point_with_altitude.hpp"
 
 #include "kml/type_utils.hpp"
+
+#include "map/street_pixels_manager.hpp"
 #include "map/track.hpp"
 
 #include "platform/country_file.hpp"
@@ -58,7 +58,6 @@
 // File types:
 // .pix: list of explorable healpix ids; left most bit indicates if pixel has been explored
 // .pixa: bitmap of healpixels; each bit corresponds to index in the .pix file; used to calculate exploration stats by tracking which pixels have already been accounted for in the stats
-// .pixf: stores explored fraction for each track; each line is formatted as "track_id explored_fraction"
 
 namespace hp
 {
@@ -435,14 +434,7 @@ void StreetPixelsManager::UpdateExploredPixels()
   }
 
   LOG(LINFO, ("Collecting tracks"));
-  struct TrackInfo
-  {
-    kml::TrackId id;
-    kml::MultiGeometry::LineT geom;
-    kml::Timestamp ts;
-  };
   std::vector<TrackInfo> tracks;
-  std::unordered_map<kml::TrackId, double> trackExploredFraction;
   m_bmManager->ForEachTrackSortedByTimestamp(
     [&](Track const & t) { tracks.push_back(TrackInfo{t.GetId(), t.GetGeometry(), t.GetData().m_timestamp}); });
 
@@ -454,8 +446,11 @@ void StreetPixelsManager::UpdateExploredPixels()
 
   GetPlatform().RunTask(
     Platform::Thread::Background,
-    [this, tracks = std::move(tracks), trackExploredFraction, countryId]() mutable
+    [this, tracks = std::move(tracks), countryId]() mutable
     {
+      if (countryId.empty())
+        return;
+
       for (auto const & ti : tracks)
       {
         {
@@ -467,20 +462,19 @@ void StreetPixelsManager::UpdateExploredPixels()
           }
         }
 
-        if (HasExploredFraction(ti.id))
+        std::int64_t const geometryHash = ComputeGeometryHash(ti);
+        if (street_stats::StreetStatsDB::Instance().IsTrackProcessed(geometryHash, countryId))
           continue;
 
         // UpdateStreetStatsForTrack(ti.geom);
 
         LOG(LINFO, ("Computing track pixels for", ti.id));
 
-        auto trackPixels = ComputeTrackPixels(ti.geom);
+        auto trackPixels = ComputeTrackPixels(ti);
         size_t statsNew = 0;
         std::set<int64_t> renderNew;
-        size_t totalPixels = 0;
         {
           std::lock_guard<std::recursive_mutex> lock(m_streetPixelsMutex);
-          totalPixels = m_streetPixels.size();
           for (auto pix : trackPixels)
           {
             auto * pixel = FindStreetPixel(pix);
@@ -504,11 +498,7 @@ void StreetPixelsManager::UpdateExploredPixels()
           }
         }
 
-        trackExploredFraction[ti.id] =
-          trackPixels.empty() || totalPixels == 0 ? 0.0
-                                                  : static_cast<double>(renderNew.size()) / static_cast<double>(totalPixels);
-
-        LOG(LINFO, ("Track", ti.id, "explored fraction:", trackExploredFraction[ti.id]));
+        street_stats::StreetStatsDB::Instance().MarkTrackProcessed(geometryHash, countryId);
 
         if (statsNew > 0 && m_explorationListener)
         {
@@ -529,14 +519,6 @@ void StreetPixelsManager::UpdateExploredPixels()
         }
       }
 
-        {
-          std::lock_guard<std::mutex> lock(m_fractionMutex);
-          m_trackExploredFraction = std::move(trackExploredFraction);
-        }
-
-        LOG(LINFO, ("Calculated explored fractions"));
-
-        SaveExploredFractions();
         if (m_accountedDirty)
           SaveAccountedBits();
 
@@ -581,17 +563,28 @@ void StreetPixelsManager::UpdateStreetStatsForTrack(kml::MultiGeometry::LineT co
   }
 }
 
-std::set<int64_t> StreetPixelsManager::ComputeTrackPixels(kml::MultiGeometry::LineT const & line) const
+std::int64_t StreetPixelsManager::ComputeGeometryHash(const TrackInfo & trackInfo)
+{
+  std::size_t seed = 0;
+  for (auto const & point : trackInfo.geom)
+  {
+    boost::hash_combine(seed, point.GetPoint().x);
+    boost::hash_combine(seed, point.GetPoint().y);
+  }
+  return static_cast<std::int64_t>(seed);
+}
+
+std::set<int64_t> StreetPixelsManager::ComputeTrackPixels(const TrackInfo & trackInfo) const
 {
   std::set<int64_t> pixels;
 
-  if (line.empty())
+  if (trackInfo.geom.empty())
     return pixels;
 
-  m2::PointD prev = geometry::GetPoint(line[0]);
-  for (size_t i = 1; i < line.size(); ++i)
+  m2::PointD prev = geometry::GetPoint(trackInfo.geom[0]);
+  for (size_t i = 1; i < trackInfo.geom.size(); ++i)
   {
-    auto const & ptWithAlt = line[i];
+    auto const & ptWithAlt = trackInfo.geom[i];
     m2::PointD curr = geometry::GetPoint(ptWithAlt);
     double distMerc = (curr - prev).Length();
     double distMeters = mercator::DistanceOnEarth(prev, curr);
@@ -626,8 +619,6 @@ void StreetPixelsManager::AddPixelsInRadius(double lat, double lon, std::set<std
 
 void StreetPixelsManager::OnLocationUpdate(location::GpsInfo const & info)
 {
-  LOG(LINFO, ("OnLocationUpdate"));
-
   std::set<std::int64_t> pixels;
   AddPixelsInRadius(info.m_latitude, info.m_longitude, pixels);
   size_t numNewlyExploredPixels = 0;
@@ -817,70 +808,11 @@ void StreetPixelsManager::OnUpdateCurrentCountry(storage::CountryId const & coun
                             return;
                           }
 
-                          LoadExploredFractions();
                           LOG(LINFO, ("Loading street pixels in background thread because country changed to", countryId));
                           LoadStreetPixels(localFile);
                           ChangeState(StreetPixelsState{m_state.enabled, StreetPixelsStatus::Ready});
                           GetPlatform().RunTask(Platform::Thread::Gui, [this]() { UpdateExploredPixels(); });
                         });
-}
-
-bool StreetPixelsManager::HasExploredFraction(kml::TrackId const & trackId) const
-{
-  std::lock_guard<std::mutex> lock(m_fractionMutex);
-  return m_trackExploredFraction.find(trackId) != m_trackExploredFraction.end();
-}
-
-double StreetPixelsManager::GetExploredFraction(kml::TrackId const & trackId) const
-{
-  std::lock_guard<std::mutex> lock(m_fractionMutex);
-  auto it = m_trackExploredFraction.find(trackId);
-  return it != m_trackExploredFraction.end() ? it->second : 0.0;
-}
-
-void StreetPixelsManager::LoadExploredFractions()
-{
-  LOG(LINFO, ("LoadExploredFractions"));
-
-  std::lock_guard<std::mutex> lock(m_fractionMutex);
-  m_trackExploredFraction.clear();
-  storage::CountryId country;
-  {
-    std::lock_guard<std::mutex> lock(m_countryIdMutex);
-    country = m_countryId;
-  }
-  std::string path = GetPlatform().WritablePathForFile(country + ".pixf");
-  std::ifstream ifs(path);
-  if (!ifs.is_open())
-  {
-    LOG(LINFO, ("No explored fractions file for", country));
-    return;
-  }
-  kml::TrackId id;
-  double frac;
-  while (ifs >> id >> frac)
-    m_trackExploredFraction[id] = frac;
-}
-
-void StreetPixelsManager::SaveExploredFractions() const
-{
-  LOG(LINFO, ("SaveExploredFractions"));
-
-  std::lock_guard<std::mutex> lock(m_fractionMutex);
-  storage::CountryId country;
-  {
-    std::lock_guard<std::mutex> lock(m_countryIdMutex);
-    country = m_countryId;
-  }
-  std::string path = GetPlatform().WritablePathForFile(country + ".pixf");
-  std::ofstream ofs(path, std::ofstream::trunc);
-  if (!ofs.is_open())
-  {
-    LOG(LWARNING, ("Failed to open explored fractions file for writing:", path));
-    return;
-  }
-  for (auto const & kv : m_trackExploredFraction)
-    ofs << kv.first << " " << kv.second << "\n";
 }
 
 double StreetPixelsManager::GetTotalExploredFraction() const
