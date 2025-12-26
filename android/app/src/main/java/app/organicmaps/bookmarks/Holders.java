@@ -338,7 +338,6 @@ public class Holders
     private final MaterialTextView mDistance;
     @NonNull
     private final MaterialTextView mCategoryName;
-    private final MaterialTextView mExplored;
     @NonNull
     private final ShapeableImageView mMoreButton;
 
@@ -349,7 +348,6 @@ public class Holders
       mName = itemView.findViewById(R.id.tv__bookmark_name);
       mDistance = itemView.findViewById(R.id.tv__bookmark_distance);
       mCategoryName = itemView.findViewById(R.id.tv__bookmark_category);
-      mExplored = itemView.findViewById(R.id.tv__bookmark_explored);
       mMoreButton = itemView.findViewById(R.id.more);
     }
 
@@ -409,8 +407,6 @@ public class Holders
     @NonNull
     private final MaterialTextView mDistance;
     @NonNull
-    private final MaterialTextView mExplored;
-    @NonNull
     private final ShapeableImageView mMoreButton;
 
     TrackViewHolder(@NonNull View itemView)
@@ -419,7 +415,6 @@ public class Holders
       mIcon = itemView.findViewById(R.id.iv__bookmark_color);
       mName = itemView.findViewById(R.id.tv__bookmark_name);
       mDistance = itemView.findViewById(R.id.tv__bookmark_distance);
-      mExplored = itemView.findViewById(R.id.tv__bookmark_explored);
       mMoreButton = itemView.findViewById(R.id.more);
     }
 
@@ -437,10 +432,6 @@ public class Holders
       Drawable circle =
           Graphics.drawCircle(track.getColor(), R.dimen.track_circle_size, mIcon.getContext().getResources());
       mIcon.setImageDrawable(circle);
-
-      double fraction = MwmApplication.from(mIcon.getContext()).getStreetPixelsManager().getTrackExploredFraction(trackId);
-      int percent = (int) Math.round(fraction * 100);
-      mExplored.setText(percent + "%");
     }
 
     public void setMoreButtonClickListener(RecyclerClickListener listener)
