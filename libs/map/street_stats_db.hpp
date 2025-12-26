@@ -25,6 +25,19 @@ public:
 
   void SaveBitmask(MwmSet::MwmId const & mwmId, uint32_t featureId, Bitmask const & bitmask);
 
+  void DeleteMwmData(std::string const & mwmName);
+
+  template <typename TFn>
+  void WithTransaction(TFn && fn)
+  {
+    if (!m_db)
+      return;
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
+    BeginTransaction();
+    fn();
+    EndTransaction();
+  }
+
 private:
   StreetStatsDB();
   ~StreetStatsDB();
@@ -33,9 +46,11 @@ private:
   StreetStatsDB & operator=(StreetStatsDB const &) = delete;
 
   void InitSchema();
+  void BeginTransaction();
+  void EndTransaction();
 
   sqlite3 * m_db = nullptr;
   std::string m_dbPath;
-  std::mutex m_mutex;
+  std::recursive_mutex m_mutex;
 };
 }  // namespace street_stats
