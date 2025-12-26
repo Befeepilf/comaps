@@ -109,12 +109,24 @@ void StreetStatsDB::InitSchema()
   }
 }
 
+void StreetStatsDB::BeginTransaction()
+{
+  if (m_db)
+    sqlite3_exec(m_db, "BEGIN TRANSACTION;", nullptr, nullptr, nullptr);
+}
+
+void StreetStatsDB::EndTransaction()
+{
+  if (m_db)
+    sqlite3_exec(m_db, "COMMIT;", nullptr, nullptr, nullptr);
+}
+
 std::optional<StreetStatsDB::Bitmask> StreetStatsDB::GetBitmask(MwmSet::MwmId const & mwmId, uint32_t featureId)
 {
   if (!m_db)
     return {};
 
-  std::lock_guard<std::mutex> lock(m_mutex);
+  std::lock_guard<std::recursive_mutex> lock(m_mutex);
 
   int64_t const internalMwmId = GetMwmId(m_db, mwmId);
   if (internalMwmId < 0)
@@ -155,7 +167,7 @@ void StreetStatsDB::SaveBitmask(MwmSet::MwmId const & mwmId, uint32_t featureId,
   if (!m_db)
     return;
 
-  std::lock_guard<std::mutex> lock(m_mutex);
+  std::lock_guard<std::recursive_mutex> lock(m_mutex);
 
   int64_t const internalMwmId = GetMwmId(m_db, mwmId);
   if (internalMwmId < 0)
@@ -185,6 +197,52 @@ void StreetStatsDB::SaveBitmask(MwmSet::MwmId const & mwmId, uint32_t featureId,
   if (sqlite3_step(stmt) != SQLITE_DONE)
   {
     LOG(LERROR, ("Failed to save bitmask:", sqlite3_errmsg(m_db)));
+  }
+}
+
+void StreetStatsDB::DeleteMwmData(std::string const & mwmName)
+{
+  if (!m_db)
+    return;
+
+  std::lock_guard<std::recursive_mutex> lock(m_mutex);
+
+  sqlite3_stmt * stmt = nullptr;
+  SCOPE_GUARD(finalize,
+              [stmt]()
+              {
+                if (stmt)
+                  sqlite3_finalize(stmt);
+              });
+
+  int64_t internalMwmId = -1;
+  char const * sqlSelect = "SELECT mwm_id FROM mwms WHERE mwm_name = ?;";
+  if (sqlite3_prepare_v2(m_db, sqlSelect, -1, &stmt, nullptr) == SQLITE_OK)
+  {
+    sqlite3_bind_text(stmt, 1, mwmName.c_str(), -1, SQLITE_TRANSIENT);
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+      internalMwmId = sqlite3_column_int64(stmt, 0);
+  }
+  sqlite3_finalize(stmt);
+  stmt = nullptr;
+
+  if (internalMwmId < 0)
+    return;
+
+  char const * sqlDeleteExploration = "DELETE FROM street_exploration WHERE mwm_id = ?;";
+  if (sqlite3_prepare_v2(m_db, sqlDeleteExploration, -1, &stmt, nullptr) == SQLITE_OK)
+  {
+    sqlite3_bind_int64(stmt, 1, internalMwmId);
+    sqlite3_step(stmt);
+  }
+  sqlite3_finalize(stmt);
+  stmt = nullptr;
+
+  char const * sqlDeleteMwm = "DELETE FROM mwms WHERE mwm_id = ?;";
+  if (sqlite3_prepare_v2(m_db, sqlDeleteMwm, -1, &stmt, nullptr) == SQLITE_OK)
+  {
+    sqlite3_bind_int64(stmt, 1, internalMwmId);
+    sqlite3_step(stmt);
   }
 }
 
