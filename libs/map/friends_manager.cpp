@@ -1,20 +1,51 @@
-#include "map/friends_manager.hpp"
+#include "base/logging.hpp"
 
-#include "platform/http_client.hpp"
-#include "platform/platform.hpp"
+#include "map/friends_manager.hpp"
+#include "map/identity_store.hpp"
 
 #include "coding/file_reader.hpp"
 #include "coding/file_writer.hpp"
 #include "coding/serdes_json.hpp"
+#include "coding/url.hpp"
 #include "coding/writer.hpp"
 
-#include "base/logging.hpp"
+#include "platform/http_client.hpp"
+#include "platform/platform.hpp"
 
-#include <sstream>
+#include <algorithm>
+#include <exception>
+#include <string>
+#include <vector>
 
 namespace
 {
 constexpr char kFriendsCacheFile[] = "friends_cache.json";
+constexpr char kBackendUrl[] = "http://192.168.178.89:8999/api";
+
+struct UsernameBody
+{
+  std::string m_username;
+  DECLARE_VISITOR(visitor(m_username, "username"))
+};
+
+std::string UsernameToJson(std::string const & username)
+{
+  UsernameBody body;
+  body.m_username = username;
+  std::string json;
+  using Sink = MemWriter<std::string>;
+  Sink sink(json);
+  coding::SerializerJson<Sink> ser(sink);
+  ser(body);
+  return json;
+}
+
+void AddAuthHeaders(platform::HttpClient & req)
+{
+  req.SetRawHeader("X-Device-Id", IdentityStore::GetOrCreateDeviceId());
+  if (IdentityStore::HasUsername())
+    req.SetRawHeader("X-Username", IdentityStore::GetUsername());
+}
 }  // namespace
 
 FriendsManager::FriendsManager() = default;
@@ -88,53 +119,177 @@ std::string FriendsManager::GetListsJson() const
   return jsonStr;
 }
 
-bool FriendsManager::GetJson(std::string const & url, std::string & outJson)
+void FriendsManager::AddSubscriber(Subscriber * sub)
 {
-  platform::HttpClient request(url);
-  return request.RunHttpRequest(outJson);
+  std::lock_guard<std::mutex> lock(m_subscribersMutex);
+  if (std::find(m_subscribers.begin(), m_subscribers.end(), sub) == m_subscribers.end())
+    m_subscribers.push_back(sub);
 }
 
-bool FriendsManager::PostJson(std::string const & url, std::string const & body, std::string & outJson)
+void FriendsManager::RemoveSubscriber(Subscriber * sub)
 {
-  platform::HttpClient request(url);
-  request.SetBodyData(body, "application/json");
-  return request.RunHttpRequest(outJson);
+  std::lock_guard<std::mutex> lock(m_subscribersMutex);
+  m_subscribers.erase(std::remove(m_subscribers.begin(), m_subscribers.end(), sub), m_subscribers.end());
 }
 
 void FriendsManager::Refresh()
 {
-  // Placeholder: pull lists from server and update m_lists; then SaveCache().
+  GetPlatform().RunTask(Platform::Thread::Network, [this]()
+  {
+    std::string const url = std::string(kBackendUrl) + "/friends/list";
+    platform::HttpClient request(url);
+    AddAuthHeaders(request);
+    std::string json;
+    if (request.RunHttpRequest(json))
+    {
+      try
+      {
+        coding::DeserializerJson des(json);
+        FriendsLists lists;
+        des(lists);
+        GetPlatform().RunTask(Platform::Thread::Gui, [this, lists = std::move(lists)]() mutable
+        {
+          m_lists = std::move(lists);
+          m_cacheLoaded = true;
+          SaveCache();
+
+          std::lock_guard<std::mutex> lock(m_subscribersMutex);
+          for (auto * sub : m_subscribers)
+            sub->OnListsUpdated();
+        });
+        return;
+      }
+      catch (...) {}
+    }
+    LOG(LWARNING, ("Failed to refresh friends list"));
+  });
 }
 
-std::string FriendsManager::SearchByUsernameJson(std::string const & query)
+void FriendsManager::Signup(std::string const & username)
 {
-  // Placeholder: call backend /friends/search?username=query
-  std::string out;
-  (void)query;
-  return out;
+  GetPlatform().RunTask(Platform::Thread::Network, [this, username]()
+  {
+    std::string const url = std::string(kBackendUrl) + "/signup";
+    platform::HttpClient request(url);
+    AddAuthHeaders(request);
+    request.SetBodyData(UsernameToJson(username), "application/json");
+    std::string response;
+    bool const success = request.RunHttpRequest(response);
+    GetPlatform().RunTask(Platform::Thread::Gui, [this, success, username]()
+    {
+      if (success)
+        IdentityStore::SetUsername(username);
+
+      std::lock_guard<std::mutex> lock(m_subscribersMutex);
+      for (auto * sub : m_subscribers)
+        sub->OnSignupResult(success);
+    });
+  });
 }
 
-std::vector<FriendRecord> FriendsManager::SearchByUsername(std::string const & query)
+void FriendsManager::ChangeUsername(std::string const & username)
 {
-  // Placeholder: returns empty until backend wired.
-  (void)query;
-  return {};
+  GetPlatform().RunTask(Platform::Thread::Network, [this, username]()
+  {
+    std::string const url = std::string(kBackendUrl) + "/update_username";
+    platform::HttpClient request(url);
+    AddAuthHeaders(request);
+    request.SetBodyData(UsernameToJson(username), "application/json");
+    std::string response;
+    bool const success = request.RunHttpRequest(response);
+    GetPlatform().RunTask(Platform::Thread::Gui, [this, success, username]()
+    {
+      if (success)
+        IdentityStore::SetUsername(username);
+
+      std::lock_guard<std::mutex> lock(m_subscribersMutex);
+      for (auto * sub : m_subscribers)
+        sub->OnUsernameChanged(success);
+    });
+  });
 }
 
-bool FriendsManager::SendRequest(std::string const & userId)
+void FriendsManager::SearchByUsername(std::string const & query, SearchCallback const & callback)
 {
-  (void)userId;
-  return false;
+  GetPlatform().RunTask(Platform::Thread::Network, [query, callback]()
+  {
+    std::string const url = std::string(kBackendUrl) + "/friends/search?query=" + url::UrlEncode(query);
+    platform::HttpClient request(url);
+    AddAuthHeaders(request);
+    std::string json;
+    std::vector<FriendRecord> results;
+    if (request.RunHttpRequest(json))
+    {
+      try
+      {
+        coding::DeserializerJson des(json);
+        des(results);
+      }
+      catch (...) {}
+    }
+    GetPlatform().RunTask(Platform::Thread::Gui, [results = std::move(results), callback]()
+    {
+      callback(results);
+    });
+  });
 }
 
-bool FriendsManager::AcceptRequest(std::string const & userId)
+void FriendsManager::SendRequest(std::string const & userId)
 {
-  (void)userId;
-  return false;
+  GetPlatform().RunTask(Platform::Thread::Network, [this, userId]()
+  {
+    std::string const url =
+        std::string(kBackendUrl) + "/friends/request?to_user_id=" + url::UrlEncode(userId);
+    platform::HttpClient request(url);
+    AddAuthHeaders(request);
+    request.SetBodyData("{}", "application/json");
+    std::string response;
+    bool const success = request.RunHttpRequest(response);
+    GetPlatform().RunTask(Platform::Thread::Gui, [this, success]()
+    {
+      std::lock_guard<std::mutex> lock(m_subscribersMutex);
+      for (auto * sub : m_subscribers)
+        sub->OnActionResult(success);
+    });
+  });
 }
 
-bool FriendsManager::CancelRequest(std::string const & userId)
+void FriendsManager::AcceptRequest(std::string const & userId)
 {
-  (void)userId;
-  return false;
+  GetPlatform().RunTask(Platform::Thread::Network, [this, userId]()
+  {
+    std::string const url =
+        std::string(kBackendUrl) + "/friends/accept?from_user_id=" + url::UrlEncode(userId);
+    platform::HttpClient request(url);
+    AddAuthHeaders(request);
+    request.SetBodyData("{}", "application/json");
+    std::string response;
+    bool const success = request.RunHttpRequest(response);
+    GetPlatform().RunTask(Platform::Thread::Gui, [this, success]()
+    {
+      std::lock_guard<std::mutex> lock(m_subscribersMutex);
+      for (auto * sub : m_subscribers)
+        sub->OnActionResult(success);
+    });
+  });
+}
+
+void FriendsManager::CancelRequest(std::string const & userId)
+{
+  GetPlatform().RunTask(Platform::Thread::Network, [this, userId]()
+  {
+    std::string const url =
+        std::string(kBackendUrl) + "/friends/cancel?user_id=" + url::UrlEncode(userId);
+    platform::HttpClient request(url);
+    AddAuthHeaders(request);
+    request.SetBodyData("{}", "application/json");
+    std::string response;
+    bool const success = request.RunHttpRequest(response);
+    GetPlatform().RunTask(Platform::Thread::Gui, [this, success]()
+    {
+      std::lock_guard<std::mutex> lock(m_subscribersMutex);
+      for (auto * sub : m_subscribers)
+        sub->OnActionResult(success);
+    });
+  });
 }
