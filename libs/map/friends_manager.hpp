@@ -2,8 +2,10 @@
 
 #include "base/visitor.hpp"
 
+#include <functional>
 #include <string>
 #include <vector>
+#include <mutex>
 
 struct FriendRecord
 {
@@ -35,6 +37,16 @@ struct FriendsLists
 class FriendsManager
 {
 public:
+  class Subscriber
+  {
+  public:
+    virtual ~Subscriber() = default;
+    virtual void OnListsUpdated() {}
+    virtual void OnSignupResult(bool success) {}
+    virtual void OnUsernameChanged(bool success) {}
+    virtual void OnActionResult(bool success) {}
+  };
+
   FriendsManager();
 
   bool LoadCache();
@@ -44,21 +56,26 @@ public:
   std::string GetListsJson() const;
   FriendsLists const & GetLists() const { return m_lists; }
 
+  void AddSubscriber(Subscriber * sub);
+  void RemoveSubscriber(Subscriber * sub);
+
   void Refresh();
+  void Signup(std::string const & username);
+  void ChangeUsername(std::string const & username);
 
-  std::string SearchByUsernameJson(std::string const & query);
-  std::vector<FriendRecord> SearchByUsername(std::string const & query);
+  using SearchCallback = std::function<void(std::vector<FriendRecord> const &)>;
+  void SearchByUsername(std::string const & query, SearchCallback const & callback);
 
-  bool SendRequest(std::string const & userId);
-  bool AcceptRequest(std::string const & userId);
-  bool CancelRequest(std::string const & userId);
+  void SendRequest(std::string const & userId);
+  void AcceptRequest(std::string const & userId);
+  void CancelRequest(std::string const & userId);
 
 private:
   std::string GetCacheFilePath() const;
 
-  bool GetJson(std::string const & url, std::string & outJson);
-  bool PostJson(std::string const & url, std::string const & body, std::string & outJson);
-
   FriendsLists m_lists;
   bool m_cacheLoaded = false;
+
+  mutable std::mutex m_subscribersMutex;
+  std::vector<Subscriber *> m_subscribers;
 };

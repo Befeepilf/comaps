@@ -1072,4 +1072,15 @@
     <!-- Permission descriptions -->
     <string name="permission_read_navigation_label">Read CoMaps navigation data</string>
     <string name="permission_read_navigation_description">read live navigation information such as upcoming turns or the name of the road you are on</string>
+    <!-- Friends -->
+    <string name="friends_search_hint">Search by username</string>
+    <string name="friends_signup">Sign up</string>
+    <string name="friends_signup_success">Signed up successfully!</string>
+    <string name="friends_signup_error">Signup failed. Username might be taken.</string>
+    <string name="friends_section_title">Friends</string>
+    <string name="friends_search_results_title">Search results</string>
+    <string name="friends_no_search_results">No results found</string>
+    <string name="friends_username_too_short">Too short (min 3 characters)</string>
+    <string name="friends_username_updated">Username updated!</string>
+    <string name="friends_action_failed">Action failed</string>
 </resources>
