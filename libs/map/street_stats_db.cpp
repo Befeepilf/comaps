@@ -20,8 +20,7 @@ namespace
 {
 std::string const kDatabaseFileName = "street_stats.db";
 
-// Helper function to get or insert mwm_id
-int64_t GetMwmId(sqlite3 * db, MwmSet::MwmId const & mwmId)
+int64_t GetOrCreateMwmId(sqlite3 * db, MwmSet::MwmId const & mwmId)
 {
   auto const & mwmInfo = mwmId.GetInfo();
   if (!mwmInfo)
@@ -136,7 +135,7 @@ std::optional<StreetStatsDB::Bitmask> StreetStatsDB::GetBitmask(MwmSet::MwmId co
 
   std::lock_guard<std::recursive_mutex> lock(m_mutex);
 
-  int64_t const internalMwmId = GetMwmId(m_db, mwmId);
+  int64_t const internalMwmId = GetOrCreateMwmId(m_db, mwmId);
   if (internalMwmId < 0)
     return {};
 
@@ -175,7 +174,7 @@ void StreetStatsDB::SaveBitmask(MwmSet::MwmId const & mwmId, uint32_t featureId,
 
   std::lock_guard<std::recursive_mutex> lock(m_mutex);
 
-  int64_t const internalMwmId = GetMwmId(m_db, mwmId);
+  int64_t const internalMwmId = GetOrCreateMwmId(m_db, mwmId);
   if (internalMwmId < 0)
     return;
 

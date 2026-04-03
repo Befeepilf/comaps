@@ -5,26 +5,28 @@
 
 #include "coding/mmap_reader.hpp"
 
+#include "drape/color.hpp"
 #include "drape_frontend/drape_engine.hpp"
 #include "drape_frontend/message.hpp"
 #include "drape_frontend/message_subclasses.hpp"
 
-#include "drape/color.hpp"
-
 #include "indexer/classificator.hpp"
 #include "indexer/data_source_helpers.hpp"
 #include "indexer/feature.hpp"
+#include "indexer/feature_algo.hpp"
 #include "indexer/feature_decl.hpp"
 #include "indexer/features_vector.hpp"
 
 #include "geometry/angles.hpp"
 #include "geometry/mercator.hpp"
+#include "geometry/parametrized_segment.hpp"
 #include "geometry/point2d.hpp"
 #include "geometry/point_with_altitude.hpp"
 
 #include "kml/type_utils.hpp"
 
 #include "map/street_pixels_manager.hpp"
+#include "map/street_stats_db.hpp"
 #include "map/track.hpp"
 
 #include "platform/country_file.hpp"
@@ -35,13 +37,6 @@
 #include "routing/routing_helpers.hpp"
 #include "routing_common/bicycle_model.hpp"
 #include "routing_common/pedestrian_model.hpp"
-
-#include "map/street_stats_db.hpp"
-
-#include "indexer/feature_algo.hpp"
-
-#include "geometry/mercator.hpp"
-#include "geometry/parametrized_segment.hpp"
 
 #include "search/reverse_geocoder.hpp"
 
@@ -57,7 +52,8 @@
 
 // File types:
 // .pix: list of explorable healpix ids; left most bit indicates if pixel has been explored
-// .pixa: bitmap of healpixels; each bit corresponds to index in the .pix file; used to calculate exploration stats by tracking which pixels have already been accounted for in the stats
+// .pixa: bitmap of healpixels; each bit corresponds to index in the .pix file; used to calculate exploration stats by
+// tracking which pixels have already been accounted for in the stats
 
 namespace hp
 {
@@ -73,11 +69,12 @@ double constexpr kExploreRadiusMeters = 20.0;
 double constexpr kEarthRadiusMeters = 6371000.0;
 double constexpr kRadiusRads = kExploreRadiusMeters / kEarthRadiusMeters;
 
-StreetPixelsManager::StreetPixelsManager(DataSource const & dataSource)
-  : m_dataSource(dataSource)
-{}
+StreetPixelsManager::StreetPixelsManager(DataSource const & dataSource) : m_dataSource(dataSource) {}
 
-StreetPixelsManager::StreetPixelsState StreetPixelsManager::GetState() const { return m_state; }
+StreetPixelsManager::StreetPixelsState StreetPixelsManager::GetState() const
+{
+  return m_state;
+}
 
 void StreetPixelsManager::SetStateListener(StreetPixelsStateChangedFn const & onStateChangedFn)
 {
@@ -94,12 +91,11 @@ void StreetPixelsManager::ChangeState(StreetPixelsState newState)
   m_state = newState;
   if (m_onStateChangedFn != nullptr)
   {
-    GetPlatform().RunTask(Platform::Thread::Gui,
-                          [this]()
-                          {
-                            std::lock_guard<std::mutex> lock(m_countryIdMutex);
-                            m_onStateChangedFn(m_state.enabled, m_state.status, m_countryId);
-                          });
+    GetPlatform().RunTask(Platform::Thread::Gui, [this]()
+    {
+      std::lock_guard<std::mutex> lock(m_countryIdMutex);
+      m_onStateChangedFn(m_state.enabled, m_state.status, m_countryId);
+    });
   }
 }
 
@@ -109,11 +105,20 @@ void StreetPixelsManager::SetEnabled(bool enabled)
   m_drapeEngine.SafeCall(&df::DrapeEngine::EnableStreetPixels, enabled);
 }
 
-bool StreetPixelsManager::IsEnabled() const { return m_state.enabled; }
+bool StreetPixelsManager::IsEnabled() const
+{
+  return m_state.enabled;
+}
 
-void StreetPixelsManager::SetDrapeEngine(ref_ptr<df::DrapeEngine> engine) { m_drapeEngine.Set(engine); }
+void StreetPixelsManager::SetDrapeEngine(ref_ptr<df::DrapeEngine> engine)
+{
+  m_drapeEngine.Set(engine);
+}
 
-void StreetPixelsManager::SetBookmarkManager(BookmarkManager * bmManager) { m_bmManager = bmManager; }
+void StreetPixelsManager::SetBookmarkManager(BookmarkManager * bmManager)
+{
+  m_bmManager = bmManager;
+}
 
 void StreetPixelsManager::OnBookmarksCreated()
 {
@@ -182,7 +187,7 @@ void StreetPixelsManager::LoadStreetPixelsFromFile(storage::CountryId const & co
 
   std::string filePath = GetPlatform().WritablePathForFile(countryId + ".pix");
   LOG(LINFO, ("Trying to memory-map existing pix file for", countryId));
-  
+
   std::lock_guard<std::recursive_mutex> lock(m_streetPixelsMutex);
   m_mmapReader = std::make_unique<MmapReader>(filePath, MmapReader::Advice::Sequential, true);
   m_streetPixels = m_mmapReader->DataSpan<df::StreetPixel>();
@@ -210,7 +215,8 @@ void StreetPixelsManager::SaveStreetPixelsToFile(std::set<std::int64_t> const & 
 
 void StreetPixelsManager::CleanupStreetPixels(storage::CountryId const & countryId)
 {
-  GetPlatform().RunTask(Platform::Thread::Background, [this, countryId]() {
+  GetPlatform().RunTask(Platform::Thread::Background, [this, countryId]()
+  {
     LOG(LINFO, ("Cleaning up street pixels files for", countryId));
 
     {
@@ -249,44 +255,43 @@ std::set<std::int64_t> StreetPixelsManager::DeriveStreetPixelsFromFeatures(Featu
   std::map<FeatureID, double> featureLengths;
   std::vector<m2::PointD> points;
   int numStreets = 0;
-  featuresVector.GetVector().ForEach(
-    [&](FeatureType & feature, std::uint64_t)
+  featuresVector.GetVector().ForEach([&](FeatureType & feature, std::uint64_t)
+  {
+    if (!IsExplorable(feature))
+      return;
+
+    numStreets++;
+
+    feature.ParseGeometry(FeatureType::BEST_GEOMETRY);
+
+    size_t const numPoints = feature.GetPointsCount();
+    if (numPoints < 2)
+      return;
+
+    double totalLengthMeters = 0;
+    m2::PointD prevPoint = feature.GetPoint(0);
+    for (size_t i = 1; i < numPoints; ++i)
     {
-      if (!IsExplorable(feature))
-        return;
+      auto const point = feature.GetPoint(i);
+      points.push_back(prevPoint);
 
-      numStreets++;
-
-      feature.ParseGeometry(FeatureType::BEST_GEOMETRY);
-
-      size_t const numPoints = feature.GetPointsCount();
-      if (numPoints < 2)
-        return;
-
-      double totalLengthMeters = 0;
-      m2::PointD prevPoint = feature.GetPoint(0);
-      for (size_t i = 1; i < numPoints; ++i)
+      SegmentizeStreet(prevPoint, point, [&](m2::PointD const & segmentPoint, double distFromPrevPoint)
       {
-        auto const point = feature.GetPoint(i);
-        points.push_back(prevPoint);
+        points.push_back(segmentPoint);
+        double const distanceAlongFeatureM = totalLengthMeters + distFromPrevPoint;
+        uint32_t const pixelIndex = static_cast<uint32_t>(distanceAlongFeatureM / kSegmentLengthMeters);
+        featurePixelIndices[feature.GetID()].push_back(pixelIndex);
+      });
 
-        SegmentizeStreet(prevPoint, point,
-                         [&](m2::PointD const & segmentPoint, double distFromPrevPoint)
-                         {
-                           points.push_back(segmentPoint);
-                           double const distanceAlongFeatureM = totalLengthMeters + distFromPrevPoint;
-                           uint32_t const pixelIndex = static_cast<uint32_t>(distanceAlongFeatureM / kSegmentLengthMeters);
-                           featurePixelIndices[feature.GetID()].push_back(pixelIndex);
-                         });
-
-        totalLengthMeters += mercator::DistanceOnEarth(prevPoint, point);
-        prevPoint = point;
-      }
-      featureLengths[feature.GetID()] = totalLengthMeters;
-    });
+      totalLengthMeters += mercator::DistanceOnEarth(prevPoint, point);
+      prevPoint = point;
+    }
+    featureLengths[feature.GetID()] = totalLengthMeters;
+  });
 
   auto & db = street_stats::StreetStatsDB::Instance();
-  db.WithTransaction([&]() {
+  db.WithTransaction([&]()
+  {
     for (auto const & [fid, pixelIndices] : featurePixelIndices)
     {
       auto bitmask = db.GetBitmask(fid.m_mwmId, fid.m_index);
@@ -294,8 +299,7 @@ std::set<std::int64_t> StreetPixelsManager::DeriveStreetPixelsFromFeatures(Featu
       {
         if (!featureLengths.count(fid))
           continue;
-        size_t const numPixels =
-          static_cast<size_t>(std::ceil(featureLengths[fid] / kSegmentLengthMeters));
+        size_t const numPixels = static_cast<size_t>(std::ceil(featureLengths[fid] / kSegmentLengthMeters));
         size_t const numBytes = (numPixels + 7) / 8;
         bitmask.emplace(numBytes, 0);
       }
@@ -366,29 +370,28 @@ bool StreetPixelsManager::IsExplorable(FeatureType & ft) const
   bool isBikeAccessible = true;
   bool isPedestrianAccessible = true;
   Classificator & c = classif();
-  ft.ForEachType(
-    [&](std::uint64_t type)
+  ft.ForEachType([&](std::uint64_t type)
+  {
+    std::vector<std::string> types = c.GetFullObjectNamePath(type);
+    if (types.size() > 0 && types[0] == "highway")
     {
-      std::vector<std::string> types = c.GetFullObjectNamePath(type);
-      if (types.size() > 0 && types[0] == "highway")
-      {
-        if (types.size() < 3 || (types[2] != "driveway" && types[2] != "tunnel"))
-          isHighway = true;
-      }
-      if (types.size() >= 2 && types[0] == "hwtag")
-      {
-        if (types[1] == "private")
-          isPrivate = true;
-        else if (types[1] == "nobicycle")
-          isBikeAccessible = false;
-        else if (types[1] == "yesbicycle")
-          isBikeAccessible = true;
-        else if (types[1] == "nofoot")
-          isPedestrianAccessible = false;
-        else if (types[1] == "yesfoot")
-          isPedestrianAccessible = true;
-      }
-    });
+      if (types.size() < 3 || (types[2] != "driveway" && types[2] != "tunnel"))
+        isHighway = true;
+    }
+    if (types.size() >= 2 && types[0] == "hwtag")
+    {
+      if (types[1] == "private")
+        isPrivate = true;
+      else if (types[1] == "nobicycle")
+        isBikeAccessible = false;
+      else if (types[1] == "yesbicycle")
+        isBikeAccessible = true;
+      else if (types[1] == "nofoot")
+        isPedestrianAccessible = false;
+      else if (types[1] == "yesfoot")
+        isPedestrianAccessible = true;
+    }
+  });
 
   // auto const & types = feature::TypesHolder(feature);
   // bool isBicycleAccessible = routing::IsBicycleRoad(types);
@@ -435,8 +438,8 @@ void StreetPixelsManager::UpdateExploredPixels()
 
   LOG(LINFO, ("Collecting tracks"));
   std::vector<TrackInfo> tracks;
-  m_bmManager->ForEachTrackSortedByTimestamp(
-    [&](Track const & t) { tracks.push_back(TrackInfo{t.GetId(), t.GetGeometry(), t.GetData().m_timestamp}); });
+  m_bmManager->ForEachTrackSortedByTimestamp([&](Track const & t)
+  { tracks.push_back(TrackInfo{t.GetId(), t.GetGeometry(), t.GetData().m_timestamp}); });
 
   storage::CountryId countryId;
   {
@@ -444,72 +447,13 @@ void StreetPixelsManager::UpdateExploredPixels()
     countryId = m_countryId;
   }
 
-  GetPlatform().RunTask(
-    Platform::Thread::Background,
-    [this, tracks = std::move(tracks), countryId]() mutable
+  GetPlatform().RunTask(Platform::Thread::Background, [this, tracks = std::move(tracks), countryId]() mutable
+  {
+    if (countryId.empty())
+      return;
+
+    for (auto const & ti : tracks)
     {
-      if (countryId.empty())
-        return;
-
-      for (auto const & ti : tracks)
-      {
-        {
-          std::lock_guard<std::mutex> lock(m_countryIdMutex);
-          if (m_countryId != countryId)
-          {
-            LOG(LWARNING, ("Country changed while updating explored pixels. Aborting."));
-            return;
-          }
-        }
-
-        std::int64_t const geometryHash = ComputeGeometryHash(ti);
-        if (street_stats::StreetStatsDB::Instance().IsTrackProcessed(geometryHash, countryId))
-          continue;
-
-        // UpdateStreetStatsForTrack(ti.geom);
-
-        LOG(LINFO, ("Computing track pixels for", ti.id));
-
-        auto trackPixels = ComputeTrackPixels(ti);
-        size_t statsNew = 0;
-        std::set<int64_t> renderNew;
-        {
-          std::lock_guard<std::recursive_mutex> lock(m_streetPixelsMutex);
-          for (auto pix : trackPixels)
-          {
-            auto * pixel = FindStreetPixel(pix);
-            if (pixel == nullptr)
-              continue;
-            if (!pixel->IsExplored())
-            {
-              pixel->SetExplored(true);
-              msync(pixel, sizeof(df::StreetPixel), MS_ASYNC);
-              renderNew.insert(pix);
-            }
-            if (!m_accountedBits.empty())
-            {
-              size_t index = GetPixelIndex(pixel);
-              if (!IsAccountedIndex(index))
-              {
-                SetAccountedIndex(index);
-                ++statsNew;
-              }
-            }
-          }
-        }
-
-        street_stats::StreetStatsDB::Instance().MarkTrackProcessed(geometryHash, countryId);
-
-        if (statsNew > 0 && m_explorationListener)
-        {
-          ExplorationDelta d;
-          d.m_regionId = countryId;
-          d.m_newPixels = static_cast<uint32_t>(statsNew);
-          d.m_eventTimeSec = static_cast<double>(kml::ToSecondsSinceEpoch(ti.ts));
-          m_explorationListener(d);
-        }
-      }
-
       {
         std::lock_guard<std::mutex> lock(m_countryIdMutex);
         if (m_countryId != countryId)
@@ -519,20 +463,76 @@ void StreetPixelsManager::UpdateExploredPixels()
         }
       }
 
-        if (m_accountedDirty)
-          SaveAccountedBits();
+      std::int64_t const geometryHash = ComputeGeometryHash(ti);
+      if (street_stats::StreetStatsDB::Instance().IsTrackProcessed(geometryHash, countryId))
+        continue;
 
-      // Notify UI that exploration data updated even if status unchanged.
-      if (m_onStateChangedFn)
+      // UpdateStreetStatsForTrack(ti.geom);
+
+      LOG(LINFO, ("Computing track pixels for", ti.id));
+
+      auto trackPixels = ComputeTrackPixels(ti);
+      size_t statsNew = 0;
+      std::set<int64_t> renderNew;
       {
-        GetPlatform().RunTask(Platform::Thread::Gui,
-                              [this]()
-                              {
-                                std::lock_guard<std::mutex> lock(m_countryIdMutex);
-                                m_onStateChangedFn(m_state.enabled, m_state.status, m_countryId);
-                              });
+        std::lock_guard<std::recursive_mutex> lock(m_streetPixelsMutex);
+        for (auto pix : trackPixels)
+        {
+          auto * pixel = FindStreetPixel(pix);
+          if (pixel == nullptr)
+            continue;
+          if (!pixel->IsExplored())
+          {
+            pixel->SetExplored(true);
+            msync(pixel, sizeof(df::StreetPixel), MS_ASYNC);
+            renderNew.insert(pix);
+          }
+          if (!m_accountedBits.empty())
+          {
+            size_t index = GetPixelIndex(pixel);
+            if (!IsAccountedIndex(index))
+            {
+              SetAccountedIndex(index);
+              ++statsNew;
+            }
+          }
+        }
       }
-    });
+
+      street_stats::StreetStatsDB::Instance().MarkTrackProcessed(geometryHash, countryId);
+
+      if (statsNew > 0 && m_explorationListener)
+      {
+        ExplorationDelta d;
+        d.m_regionId = countryId;
+        d.m_newPixels = static_cast<uint32_t>(statsNew);
+        d.m_eventTimeSec = static_cast<double>(kml::ToSecondsSinceEpoch(ti.ts));
+        m_explorationListener(d);
+      }
+    }
+
+    {
+      std::lock_guard<std::mutex> lock(m_countryIdMutex);
+      if (m_countryId != countryId)
+      {
+        LOG(LWARNING, ("Country changed while updating explored pixels. Aborting."));
+        return;
+      }
+    }
+
+    if (m_accountedDirty)
+      SaveAccountedBits();
+
+    // Notify UI that exploration data updated even if status unchanged.
+    if (m_onStateChangedFn)
+    {
+      GetPlatform().RunTask(Platform::Thread::Gui, [this]()
+      {
+        std::lock_guard<std::mutex> lock(m_countryIdMutex);
+        m_onStateChangedFn(m_state.enabled, m_state.status, m_countryId);
+      });
+    }
+  });
 }
 
 void StreetPixelsManager::UpdateStreetStatsForTrack(kml::MultiGeometry::LineT const & line)
@@ -563,7 +563,7 @@ void StreetPixelsManager::UpdateStreetStatsForTrack(kml::MultiGeometry::LineT co
   }
 }
 
-std::int64_t StreetPixelsManager::ComputeGeometryHash(const TrackInfo & trackInfo)
+std::int64_t StreetPixelsManager::ComputeGeometryHash(TrackInfo const & trackInfo)
 {
   std::size_t seed = 0;
   for (auto const & point : trackInfo.geom)
@@ -574,7 +574,7 @@ std::int64_t StreetPixelsManager::ComputeGeometryHash(const TrackInfo & trackInf
   return static_cast<std::int64_t>(seed);
 }
 
-std::set<int64_t> StreetPixelsManager::ComputeTrackPixels(const TrackInfo & trackInfo) const
+std::set<int64_t> StreetPixelsManager::ComputeTrackPixels(TrackInfo const & trackInfo) const
 {
   std::set<int64_t> pixels;
 
@@ -704,52 +704,50 @@ void StreetPixelsManager::UpdateStreetStats(double lat, double lon, size_t numNe
 
   std::map<FeatureID, std::set<uint32_t>> featureUpdates;
 
-  indexer::ForEachFeatureAtPoint(
-    m_dataSource,
-    [&](FeatureType & ft)
+  indexer::ForEachFeatureAtPoint(m_dataSource, [&](FeatureType & ft)
+  {
+    if (!IsExplorable(ft))
+      return;
+
+    ft.ParseGeometry(FeatureType::BEST_GEOMETRY);
+    size_t const pointsCount = ft.GetPointsCount();
+    if (pointsCount < 2)
+      return;
+
+    double minSqDist = std::numeric_limits<double>::max();
+    double distanceAlongFeatureM = -1.0;
+    double accumulatedLengthM = 0.0;
+
+    for (size_t i = 1; i < pointsCount; ++i)
     {
-      if (!IsExplorable(ft))
-        return;
+      m2::PointD const p1 = ft.GetPoint(i - 1);
+      m2::PointD const p2 = ft.GetPoint(i);
 
-      ft.ParseGeometry(FeatureType::BEST_GEOMETRY);
-      size_t const pointsCount = ft.GetPointsCount();
-      if (pointsCount < 2)
-        return;
+      m2::ParametrizedSegment<m2::PointD> segment(p1, p2);
+      m2::PointD const closestPoint = segment.ClosestPointTo(centerMercator);
+      double const sqDist = centerMercator.SquaredLength(closestPoint);
 
-      double minSqDist = std::numeric_limits<double>::max();
-      double distanceAlongFeatureM = -1.0;
-      double accumulatedLengthM = 0.0;
-
-      for (size_t i = 1; i < pointsCount; ++i)
+      if (sqDist < minSqDist)
       {
-        m2::PointD const p1 = ft.GetPoint(i - 1);
-        m2::PointD const p2 = ft.GetPoint(i);
-
-        m2::ParametrizedSegment<m2::PointD> segment(p1, p2);
-        m2::PointD const closestPoint = segment.ClosestPointTo(centerMercator);
-        double const sqDist = centerMercator.SquaredLength(closestPoint);
-
-        if (sqDist < minSqDist)
-        {
-          minSqDist = sqDist;
-          distanceAlongFeatureM = accumulatedLengthM + mercator::DistanceOnEarth(p1, closestPoint);
-        }
-        accumulatedLengthM += mercator::DistanceOnEarth(p1, p2);
+        minSqDist = sqDist;
+        distanceAlongFeatureM = accumulatedLengthM + mercator::DistanceOnEarth(p1, closestPoint);
       }
+      accumulatedLengthM += mercator::DistanceOnEarth(p1, p2);
+    }
 
-      if (distanceAlongFeatureM >= 0)
-      {
-        uint32_t const pixelIndex = static_cast<uint32_t>(distanceAlongFeatureM / kSegmentLengthMeters);
-        featureUpdates[ft.GetID()].insert(pixelIndex);
-      }
-    },
-    centerMercator, 0.0);
+    if (distanceAlongFeatureM >= 0)
+    {
+      uint32_t const pixelIndex = static_cast<uint32_t>(distanceAlongFeatureM / kSegmentLengthMeters);
+      featureUpdates[ft.GetID()].insert(pixelIndex);
+    }
+  }, centerMercator, 0.0);
 
   if (featureUpdates.empty())
     return;
 
   auto & db = street_stats::StreetStatsDB::Instance();
-  db.WithTransaction([&]() {
+  db.WithTransaction([&]()
+  {
     for (auto const & [fid, pixelIndices] : featureUpdates)
     {
       auto bitmask = db.GetBitmask(fid.m_mwmId, fid.m_index);
@@ -798,21 +796,20 @@ void StreetPixelsManager::OnUpdateCurrentCountry(storage::CountryId const & coun
 
   ChangeState(StreetPixelsState{m_state.enabled, StreetPixelsStatus::Loading});
 
-  GetPlatform().RunTask(Platform::Thread::Background,
-                        [this, countryId, localFile]()
-                        {
-                          ClearPixels();
-                          if (countryId.empty() || !localFile || !localFile->OnDisk(MapFileType::Map))
-                          {
-                            ChangeState(StreetPixelsState{m_state.enabled, StreetPixelsStatus::NotReady});
-                            return;
-                          }
+  GetPlatform().RunTask(Platform::Thread::Background, [this, countryId, localFile]()
+  {
+    ClearPixels();
+    if (countryId.empty() || !localFile || !localFile->OnDisk(MapFileType::Map))
+    {
+      ChangeState(StreetPixelsState{m_state.enabled, StreetPixelsStatus::NotReady});
+      return;
+    }
 
-                          LOG(LINFO, ("Loading street pixels in background thread because country changed to", countryId));
-                          LoadStreetPixels(localFile);
-                          ChangeState(StreetPixelsState{m_state.enabled, StreetPixelsStatus::Ready});
-                          GetPlatform().RunTask(Platform::Thread::Gui, [this]() { UpdateExploredPixels(); });
-                        });
+    LOG(LINFO, ("Loading street pixels in background thread because country changed to", countryId));
+    LoadStreetPixels(localFile);
+    ChangeState(StreetPixelsState{m_state.enabled, StreetPixelsStatus::Ready});
+    GetPlatform().RunTask(Platform::Thread::Gui, [this]() { UpdateExploredPixels(); });
+  });
 }
 
 double StreetPixelsManager::GetTotalExploredFraction() const
@@ -936,3 +933,4 @@ void StreetPixelsManager::SaveAccountedBits()
 
   LOG(LINFO, ("Saved", m_accountedBits.size(), "bytes of accounted bits for", GetCurrentCountryId()));
 }
+
