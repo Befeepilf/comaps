@@ -40,7 +40,7 @@ public class Track extends MapObject
   @SuppressWarnings("unused")
   private Track(long trackId, long categoryId, String name, Distance length, int color, double exploredFraction)
   {
-    super(FeatureId.EMPTY, TRACK, name, "", "", "", 0, 0, "", null, OPENING_MODE_PREVIEW_PLUS, null, "",
+    super(FeatureId.EMPTY, TRACK, name, "", "", "", 0, 0, "", null, OPENING_MODE_PREVIEW_PLUS, null, "", "",
           RoadWarningMarkType.UNKNOWN.ordinal(), null);
     mTrackId = trackId;
     mCategoryId = categoryId;
