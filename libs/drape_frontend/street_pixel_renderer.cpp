@@ -29,9 +29,9 @@ int const kBucketZoomLevel = 15;
 // Radius of circles depending on zoom levels.
 std::array<float, 20> const kRadiusInPixel = {
   // 1   2     3     4     5     6     7     8     9     10
-  0.6f, 0.8f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+  0.6f, 0.8f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.5f, 1.5f,
   // 11   12    13    14    15    16    17    18    19     20
-  1.0f, 1.0f, 1.0f, 1.0f, 1.5f, 2.0f, 2.0f, 3.0f, 4.0f, 5.5f};
+  1.5f, 1.5f, 2.0f, 1.5f, 1.5f, 2.0f, 2.0f, 3.0f, 4.0f, 5.5f};
 }  // namespace
 
 StreetPixelRenderer::StreetPixelRenderer(TRenderDataRequestFn const & dataRequestFn)
