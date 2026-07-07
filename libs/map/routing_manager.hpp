@@ -67,6 +67,7 @@ RouterType GetLastUsedRouter();
 }  // namespace routing
 
 class DataSource;
+class StreetPixelsManager;
 
 namespace power_management
 {
@@ -140,6 +141,7 @@ public:
   RoutingManager(Callbacks && callbacks, Delegate & delegate);
   ~RoutingManager();
 
+  void SetStreetPixelsManager(StreetPixelsManager * streetPixelsManager);
   void SetBookmarkManager(BookmarkManager * bmManager);
   void SetTransitManager(TransitReadManager * transitManager);
 
@@ -398,6 +400,7 @@ private:
   routing::RoutingSession m_routingSession;
   Delegate & m_delegate;
 
+  StreetPixelsManager * m_streetPixelsManager = nullptr;
   BookmarkManager * m_bmManager = nullptr;
   extrapolation::Extrapolator m_extrapolator;
 

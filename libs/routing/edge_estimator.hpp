@@ -1,5 +1,7 @@
 #pragma once
 
+#include "routing/segment.hpp"
+#include "routing/street_exploration_for_routing.hpp"
 #include "routing/vehicle_mask.hpp"
 
 #include "routing_common/num_mwm_id.hpp"
@@ -30,7 +32,8 @@ public:
   };
 
   EdgeEstimator(VehicleType vehicleType, double maxWeightSpeedKMpH, SpeedKMpH const & offroadSpeedKMpH,
-                DataSource * dataSourcePtr = nullptr, std::shared_ptr<NumMwmIds> numMwmIds = nullptr);
+                DataSource * dataSourcePtr = nullptr, std::shared_ptr<NumMwmIds> numMwmIds = nullptr,
+                std::shared_ptr<IStreetExplorationWeights const> streetExploration = nullptr);
   virtual ~EdgeEstimator() = default;
 
   double CalcHeuristic(ms::LatLon const & from, ms::LatLon const & to) const;
@@ -53,19 +56,26 @@ public:
                                 RoadGeometry const & to_road, bool is_left_hand_traffic = false) const = 0;
   virtual double GetFerryLandingPenalty(Purpose purpose) const = 0;
 
-  static std::shared_ptr<EdgeEstimator> Create(VehicleType vehicleType, double maxWeighSpeedKMpH,
-                                               SpeedKMpH const & offroadSpeedKMpH,
-                                               std::shared_ptr<TrafficStash> trafficStash, DataSource * dataSourcePtr,
-                                               std::shared_ptr<NumMwmIds> numMwmIds);
+  static std::shared_ptr<EdgeEstimator> Create(
+      VehicleType vehicleType, double maxWeighSpeedKMpH, SpeedKMpH const & offroadSpeedKMpH,
+      std::shared_ptr<TrafficStash> trafficStash, DataSource * dataSourcePtr, std::shared_ptr<NumMwmIds> numMwmIds,
+      std::shared_ptr<IStreetExplorationWeights const> streetExploration = nullptr);
 
-  static std::shared_ptr<EdgeEstimator> Create(VehicleType vehicleType, VehicleModelInterface const & vehicleModel,
-                                               std::shared_ptr<TrafficStash> trafficStash, DataSource * dataSourcePtr,
-                                               std::shared_ptr<NumMwmIds> numMwmIds);
+  static std::shared_ptr<EdgeEstimator> Create(
+      VehicleType vehicleType, VehicleModelInterface const & vehicleModel, std::shared_ptr<TrafficStash> trafficStash,
+      DataSource * dataSourcePtr, std::shared_ptr<NumMwmIds> numMwmIds,
+      std::shared_ptr<IStreetExplorationWeights const> streetExploration = nullptr);
 
 protected:
+  double ApplyStreetExplorationMultiplier(Purpose purpose, Segment const & segment, RoadGeometry const & road,
+                                          double baseWeight) const;
+
   VehicleType const m_vehicleType;
   double m_defaultPenalty = 0.0;
   ankerl::unordered_dense::map<int, double> m_turnPenaltyMap;
+
+  std::shared_ptr<NumMwmIds> m_numMwmIds;
+  std::shared_ptr<IStreetExplorationWeights const> m_streetExploration;
 
 private:
   double const m_maxWeightSpeedMpS;
@@ -84,6 +94,7 @@ double GetPedestrianClimbPenalty(EdgeEstimator::Purpose purpose, double tangent,
 double GetBicycleClimbPenalty(EdgeEstimator::Purpose purpose, double tangent, geometry::Altitude altitudeM);
 
 double GetTrailWeightMultiplier(RoadGeometry const & road, double trailPreference, double trailMultiplier,
-  double penaltyMultiplier, std::initializer_list<std::pair<HighwayType, double>> fallbackReductions = {});
+                                double penaltyMultiplier,
+                                std::initializer_list<std::pair<HighwayType, double>> fallbackReductions = {});
 
 }  // namespace routing

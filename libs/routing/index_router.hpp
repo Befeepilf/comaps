@@ -3,6 +3,10 @@
 #include "routing/base/astar_algorithm.hpp"
 #include "routing/base/routing_result.hpp"
 #include "routing/data_source.hpp"
+#include "routing/directions_engine.hpp"
+#include "routing/edge_estimator.hpp"
+#include "routing/fake_edges_container.hpp"
+#include "routing/street_exploration_for_routing.hpp"
 #include "routing/features_road_graph.hpp"
 #include "routing/guides_connections.hpp"
 #include "routing/nearest_edge_finder.hpp"
@@ -69,7 +73,8 @@ public:
   IndexRouter(VehicleType vehicleType, bool loadAltitudes, CountryParentNameGetterFn const & countryParentNameGetterFn,
               TCountryFileFn const & countryFileFn, CountryRectFn const & countryRectFn,
               std::shared_ptr<NumMwmIds> numMwmIds, std::unique_ptr<m4::Tree<NumMwmId>> numMwmTree,
-              traffic::TrafficCache const & trafficCache, DataSource & dataSource);
+              traffic::TrafficCache const & trafficCache, DataSource & dataSource,
+              std::shared_ptr<IStreetExplorationWeights const> streetExploration = nullptr);
   ~IndexRouter() override;
 
   std::unique_ptr<WorldGraph> MakeSingleMwmWorldGraph();

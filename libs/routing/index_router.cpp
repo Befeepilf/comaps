@@ -257,7 +257,8 @@ IndexRouter::IndexRouter(VehicleType vehicleType, bool loadAltitudes,
                          CountryParentNameGetterFn const & countryParentNameGetterFn,
                          TCountryFileFn const & countryFileFn, CountryRectFn const & countryRectFn,
                          shared_ptr<NumMwmIds> numMwmIds, unique_ptr<m4::Tree<NumMwmId>> numMwmTree,
-                         traffic::TrafficCache const & trafficCache, DataSource & dataSource)
+                         traffic::TrafficCache const & trafficCache, DataSource & dataSource,
+                         shared_ptr<IStreetExplorationWeights const> streetExploration)
   : m_vehicleType(vehicleType)
   , m_loadAltitudes(loadAltitudes)
   , m_name("astar-bidirectional-" + ToString(m_vehicleType))
@@ -275,7 +276,7 @@ IndexRouter::IndexRouter(VehicleType vehicleType, bool loadAltitudes,
                 m_vehicleModelFactory)
   , m_estimator(EdgeEstimator::Create(m_vehicleType, CalcMaxSpeed(*m_numMwmIds, *m_vehicleModelFactory, m_vehicleType),
                                       CalcOffroadSpeed(*m_vehicleModelFactory), m_trafficStash, &dataSource,
-                                      m_numMwmIds))
+                                      m_numMwmIds, std::move(streetExploration)))
   , m_directionsEngine(CreateDirectionsEngine(m_vehicleType, m_numMwmIds, m_dataSource))
   , m_countryParentNameGetterFn(countryParentNameGetterFn)
 {

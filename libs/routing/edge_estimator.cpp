@@ -161,8 +161,8 @@ double GetBicycleClimbPenalty(EdgeEstimator::Purpose purpose, double tangent, ge
 }
 
 double GetTrailWeightMultiplier(RoadGeometry const & road, double trailPreference, double trailMultiplier,
-  double penaltyMultiplier,
-  std::initializer_list<std::pair<HighwayType, double>> fallbackReductions)
+                                double penaltyMultiplier,
+                                std::initializer_list<std::pair<HighwayType, double>> fallbackReductions)
 {
   auto const highwayType = road.GetHighwayType();
   if (!highwayType)
@@ -186,7 +186,7 @@ double GetTrailWeightMultiplier(RoadGeometry const & road, double trailPreferenc
       for (auto const & reduction : fallbackReductions)
       {
         if (*highwayType == reduction.first)
-          {
+        {
           currentPenaltyMultiplier *= reduction.second;
           break;
         }
@@ -199,13 +199,13 @@ double GetTrailWeightMultiplier(RoadGeometry const & road, double trailPreferenc
 
 // EdgeEstimator -----------------------------------------------------------------------------------
 EdgeEstimator::EdgeEstimator(VehicleType vehicleType, double maxWeightSpeedKMpH, SpeedKMpH const & offroadSpeedKMpH,
-                             DataSource * /*dataSourcePtr*/, std::shared_ptr<NumMwmIds> /*numMwmIds*/)
+                             DataSource * /*dataSourcePtr*/, std::shared_ptr<NumMwmIds> numMwmIds,
+                             std::shared_ptr<IStreetExplorationWeights const> streetExploration)
   : m_vehicleType(vehicleType)
+  , m_numMwmIds(std::move(numMwmIds))
+  , m_streetExploration(std::move(streetExploration))
   , m_maxWeightSpeedMpS(KmphToMps(maxWeightSpeedKMpH))
   , m_offroadSpeedKMpH(offroadSpeedKMpH)
-
-//, m_dataSourcePtr(dataSourcePtr)
-//, m_numMwmIds(numMwmIds)
 {
   CHECK_GREATER(m_offroadSpeedKMpH.m_weight, 0.0, ());
   CHECK_GREATER(m_offroadSpeedKMpH.m_eta, 0.0, ());
@@ -636,16 +636,34 @@ double EdgeEstimator::CalcOffroad(ms::LatLon const & from, ms::LatLon const & to
   return TimeBetweenSec(from, to, KmphToMps(offroadSpeedKMpH));
 }
 
+double EdgeEstimator::ApplyStreetExplorationMultiplier(Purpose purpose, Segment const & segment,
+                                                       RoadGeometry const & road, double baseWeight) const
+{
+  if (purpose != Purpose::Weight)
+    return baseWeight;
+  if (!m_streetExploration || !m_numMwmIds)
+    return baseWeight;
+  NumMwmId const mwmId = segment.GetMwmId();
+  double const mult = m_streetExploration->GetSegmentWeightMultiplier(*m_numMwmIds, mwmId, segment, road);
+  return baseWeight * mult;
+}
+
 // PedestrianEstimator -----------------------------------------------------------------------------
 class PedestrianEstimator final : public EdgeEstimator
 {
 public:
-  PedestrianEstimator(double maxWeightSpeedKMpH, SpeedKMpH const & offroadSpeedKMpH)
-    : EdgeEstimator(VehicleType::Pedestrian, maxWeightSpeedKMpH, offroadSpeedKMpH)
+  PedestrianEstimator(double maxWeightSpeedKMpH, SpeedKMpH const & offroadSpeedKMpH,
+                      std::shared_ptr<NumMwmIds> numMwmIds,
+                      std::shared_ptr<IStreetExplorationWeights const> streetExploration)
+    : EdgeEstimator(VehicleType::Pedestrian, maxWeightSpeedKMpH, offroadSpeedKMpH, nullptr, std::move(numMwmIds),
+                    std::move(streetExploration))
   {}
 
-  PedestrianEstimator(double maxWeightSpeedKMpH, SpeedKMpH const & offroadSpeedKMpH, TrailRoutingOptions const & trailOptions)
-    : EdgeEstimator(VehicleType::Pedestrian, maxWeightSpeedKMpH, offroadSpeedKMpH)
+  PedestrianEstimator(double maxWeightSpeedKMpH, SpeedKMpH const & offroadSpeedKMpH,
+                      TrailRoutingOptions const & trailOptions, std::shared_ptr<NumMwmIds> numMwmIds,
+                      std::shared_ptr<IStreetExplorationWeights const> streetExploration)
+    : EdgeEstimator(VehicleType::Pedestrian, maxWeightSpeedKMpH, offroadSpeedKMpH, nullptr, std::move(numMwmIds),
+                    std::move(streetExploration))
   {}
 
   // EdgeEstimator overrides:
@@ -670,8 +688,8 @@ public:
   double CalcSegmentWeight(Segment const & segment, RoadGeometry const & road, Purpose purpose) const override
   {
     double baseWeight =
-      CalcClimbSegment(purpose, segment, road, [purpose](double speedMpS, double tangent, geometry::Altitude altitude)
-                       { return speedMpS / GetPedestrianClimbPenalty(purpose, tangent, altitude); });
+        CalcClimbSegment(purpose, segment, road, [purpose](double speedMpS, double tangent, geometry::Altitude altitude)
+    { return speedMpS / GetPedestrianClimbPenalty(purpose, tangent, altitude); });
 
     TrailRoutingOptions currentSettings = TrailRoutingOptions::LoadFromSettings();
 
@@ -684,7 +702,7 @@ public:
                                               {HighwayType::HighwayService, 0.9}});
     }
 
-    return baseWeight;
+    return ApplyStreetExplorationMultiplier(purpose, segment, road, baseWeight);
   }
 };
 
@@ -692,13 +710,18 @@ public:
 class BicycleEstimator final : public EdgeEstimator
 {
 public:
-  BicycleEstimator(double maxWeightSpeedKMpH, SpeedKMpH const & offroadSpeedKMpH)
-    : EdgeEstimator(VehicleType::Bicycle, maxWeightSpeedKMpH, offroadSpeedKMpH)
+  BicycleEstimator(double maxWeightSpeedKMpH, SpeedKMpH const & offroadSpeedKMpH, std::shared_ptr<NumMwmIds> numMwmIds,
+                   std::shared_ptr<IStreetExplorationWeights const> streetExploration)
+    : EdgeEstimator(VehicleType::Bicycle, maxWeightSpeedKMpH, offroadSpeedKMpH, nullptr, std::move(numMwmIds),
+                    std::move(streetExploration))
   {}
 
-  BicycleEstimator(double maxWeightSpeedKMpH, SpeedKMpH const & offroadSpeedKMpH, TrailRoutingOptions const & trailOptions)
-    : EdgeEstimator(VehicleType::Bicycle, maxWeightSpeedKMpH, offroadSpeedKMpH)
-    {}
+  BicycleEstimator(double maxWeightSpeedKMpH, SpeedKMpH const & offroadSpeedKMpH,
+                   TrailRoutingOptions const & trailOptions, std::shared_ptr<NumMwmIds> numMwmIds,
+                   std::shared_ptr<IStreetExplorationWeights const> streetExploration)
+    : EdgeEstimator(VehicleType::Bicycle, maxWeightSpeedKMpH, offroadSpeedKMpH, nullptr, std::move(numMwmIds),
+                    std::move(streetExploration))
+  {}
 
   // EdgeEstimator overrides:
   double GetUTurnPenalty(Purpose /* purpose */) const override { return 20.0 /* seconds */; }
@@ -718,40 +741,36 @@ public:
 
   double CalcSegmentWeight(Segment const & segment, RoadGeometry const & road, Purpose purpose) const override
   {
-    double baseWeight = CalcClimbSegment(
-      purpose, segment, road,
-      [purpose, this](double speedMpS, double tangent, geometry::Altitude altitude)
+    double baseWeight = CalcClimbSegment(purpose, segment, road,
+                                         [purpose, this](double speedMpS, double tangent, geometry::Altitude altitude)
+    {
+      auto const factor = GetBicycleClimbPenalty(purpose, tangent, altitude);
+      ASSERT_GREATER(factor, 0.0, ());
+
+      /// @todo Take out "bad" bicycle road (path, track, footway, ...) check into BicycleModel?
+      static double constexpr badBicycleRoadSpeed = KmphToMps(9);
+      if (speedMpS <= badBicycleRoadSpeed)
       {
-        auto const factor = GetBicycleClimbPenalty(purpose, tangent, altitude);
-        ASSERT_GREATER(factor, 0.0, ());
-
-        /// @todo Take out "bad" bicycle road (path, track, footway, ...) check into BicycleModel?
-        static double constexpr badBicycleRoadSpeed = KmphToMps(9);
-        if (speedMpS <= badBicycleRoadSpeed)
+        if (factor > 1)
+          speedMpS /= factor;
+      }
+      else if (factor > 1)
+      {
+        // Calculate uphill speed according to the average bicycle speed, because "good-roads" like
+        // residential, secondary, cycleway are "equal-low-speed" uphill and road type doesn't matter.
+        static double constexpr avgBicycleSpeed = KmphToMps(20);
+        double const upperBound = avgBicycleSpeed / factor;
+        if (speedMpS > upperBound)
         {
-          if (factor > 1)
-            speedMpS /= factor;
+          // Add small weight to distinguish roads by class (10 is a max factor value).
+          speedMpS = upperBound + (purpose == Purpose::Weight ? speedMpS / (10 * avgBicycleSpeed) : 0);
         }
-        else
-        {
-          if (factor > 1)
-          {
-            // Calculate uphill speed according to the average bicycle speed, because "good-roads" like
-            // residential, secondary, cycleway are "equal-low-speed" uphill and road type doesn't matter.
-            static double constexpr avgBicycleSpeed = KmphToMps(20);
-            double const upperBound = avgBicycleSpeed / factor;
-            if (speedMpS > upperBound)
-            {
-              // Add small weight to distinguish roads by class (10 is a max factor value).
-              speedMpS = upperBound + (purpose == Purpose::Weight ? speedMpS / (10 * avgBicycleSpeed) : 0);
-            }
-          }
-          else
-            speedMpS /= factor;
-        }
+      }
+      else
+        speedMpS /= factor;
 
-        return std::min(speedMpS, GetMaxWeightSpeedMpS());
-      });
+      return std::min(speedMpS, GetMaxWeightSpeedMpS());
+    });
 
     TrailRoutingOptions currentSettings = TrailRoutingOptions::LoadFromSettings();
 
@@ -765,7 +784,7 @@ public:
                                               {HighwayType::HighwayTrack, 0.8}});
     }
 
-    return baseWeight;
+    return ApplyStreetExplorationMultiplier(purpose, segment, road, baseWeight);
   }
 };
 
@@ -803,8 +822,10 @@ class CarEstimator final : public EdgeEstimator
 {
 public:
   CarEstimator(DataSource * dataSourcePtr, std::shared_ptr<NumMwmIds> numMwmIds, shared_ptr<TrafficStash> trafficStash,
-               double maxWeightSpeedKMpH, SpeedKMpH const & offroadSpeedKMpH)
-    : EdgeEstimator(VehicleType::Car, maxWeightSpeedKMpH, offroadSpeedKMpH, dataSourcePtr, numMwmIds)
+               double maxWeightSpeedKMpH, SpeedKMpH const & offroadSpeedKMpH,
+               std::shared_ptr<IStreetExplorationWeights const> streetExploration)
+    : EdgeEstimator(VehicleType::Car, maxWeightSpeedKMpH, offroadSpeedKMpH, dataSourcePtr, numMwmIds,
+                    std::move(streetExploration))
     , m_trafficStash(std::move(trafficStash))
   {}
 
@@ -885,7 +906,7 @@ double CarEstimator::CalcSegmentWeight(Segment const & segment, RoadGeometry con
     }
   }
 
-  return result;
+  return ApplyStreetExplorationMultiplier(purpose, segment, road, result);
 }
 
 // EdgeEstimator -----------------------------------------------------------------------------------
@@ -893,7 +914,8 @@ double CarEstimator::CalcSegmentWeight(Segment const & segment, RoadGeometry con
 shared_ptr<EdgeEstimator> EdgeEstimator::Create(VehicleType vehicleType, double maxWeighSpeedKMpH,
                                                 SpeedKMpH const & offroadSpeedKMpH,
                                                 shared_ptr<TrafficStash> trafficStash, DataSource * dataSourcePtr,
-                                                std::shared_ptr<NumMwmIds> numMwmIds)
+                                                std::shared_ptr<NumMwmIds> numMwmIds,
+                                                std::shared_ptr<IStreetExplorationWeights const> streetExploration)
 {
   switch (vehicleType)
   {
@@ -901,15 +923,17 @@ shared_ptr<EdgeEstimator> EdgeEstimator::Create(VehicleType vehicleType, double 
   case VehicleType::Transit:
   {
     TrailRoutingOptions trailOptions = TrailRoutingOptions::LoadFromSettings();
-    return make_shared<PedestrianEstimator>(maxWeighSpeedKMpH, offroadSpeedKMpH, trailOptions);
+    return make_shared<PedestrianEstimator>(maxWeighSpeedKMpH, offroadSpeedKMpH, trailOptions, numMwmIds,
+                                            streetExploration);
   }
   case VehicleType::Bicycle:
   {
     TrailRoutingOptions trailOptions = TrailRoutingOptions::LoadFromSettings();
-    return make_shared<BicycleEstimator>(maxWeighSpeedKMpH, offroadSpeedKMpH, trailOptions);
+    return make_shared<BicycleEstimator>(maxWeighSpeedKMpH, offroadSpeedKMpH, trailOptions, numMwmIds,
+                                         streetExploration);
   }
   case VehicleType::Car:
-    return make_shared<CarEstimator>(dataSourcePtr, numMwmIds, trafficStash, maxWeighSpeedKMpH, offroadSpeedKMpH);
+    return make_shared<CarEstimator>(dataSourcePtr, numMwmIds, trafficStash, maxWeighSpeedKMpH, offroadSpeedKMpH, streetExploration);
   /*
    * VehicleType::Decoder is for use with the TraFF decoder, which creates its EdgeEstimator by
    * explicitly calling the constructor for the appropriate subclass.
@@ -923,9 +947,10 @@ shared_ptr<EdgeEstimator> EdgeEstimator::Create(VehicleType vehicleType, double 
 // static
 shared_ptr<EdgeEstimator> EdgeEstimator::Create(VehicleType vehicleType, VehicleModelInterface const & vehicleModel,
                                                 shared_ptr<TrafficStash> trafficStash, DataSource * dataSourcePtr,
-                                                std::shared_ptr<NumMwmIds> numMwmIds)
+                                                std::shared_ptr<NumMwmIds> numMwmIds,
+                                                std::shared_ptr<IStreetExplorationWeights const> streetExploration)
 {
   return Create(vehicleType, vehicleModel.GetMaxWeightSpeed(), vehicleModel.GetOffroadSpeed(), trafficStash,
-                dataSourcePtr, numMwmIds);
+                dataSourcePtr, numMwmIds, streetExploration);
 }
 }  // namespace routing

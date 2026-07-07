@@ -4,6 +4,8 @@
 #include "map/bookmark_manager.hpp"
 #include "map/chart_generator.hpp"
 #include "map/routing_mark.hpp"
+#include "map/street_exploration_routing_adapter.hpp"
+#include "map/street_pixels_manager.hpp"
 #include "map/transit/transit_reader.hpp"
 #include "map/user_mark.hpp"
 
@@ -13,6 +15,7 @@
 #include "routing/following_info.hpp"
 #include "routing/index_router.hpp"
 #include "routing/route.hpp"
+#include "routing/street_exploration_for_routing.hpp"
 #include "routing/routing_callbacks.hpp"
 #include "routing/routing_settings.hpp"
 #include "routing/ruler_router.hpp"
@@ -328,6 +331,11 @@ drape_ptr<df::Subroute> CreateDrapeSubroute(vector<RouteSegment> const & segment
 }
 }  // namespace
 
+void RoutingManager::SetStreetPixelsManager(StreetPixelsManager * streetPixelsManager)
+{
+  m_streetPixelsManager = streetPixelsManager;
+}
+
 RoutingManager::RoutingManager(Callbacks && callbacks, Delegate & delegate)
   : m_callbacks(std::move(callbacks))
   , m_delegate(delegate)
@@ -552,9 +560,15 @@ void RoutingManager::SetRouterImpl(RouterType type)
   if (type == RouterType::Ruler)
     router = make_unique<RulerRouter>();
   else
+  {
+    shared_ptr<IStreetExplorationWeights const> streetExploration;
+    if (m_streetPixelsManager != nullptr)
+      streetExploration = make_shared<StreetExplorationRoutingAdapter>(*m_streetPixelsManager);
     router = make_unique<IndexRouter>(
         vehicleType, m_loadAltitudes, m_callbacks.m_countryParentNameGetterFn, countryFileGetter, getMwmRectByName,
-        numMwmIds, MakeNumMwmTree(*numMwmIds, m_callbacks.m_countryInfoGetter()), m_routingSession, dataSource);
+        numMwmIds, MakeNumMwmTree(*numMwmIds, m_callbacks.m_countryInfoGetter()), m_routingSession, dataSource,
+        std::move(streetExploration));
+  }
 
   m_routingSession.SetRoutingSettings(GetRoutingSettings(vehicleType));
   m_routingSession.SetRouter(std::move(router), std::move(regionsFinder));
