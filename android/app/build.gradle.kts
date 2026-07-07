@@ -23,7 +23,7 @@ plugins {
     id("com.github.triplet.play") version libs.versions.tripletPlayPublisher
     id("ru.cian.huawei-publish-gradle-plugin") version libs.versions.huaweiPublish
     alias(libs.plugins.kotlin.android)
-    id("io.sentry.android.gradle") version "5.12.2"
+    id("io.sentry.android.gradle") version "6.3.0"
 }
 
 java {
