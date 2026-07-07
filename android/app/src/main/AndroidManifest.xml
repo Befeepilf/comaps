@@ -573,6 +573,23 @@
 
     <!-- enable the performance API by setting a sample-rate, adjust in production env -->
     <meta-data android:name="io.sentry.traces.sample-rate" android:value="1.0" />
+    <!-- Set sampling rate for profiling, adjust in production env - this is evaluated only once per session -->
+    <!-- note: there is a known issue in the Android Runtime that can be triggered by Profiling in certain circumstances -->
+    <!-- see https://docs.sentry.io/platforms/android/profiling/troubleshooting/ -->
+    <meta-data
+      android:name="io.sentry.traces.profiling.session-sample-rate"
+      android:value="1.0"
+    />
+    <!-- Set profiling lifecycle, can be `manual` (controlled through `Sentry.startProfiler()` and `Sentry.stopProfiler()`) or `trace` (automatically starts and stop a profile whenever a sampled trace starts and finishes) -->
+    <meta-data
+      android:name="io.sentry.traces.profiling.lifecycle"
+      android:value="trace"
+    />
+    <!-- Enable profiling on app start -->
+    <meta-data
+      android:name="io.sentry.traces.profiling.start-on-app-start"
+      android:value="true"
+    />
     <!-- enable Sentry Logs -->
     <meta-data android:name="io.sentry.logs.enabled" android:value="true" />
 </application>
