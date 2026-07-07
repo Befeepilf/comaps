@@ -19,15 +19,20 @@
 #include "indexer/data_source.hpp"
 #include "indexer/features_vector.hpp"
 
+#include "routing/geometry.hpp"
+#include "routing/segment.hpp"
+
 #include "storage/storage.hpp"
 
 #include <healpix_base.h>
 
 #include <cstdint>
 #include <mutex>
+#include <shared_mutex>
 #include <set>
 #include <span>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 #include <vector>
 
@@ -60,7 +65,7 @@ public:
   };
 
   using StreetPixelsStateChangedFn =
-    std::function<void(bool enabled, StreetPixelsStatus status, std::string countryId)>;
+      std::function<void(bool enabled, StreetPixelsStatus status, std::string countryId)>;
 
   StreetPixelsManager(DataSource const & dataSource);
 
@@ -93,6 +98,9 @@ public:
 
   void OnLocationUpdate(location::GpsInfo const & info);
 
+  double GetSegmentExplorationWeightMultiplier(std::string const & mwmCountryName, routing::Segment const & segment,
+                                               routing::RoadGeometry const & road) const;
+
   struct ExplorationDelta
   {
     std::string m_regionId;
@@ -119,10 +127,12 @@ private:
   BookmarkManager * m_bmManager = nullptr;
 
   std::span<df::StreetPixel> m_streetPixels;
-  mutable std::recursive_mutex m_streetPixelsMutex;
+  mutable std::shared_mutex m_streetPixelsMutex;
+  size_t m_exploredPixelCount = 0;
 
   std::unique_ptr<MmapReader> m_mmapReader;
 
+  df::StreetPixel const * FindStreetPixel(std::int64_t pixelId) const;
   df::StreetPixel * FindStreetPixel(std::int64_t pixelId);
 
   bool m_tracksLoaded = false;
@@ -130,16 +140,15 @@ private:
   void UpdateStreetStatsForTrack(kml::MultiGeometry::LineT const & line);
 
   void SegmentizeStreet(m2::PointD const & p1, m2::PointD const & p2,
-                        std::function<void(m2::PointD const &, double)> const & callback);
+                        std::function<void(m2::PointD const &, double)> const & callback) const;
 
-  std::int64_t ComputeGeometryHash(const TrackInfo & trackInfo);
-  std::set<std::int64_t> ComputeTrackPixels(const TrackInfo & trackInfo) const;
+  std::int64_t ComputeGeometryHash(TrackInfo const & trackInfo);
+  std::set<std::int64_t> ComputeTrackPixels(TrackInfo const & trackInfo) const;
   void AddPixelsInRadius(double lat, double lon, std::set<std::int64_t> & pixels) const;
   bool IsExplorable(FeatureType & ft) const;
 
   std::string GetCurrentCountryId() const;
   ExplorationListener m_explorationListener;
-
 
   // Updates heuristic stats for each street in the explore radius. Needed for routing to prefer streets with more
   // unexplored pixels.
@@ -153,5 +162,7 @@ private:
   std::string GetAccountedFilePath() const;
   bool IsAccountedIndex(size_t idx) const;
   void SetAccountedIndex(size_t idx);
+  void ApplyAccountedIndex(size_t idx, size_t totalPixels);
   size_t GetPixelIndex(df::StreetPixel const * ptr) const;
+  size_t GetPixelIndexWhileLocked(df::StreetPixel const * ptr) const;
 };
