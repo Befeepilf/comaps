@@ -417,6 +417,8 @@ Framework::Framework(FrameworkParams const & params, bool loadMaps)
   m_featuresFetcher.SetOnMapDeregisteredCallback(bind(&Framework::OnMapDeregistered, this, _1));
   LOG(LDEBUG, ("Classificator initialized"));
 
+  m_routingManager.SetStreetPixelsManager(m_streetPixelsManager.get());
+
   m_displayedCategories = make_unique<search::DisplayedCategories>(GetDefaultCategories());
 
   // To avoid possible races - init country info getter in constructor.

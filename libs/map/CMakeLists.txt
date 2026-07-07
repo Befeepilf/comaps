@@ -61,6 +61,8 @@ set(SRC
   search_mark.cpp
   search_mark.hpp
   search_product_info.hpp
+  street_exploration_routing_adapter.cpp
+  street_exploration_routing_adapter.hpp
   street_pixels_manager.cpp
   street_pixels_manager.hpp
   street_stats_db.cpp
