@@ -68,6 +68,21 @@ struct TrailRoutingOptions
   static constexpr double kDefaultTrailPreference = 50.0;
 };
 
+struct StreetExplorationRoutingOptions
+{
+  bool m_enabled = false;
+
+  /// \brief Strength from 0.0 (no effect) to 100.0 (maximum preference for unexplored streets)
+  double m_strength = 50.0;
+
+  static StreetExplorationRoutingOptions LoadFromSettings();
+  static void SaveToSettings(StreetExplorationRoutingOptions const & settings);
+
+  static constexpr double kMinStrength = 0.0;
+  static constexpr double kMaxStrength = 100.0;
+  static constexpr double kDefaultStrength = 50.0;
+};
+
 class RoutingOptionsClassifier
 {
 public:

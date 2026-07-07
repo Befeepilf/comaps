@@ -118,6 +118,38 @@ void TrailRoutingOptions::SaveToSettings(TrailRoutingOptions const & settings)
   settings::Set("trail_preference", settings.m_trailPreference);
 }
 
+// StreetExplorationRoutingOptions ---------------------------------------------------------------------
+
+StreetExplorationRoutingOptions StreetExplorationRoutingOptions::LoadFromSettings()
+{
+  StreetExplorationRoutingOptions settings;
+
+  std::string enabledStr;
+  if (!settings::Get("street_exploration_routing_enabled", enabledStr))
+    settings.m_enabled = false;
+  else
+    settings.m_enabled = (enabledStr == "true");
+
+  std::string strengthStr;
+  if (!settings::Get("street_exploration_routing_strength", strengthStr))
+    settings.m_strength = kDefaultStrength;
+  else
+  {
+    double strength = kDefaultStrength;
+    if (!strings::to_double(strengthStr, strength))
+      strength = kDefaultStrength;
+    settings.m_strength = std::max(kMinStrength, std::min(kMaxStrength, strength));
+  }
+
+  return settings;
+}
+
+void StreetExplorationRoutingOptions::SaveToSettings(StreetExplorationRoutingOptions const & settings)
+{
+  settings::Set("street_exploration_routing_enabled", settings.m_enabled);
+  settings::Set("street_exploration_routing_strength", settings.m_strength);
+}
+
 // RoutingOptionsClassifier ---------------------------------------------------------------------------
 
 RoutingOptionsClassifier::RoutingOptionsClassifier()

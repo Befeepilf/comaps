@@ -40,8 +40,13 @@ import java.util.Set;
 public class RoutingOptionsFragment extends BaseMwmToolbarFragment
 {
   public static final String BUNDLE_ROAD_TYPES = "road_types";
+  public static final String BUNDLE_STREET_EXPLORATION_ENABLED = "street_exploration_enabled";
+  public static final String BUNDLE_STREET_EXPLORATION_STRENGTH = "street_exploration_strength";
   @NonNull
   private Set<RoadType> mRoadTypes = Collections.emptySet();
+  @NonNull
+  private StreetExplorationRoutingOptions mInitialStreetExplorationOptions =
+      StreetExplorationRoutingOptions.LoadFromSettings();
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -59,6 +64,14 @@ public class RoutingOptionsFragment extends BaseMwmToolbarFragment
     mRoadTypes = savedInstanceState != null && savedInstanceState.containsKey(BUNDLE_ROAD_TYPES)
                    ? makeRouteTypes(savedInstanceState)
                    : RoutingOptions.getActiveRoadTypes(routerType);
+            
+    mInitialStreetExplorationOptions = savedInstanceState != null
+                                        && savedInstanceState.containsKey(BUNDLE_STREET_EXPLORATION_ENABLED)
+                                       ? new StreetExplorationRoutingOptions(
+                                          savedInstanceState.getBoolean(BUNDLE_STREET_EXPLORATION_ENABLED),
+                                          savedInstanceState.getDouble(BUNDLE_STREET_EXPLORATION_STRENGTH)
+                                        )
+                                       : StreetExplorationRoutingOptions.LoadFromSettings();
 
     ViewPager2 viewPager = view.findViewById(R.id.route_options_view_pager);
     OptionsPagerAdapter pagerAdapter = new OptionsPagerAdapter(this);
@@ -162,13 +175,19 @@ public class RoutingOptionsFragment extends BaseMwmToolbarFragment
       savedRoadTypes.add(each.ordinal());
     }
     outState.putIntegerArrayList(BUNDLE_ROAD_TYPES, savedRoadTypes);
+    outState.putBoolean(BUNDLE_STREET_EXPLORATION_ENABLED, mInitialStreetExplorationOptions.m_enabled);
+    outState.putDouble(BUNDLE_STREET_EXPLORATION_STRENGTH, mInitialStreetExplorationOptions.m_strength);
   }
 
   private boolean areSettingsNotChanged()
   {
     Router routerType = RoutingController.get().getLastRouterType();
     Set<RoadType> lastActiveRoadTypes = RoutingOptions.getActiveRoadTypes(routerType);
-    return mRoadTypes.equals(lastActiveRoadTypes);
+    StreetExplorationRoutingOptions currentExplorationOptions =
+        StreetExplorationRoutingOptions.LoadFromSettings();
+    return mRoadTypes.equals(lastActiveRoadTypes)
+           && mStreetExplorationOptions.m_enabled == currentExplorationOptions.m_enabled
+           && mStreetExplorationOptions.m_strength == currentExplorationOptions.m_strength;
   }
 
   @Override
