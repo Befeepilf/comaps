@@ -16,7 +16,7 @@ buildscript {
 }
 
 plugins {
-  id 'io.sentry.android.gradle' version '5.12.2'
+  id 'io.sentry.android.gradle' version '6.3.0'
 }
 
 sentry {
@@ -26,7 +26,6 @@ sentry {
   // this will upload your source code to Sentry to show it as part of the stack traces
   // disable if you don't want to expose your sources
   includeSourceContext = true
-
   uploadNativeSymbols = true
   includeNativeSources = true
   autoUploadProguardMapping = true
