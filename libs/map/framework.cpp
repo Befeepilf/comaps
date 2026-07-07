@@ -66,6 +66,7 @@
 #include "platform/distance.hpp"
 #include "platform/local_country_file.hpp"
 #include "platform/localization.hpp"
+#include "platform/locale.hpp"
 #include "platform/measurement_utils.hpp"
 #include "platform/platform.hpp"
 #include "platform/preferred_languages.hpp"
