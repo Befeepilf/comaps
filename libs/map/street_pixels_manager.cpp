@@ -35,6 +35,7 @@
 #include "platform/vibration.hpp"
 
 #include "routing/routing_helpers.hpp"
+#include "routing/routing_options.hpp"
 #include "routing_common/bicycle_model.hpp"
 #include "routing_common/pedestrian_model.hpp"
 
@@ -365,7 +366,12 @@ double StreetPixelsManager::GetSegmentExplorationWeightMultiplier(std::string co
   if (!segment.IsRealSegment() || !road.IsValid())
     return 1.0;
 
-  if (GetState().status != StreetPixelsStatus::Ready || !IsEnabled())
+  routing::StreetExplorationRoutingOptions const options =
+      routing::StreetExplorationRoutingOptions::LoadFromSettings();
+  if (!options.m_enabled)
+    return 1.0;
+
+  if (GetState().status != StreetPixelsStatus::Ready)
     return 1.0;
 
   {
@@ -437,8 +443,9 @@ double StreetPixelsManager::GetSegmentExplorationWeightMultiplier(std::string co
     return 1.0;
 
   double const exploredRatio = static_cast<double>(exploredMatched) / static_cast<double>(matched);
-  return 10 * exploredRatio;
-  // return 1.0 - kStrength * (1.0 - exploredRatio);
+  double const strength = options.m_strength / routing::StreetExplorationRoutingOptions::kMaxStrength;
+  double constexpr kMaxExplorationPenalty = 9.0;
+  return 1.0 + strength * kMaxExplorationPenalty * exploredRatio;
 }
 
 bool StreetPixelsManager::IsExplorable(FeatureType & ft) const

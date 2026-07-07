@@ -20,6 +20,7 @@ import app.organicmaps.car.util.UiHelpers;
 import app.organicmaps.sdk.Router;
 import app.organicmaps.sdk.routing.RoutingController;
 import app.organicmaps.sdk.routing.RoutingOptions;
+import app.organicmaps.sdk.routing.StreetExplorationRoutingOptions;
 import app.organicmaps.sdk.settings.RoadType;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,6 +40,7 @@ public class DrivingOptionsScreen extends BaseMapScreen
 
   @NonNull
   private final Map<RoadType, Boolean> mInitialDrivingOptionsState = new HashMap<>();
+  private boolean mInitialStreetExplorationEnabled;
 
   public DrivingOptionsScreen(@NonNull CarContext carContext, @NonNull Renderer surfaceRenderer)
   {
@@ -73,6 +75,11 @@ public class DrivingOptionsScreen extends BaseMapScreen
         return;
       }
     }
+    if (mInitialStreetExplorationEnabled
+        != StreetExplorationRoutingOptions.LoadFromSettings().m_enabled)
+    {
+      setResult(DRIVING_OPTIONS_RESULT_CHANGED);
+    }
   }
 
   @NonNull
@@ -91,7 +98,22 @@ public class DrivingOptionsScreen extends BaseMapScreen
     final ItemList.Builder builder = new ItemList.Builder();
     for (final DrivingOption drivingOption : mDrivingOptions)
       builder.addItem(createDrivingOptionsToggle(drivingOption.roadType, drivingOption.text));
+    builder.addItem(createStreetExplorationToggle());
     return new ListTemplate.Builder().setHeader(createHeader()).setSingleList(builder.build()).build();
+  }
+
+  @NonNull
+  private Row createStreetExplorationToggle()
+  {
+    final OnClickListener listener = () ->
+    {
+      StreetExplorationRoutingOptions options = StreetExplorationRoutingOptions.LoadFromSettings();
+      options.m_enabled = !options.m_enabled;
+      StreetExplorationRoutingOptions.SaveToSettings(options);
+      invalidate();
+    };
+    return Toggle.create(getCarContext(), R.string.prefer_unexplored_streets, listener,
+                        StreetExplorationRoutingOptions.LoadFromSettings().m_enabled);
   }
 
   @NonNull
@@ -118,5 +140,7 @@ public class DrivingOptionsScreen extends BaseMapScreen
     for (final DrivingOption drivingOption : mDrivingOptions)
       mInitialDrivingOptionsState.put(drivingOption.roadType,
                                       RoutingOptions.hasOption(drivingOption.roadType, routerType));
+    
+    mInitialStreetExplorationEnabled = StreetExplorationRoutingOptions.LoadFromSettings().m_enabled;
   }
 }

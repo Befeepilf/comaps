@@ -35,7 +35,7 @@ public final class RoutingOptions
       if (hasOption(each, router))
         return true;
     }
-    return false;
+    return StreetExplorationRoutingOptions.LoadFromSettings().m_enabled;
   }
 
   @NonNull
