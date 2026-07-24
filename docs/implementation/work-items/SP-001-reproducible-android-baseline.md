@@ -1,7 +1,7 @@
 # SP-001 — Reproducible Android and desktop build baseline
 
 **Phase:** 1 — Baseline and guardrails
-**Status:** Not started
+**Status:** Implementation recorded — not accepted
 **Branch:** `street-pixels/SP-001-reproducible-android-baseline`
 
 ---
@@ -136,17 +136,17 @@ Fill in before requesting review.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commits | |
-| Toolchain versions | |
-| Desktop build result | |
-| Smoke suite result per target | |
-| Android build command and flavor | |
-| Test device model and OS version | |
-| Documented-command corrections | |
-| Implemented by | |
+| Branch | `SP-001-reproducible-android-baseline` (see `baseline.md` — `street-pixels/SP-001-…` blocked by existing `street-pixels` ref) |
+| Commits | `ffd65828fd` `[docs] Record SP-001 build baseline and toolchain evidence` |
+| Toolchain versions | macOS 26.5 arm64; Apple clang 21.0.0; CMake 4.4.0; Ninja 1.13.2; JDK 21.0.11; Python 3.14.6; Gradle 8.14.4; NDK 28.2/29.0; SDK CMake 3.22.1 — full table in `baseline.md` |
+| Desktop build result | **Failed** — exit 1, 38.76 s real; `vibration.hpp:16` unknown type `size_t` |
+| Smoke suite result per target | **Not run** — all nine targets blocked (desktop build incomplete) |
+| Android build command and flavor | `cd android && ./gradlew assembleWebDebug` — **failed** exit 1, 464.34 s real; `web` + `debug` |
+| Test device model and OS version | **Not performed** — `adb devices` empty; no APK produced |
+| Documented-command corrections | Map CDN 404 for v260603; `SKIP_MAP_DOWNLOAD=1` workaround; protobuf submodule reset; §8.1 ctest path → `../omim-build-debug` — see `baseline.md` |
+| Implemented by | Cursor agent |
 | Independent reviewer | |
-| Manual validation performed by and date | |
+| Manual validation performed by and date | Not performed — no physical device connected |
 
 ## Discovered follow-up
 
@@ -155,4 +155,10 @@ a new `SP-NNN` work item or is explicitly dropped with a reason.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Desktop build fails: `size_t` not declared in `libs/platform/vibration.hpp` with Apple clang 21 / C++23 | Fix before any desktop validation; likely one-line `#include <cstddef>` — out of SP-001 production-source scope |
+| Android build fails: missing `}` in `MyAccountDialogFragment.java` before `maybeHandlePendingAddFriend()` on `street-pixels` @ `1cb5c5d1fa` | Fix or revert WIP explore-account commit before Android baseline can pass |
+| `./configure.sh` 404 for `countries.txt` map version `260603`; `ln` after failed `wget` aborts configure | New work item or upstream fix: CDN publish, `configure.sh` brace fix, or fallback version |
+| `3party/protobuf/protobuf` submodule can init as empty tree (all files staged deleted) | Document in INSTALL; consider `git submodule update` robustness — SP-002 or install doc |
+| Branch naming `street-pixels/SP-NNN-…` incompatible with branch named `street-pixels` | Rename integration branch to `street-pixels/main` or drop slash prefix in work-item branch names |
+| Seven of nine smoke targets excluded in Forgejo `CTEST_EXCLUDE_REGEX` | SP-002 |
+| Physical device map-render validation not executed | Re-run after Android build succeeds; connect device and record model/OS |
