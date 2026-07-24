@@ -282,7 +282,7 @@ Additional standing rules:
 | Build one test target | `./tools/unix/build_omim.sh -d map_tests` | `docs/UNIT_TESTING.md` |
 | Run a test suite | `./tools/unix/run_tests.sh -b ../omim-build-debug -s smoke` | `tools/unix/run_tests.sh` |
 | Run one test by name filter | `./tools/unix/run_tests.sh -b ../omim-build-debug -f "<regex>"` | `tools/unix/run_tests.sh` |
-| CTest directly | `cd build && ctest -L "omim-test" --output-on-failure` | `docs/INSTALL_DESKTOP.md` |
+| CTest directly | `cd ../omim-build-debug && ctest -L "omim-test" --output-on-failure` | `docs/INSTALL_DESKTOP.md` (default `build_omim.sh` output dir; upstream doc says `cd build`) |
 | Android debug APK | `cd android && ./gradlew assembleWebDebug` | `docs/INSTALL.md` |
 | Android lint | `cd android && ./gradlew -Pandroidauto=true lint` | `.github/workflows/android-check.yaml` |
 | C++ formatting check | `./tools/unix/clang-format.sh` | `.github/workflows/code-style-check.yaml` |
