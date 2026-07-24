@@ -17,6 +17,12 @@ class ExploreStatsService
 public:
   ExploreStatsService();
 
+  void EnableSync(bool enabled);
+  bool IsSyncEnabled() const;
+
+  void EnableFriendVisibility(bool enabled);
+  bool IsFriendVisibilityEnabled() const;
+
   void EnableSharing(bool enabled);
   bool IsSharingEnabled() const;
 
@@ -71,7 +77,8 @@ private:
   mutable std::mutex m_mutex;
   std::unordered_map<std::string, StatsEntry> m_keyToEntry;
   bool m_loaded = false;
-  bool m_sharingEnabled = false;
+  bool m_syncEnabled = false;
+  bool m_friendVisibilityEnabled = false;
   bool m_saveScheduled = false;
   std::chrono::steady_clock::time_point m_changedAt = std::chrono::steady_clock::time_point::min();
   std::chrono::steady_clock::time_point m_lastUploadAt = std::chrono::steady_clock::time_point::min();

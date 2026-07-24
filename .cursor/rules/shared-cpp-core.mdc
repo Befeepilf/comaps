@@ -1,0 +1,49 @@
+---
+description: Shared C++ core rules for Street Pixels work under libs/
+globs: libs/**/*.cpp,libs/**/*.hpp,libs/**/CMakeLists.txt
+---
+
+# Shared C++ core
+
+## Placement
+
+- Behaviour that both platforms need goes in `libs/`, not in `android/`. Android
+  V1 is the launch target, but iOS must be able to adopt the same semantics
+  later without reimplementing them. See `DECISIONS.md` SPD-002.
+- Session state, GPS sample acceptance, interpolation, pixel storage, area
+  assignment, progress calculation, and scoring are shared concerns.
+- Platform code drives shared state and reflects it. It does not keep its own
+  copy.
+
+## Street Pixels specifics
+
+- Exploration constants are compile-time and named. The 25-metre collection
+  radius is not user-configurable (product spec §15.1, §30).
+- The collection gate belongs inside the collection routine, not only at the
+  caller, so no future caller can bypass it.
+- The GPX and track-replay path is separate from live collection. Do not gate it
+  on a recording session, and do not let it write live-only state such as
+  recency.
+- `.pix` and `.pixa` files are mmapped and shared with the renderer. Changing
+  their layout requires a format version and a migration.
+- Explored state is permanent. Nothing may delete a user's explored pixels
+  except an explicit user action.
+
+## Style and build
+
+- Follow `docs/CPP_STYLE.md`. Do not reformat code you are not changing;
+  `./tools/unix/clang-format.sh` is the check.
+- Register new sources in the owning `CMakeLists.txt`.
+- New test targets use `omim_add_test` and are registered with
+  `omim_add_test_subdirectory`. Prefer the lightest option set; avoid
+  `REQUIRE_QT` and `REQUIRE_SERVER` unless linking genuinely needs them.
+- Be careful with concurrency: `StreetStatsDB` uses a recursive mutex, the
+  `.pix` mapping uses a shared mutex plus `msync`, and the renderer reads spans
+  concurrently.
+
+## Divergence from upstream
+
+This is a CoMaps fork. Every change to `libs/` widens the divergence and raises
+future merge cost. Prefer additive modules beside existing code over
+restructuring shared engines. If a change to a shared engine seems necessary,
+say so and explain why an additive approach will not work.
