@@ -45,6 +45,8 @@ public:
     virtual void OnSignupResult(bool success) {}
     virtual void OnUsernameChanged(bool success) {}
     virtual void OnActionResult(bool success) {}
+    virtual void OnDeleteAccountResult(bool success) {}
+    virtual void OnExportAccountResult(bool success, std::string const & json) {}
   };
 
   FriendsManager();
@@ -70,7 +72,12 @@ public:
   void AcceptRequest(std::string const & userId);
   void CancelRequest(std::string const & userId);
 
+  void DeleteAccount();
+  using ExportCallback = std::function<void(bool success, std::string const & json)>;
+  void ExportAccount(ExportCallback const & callback);
+
 private:
+  void ClearLocalAccountData();
   std::string GetCacheFilePath() const;
 
   FriendsLists m_lists;

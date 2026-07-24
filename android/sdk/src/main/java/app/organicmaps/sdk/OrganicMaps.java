@@ -183,6 +183,7 @@ public final class OrganicMaps implements DefaultLifecycleObserver
     final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
     final String savedUrl = prefs.getString(mContext.getString(R.string.pref_custom_map_download_url), "");
     Framework.nativeSetCustomMapDownloadUrl(savedUrl.trim());
+    Framework.nativeSetExploreApiBaseUrl(BuildConfig.EXPLORE_API_BASE_URL);
 
     mPlatformInitialized = true;
     Logger.i(TAG, "Platform initialized");

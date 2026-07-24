@@ -17,6 +17,7 @@ android {
   defaultConfig {
     minSdk = propMinSdkVersion.toInteger()
     targetSdk = propTargetSdkVersion.toInteger()
+    buildConfigField 'String', 'EXPLORE_API_BASE_URL', '"http://192.168.178.89:8999/api"'
 
     externalNativeBuild {
       def pchFlag = 'OFF'
@@ -85,6 +86,7 @@ android {
     release {
 //      minifyEnabled true
 //      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+      buildConfigField 'String', 'EXPLORE_API_BASE_URL', '"https://api.comaps.app/api"'
     }
     beta {
 //      minifyEnabled true

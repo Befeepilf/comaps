@@ -17,6 +17,7 @@
 #include "app/organicmaps/sdk/vulkan/android_vulkan_context_factory.hpp"
 
 #include "map/bookmark_helpers.hpp"
+#include "map/backend_config.hpp"
 #include "map/chart_generator.hpp"
 #include "map/everywhere_search_params.hpp"
 #include "map/friends_manager.hpp"
@@ -958,6 +959,42 @@ JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_Framework_nativeGetExploreSh
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeSetExploreSharingEnabled(JNIEnv *, jclass, jboolean enabled)
 {
   frm()->EnableExploreSharing(static_cast<bool>(enabled));
+}
+
+JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_Framework_nativeGetExploreSyncEnabled(JNIEnv *, jclass)
+{
+  return static_cast<jboolean>(frm()->IsExploreSyncEnabled());
+}
+
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeSetExploreSyncEnabled(JNIEnv *, jclass, jboolean enabled)
+{
+  frm()->EnableExploreSync(static_cast<bool>(enabled));
+}
+
+JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_Framework_nativeGetExploreFriendVisibilityEnabled(JNIEnv *, jclass)
+{
+  return static_cast<jboolean>(frm()->IsExploreFriendVisibilityEnabled());
+}
+
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeSetExploreFriendVisibilityEnabled(JNIEnv *, jclass,
+                                                                                                  jboolean enabled)
+{
+  frm()->EnableExploreFriendVisibility(static_cast<bool>(enabled));
+}
+
+JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_Framework_nativeHasExploreConsent(JNIEnv *, jclass)
+{
+  return static_cast<jboolean>(IdentityStore::HasExploreConsent());
+}
+
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeSetExploreConsent(JNIEnv *, jclass, jboolean consented)
+{
+  IdentityStore::SetExploreConsent(static_cast<bool>(consented));
+}
+
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeSetExploreApiBaseUrl(JNIEnv * env, jclass, jstring url)
+{
+  backend::SetApiBaseUrl(jni::ToNativeString(env, url));
 }
 
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeTriggerExploreStatsUpload(JNIEnv *, jclass)

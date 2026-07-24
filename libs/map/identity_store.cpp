@@ -17,6 +17,7 @@ namespace
 {
 constexpr char kDeviceIdKey[] = "Explore.DeviceId";
 constexpr char kUsernameKey[] = "Explore.Username";
+constexpr char kExploreConsentKey[] = "Explore.ConsentGiven";
 
 // Convert RFC4648 base64 to URL-safe base64 (no padding, - and _ instead of + and /).
 std::string ToUrlSafeBase64(std::string s)
@@ -68,6 +69,23 @@ bool IdentityStore::SetUsername(std::string_view username)
   if (!IsValidUsername(canonical))
     return false;
   settings::Set(std::string_view(kUsernameKey), canonical);
+  return true;
+}
+
+void IdentityStore::ClearUsername()
+{
+  settings::Delete(std::string_view(kUsernameKey));
+}
+
+bool IdentityStore::HasExploreConsent()
+{
+  bool consented = false;
+  return settings::Get(std::string_view(kExploreConsentKey), consented) && consented;
+}
+
+bool IdentityStore::SetExploreConsent(bool consented)
+{
+  settings::Set(std::string_view(kExploreConsentKey), consented);
   return true;
 }
 

@@ -1,7 +1,10 @@
 #include "base/logging.hpp"
 
 #include "map/friends_manager.hpp"
+#include "map/backend_config.hpp"
 #include "map/identity_store.hpp"
+
+#include "platform/settings.hpp"
 
 #include "coding/file_reader.hpp"
 #include "coding/file_writer.hpp"
@@ -20,7 +23,6 @@
 namespace
 {
 constexpr char kFriendsCacheFile[] = "friends_cache.json";
-constexpr char kBackendUrl[] = "http://192.168.178.89:8999/api";
 
 struct UsernameBody
 {
@@ -136,7 +138,7 @@ void FriendsManager::Refresh()
 {
   GetPlatform().RunTask(Platform::Thread::Network, [this]()
   {
-    std::string const url = std::string(kBackendUrl) + "/friends/list";
+    std::string const url = backend::GetApiBaseUrl() + "/friends/list";
     platform::HttpClient request(url);
     AddAuthHeaders(request);
     std::string json;
@@ -169,7 +171,7 @@ void FriendsManager::Signup(std::string const & username)
 {
   GetPlatform().RunTask(Platform::Thread::Network, [this, username]()
   {
-    std::string const url = std::string(kBackendUrl) + "/signup";
+    std::string const url = backend::GetApiBaseUrl() + "/signup";
     platform::HttpClient request(url);
     AddAuthHeaders(request);
     request.SetBodyData(UsernameToJson(username), "application/json");
@@ -191,7 +193,7 @@ void FriendsManager::ChangeUsername(std::string const & username)
 {
   GetPlatform().RunTask(Platform::Thread::Network, [this, username]()
   {
-    std::string const url = std::string(kBackendUrl) + "/update_username";
+    std::string const url = backend::GetApiBaseUrl() + "/update_username";
     platform::HttpClient request(url);
     AddAuthHeaders(request);
     request.SetBodyData(UsernameToJson(username), "application/json");
@@ -213,7 +215,7 @@ void FriendsManager::SearchByUsername(std::string const & query, SearchCallback 
 {
   GetPlatform().RunTask(Platform::Thread::Network, [query, callback]()
   {
-    std::string const url = std::string(kBackendUrl) + "/friends/search?query=" + url::UrlEncode(query);
+    std::string const url = backend::GetApiBaseUrl() + "/friends/search?query=" + url::UrlEncode(query);
     platform::HttpClient request(url);
     AddAuthHeaders(request);
     std::string json;
@@ -239,7 +241,7 @@ void FriendsManager::SendRequest(std::string const & userId)
   GetPlatform().RunTask(Platform::Thread::Network, [this, userId]()
   {
     std::string const url =
-        std::string(kBackendUrl) + "/friends/request?to_user_id=" + url::UrlEncode(userId);
+        backend::GetApiBaseUrl() + "/friends/request?to_user_id=" + url::UrlEncode(userId);
     platform::HttpClient request(url);
     AddAuthHeaders(request);
     request.SetBodyData("{}", "application/json");
@@ -259,7 +261,7 @@ void FriendsManager::AcceptRequest(std::string const & userId)
   GetPlatform().RunTask(Platform::Thread::Network, [this, userId]()
   {
     std::string const url =
-        std::string(kBackendUrl) + "/friends/accept?from_user_id=" + url::UrlEncode(userId);
+        backend::GetApiBaseUrl() + "/friends/accept?from_user_id=" + url::UrlEncode(userId);
     platform::HttpClient request(url);
     AddAuthHeaders(request);
     request.SetBodyData("{}", "application/json");
@@ -279,7 +281,7 @@ void FriendsManager::CancelRequest(std::string const & userId)
   GetPlatform().RunTask(Platform::Thread::Network, [this, userId]()
   {
     std::string const url =
-        std::string(kBackendUrl) + "/friends/cancel?user_id=" + url::UrlEncode(userId);
+        backend::GetApiBaseUrl() + "/friends/cancel?user_id=" + url::UrlEncode(userId);
     platform::HttpClient request(url);
     AddAuthHeaders(request);
     request.SetBodyData("{}", "application/json");
@@ -290,6 +292,55 @@ void FriendsManager::CancelRequest(std::string const & userId)
       std::lock_guard<std::mutex> lock(m_subscribersMutex);
       for (auto * sub : m_subscribers)
         sub->OnActionResult(success);
+    });
+  });
+}
+
+void FriendsManager::ClearLocalAccountData()
+{
+  IdentityStore::ClearUsername();
+  IdentityStore::SetExploreConsent(false);
+  settings::Set("Explore.SyncEnabled", false);
+  settings::Set("Explore.FriendVisibilityEnabled", false);
+  m_lists = {};
+  m_cacheLoaded = false;
+  GetPlatform().RemoveFileIfExists(GetCacheFilePath());
+}
+
+void FriendsManager::DeleteAccount()
+{
+  GetPlatform().RunTask(Platform::Thread::Network, [this]()
+  {
+    std::string const url = backend::GetApiBaseUrl() + "/account";
+    platform::HttpClient request(url);
+    AddAuthHeaders(request);
+    request.SetHttpMethod("DELETE");
+    std::string response;
+    bool const success = request.RunHttpRequest(response);
+    GetPlatform().RunTask(Platform::Thread::Gui, [this, success]()
+    {
+      if (success)
+        ClearLocalAccountData();
+
+      std::lock_guard<std::mutex> lock(m_subscribersMutex);
+      for (auto * sub : m_subscribers)
+        sub->OnDeleteAccountResult(success);
+    });
+  });
+}
+
+void FriendsManager::ExportAccount(ExportCallback const & callback)
+{
+  GetPlatform().RunTask(Platform::Thread::Network, [callback]()
+  {
+    std::string const url = backend::GetApiBaseUrl() + "/account/export";
+    platform::HttpClient request(url);
+    AddAuthHeaders(request);
+    std::string json;
+    bool const success = request.RunHttpRequest(json);
+    GetPlatform().RunTask(Platform::Thread::Gui, [callback, success, json = std::move(json)]()
+    {
+      callback(success, json);
     });
   });
 }

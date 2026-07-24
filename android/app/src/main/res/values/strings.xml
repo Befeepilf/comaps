@@ -379,6 +379,8 @@
 
     <!-- SECTION: Exploration sharing settings -->
     <string name="pref_explore_sharing_title">Share exploration progress</string>
+    <string name="pref_explore_sync_title">Sync exploration stats</string>
+    <string name="pref_explore_friend_visibility_title">Visible to friends</string>
     <string name="pref_explore_username_title">Username</string>
     <string name="pref_explore_username_summary">Pick a username so friends can add you</string>
     <string name="pref_explore_username_hint">Allowed: a-z, 0-9, underscore; 3-20 chars</string>
@@ -1084,7 +1086,25 @@
     <string name="friends_section_title">Friends</string>
     <string name="friends_search_results_title">Search results</string>
     <string name="friends_no_search_results">No results found</string>
+    <string name="friends_none">None</string>
     <string name="friends_username_too_short">Too short (min 3 characters)</string>
     <string name="friends_username_updated">Username updated!</string>
     <string name="friends_action_failed">Action failed</string>
+    <string name="friends_add">Add</string>
+    <string name="friends_accept">Accept</string>
+    <string name="friends_decline">Decline</string>
+    <string name="friends_cancel">Cancel</string>
+    <string name="friends_remove">Remove</string>
+    <string name="friends_account_required">Create an account first</string>
+    <string name="friends_signup_to_add">Sign up to add this friend</string>
+    <string name="explore_consent_title">Exploration sharing</string>
+    <string name="explore_consent_message">CoMaps can sync aggregate exploration counts (no GPS tracks) to enable friends, leaderboards, and challenges. You can turn this off anytime in My Account.</string>
+    <string name="explore_consent_accept">I understand</string>
+    <string name="explore_consent_decline">Not now</string>
+    <string name="account_export_data">Export my data</string>
+    <string name="account_export_failed">Export failed</string>
+    <string name="account_delete">Delete account</string>
+    <string name="account_delete_confirm">Delete your account and all server-side data? Local exploration progress stays on this device.</string>
+    <string name="account_delete_success">Account deleted</string>
+    <string name="account_delete_failed">Could not delete account</string>
 </resources>
