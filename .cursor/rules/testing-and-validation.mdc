@@ -1,0 +1,61 @@
+---
+description: Testing and validation rules — how to add and run tests, and what counts as evidence
+globs: libs/**/*_tests/**,libs/**/*_integration_tests/**,generator/generator_tests/**,android/**/src/test/**,tools/unix/run_tests.sh,.github/workflows/**,.forgejo/workflows/**
+---
+
+# Testing and validation
+
+## Non-negotiables
+
+- Never weaken, skip, delete, disable, or narrow a test to make an
+  implementation pass. If a test blocks a change, report the conflict and stop.
+- Never fabricate, predict, or summarise test results from expectation. Paste
+  executed output.
+- Never claim a test suite passed without running it.
+- A Cursor checkpoint is not evidence. Real Git history and real command output
+  are.
+
+## Commands this repository actually provides
+
+```
+./tools/unix/build_omim.sh -d                                   # desktop debug with tests
+./tools/unix/build_omim.sh -d <target>                          # single target
+./tools/unix/run_tests.sh -b ../omim-build-debug -s smoke       # smoke suite
+./tools/unix/run_tests.sh -b ../omim-build-debug -f "<regex>"    # filter by name
+cd build && ctest -L "omim-test" --output-on-failure             # via ctest
+cd android && ./gradlew -Pandroidauto=true lint                  # Android lint
+./tools/unix/clang-format.sh                                    # formatting check
+```
+
+## Known CI gap
+
+`.forgejo/workflows/linux-check.yaml` runs the tests but its
+`CTEST_EXCLUDE_REGEX` currently excludes `map_tests`, `routing_tests`,
+`indexer_tests`, and most other suites. `.github/workflows/` has no C++ test job
+at all. A test added to an excluded target will not run in CI. Check where a new
+test will actually execute before claiming it is covered.
+
+## Adding tests
+
+- New test targets use `omim_add_test` from `cmake/OmimTesting.cmake` and are
+  registered with `omim_add_test_subdirectory`. Prefer the lightest option set;
+  `REQUIRE_QT` and `REQUIRE_SERVER` make a target slow and are only for tests
+  that genuinely need a Qt event loop or a test server.
+- Street Pixels logic tests belong in the dedicated lightweight target, not in
+  `map_tests`.
+- Test thresholds at their boundaries, on both sides. A GPS acceptance rule with
+  a 25-metre limit needs a case just inside and just outside.
+- Prefer synthetic `location::GpsInfo` sequences over device-dependent tests for
+  anything that can be expressed deterministically.
+- Android has three JVM unit-test files and no instrumented test infrastructure.
+  Do not assume instrumentation exists.
+
+## Manual validation
+
+Some Street Pixels behaviour cannot be verified without hardware: background and
+screen-off recording, GPS quality in real environments, battery, and rendering
+performance. For those, record device model, OS version, build type, route or
+procedure, and the observed result. "Tested, works" is not a record.
+
+Follow the ten-step validation workflow in `docs/implementation/README.md` §8.
+Do not declare a work item accepted; report evidence and let a human decide.

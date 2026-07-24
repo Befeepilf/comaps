@@ -42,6 +42,8 @@ public final class Friends
     void onSignupResult(boolean success);
     void onUsernameChanged(boolean success);
     void onActionResult(boolean success);
+    void onDeleteAccountResult(boolean success);
+    void onExportAccountResult(boolean success, @Nullable String json);
   }
 
   private static final List<Callback> sCallbacks = new ArrayList<>();
@@ -115,8 +117,36 @@ public final class Friends
       cb.onActionResult(success);
   }
 
+  @Keep
+  private static void onExportAccountResult(boolean success, String json)
+  {
+    List<Callback> snapshot;
+    synchronized (sCallbacks)
+    {
+      snapshot = new ArrayList<>(sCallbacks);
+    }
+    for (Callback cb : snapshot)
+      cb.onExportAccountResult(success, json);
+  }
+
   public interface SearchCallback {
     void onSearchResult(Friend[] results);
+  }
+
+  @Keep
+  private static void onDeleteAccountResult(boolean success)
+  {
+    List<Callback> snapshot;
+    synchronized (sCallbacks)
+    {
+      snapshot = new ArrayList<>(sCallbacks);
+    }
+    for (Callback cb : snapshot)
+      cb.onDeleteAccountResult(success);
+  }
+
+  public interface ExportCallback {
+    void onExportResult(boolean success, @Nullable String json);
   }
 
   public static native FriendsPayload nativeGetLists();
@@ -127,6 +157,8 @@ public final class Friends
   public static native void nativeSendRequest(String userId);
   public static native void nativeAcceptRequest(String userId);
   public static native void nativeCancelRequest(String userId);
+  public static native void nativeDeleteAccount();
+  public static native void nativeExportAccount(ExportCallback callback);
 
   private static native void nativeSubscribe();
   private static native void nativeUnsubscribe();

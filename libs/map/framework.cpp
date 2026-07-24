@@ -258,6 +258,28 @@ EMyPositionMode Framework::GetMyPositionMode() const
   return m_drapeEngine ? m_drapeEngine->GetMyPositionMode() : PendingPosition;
 }
 
+void Framework::EnableExploreSync(bool enabled)
+{
+  if (m_exploreStatsService)
+    m_exploreStatsService->EnableSync(enabled);
+}
+
+bool Framework::IsExploreSyncEnabled() const
+{
+  return m_exploreStatsService && m_exploreStatsService->IsSyncEnabled();
+}
+
+void Framework::EnableExploreFriendVisibility(bool enabled)
+{
+  if (m_exploreStatsService)
+    m_exploreStatsService->EnableFriendVisibility(enabled);
+}
+
+bool Framework::IsExploreFriendVisibilityEnabled() const
+{
+  return m_exploreStatsService && m_exploreStatsService->IsFriendVisibilityEnabled();
+}
+
 void Framework::EnableExploreSharing(bool enabled)
 {
   if (m_exploreStatsService)

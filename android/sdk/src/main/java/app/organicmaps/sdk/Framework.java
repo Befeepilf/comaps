@@ -388,5 +388,12 @@ public class Framework
   public static native boolean nativeSetUsername(@NonNull String username);
   public static native boolean nativeGetExploreSharingEnabled();
   public static native void nativeSetExploreSharingEnabled(boolean enabled);
+  public static native boolean nativeGetExploreSyncEnabled();
+  public static native void nativeSetExploreSyncEnabled(boolean enabled);
+  public static native boolean nativeGetExploreFriendVisibilityEnabled();
+  public static native void nativeSetExploreFriendVisibilityEnabled(boolean enabled);
+  public static native boolean nativeHasExploreConsent();
+  public static native void nativeSetExploreConsent(boolean consented);
+  public static native void nativeSetExploreApiBaseUrl(@NonNull String url);
   public static native void nativeTriggerExploreStatsUpload();
 }

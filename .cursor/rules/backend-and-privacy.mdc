@@ -1,0 +1,68 @@
+---
+description: Privacy and upload rules for the competition surface and the comaps_backend API
+globs: libs/map/explore_stats_service.*,libs/map/identity_store.*,libs/map/friends_manager.*,libs/map/backend_config.*,android/sdk/src/main/java/app/organicmaps/sdk/friends/**
+---
+
+# Backend and privacy
+
+These rules apply to any code that sends data off the device, and to work in the
+`comaps_backend` repository at `/Users/mo/dev/comaps_backend`.
+
+## Hard invariants
+
+- Raw GPS samples, recorded tracks, exact locations, home or work locations,
+  per-pixel visit timestamps, and live movement state are **never** uploaded.
+  No build, no flag, no configuration, no debug path.
+- The uploaded competition payload is a closed list (product spec §25.2):
+  pseudonymous profile identifier, public nickname, area identifier, aggregate
+  ownership score, live coverage percentage, eligibility state, weekly
+  new-live-pixel count by city, map-data version, score-calculation version,
+  last aggregate update time. Nothing else.
+- The backend must **reject** anything outside that list at the schema level.
+  Documentation is not a control.
+- Nothing uploads unless the user has explicitly opted into competition. Consent
+  is separate from location permission (spec §20.5, §25.1).
+- Uploads are batched and delayed: no more than once per 15 minutes, plus up to
+  15 minutes of jitter (spec §25.3). This exists so competition data cannot
+  function as a live-location signal. Do not add a "sync now" affordance.
+- Sparse-area anonymity is enforced server-side. Where fewer than three
+  participants exist in an area, the server does not return nicknames (spec
+  §23.4). Client-side hiding is not protection.
+- No feature may reveal another user's live location, exact location, presence,
+  distance, or last-seen location (spec §25.4).
+- Imported GPX data never affects competition, regardless of any flag or
+  entitlement state.
+
+## Current baseline
+
+Verify before relying on this; it was true on 2026-07-25.
+
+- The client posts to `{apiBase}/stats/upload`, which **does not exist** in the
+  backend.
+- `ExploreStatsService` checks for uploads every minute, far more often than the
+  specified cadence, and is gated only by a sync flag.
+- `IdentityStore` records consent as a boolean with no privacy-policy version and
+  no timestamp. Spec §20.5 requires both.
+- The backend has only `Explorer` and `Friendship` models, with account and
+  friends endpoints under `/api/`. There is no competition, ownership, area, or
+  statistics model.
+- Friends are a V1 product non-goal (spec §6) but exist in both repositories.
+  This is an open question, recorded as OQ-6 in `DECISIONS.md`. Do not resolve it
+  unilaterally.
+
+## Backend repository conventions
+
+- Django 5.2 with django-ninja-extra. Settings are split under
+  `comaps/settings/`; there is no production settings module yet.
+- Auth is `DeviceIdAuth` using `X-Device-Id` and `X-Username` headers.
+- There are no tests, no CI, and no linting configuration. Do not assume a test
+  command exists. If you add behaviour that needs testing, say that test
+  infrastructure is missing rather than claiming coverage.
+- V1 deliberately does not build sophisticated anti-cheat. Rate limiting, schema
+  validation, and clamping impossible values are the controls, and residual
+  cheating risk is accepted.
+
+## When in doubt
+
+If a change would make any payload richer, more frequent, or more precise, stop
+and report it. That is a privacy decision, not an implementation detail.

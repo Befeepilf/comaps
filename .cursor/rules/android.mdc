@@ -1,0 +1,53 @@
+---
+description: Android rules for Street Pixels work — permissions, recording services, and build configuration
+globs: android/**
+---
+
+# Android
+
+Android is the public V1 platform (`DECISIONS.md` SPD-001).
+
+## Recording and location
+
+- The recording session state machine lives in shared C++. Android calls into it
+  and renders its state. Do not duplicate session state in Java.
+- A recording session continues in the background and with the screen off. It
+  ends only when the user finishes it, the user discards it, or the OS
+  terminates tracking unrecoverably (product spec §11.2).
+- The location-permission rationale must connect the request to session
+  recording. It must never be bundled with competition consent (spec §10 step
+  3).
+- Never claim continuous tracking outside an active session (spec §10 step 4).
+- Adding `ACCESS_BACKGROUND_LOCATION` changes the Play Store data-safety
+  declaration and requires justification. Add it only with measured evidence
+  that it is required, and flag it for release governance.
+- Background reliability across OEM skins is a measured fact, not an assumption.
+  Do not write copy or code that assumes recording always survives.
+
+## Telemetry and logging
+
+- No PII, screenshots, or view hierarchies in telemetry. A screenshot of the map
+  during a session is location data.
+- No coordinates in logs reachable from a release build.
+- Analytics are aggregate and contain no location values (spec §32, §34).
+
+## Build configuration
+
+- Product flavors are `google`, `web`, `fdroid`, `huawei`; build types are
+  `debug`, `release`, `beta`. A change to build configuration must be considered
+  for every combination.
+- Build-time configuration reaches shared C++ through `BuildConfig` fields
+  applied at platform initialisation. Follow the existing pattern rather than
+  inventing a second one.
+- No developer or private-network address may be the effective default in any
+  build.
+- Public builds must not present a purchase action, and must not expose
+  Explorer Pro capabilities.
+
+## Tests and style
+
+- Follow `docs/JAVA_STYLE.md`.
+- JVM unit tests live under `src/test/`. There is no instrumented test
+  infrastructure; do not assume one exists, and do not add one as a side effect
+  of another task.
+- `./gradlew -Pandroidauto=true lint` is the lint gate.

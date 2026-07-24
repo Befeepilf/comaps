@@ -120,9 +120,12 @@ import app.organicmaps.sdk.widget.placepage.PlacePageData;
 import app.organicmaps.search.FloatingSearchToolbarController;
 import app.organicmaps.search.SearchActivity;
 import app.organicmaps.search.SearchFragment;
+import app.organicmaps.settings.DrivingOptionsActivity;
+import app.organicmaps.settings.ExploreConsentDialogFragment;
+import app.organicmaps.settings.ExploreDeepLink;
+import app.organicmaps.settings.MyAccountDialogFragment;
 import app.organicmaps.settings.RoutingOptionsActivity;
 import app.organicmaps.settings.SettingsActivity;
-import app.organicmaps.settings.MyAccountDialogFragment;
 import app.organicmaps.stats.ExploreStatsDialogFragment;
 import app.organicmaps.util.SharingUtils;
 import app.organicmaps.util.ThemeSwitcher;
@@ -156,6 +159,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
   public static final String EXTRA_CATEGORY_ID = "category_id";
   public static final String EXTRA_BOOKMARK_ID = "bookmark_id";
   public static final String EXTRA_TRACK_ID = "track_id";
+  public static final String EXTRA_ADD_FRIEND_USERNAME = "add_friend_username";
   public static final String EXTRA_UPDATE_THEME = "update_theme";
   private static final String EXTRA_CONSUMED = "mwm.extra.intent.processed";
   private boolean mPreciseLocationDialogShown = false;
@@ -307,7 +311,36 @@ public class MwmActivity extends BaseMwmFragmentActivity
     final Intent intent = getIntent();
     if (intent == null || intent.getBooleanExtra(EXTRA_CONSUMED, false))
       return;
+
+    android.net.Uri data = intent.getData();
+    if (ExploreDeepLink.isAddFriendUri(data))
+    {
+      String username = ExploreDeepLink.getAddFriendUsername(data);
+      if (username != null)
+        intent.putExtra(EXTRA_ADD_FRIEND_USERNAME, username);
+    }
+
     intent.putExtra(EXTRA_CONSUMED, true);
+
+    final String addFriendUsername = intent.getStringExtra(EXTRA_ADD_FRIEND_USERNAME);
+    if (addFriendUsername != null && !addFriendUsername.isEmpty())
+    {
+      if (!ExploreConsentDialogFragment.maybeShow(getSupportFragmentManager(), new ExploreConsentDialogFragment.Listener()
+      {
+        @Override
+        public void onExploreConsentGranted()
+        {
+          MyAccountDialogFragment.showWithAddFriend(getSupportFragmentManager(), addFriendUsername);
+        }
+
+        @Override
+        public void onExploreConsentDeclined()
+        {
+        }
+      }))
+        MyAccountDialogFragment.showWithAddFriend(getSupportFragmentManager(), addFriendUsername);
+      return;
+    }
 
     final long categoryId = intent.getLongExtra(EXTRA_CATEGORY_ID, -1);
     final long bookmarkId = intent.getLongExtra(EXTRA_BOOKMARK_ID, -1);
@@ -2566,7 +2599,20 @@ public class MwmActivity extends BaseMwmFragmentActivity
   private void onMyAccountOptionSelected()
   {
     closeFloatingPanels();
-    MyAccountDialogFragment.show(getSupportFragmentManager());
+    if (!ExploreConsentDialogFragment.maybeShow(getSupportFragmentManager(), new ExploreConsentDialogFragment.Listener()
+    {
+      @Override
+      public void onExploreConsentGranted()
+      {
+        MyAccountDialogFragment.show(getSupportFragmentManager());
+      }
+
+      @Override
+      public void onExploreConsentDeclined()
+      {
+      }
+    }))
+      MyAccountDialogFragment.show(getSupportFragmentManager());
   }
 
   private void onExploreStatsOptionSelected()
