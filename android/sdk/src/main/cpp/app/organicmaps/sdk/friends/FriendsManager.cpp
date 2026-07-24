@@ -88,6 +88,30 @@ public:
     if (method)
       env->CallStaticVoidMethod(g_FriendsJClass, method, static_cast<jboolean>(success));
   }
+
+  void OnDeleteAccountResult(bool success) override
+  {
+    if (!g_FriendsJClass)
+      return;
+    JNIEnv * env = jni::GetEnv();
+    jmethodID const method = env->GetStaticMethodID(g_FriendsJClass, "onDeleteAccountResult", "(Z)V");
+    if (method)
+      env->CallStaticVoidMethod(g_FriendsJClass, method, static_cast<jboolean>(success));
+  }
+
+  void OnExportAccountResult(bool success, std::string const & json) override
+  {
+    if (!g_FriendsJClass)
+      return;
+    JNIEnv * env = jni::GetEnv();
+    jmethodID const method =
+        env->GetStaticMethodID(g_FriendsJClass, "onExportAccountResult", "(ZLjava/lang/String;)V");
+    if (method)
+    {
+      jni::TScopedLocalRef const jjson(env, jni::ToJavaString(env, json));
+      env->CallStaticVoidMethod(g_FriendsJClass, method, static_cast<jboolean>(success), jjson.get());
+    }
+  }
 };
 
 static JniSubscriber g_subscriber;
@@ -195,5 +219,35 @@ JNIEXPORT void JNICALL Java_app_organicmaps_sdk_friends_Friends_nativeSubscribe(
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_friends_Friends_nativeUnsubscribe(JNIEnv *, jclass)
 {
   g_friends.RemoveSubscriber(&g_subscriber);
+}
+
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_friends_Friends_nativeDeleteAccount(JNIEnv *, jclass)
+{
+  g_friends.DeleteAccount();
+}
+
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_friends_Friends_nativeExportAccount(JNIEnv * env, jclass, jobject callback)
+{
+  if (!callback)
+    return;
+  auto const globalCallback = jni::make_global_ref(callback);
+  g_friends.ExportAccount([globalCallback](bool success, std::string const & json)
+  {
+    JNIEnv * env = jni::GetEnv();
+    jni::TScopedLocalClassRef const callbackInterfaceRef(
+        env, env->FindClass("app/organicmaps/sdk/friends/Friends$ExportCallback"));
+    jmethodID method = nullptr;
+    if (callbackInterfaceRef.get())
+      method = env->GetMethodID(callbackInterfaceRef.get(), "onExportResult", "(ZLjava/lang/String;)V");
+    if (!method)
+    {
+      jni::TScopedLocalClassRef const objClass(env, env->GetObjectClass(*globalCallback));
+      if (objClass.get())
+        method = env->GetMethodID(objClass.get(), "onExportResult", "(ZLjava/lang/String;)V");
+    }
+    jni::TScopedLocalRef const jjson(env, jni::ToJavaString(env, json));
+    if (method)
+      env->CallVoidMethod(*globalCallback, method, static_cast<jboolean>(success), jjson.get());
+  });
 }
 }

@@ -391,6 +391,10 @@ public:
   StreetPixelsManager & GetStreetPixelsManager();
   StreetPixelsManager const & GetStreetPixelsManager() const;
 
+  void EnableExploreSync(bool enabled);
+  bool IsExploreSyncEnabled() const;
+  void EnableExploreFriendVisibility(bool enabled);
+  bool IsExploreFriendVisibilityEnabled() const;
   void EnableExploreSharing(bool enabled);
   bool IsExploreSharingEnabled() const;
   void TriggerExploreStatsUpload();

@@ -24,6 +24,7 @@ android {
 
     defaultConfig {
         minSdk = providers.gradleProperty("propMinSdkVersion").get().toInt()
+        buildConfigField("String", "EXPLORE_API_BASE_URL", "\"http://192.168.178.89:8999/api\"")
 
         externalNativeBuild {
             cmake {
@@ -75,6 +76,9 @@ android {
             externalNativeBuild.cmake.arguments += "-DANDROID_STL=c++_shared"
             if (!project.hasProperty("disableHWAsan"))
               externalNativeBuild.cmake.arguments += "-DENABLE_ASAN=ON"
+        }
+        release {
+            buildConfigField("String", "EXPLORE_API_BASE_URL", "\"https://api.comaps.app/api\"")
         }
         register("beta") {
             matchingFallbacks += "release"

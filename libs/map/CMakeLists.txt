@@ -21,6 +21,8 @@ set(SRC
   everywhere_search_params.hpp
   explore_stats_service.cpp
   explore_stats_service.hpp
+  backend_config.cpp
+  backend_config.hpp
   extrapolation/extrapolator.cpp
   extrapolation/extrapolator.hpp
   features_fetcher.cpp

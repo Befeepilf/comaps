@@ -1,5 +1,6 @@
 #include "map/explore_stats_service.hpp"
 
+#include "map/backend_config.hpp"
 #include "map/identity_store.hpp"
 
 #include "platform/http_client.hpp"
@@ -18,31 +19,69 @@
 namespace
 {
 constexpr char kStatsFile[] = "explore_stats.json";
-constexpr char kSharingEnabledKey[] = "Explore.SharingEnabled";
-
-constexpr char kServerUrl[] = "https://api.test.com/explore/stats";
+constexpr char kSyncEnabledKey[] = "Explore.SyncEnabled";
+constexpr char kFriendVisibilityEnabledKey[] = "Explore.FriendVisibilityEnabled";
+constexpr char kLegacySharingEnabledKey[] = "Explore.SharingEnabled";
 }  // namespace
 
 ExploreStatsService::ExploreStatsService()
 {
-  bool enabled = false;
-  settings::Get(kSharingEnabledKey, enabled);
+  bool syncEnabled = false;
+  bool friendVisibilityEnabled = false;
+  bool legacySharingEnabled = false;
+  if (settings::Get(kSyncEnabledKey, syncEnabled) || settings::Get(kFriendVisibilityEnabledKey, friendVisibilityEnabled))
+  {
+    // New keys already present.
+  }
+  else if (settings::Get(kLegacySharingEnabledKey, legacySharingEnabled) && legacySharingEnabled)
+  {
+    syncEnabled = true;
+    friendVisibilityEnabled = true;
+    settings::Set(kSyncEnabledKey, true);
+    settings::Set(kFriendVisibilityEnabledKey, true);
+  }
+
   std::lock_guard<std::mutex> lock(m_mutex);
-  m_sharingEnabled = enabled;
+  m_syncEnabled = syncEnabled;
+  m_friendVisibilityEnabled = friendVisibilityEnabled;
   SchedulePeriodicUpload();
+}
+
+void ExploreStatsService::EnableSync(bool enabled)
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  m_syncEnabled = enabled;
+  settings::Set(kSyncEnabledKey, enabled);
+}
+
+bool ExploreStatsService::IsSyncEnabled() const
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  return m_syncEnabled;
+}
+
+void ExploreStatsService::EnableFriendVisibility(bool enabled)
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  m_friendVisibilityEnabled = enabled;
+  settings::Set(kFriendVisibilityEnabledKey, enabled);
+}
+
+bool ExploreStatsService::IsFriendVisibilityEnabled() const
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  return m_friendVisibilityEnabled;
 }
 
 void ExploreStatsService::EnableSharing(bool enabled)
 {
-  std::lock_guard<std::mutex> lock(m_mutex);
-  m_sharingEnabled = enabled;
-  settings::Set(kSharingEnabledKey, enabled);
+  EnableSync(enabled);
+  EnableFriendVisibility(enabled);
 }
 
 bool ExploreStatsService::IsSharingEnabled() const
 {
-  std::lock_guard<std::mutex> lock(m_mutex);
-  return m_sharingEnabled;
+  return IsSyncEnabled() && IsFriendVisibilityEnabled();
 }
 
 void ExploreStatsService::GetEntries(std::vector<StatsEntry> & out) const
@@ -197,12 +236,11 @@ void ExploreStatsService::SchedulePeriodicUpload()
 
 void ExploreStatsService::TryUpload()
 {
-  std::string url;
   {
     std::lock_guard<std::mutex> lock(m_mutex);
-    if (!m_sharingEnabled)
+    if (!m_syncEnabled)
     {
-      LOG(LINFO, ("Sharing disabled; skipping upload"));
+      LOG(LINFO, ("Sync disabled; skipping upload"));
       return;
     }
   }
@@ -210,11 +248,12 @@ void ExploreStatsService::TryUpload()
   LOG(LINFO, ("Uploading stats..."));
 
   std::string const body = BuildUploadJson();
+  std::string const url = backend::GetStatsUploadUrl();
 
   GetPlatform().RunTask(Platform::Thread::Network,
-                        [this, body]()
+                        [this, body, url]()
                         {
-                          platform::HttpClient req(kServerUrl);
+                          platform::HttpClient req(url);
                           req.SetBodyData(body, "application/json");
                           std::string response;
                           bool const ok = req.RunHttpRequest(response);

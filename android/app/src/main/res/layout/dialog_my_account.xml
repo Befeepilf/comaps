@@ -11,10 +11,18 @@
         android:padding="24dp">
 
         <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/share_switch"
+            android:id="@+id/sync_switch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/pref_explore_sharing_title"
+            android:text="@string/pref_explore_sync_title"
+            android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/friend_visibility_switch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/pref_explore_friend_visibility_title"
             android:textAppearance="?attr/textAppearanceTitleMedium" />
 
         <com.google.android.material.textfield.TextInputLayout
@@ -67,16 +75,16 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
                 android:text="@string/friends_section_title"
-                android:textAppearance="?attr/textAppearanceTitleMedium"
-                android:layout_marginBottom="16dp" />
+                android:textAppearance="?attr/textAppearanceTitleMedium" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_marginBottom="16dp"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="16dp">
+                android:orientation="horizontal">
 
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
@@ -108,12 +116,12 @@
                 android:textAppearance="?attr/textAppearanceLabelLarge"
                 android:textColor="?attr/colorPrimary" />
 
-            <TextView
-                android:id="@+id/tv_search_results"
+            <LinearLayout
+                android:id="@+id/ll_search_results"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:orientation="vertical" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -122,12 +130,12 @@
                 android:textAppearance="?attr/textAppearanceLabelLarge"
                 android:textColor="?attr/colorPrimary" />
 
-            <TextView
-                android:id="@+id/tv_accepted"
+            <LinearLayout
+                android:id="@+id/ll_accepted"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:orientation="vertical" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -136,12 +144,12 @@
                 android:textAppearance="?attr/textAppearanceLabelLarge"
                 android:textColor="?attr/colorPrimary" />
 
-            <TextView
-                android:id="@+id/tv_incoming"
+            <LinearLayout
+                android:id="@+id/ll_incoming"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:orientation="vertical" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -150,11 +158,32 @@
                 android:textAppearance="?attr/textAppearanceLabelLarge"
                 android:textColor="?attr/colorPrimary" />
 
-            <TextView
-                android:id="@+id/tv_outgoing"
+            <LinearLayout
+                android:id="@+id/ll_outgoing"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:orientation="vertical" />
         </LinearLayout>
+
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="16dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_export_account"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/account_export_data" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_delete_account"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/account_delete"
+            android:textColor="?attr/colorError" />
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

@@ -1,0 +1,56 @@
+---
+description: Generator, classificator, and map-data rules for Street Pixels exploration areas and eligibility
+globs: generator/**,data/mapcss-mapping.csv,data/**/*.mapcss,data/classificator.txt,data/types.txt
+---
+
+# Generator and map data
+
+Changes here affect every generated map and every user, including users who
+never enable competition. They are the highest-cost, highest-blast-radius
+changes in the project.
+
+## Exploration areas
+
+- Exploration areas come from real closed administrative or place polygons,
+  selected by a versioned country-specific configuration (`DECISIONS.md`
+  SPD-006). One `admin_level` value is not semantically equivalent worldwide.
+- Never synthesise a polygon around a `place=*` node (product spec §8.3 item 5).
+- Never invent grid or arbitrary fallback areas (spec §8.6).
+- Never treat an MWM country identifier as a neighbourhood.
+- Where no suitable subdivision or place polygon exists, the containing city,
+  town, or village becomes the area. Outside any settlement there is no area,
+  and personal exploration still works (SPD-007).
+- Assignment must be deterministic for a fixed map-data version and policy
+  version: highest-priority configured level first, then smallest containing
+  polygon, then a stable identifier such as the OSM relation id (spec §8.8).
+
+## Current baseline
+
+Verify before relying on this; it was true on 2026-07-25.
+
+- `data/mapcss-mapping.csv` retains only `boundary|administrative|2`, `|3`, and
+  `|4`. Levels `|7`, `|9`, `|10`, `|11` are deprecated. Levels 5, 6, and 8 have
+  no `boundary|administrative` entry at all.
+- City boundaries are stored at runtime as an approximation — the intersection of
+  a bounding box, a calipers box, and a diamond box — not as true polygons.
+- `place|suburb`, `place|quarter`, and `place|neighbourhood` exist as searchable
+  place types, not as exploration polygons.
+
+## Route eligibility
+
+- Eligibility rules follow product spec §13 and must be maintained as a
+  versioned map-data policy accompanying the implementation (§13.4).
+- Prefer client-side filtering over generator changes where both are possible.
+  Generator changes raise maintenance cost and divergence from upstream.
+- Sampling and derivation must be deterministic for the same source data and
+  configuration (§14.3).
+
+## Discipline
+
+- Regenerated or auto-generated data files go in a separate commit from the
+  source change that produced them (`docs/PR_GUIDE.md`).
+- Any size impact on generated packages must be measured and reported, not
+  estimated.
+- Changing the HEALPix `nside` redefines every pixel identifier and invalidates
+  every stored file on every device. Treat it as a breaking change requiring a
+  decision entry.

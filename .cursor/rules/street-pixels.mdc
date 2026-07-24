@@ -1,0 +1,64 @@
+---
+description: Street Pixels project rules — document authority, scope discipline, privacy invariants, and reporting duties
+alwaysApply: true
+---
+
+# Street Pixels — general rules
+
+## Document authority
+
+- `docs/STREET_PIXELS_PRODUCT_SPEC.md` is the product source of truth. Never
+  edit it as part of an implementation task.
+- `docs/street-pixels-technical-audit.md` is a dated baseline (audit date
+  2026-07-20), not a description of current code. Verify against the working
+  tree before relying on it, and report differences instead of assuming the
+  audit is current. Never edit it as part of an implementation task.
+- `docs/implementation/README.md` is the roadmap and index.
+- `docs/implementation/DECISIONS.md` records confirmed decisions and, in §15,
+  open questions that are explicitly not decided.
+- `docs/implementation/phases/` and `docs/implementation/work-items/` hold the
+  detail.
+
+## Scope discipline
+
+- Do not change product scope without explicit instruction. Adding, removing, or
+  reinterpreting a requirement is a product decision.
+- Keep work limited to the approved work item. If something else needs fixing,
+  record it in that work item's discovered-follow-up field.
+- Do not modify unrelated code. If a change touches a file the work item does
+  not name, say so and explain why.
+- Do not proceed into the next work item automatically. Finish, report, stop.
+- iOS is not in Android V1 scope. Public Explorer Pro purchasing is not in
+  Android V1 scope.
+- No city allowlists, pilot-only runtime behaviour, or city-specific feature
+  restrictions. The product is worldwide.
+
+## Product invariants
+
+These hold in every build, under every flag, in every code path.
+
+- Raw GPS samples and recorded tracks are never uploaded anywhere.
+- Pixel collection happens only during an active, non-paused recording session.
+- Imported exploration never affects competition: no recency, no ownership, no
+  eligibility, no weekly ranking.
+- Offline-first behaviour is preserved. Map viewing, recording, collection,
+  progress, track storage, and supported routing work with no network.
+- No interpolated exploration across a pause, an interruption, or a rejected
+  sample.
+
+## Reporting
+
+- Report contradictions between the spec, the audit, and the code. Do not
+  silently pick one.
+- Do not weaken, skip, delete, or narrow tests to make an implementation pass.
+  If a test blocks the change, report the conflict.
+- Do not fabricate or summarise test results. Only executed output counts.
+- Do not mark work accepted, and do not mark phases or work items completed.
+  Report implementation and validation evidence; a human decides acceptance.
+- Cursor checkpoints are not commits or branches. Real Git history is required.
+
+## Repository conventions
+
+Follow `docs/CONTRIBUTING.md` and `docs/PR_GUIDE.md`: subsystem prefixes such as
+`[map]` or `[android]`, imperative mood, English, sign-off required
+(`git commit -s`), formatting changes separate from logical changes.

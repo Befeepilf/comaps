@@ -11,6 +11,10 @@ public:
   static bool HasUsername();
   static std::string GetUsername();
   static bool SetUsername(std::string_view username);
+  static void ClearUsername();
+
+  static bool HasExploreConsent();
+  static bool SetExploreConsent(bool consented);
 
   static bool IsValidUsername(std::string_view username);
 
