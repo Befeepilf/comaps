@@ -192,15 +192,25 @@ the maintainer explicitly asks for an isolated experiment.
 (no unrelated local modifications). Commits for a work item stack on `street-pixels`
 in reviewable order — build fixes separate from docs when the work item requires it.
 
-**Commits** follow `docs/PR_GUIDE.md`:
+**Commits** follow `docs/PR_GUIDE.md` and match upstream CoMaps history on this
+fork:
 
-- Subsystem prefix in square brackets: `[map]`, `[android]`, `[routing]`,
-  `[generator]`, `[drape]`, `[docs]`.
-- Imperative mood: `[map] Gate pixel collection on active session`.
+| Part | Rule |
+| --- | --- |
+| Subject | `[subsystem] Imperative summary` — e.g. `[routing] Align smoke tests with current penalty weights` |
+| Prefixes | Lowercase name in brackets; several allowed: `[map][android]` |
+| Mood | Imperative: Fix, Add, Align — not Fixed, Added, Aligned |
+| Body | Optional; explain why; include `Work item: SP-NNN` when applicable |
+| Sign-off | Required: `git commit -s` (`docs/CONTRIBUTING.md`) |
+| Split | One idea per commit; docs vs code vs generated data in separate commits |
+
+**Common prefixes:** `[android]`, `[map]`, `[routing]`, `[search]`, `[indexer]`,
+`[generator]`, `[platform]`, `[drape]`, `[cmake]`, `[tools]`, `[docs]`,
+`[strings]`, `[styles]`, `[ci]`.
+
 - English only.
 - Every commit compiles; whitespace and formatting changes are separate from
   logical changes.
-- Sign-off is required (`git commit -s`), per `docs/CONTRIBUTING.md`.
 
 Include the work-item identifier in the commit body or pull-request
 description, for example `Work item: SP-007`.
