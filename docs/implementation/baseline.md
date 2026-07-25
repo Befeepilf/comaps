@@ -239,5 +239,5 @@ On `street-pixels` (macOS 26.5 arm64, toolchains above):
 - **Physical device map smoke:** **pass** — Pixel 3a, LineageOS 22.2, map loads (`webDebug`).
 - **`./configure.sh`:** still requires map workaround on fresh clone (CDN 260603 404).
 
-Build-fix commits are on `street-pixels`; smoke suite is green on rebased main after
-harness and test-expectation updates (not SP-001 acceptance — see work item).
+SP-001 accepted 2026-07-25. Full desktop `-d` remains partially red (non-smoke
+targets); recorded in §3.
