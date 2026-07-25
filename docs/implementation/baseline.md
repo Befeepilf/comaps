@@ -223,31 +223,9 @@ Forgejo `.forgejo/workflows/linux-check.yaml` `CTEST_EXCLUDE_REGEX` excludes:
 | search_tests | Yes |
 
 Seven of nine smoke targets are excluded from CI. Local run (after fixes): **4 pass, 5
-fail** at the binary level. See [README §8.2](README.md) for disposition — none
-are Street Pixels V1 merge gates. SP-002 adds `street_pixels_tests` as the
-executable C++ gate instead of repairing these suites.
-
----
-
-## Smoke suite disposition
-
-Recorded 2026-07-25 on `street-pixels`. Full policy: `docs/implementation/README.md`
-§8.2.
-
-| Target | Result | Root cause (summary) | V1 gate? | Next action |
-| --- | --- | --- | --- | --- |
-| `base_tests` | Pass | — | No | None |
-| `coding_tests` | Pass | — | No | None |
-| `generator_tests` | Pass | — | No | None |
-| `mwm_tests` | Pass | — | No | None |
-| `indexer_tests` | Fail | `categories_test.cpp::LoadCategories` — `m_synonyms.size()` 3 vs 8 | No | Fork drift; separate hygiene work if desktop CI is ever restored |
-| `map_tests` | Fail | `Multi_KML_KMZ_UnzipTest` — unzip emits `doc.kml` not `BACRNKMZdoc` | No | Fork drift; separate hygiene work |
-| `platform_tests` | Fail | Downloader tests without test server (`-1004`) | No | Expected without `REQUIRE_SERVER` infrastructure |
-| `routing_tests` | Fail | Six cases (`road_access_test`, `road_penalty_test`, `routing_test`, …) | No | Fork drift; separate hygiene work |
-| `search_tests` | Fail | `BookmarksProcessorTest_Smoke`, `NameScore_Smoke` | No | Fork drift; separate hygiene work |
-
-**Street Pixels V1 regression gate (from SP-002):** `street_pixels_tests` plus
-per-work-item targets and Android device acceptance — not this smoke matrix.
+fail** at the binary level. Failures in `platform_tests` (network `-1004`) and several
+data-dependent tests may be environmental; `indexer_tests` / `map_tests` / `routing_tests` /
+`search_tests` failures look like pre-existing baseline debt for SP-002.
 
 ---
 
@@ -257,11 +235,9 @@ On `street-pixels` (macOS 26.5 arm64, toolchains above):
 
 - **Android `assembleWebDebug`:** succeeds after Java brace fix; APK at path above.
 - **Desktop smoke binaries:** build in ~95 s with `CMAKE=/opt/homebrew/bin/cmake`.
-- **Smoke suite:** executed; 4/9 binaries pass. **Dispositioned** — not a V1 gate
-  (see § Smoke suite disposition and README §8.2). SP-002 adds `street_pixels_tests`.
-- **Full desktop `-d` build:** not fully green; **not a V1 blocker**.
+- **Smoke suite:** executed; 4/9 binaries pass (`base`, `coding`, `generator`, `mwm`).
+- **Full desktop `-d` build:** not fully green (non-smoke targets still fail).
 - **Physical device map smoke:** **pass** — Pixel 3a, LineageOS 22.2, map loads (`webDebug`).
 - **`./configure.sh`:** still requires map workaround on fresh clone (CDN 260603 404).
 
-Smoke failures are dispositioned in baseline.md and README §8.2; repair is out of
-scope for SP-002.
+Build-fix commits are on `street-pixels`; smoke failures are recorded, not repaired (SP-002 scope).
