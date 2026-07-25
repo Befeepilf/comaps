@@ -15,9 +15,18 @@ readonly SMOKE_SUITE=(  \
   routing_tests         \
   search_tests          \
 )
+readonly OMIM_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+readonly DATA_PATH="${OMIM_ROOT}/data"
+readonly TEST_SERVER_DIR="${OMIM_ROOT}/tools/python/test_server"
 BUILD_DIR=.
 SUITE=full
 EXCLUDE=
+FILTER=
+TEST_SERVER_STARTED=0
+
+export TZ=UTC
+export LC_ALL=C
+export LANG=C
 
 log() {
   echo "$@" 2>&1 | tee -a "$LOG"
@@ -27,6 +36,32 @@ die() {
   log "$@"
   echo "Terminated. Log is written to $LOG"
   exit 1
+}
+
+start_test_server() {
+  if [ "$TEST_SERVER_STARTED" -eq 0 ]; then
+    (cd "$TEST_SERVER_DIR" && python3 start_server.py)
+    TEST_SERVER_STARTED=1
+    sleep 1
+  fi
+}
+
+stop_test_server() {
+  if [ "$TEST_SERVER_STARTED" -eq 1 ]; then
+    (cd "$TEST_SERVER_DIR" && python3 stop_server.py) || true
+    TEST_SERVER_STARTED=0
+  fi
+}
+
+trap stop_test_server EXIT
+
+run_test_binary() {
+  local testBin=$1
+  if [ -n "$FILTER" ]; then
+    ./"$testBin" --data_path="$DATA_PATH" --user_resource_path="$DATA_PATH" --filter="$FILTER"
+  else
+    ./"$testBin" --data_path="$DATA_PATH" --user_resource_path="$DATA_PATH"
+  fi
 }
 
 usage() {
@@ -100,12 +135,10 @@ do
   TOTAL_TESTS=$((TOTAL_TESTS + 1))
 
   log "Running $testBin..."
-  if [ -z "${FILTER+undefined}" ]
-  then
-    (./"$testBin" 2>&1 | tee -a "$LOG") && ((PASSED_TESTS++)) || true
-  else
-    (./"$testBin" --filter="$FILTER" 2>&1 | tee -a "$LOG") && ((PASSED_TESTS++)) || true
+  if [ "$testBin" = "platform_tests" ]; then
+    start_test_server
   fi
+  (run_test_binary "$testBin" 2>&1 | tee -a "$LOG") && ((PASSED_TESTS++)) || true
 done
 
 log "$PASSED_TESTS / $TOTAL_TESTS passed."
