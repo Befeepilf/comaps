@@ -134,6 +134,7 @@ target_link_libraries(${PROJECT_NAME}
 omim_add_test_subdirectory(map_integration_tests)
 omim_add_test_subdirectory(map_tests)
 omim_add_test_subdirectory(mwm_tests)
+omim_add_test_subdirectory(street_pixels_tests)
 omim_add_test_subdirectory(style_tests)
 
 if (PLATFORM_DESKTOP)
