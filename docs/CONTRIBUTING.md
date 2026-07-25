@@ -61,7 +61,7 @@ Please [learn how to use `git rebase`](https://git-scm.com/book/en/v2/Git-Branch
 
 We strive to help onboard new developers, but we don't always have enough time to guide newcomers step-by-step and explain everything in detail. So please make sure your changes follow these different guidelines when submitting a pull request:
 
-- [Pull Request Guide](PR_GUIDE.md).
+- [Pull Request Guide](PR_GUIDE.md) — commit subjects use `[subsystem] Imperative summary` with sign-off (`git commit -s`).
 - [Directories structure](STRUCTURE.md)
 - [C++ Style Guide](CPP_STYLE.md).
 - [Java Style Guide](JAVA_STYLE.md).
