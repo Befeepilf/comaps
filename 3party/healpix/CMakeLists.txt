@@ -69,8 +69,19 @@ set(libsharp_ARTIFACT_DIR "${libsharp_BUILD_DIR}/.libs")
 # standalone Clang driver coming from the NDK because Autotools will call the
 # compiler without the extra flags that CMake usually injects for us.
 
-set(_LIBSHARP_CFLAGS "${CMAKE_C_FLAGS} -fPIC -std=c99 -D__ANDROID_API__=23 -target ${CMAKE_C_COMPILER_TARGET} -fopenmp")
-set(_LIBSHARP_LDFLAGS "-target ${CMAKE_C_COMPILER_TARGET} -fopenmp")
+if(ANDROID)
+  set(_LIBSHARP_CFLAGS "${CMAKE_C_FLAGS} -fPIC -std=c99 -D__ANDROID_API__=23 -target ${CMAKE_C_COMPILER_TARGET} -fopenmp")
+  set(_LIBSHARP_LDFLAGS "-target ${CMAKE_C_COMPILER_TARGET} -fopenmp")
+  set(_libsharp_openmp_flag --enable-openmp)
+elseif(APPLE)
+  set(_LIBSHARP_CFLAGS "${CMAKE_C_FLAGS} -fPIC -std=c99")
+  set(_LIBSHARP_LDFLAGS "")
+  set(_libsharp_openmp_flag --disable-openmp)
+else()
+  set(_LIBSHARP_CFLAGS "${CMAKE_C_FLAGS} -fPIC -std=c99 -fopenmp")
+  set(_LIBSHARP_LDFLAGS "-fopenmp")
+  set(_libsharp_openmp_flag --enable-openmp)
+endif()
 
 # Autotools detects cross-compilation from the --host option.  Do NOT surround
 # the triple with quotes because that will be treated as part of the value and
@@ -93,7 +104,7 @@ ExternalProject_Add(libsharp_build_step
       ${libsharp_CONFIGURE_DIR}/configure
         --host=${CMAKE_C_COMPILER_TARGET}
         --enable-pic
-        --enable-openmp
+        ${_libsharp_openmp_flag}
         --disable-shared
         --enable-static
 
@@ -129,6 +140,7 @@ set(SHARP_LIBRARY_NAME sharp_libs)
 # ---- End of libsharp integration ----
 
 set(BUILD_SHARED_LIBS OFF)
+set(UTILS OFF CACHE BOOL "" FORCE)
 add_subdirectory(cfitsio)
 target_compile_definitions(cfitsio PRIVATE gFortran)
 set_property(TARGET cfitsio PROPERTY UNITY_BUILD OFF)
