@@ -1,7 +1,7 @@
 # SP-001 — Reproducible Android and desktop build baseline
 
 **Phase:** 1 — Baseline and guardrails
-**Status:** Implementation recorded — not accepted
+**Status:** Accepted (2026-07-25)
 **Branch:** `street-pixels`
 
 ---
@@ -137,7 +137,7 @@ Fill in before requesting review.
 | Field | Value |
 | --- | --- |
 | Branch | `street-pixels` |
-| Commits | See `git log` for SP-001 commits (`[platform]`, `[android]`, `[cmake]`, `[docs]`) on `street-pixels` |
+| Commits | `1d301147d6`–`1c15249521` on `street-pixels` — build fixes, smoke harness/tests, baseline docs |
 | Toolchain versions | macOS 26.5 arm64; Apple clang 21.0.0; CMake 4.4.0; Ninja 1.13.2; JDK 21.0.11; Python 3.14.6; Gradle 8.14.4; NDK 28.2/29.0; SDK CMake 3.22.1 — full table in `baseline.md` |
 | Desktop build result | Smoke targets: **pass** (94.73 s). Full `-d`: not fully green |
 | Smoke suite result per target | **9 / 9 pass** (~211 s) — see `baseline.md` §4 |
@@ -145,7 +145,9 @@ Fill in before requesting review.
 | Test device model and OS version | Google Pixel 3a, LineageOS 22.2 |
 | Documented-command corrections | Map CDN 260603; `SKIP_MAP_DOWNLOAD`; protobuf reset; `CMAKE=/opt/homebrew/bin/cmake`; §8.1 ctest path |
 | Implemented by | Cursor agent |
-| Independent reviewer | |
+| Independent reviewer | Maintainer |
+| Accepted by | Maintainer |
+| Accepted date | 2026-07-25 |
 | Manual validation performed by and date | Maintainer, 2026-07-25 — map loads on Pixel 3a / LineageOS 22.2 |
 
 ## Discovered follow-up

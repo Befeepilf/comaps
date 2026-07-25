@@ -85,7 +85,7 @@ None. This phase can start immediately.
 
 | ID | Title | Notes |
 | --- | --- | --- |
-| SP-001 | Reproducible Android and desktop build baseline | Documentation and, if needed, small build-script fixes |
+| SP-001 | Reproducible Android and desktop build baseline | **Accepted** 2026-07-25 |
 | SP-002 | Street Pixels test harness and CI gate | New lean test target plus a CI job that runs it |
 | SP-003 | Privacy and telemetry baseline | Telemetry configuration and log-hygiene review |
 | SP-004 | Network egress inventory and API base configuration | Removes the developer default; documents egress |
