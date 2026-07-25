@@ -184,15 +184,13 @@ slice.
 **Work-item identifiers** are `SP-NNN`, allocated sequentially and never reused.
 The identifier is stable even if the title changes.
 
-**Branches** are cut from the current integration branch (`street-pixels`) and
-named:
+**Integration branch:** all Street Pixels implementation work lands on `street-pixels`.
+There is one checkout; do not create per-work-item branches or git worktrees unless
+the maintainer explicitly asks for an isolated experiment.
 
-```text
-street-pixels/SP-007-pixel-collection-recording-gate
-```
-
-One branch per work item. A work item that cannot fit one reviewable branch is
-split before implementation, not during.
+**Scope per work item:** implement one work item at a time with a clean working tree
+(no unrelated local modifications). Commits for a work item stack on `street-pixels`
+in reviewable order — build fixes separate from docs when the work item requires it.
 
 **Commits** follow `docs/PR_GUIDE.md`:
 
@@ -245,8 +243,8 @@ reordered.
    the work item, and the actual current code. Produce a plan. Change nothing.
 2. **Human review and approval of the plan.** Implementation does not start
    before approval.
-3. **Implement on a clean branch.** One work item per branch, cut from an
-   up-to-date integration branch with no unrelated local modifications.
+3. **Implement on `street-pixels` with a clean working tree.** One work item at a
+   time; no unrelated local modifications.
 4. **Run focused tests.** The specific automated tests named in the work item.
 5. **Run relevant regression tests.** At minimum the affected library's test
    target; for shared-core changes, the smoke suite.

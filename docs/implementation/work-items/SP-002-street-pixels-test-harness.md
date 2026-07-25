@@ -2,7 +2,7 @@
 
 **Phase:** 1 — Baseline and guardrails
 **Status:** Not started
-**Branch:** `street-pixels/SP-002-street-pixels-test-harness`
+**Branch:** `street-pixels`
 
 ---
 

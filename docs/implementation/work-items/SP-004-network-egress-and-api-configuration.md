@@ -2,7 +2,7 @@
 
 **Phase:** 1 — Baseline and guardrails
 **Status:** Not started
-**Branch:** `street-pixels/SP-004-network-egress-and-api-configuration`
+**Branch:** `street-pixels`
 
 ---
 

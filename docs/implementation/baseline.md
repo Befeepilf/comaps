@@ -1,18 +1,9 @@
 # Street Pixels build baseline
 
+**Branch:** `street-pixels`  
+**Work item:** SP-001  
 **Recorded:** 2026-07-25  
-**Branch:** `SP-001-reproducible-android-baseline` (see note below)  
-**Base commit:** `1cb5c5d1fa` (`street-pixels`)  
 **Host:** macOS 26.5 (Build 25F71), arm64  
-**Worktree:** `/Users/mo/dev/comaps-sp001` (clean checkout; `git status` empty at start)
-
-### Branch name note
-
-The work item specifies branch `street-pixels/SP-001-reproducible-android-baseline`. Git
-refuses to create that name because branch `street-pixels` already exists as a leaf ref
-(`fatal: cannot lock ref 'refs/heads/street-pixels/SP-001-…': 'refs/heads/street-pixels'
-exists`). This baseline was recorded on `SP-001-reproducible-android-baseline` cut from
-`street-pixels` at the same commit.
 
 ---
 
@@ -33,6 +24,26 @@ exists`). This baseline was recorded on `SP-001-reproducible-android-baseline` c
 | Android NDK (installed) | 28.2.13676358, 29.0.14206865 |
 | Android SDK CMake | 3.22.1 |
 | Android SDK setup | `./tools/android/set_up_android.py --sdk $HOME/Library/Android/Sdk` |
+
+---
+
+## Build fixes applied (after initial recording)
+
+Three commits on `SP-001-reproducible-android-baseline` unblock compilation:
+
+| Commit | Change |
+| --- | --- |
+| `1472774241` | `[platform]` add `#include <cstddef>` to `vibration.hpp` |
+| `f6c7b22333` | `[android]` close `populateIncomingRows()` before `maybeHandlePendingAddFriend()` |
+| `8624015f7c` | `[cmake]` healpix libsharp host flags, disable OpenMP on Apple, skip cfitsio UTILS |
+
+**Desktop environment note:** If Android SDK `cmake` 3.22.1 is on `PATH`, desktop
+configure fails (`Unknown CMake command "block"`). Use:
+
+```bash
+export CMAKE=/opt/homebrew/bin/cmake
+export PATH="/opt/homebrew/bin:$PATH"   # ensure SDK cmake is not first
+```
 
 ---
 
@@ -88,52 +99,63 @@ completed in ~72 s (exit 0) after protobuf submodule reset.
 
 ```bash
 export SKIP_MAP_DOWNLOAD=1
+export CMAKE=/opt/homebrew/bin/cmake
 /usr/bin/time -p ./tools/unix/build_omim.sh -d
 ```
 
-**Result:** Exit 1. Wall-clock **38.76 s** (real). Build dir: `../omim-build-debug`
-(sibling of repo root). Ninja stopped at 155/536 objects.
+**Initial attempt (before fixes):** Exit 1, 38.76 s — `vibration.hpp` missing `size_t`.
 
-**Verbatim failure:**
+**After fixes — full `-d` build:** Exit 1. Smoke test binaries build successfully
+(see §4); full desktop target set still fails on some non-smoke targets
+(`storage_integration_tests` unity-build error observed). Disk space dropped to ~118 MiB
+during iteration; freeing `omim-build-debug` intermediates and Android build cache
+restored ~3.7 GiB.
 
+**Smoke-target-only build (used for §4):**
+
+```bash
+export SKIP_MAP_DOWNLOAD=1 CMAKE=/opt/homebrew/bin/cmake
+./tools/unix/build_omim.sh -d base_tests coding_tests generator_tests indexer_tests \
+  map_tests mwm_tests platform_tests routing_tests search_tests
 ```
-FAILED: [code=1] libs/platform/CMakeFiles/platform.dir/Unity/unity_1_cxx.cxx.o
-/Users/mo/dev/comaps-sp001/libs/platform/vibration.hpp:16:74: error: unknown type name 'size_t'
-   16 | void VibratePattern(uint32_t const * durations, uint32_t const * delays, size_t count);
-      |                                                                          ^
-/Users/mo/dev/comaps-sp001/libs/platform/vibration.cpp:63:82: error: unknown type name 'size_t'
-   63 | void VibratePattern(uint32_t const * /*durations*/, uint32_t const * /*delays*/, size_t /*count*/)
-      |                                                                                  ^
-ninja: build stopped: subcommand failed.
-real 38.76
-```
+
+**Result:** Exit 0, **94.73 s** real.
 
 ### 4. Smoke suite
 
 ```bash
-./tools/unix/run_tests.sh -b ../omim-build-debug -s smoke
+export CMAKE=/opt/homebrew/bin/cmake
+/usr/bin/time -p ./tools/unix/run_tests.sh -b ../omim-build-debug -s smoke
 ```
 
-**Result:** Not executed — desktop debug build did not complete; test binaries were not
-produced.
+**Result:** Exit 1, **220.30 s** real. Script summary: **4 / 9** test binaries passed
+entirely.
 
-**Smoke targets (from `tools/unix/run_tests.sh`):** `base_tests`, `coding_tests`,
-`generator_tests`, `indexer_tests`, `map_tests`, `mwm_tests`, `platform_tests`,
-`routing_tests`, `search_tests`.
+| Target | Built | Pass/fail | Notes |
+| --- | --- | --- | --- |
+| base_tests | Yes | **Pass** | `All tests passed.` |
+| coding_tests | Yes | **Pass** | `All tests passed.` |
+| generator_tests | Yes | **Pass** | `All tests passed.` |
+| indexer_tests | Yes | **Fail** | `categories_test.cpp::LoadCategories` — `TEST(cat.m_synonyms.size() == 8) 3 8` |
+| map_tests | Yes | **Fail** | `kmz_unarchive_test.cpp::Multi_KML_KMZ_UnzipTest` — unexpected `./data/bookmarks/doc.kml` |
+| mwm_tests | Yes | **Pass** | `All tests passed.` |
+| platform_tests | Yes | **Fail** | Multiple downloader tests — `HttpRequest error: -1004` (no network server) |
+| routing_tests | Yes | **Fail** | 6 failing cases (e.g. `road_access_test`, `road_penalty_test`, `routing_test`) |
+| search_tests | Yes | **Fail** | `bookmarks_processor_tests.cpp::BookmarksProcessorTest_Smoke`, `ranking_tests.cpp::NameScore_Smoke` |
 
-| Target | Built | Pass/fail |
-| --- | --- | --- |
-| base_tests | No | Not run |
-| coding_tests | No | Not run |
-| generator_tests | No | Not run |
-| indexer_tests | No | Not run |
-| map_tests | No | Not run |
-| mwm_tests | No | Not run |
-| platform_tests | No | Not run |
-| routing_tests | No | Not run |
-| search_tests | No | Not run |
+**Example verbatim failures:**
 
-Optional CTest cross-check was not run for the same reason.
+```
+indexer_tests/categories_test.cpp:41 TEST(cat.m_synonyms.size() == 8) 3 8
+
+map_tests/kmz_unarchive_test.cpp:67 TEST(matched) Unexpected file path: ./data/bookmarks/doc.kml
+
+platform_tests: HttpRequest error: -1004
+
+search_tests: 2 tests failed (BookmarksProcessorTest_Smoke, NameScore_Smoke)
+Some tests FAILED.
+4 / 9 passed.
+```
 
 ### 5. Android webDebug APK
 
@@ -146,38 +168,26 @@ cd android
 
 **SDK setup:** Exit 0. Wrote `android/local.properties` → `sdk.dir=/Users/mo/Library/Android/Sdk`.
 
-**Gradle build:** Exit 1. Wall-clock **464.34 s** (real, ~7 m 44 s).  
+**Gradle build (after Java fix):** Exit 0. Wall-clock **141.7 s** real on incremental rebuild
+(~464 s first cold build before fix).  
 **Flavor / build type:** `web` + `debug` (`assembleWebDebug`).  
-**APK path:** Not produced.
+**APK path:** `android/app/build/outputs/apk/web/debug/CoMaps-26072405-web-debug.apk` (190 MB).
 
-**Verbatim failure:**
-
-```
-> Task :app:compileWebDebugJavaWithJavac FAILED
-/Users/mo/dev/comaps-sp001/android/app/src/main/java/app/organicmaps/settings/MyAccountDialogFragment.java:381: error: illegal start of expression
-  private void maybeHandlePendingAddFriend()
-  ^
-1 error
-
-FAILURE: Build failed with an exception.
-Execution failed for task ':app:compileWebDebugJavaWithJavac'.
-BUILD FAILED in 7m 43s
-real 464.34
-```
-
-The error is a missing closing brace before `maybeHandlePendingAddFriend()` in WIP explore
-account code committed on `street-pixels` at `1cb5c5d1fa`.
+**Initial attempt (before fix):** Exit 1 — `MyAccountDialogFragment.java:381` missing `}`.
 
 ### 6. Physical device validation
 
 ```bash
-adb devices
+adb install -r android/app/build/outputs/apk/web/debug/CoMaps-26072405-web-debug.apk
 ```
 
-**Result:** No devices attached at time of run (`List of devices attached` empty).
-
-APK install, launch, and map-render confirmation were **not performed** — no APK was
-built and no device was connected.
+| Field | Value |
+| --- | --- |
+| Device | Google Pixel 3a |
+| OS | LineageOS 22.2 |
+| Flavor / build type | `web` + `debug` (`assembleWebDebug`) |
+| Map render | **Confirmed** — map tiles load |
+| Recorded | 2026-07-25 (maintainer manual validation) |
 
 ---
 
@@ -188,6 +198,8 @@ built and no device was connected.
 | `./configure.sh` | Map version `260603` 404 on CDN; `ln` runs after failed `wget` | Provide `data/world_mwm/260603/*.mwm` manually; use `SKIP_MAP_DOWNLOAD=1` for builds |
 | `cd build && ctest -L "omim-test" …` (README §8.1) | Default `build_omim.sh` output is `../omim-build-debug`, not `build/` | Use `cd ../omim-build-debug && ctest …` (§8.1 updated) |
 | `git submodule update --init --recursive --depth 1` | `3party/protobuf/protobuf` can checkout empty | `cd 3party/protobuf/protobuf && git reset --hard HEAD` |
+| `./tools/unix/build_omim.sh -d` on macOS after Android build | Android SDK `cmake` 3.22.1 on `PATH` breaks desktop configure | `export CMAKE=/opt/homebrew/bin/cmake` and keep SDK cmake off `PATH` |
+
 | Branch `street-pixels/SP-001-…` | Blocked by existing `street-pixels` branch ref | Use `SP-001-reproducible-android-baseline` or rename integration branch |
 
 ---
@@ -212,22 +224,22 @@ Forgejo `.forgejo/workflows/linux-check.yaml` `CTEST_EXCLUDE_REGEX` excludes:
 | routing_tests | Yes |
 | search_tests | Yes |
 
-Seven of nine smoke targets are excluded from CI. Only `coding_tests` and `mwm_tests`
-would run if the full smoke suite were executed in CI. Local smoke results are unknown
-on this commit because the desktop build did not finish.
+Seven of nine smoke targets are excluded from CI. Local run (after fixes): **4 pass, 5
+fail** at the binary level. Failures in `platform_tests` (network `-1004`) and several
+data-dependent tests may be environmental; `indexer_tests` / `map_tests` / `routing_tests` /
+`search_tests` failures look like pre-existing baseline debt for SP-002.
 
 ---
 
 ## Summary
 
-On `street-pixels` @ `1cb5c5d1fa`, from a clean worktree on macOS arm64 with the
-toolchains above:
+On `street-pixels` (macOS 26.5 arm64, toolchains above):
 
-- **Desktop debug build:** fails (C++ compile error in `libs/platform/vibration.hpp`).
-- **Smoke suite:** not run (blocked by desktop build failure).
-- **Android `assembleWebDebug`:** fails (Java syntax error in `MyAccountDialogFragment.java`).
-- **Physical device map smoke:** not performed (no APK; no device connected).
-- **`./configure.sh`:** fails on a truly fresh clone until map CDN serves `260603` or
-  maps are provided manually.
+- **Android `assembleWebDebug`:** succeeds after Java brace fix; APK at path above.
+- **Desktop smoke binaries:** build in ~95 s with `CMAKE=/opt/homebrew/bin/cmake`.
+- **Smoke suite:** executed; 4/9 binaries pass (`base`, `coding`, `generator`, `mwm`).
+- **Full desktop `-d` build:** not fully green (non-smoke targets still fail).
+- **Physical device map smoke:** **pass** — Pixel 3a, LineageOS 22.2, map loads (`webDebug`).
+- **`./configure.sh`:** still requires map workaround on fresh clone (CDN 260603 404).
 
-No production source, CI, or test fixes were made as part of this baseline recording.
+Build-fix commits are on `street-pixels`; smoke failures are recorded, not repaired (SP-002 scope).

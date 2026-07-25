@@ -2,7 +2,7 @@
 
 **Phase:** 2 — Recording and collection correctness
 **Status:** Not started
-**Branch:** `street-pixels/SP-014-recording-end-to-end-validation`
+**Branch:** `street-pixels`
 
 ---
 

@@ -2,7 +2,7 @@
 
 **Phase:** 1 — Baseline and guardrails
 **Status:** Not started
-**Branch:** `street-pixels/SP-003-privacy-and-telemetry-baseline`
+**Branch:** `street-pixels`
 
 ---
 
