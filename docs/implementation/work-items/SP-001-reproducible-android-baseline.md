@@ -140,7 +140,7 @@ Fill in before requesting review.
 | Commits | See `git log` for SP-001 commits (`[platform]`, `[android]`, `[cmake]`, `[docs]`) on `street-pixels` |
 | Toolchain versions | macOS 26.5 arm64; Apple clang 21.0.0; CMake 4.4.0; Ninja 1.13.2; JDK 21.0.11; Python 3.14.6; Gradle 8.14.4; NDK 28.2/29.0; SDK CMake 3.22.1 — full table in `baseline.md` |
 | Desktop build result | Smoke targets: **pass** (94.73 s). Full `-d`: not fully green |
-| Smoke suite result per target | **4 pass / 5 fail** — see `baseline.md` per-target table |
+| Smoke suite result per target | **9 / 9 pass** (~211 s) — see `baseline.md` §4 |
 | Android build command and flavor | `assembleWebDebug` — **pass**; APK `CoMaps-26072405-web-debug.apk` (190 MB) |
 | Test device model and OS version | Google Pixel 3a, LineageOS 22.2 |
 | Documented-command corrections | Map CDN 260603; `SKIP_MAP_DOWNLOAD`; protobuf reset; `CMAKE=/opt/homebrew/bin/cmake`; §8.1 ctest path |
@@ -159,5 +159,5 @@ a new `SP-NNN` work item or is explicitly dropped with a reason.
 | Android build fails: missing `}` in `MyAccountDialogFragment.java` | **Fixed** in `f6c7b22333` |
 | healpix libsharp / cfitsio desktop macOS build breaks | **Fixed** in `8624015f7c` |
 | Android SDK cmake on PATH breaks desktop configure | Document `CMAKE=/opt/homebrew/bin/cmake` in baseline; consider INSTALL note |
-| Smoke suite 5/9 binaries fail (pre-existing) | SP-002 — record failures, do not fix in SP-001 |
+| Smoke suite 5/9 binaries fail (pre-existing) | **Resolved** — harness + test expectations on rebased main; 9/9 pass |
 | Physical device map-render validation not executed | **Done** — Pixel 3a, LineageOS 22.2, map loads |
