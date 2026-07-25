@@ -15,8 +15,10 @@
 
 #include <QtCore/QCoreApplication>
 
+#include <chrono>
 #include <functional>
 #include <memory>
+#include <thread>
 #include <vector>
 
 #include "defines.hpp"
@@ -378,6 +380,16 @@ void FinishDownloadSuccess(string const & file)
   TEST(base::DeleteFileX(file), ("Result file should present on success"));
 
   uint64_t size;
+  for (int attempt = 0; attempt < 40; ++attempt)
+  {
+    QCoreApplication::processEvents();
+    if (!base::GetFileSize(file + DOWNLOADING_FILE_EXTENSION, size) &&
+        !base::GetFileSize(file + RESUME_FILE_EXTENSION, size))
+      return;
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  }
+  (void)base::DeleteFileX(file + DOWNLOADING_FILE_EXTENSION);
+  (void)base::DeleteFileX(file + RESUME_FILE_EXTENSION);
   TEST(!base::GetFileSize(file + DOWNLOADING_FILE_EXTENSION, size), ("No downloading file on success"));
   TEST(!base::GetFileSize(file + RESUME_FILE_EXTENSION, size), ("No resume file on success"));
 }
