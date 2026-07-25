@@ -413,26 +413,3 @@ treated as authorisation.
 
 When one of these is answered, add a new `SPD-NNN` entry above and strike the
 row here with a reference to it.
-
----
-
-## SPD-015 — Desktop smoke suite is not an Android V1 merge gate
-
-**Status:** Confirmed  
-**Date:** 2026-07-25
-
-**Decision.** Public Android V1 validation does not require the desktop smoke
-suite (`run_tests.sh -s smoke`) to pass. SP-001 recorded its state (4/9 binaries
-pass on the maintainer machine, 2026-07-25). Failures are pre-existing fork
-drift or infrastructure gaps (for example `platform_tests` without a test server).
-They are dispositioned in `docs/implementation/README.md` §8.2 and
-`docs/implementation/baseline.md`.
-
-**Gate instead.** From SP-002 onward, shared-core Street Pixels changes are
-gated by the dedicated `street_pixels_tests` target (local run and CI), plus
-each work item's named tests and Android device acceptance where required.
-Desktop debug builds remain useful for development but are not a V1 release
-artifact.
-
-**Related documents.** `docs/implementation/README.md` §8; SP-001; SP-002;
-`docs/implementation/baseline.md`.

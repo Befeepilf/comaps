@@ -80,9 +80,7 @@ Indirect. This implements the validation policy in
 
 ## Dependencies
 
-- SP-001, so that a working build and the current suite state are known. SP-001
-  smoke-suite failures are dispositioned in README §8.2; this work item does not
-  require repairing them.
+- SP-001, so that a working build and the current suite state are known.
 
 ## Proposed implementation approach
 
