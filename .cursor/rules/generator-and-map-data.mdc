@@ -48,7 +48,8 @@ Verify before relying on this; it was true on 2026-07-25.
 ## Discipline
 
 - Regenerated or auto-generated data files go in a separate commit from the
-  source change that produced them (`docs/PR_GUIDE.md`).
+  source change that produced them (`docs/PR_GUIDE.md`). Use a matching prefix,
+  e.g. `[styles] Regenerate …` or `[mapgen] …`.
 - Any size impact on generated packages must be measured and reported, not
   estimated.
 - Changing the HEALPix `nside` redefines every pixel identifier and invalidates
