@@ -159,5 +159,5 @@ a new `SP-NNN` work item or is explicitly dropped with a reason.
 | Android build fails: missing `}` in `MyAccountDialogFragment.java` | **Fixed** in `f6c7b22333` |
 | healpix libsharp / cfitsio desktop macOS build breaks | **Fixed** in `8624015f7c` |
 | Android SDK cmake on PATH breaks desktop configure | Document `CMAKE=/opt/homebrew/bin/cmake` in baseline; consider INSTALL note |
-| Smoke suite 5/9 binaries fail (pre-existing) | **Dispositioned** — not a V1 gate; see `baseline.md` and README §8.2. SP-002 adds `street_pixels_tests` instead of fixing these suites |
+| Smoke suite 5/9 binaries fail (pre-existing) | SP-002 — record failures, do not fix in SP-001 |
 | Physical device map-render validation not executed | **Done** — Pixel 3a, LineageOS 22.2, map loads |
