@@ -2,7 +2,7 @@
 
 **Phase:** 2 — Recording and collection correctness
 **Status:** Not started
-**Branch:** `street-pixels/SP-009-live-sample-acceptance-filter`
+**Branch:** `street-pixels`
 
 ---
 

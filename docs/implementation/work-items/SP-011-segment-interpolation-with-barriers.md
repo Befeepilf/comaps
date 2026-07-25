@@ -2,7 +2,7 @@
 
 **Phase:** 2 — Recording and collection correctness
 **Status:** Not started
-**Branch:** `street-pixels/SP-011-segment-interpolation-with-barriers`
+**Branch:** `street-pixels`
 
 ---
 
