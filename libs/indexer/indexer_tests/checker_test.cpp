@@ -127,6 +127,7 @@ UNIT_TEST(IsIsPartOfTourismAttractionsChecker)
   base::StringIL arrExceptions[] = {
       {"tourism", "information"},
       {"amenity", "ranger_station"},
+      {"amenity", "planetarium"},
   };
   std::vector<uint32_t> exceptions;
   for (auto e : arrExceptions)
