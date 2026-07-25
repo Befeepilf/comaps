@@ -14,6 +14,14 @@ This document gives some guidelines to write and review PR with essential elemen
 - All commits and PR captions should be written in English.
 - We suggest PRs should have prefixes in square brackets depending on the changed subsystem. For example, [routing], [generator], or [android]. Commits may have several prefixes (See `git log --oneline|egrep -o '\[[0-9a-z]*\]'|sort|uniq -c|sort -nr|less` for ideas.)
 - Use imperative mood in commit's message, e.g. `[core] Fix gcc warnings` not `[core] Fixed gcc warnings`
+- **Commit subject format:** `[subsystem] Imperative summary` on the first line. Optional body after a blank line. Sign every commit with `git commit -s` (Developer's Certificate of Origin; see below).
+- **Examples of good commit subjects:**
+  - `[platform] Include cstddef for size_t in vibration.hpp`
+  - `[android] Close populateIncomingRows before pending-add-friend handler`
+  - `[tools] Pass data paths and start test server in run_tests.sh`
+  - `[indexer] Align smoke tests with classificator and localization`
+  - `[map][android][docs] Add Street Pixels planning and explore account WIP`
+- Split unrelated changes into separate commits, each with the prefix that matches its files (e.g. `[docs]` for `docs/implementation/` only, `[map]` for `libs/map/`).
 - All code bases should conform to ./docs/CPP_STYLE.md, ./docs/OBJC_STYLE.md, ./docs/JAVA_STYLE.md or other style in ./docs/ depending on the language
 - The description field of every PR should contain a description to explain **what and why** vs. how.
 - If your changes are visual (e.g. app UI or map style changes) then please add before/after screenshots or videos.

@@ -59,6 +59,32 @@ These hold in every build, under every flag, in every code path.
 
 ## Repository conventions
 
-Follow `docs/CONTRIBUTING.md` and `docs/PR_GUIDE.md`: subsystem prefixes such as
-`[map]` or `[android]`, imperative mood, English, sign-off required
-(`git commit -s`), formatting changes separate from logical changes.
+Follow `docs/CONTRIBUTING.md` and `docs/PR_GUIDE.md` for all Git history on
+`street-pixels`.
+
+**Commit subject line:** `[subsystem] Imperative summary` — lowercase subsystem
+name in square brackets, English, imperative mood (Fix / Add / Align, not
+Fixed / Added / Aligned). Use multiple prefixes when a change spans subsystems,
+e.g. `[map][android]`.
+
+**Common prefixes:** `[android]`, `[ios]`, `[map]`, `[routing]`, `[search]`,
+`[indexer]`, `[generator]`, `[platform]`, `[drape]`, `[cmake]`, `[tools]`,
+`[docs]`, `[strings]`, `[styles]`, `[ci]`. Pick the smallest accurate set.
+
+**Commit body (optional):** blank line after the subject, then why (not how).
+Include `Work item: SP-NNN` when the change implements a work item.
+
+**Examples:**
+
+```
+[platform] Include cstddef for size_t in vibration.hpp
+
+[map] Align smoke tests with KMZ paths and comaps.at URLs
+
+[docs] Record 9/9 smoke suite baseline on rebased main
+Work item: SP-001
+```
+
+**Other rules:** sign-off required (`git commit -s`); every commit compiles;
+one logical idea per commit; whitespace/formatting changes in a separate commit;
+auto-generated outputs in their own commit (e.g. `[styles] Regenerate …`).
