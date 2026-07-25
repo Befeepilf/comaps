@@ -29,7 +29,7 @@
 
 ## Build fixes applied (after initial recording)
 
-Three commits on `SP-001-reproducible-android-baseline` unblock compilation:
+Three commits on `street-pixels` unblock compilation:
 
 | Commit | Change |
 | --- | --- |
@@ -199,8 +199,6 @@ adb install -r android/app/build/outputs/apk/web/debug/CoMaps-26072405-web-debug
 | `cd build && ctest -L "omim-test" …` (README §8.1) | Default `build_omim.sh` output is `../omim-build-debug`, not `build/` | Use `cd ../omim-build-debug && ctest …` (§8.1 updated) |
 | `git submodule update --init --recursive --depth 1` | `3party/protobuf/protobuf` can checkout empty | `cd 3party/protobuf/protobuf && git reset --hard HEAD` |
 | `./tools/unix/build_omim.sh -d` on macOS after Android build | Android SDK `cmake` 3.22.1 on `PATH` breaks desktop configure | `export CMAKE=/opt/homebrew/bin/cmake` and keep SDK cmake off `PATH` |
-
-| Branch `street-pixels/SP-001-…` | Blocked by existing `street-pixels` branch ref | Use `SP-001-reproducible-android-baseline` or rename integration branch |
 
 ---
 
