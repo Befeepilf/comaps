@@ -2,7 +2,7 @@
 
 **Phase:** 1 — Baseline and guardrails
 **Status:** Not started
-**Branch:** `street-pixels/SP-005-feature-flag-foundation`
+**Branch:** `street-pixels`
 
 ---
 
