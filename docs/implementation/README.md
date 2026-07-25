@@ -246,8 +246,12 @@ reordered.
 3. **Implement on `street-pixels` with a clean working tree.** One work item at a
    time; no unrelated local modifications.
 4. **Run focused tests.** The specific automated tests named in the work item.
-5. **Run relevant regression tests.** At minimum the affected library's test
-   target; for shared-core changes, the smoke suite.
+5. **Run relevant regression tests.** Run the work item's named test target(s).
+   Once SP-002 has landed, also run `street_pixels_tests` for any shared-core
+   change. The desktop smoke suite (`run_tests.sh -s smoke`) is baseline
+   reference only — see §8.2; it is **not** a Street Pixels V1 merge gate.
+   Android work items additionally require `assembleWebDebug` (or the flavor the
+   item names) and device acceptance where the item requires it.
 6. **Inspect the complete diff.** Read every changed line, including files
    touched incidentally. Unrelated changes are reverted.
 7. **Independent review in a fresh session.** A reviewer without the
@@ -290,6 +294,34 @@ excludes `map_tests` (and most other suites) through `CTEST_EXCLUDE_REGEX`, and
 `.github/workflows/` contains no C++ test job at all. New Street Pixels tests
 must therefore be placed in a target that is actually executed, and the CI gap
 is itself addressed by work item **SP-002**.
+
+### 8.2 Smoke suite disposition (Android V1)
+
+SP-001 executed the smoke suite once and recorded the result in
+[`baseline.md`](baseline.md). **Public Android V1 does not require the smoke
+suite to pass.** Desktop builds support development and the Street Pixels C++
+test harness; they are not a release artifact.
+
+| Smoke target | Baseline (2026-07-25) | Street Pixels V1 gate? | Disposition |
+| --- | --- | --- | --- |
+| `base_tests` | Pass | No | Informational only |
+| `coding_tests` | Pass | No | Informational only |
+| `generator_tests` | Pass | No | Informational only |
+| `mwm_tests` | Pass | No | Informational only |
+| `indexer_tests` | Fail — `LoadCategories` synonym count (expected 8, got 3) | No | Pre-existing fork drift; repair is separate hygiene work, not SP-002 |
+| `map_tests` | Fail — `Multi_KML_KMZ_UnzipTest` unzip path | No | Pre-existing fork drift; repair is separate hygiene work, not SP-002 |
+| `platform_tests` | Fail — downloader tests, `HttpRequest error: -1004` | No | Needs test server / network; not run in CI today |
+| `routing_tests` | Fail — 6 cases | No | Pre-existing fork drift; repair is separate hygiene work, not SP-002 |
+| `search_tests` | Fail — 2 cases | No | Pre-existing fork drift; repair is separate hygiene work, not SP-002 |
+
+**What actually gates Street Pixels work from SP-002 onward:**
+
+- `street_pixels_tests` (SP-002) — must pass locally and in CI.
+- The work item's own named test target(s), when it defines any.
+- Android APK build plus physical-device acceptance where the work item requires it.
+
+Do not fix, weaken, or re-exclude smoke-suite failures inside SP-002. SP-002
+adds a new target and a CI job for that target only.
 
 ---
 

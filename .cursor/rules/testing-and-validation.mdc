@@ -20,9 +20,9 @@ globs: libs/**/*_tests/**,libs/**/*_integration_tests/**,generator/generator_tes
 ```
 ./tools/unix/build_omim.sh -d                                   # desktop debug with tests
 ./tools/unix/build_omim.sh -d <target>                          # single target
-./tools/unix/run_tests.sh -b ../omim-build-debug -s smoke       # smoke suite
+./tools/unix/run_tests.sh -b ../omim-build-debug -s smoke       # smoke suite (baseline reference; not a V1 gate — see README §8.2)
 ./tools/unix/run_tests.sh -b ../omim-build-debug -f "<regex>"    # filter by name
-cd build && ctest -L "omim-test" --output-on-failure             # via ctest
+cd ../omim-build-debug && ctest -L "omim-test" --output-on-failure
 cd android && ./gradlew -Pandroidauto=true lint                  # Android lint
 ./tools/unix/clang-format.sh                                    # formatting check
 ```
@@ -41,8 +41,9 @@ test will actually execute before claiming it is covered.
   registered with `omim_add_test_subdirectory`. Prefer the lightest option set;
   `REQUIRE_QT` and `REQUIRE_SERVER` make a target slow and are only for tests
   that genuinely need a Qt event loop or a test server.
-- Street Pixels logic tests belong in the dedicated lightweight target, not in
-  `map_tests`.
+- Street Pixels logic tests belong in `street_pixels_tests`, not in `map_tests`.
+- The desktop smoke suite is baseline reference only (README §8.2); it is not a
+  Street Pixels V1 merge gate. SP-002 adds `street_pixels_tests` as the C++ CI gate.
 - Test thresholds at their boundaries, on both sides. A GPS acceptance rule with
   a 25-metre limit needs a case just inside and just outside.
 - Prefer synthetic `location::GpsInfo` sequences over device-dependent tests for
