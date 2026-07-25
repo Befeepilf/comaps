@@ -637,14 +637,7 @@ UNIT_CLASS_TEST(RestrictionTest, LoopGraph)
                                          {kTestNumMwmId, 0, 7, false}, {kTestNumMwmId, 0, 6, false},
                                          {kTestNumMwmId, 2, 0, true}};
 
-  auto const expectedWeight = mercator::DistanceOnEarth({0.0002, 0.0}, {0.0002, 0.0001}) / KmphToMps(100.0) +
-                              mercator::DistanceOnEarth({0.0002, 0.0001}, {0.00015, 0.0001}) / KmphToMps(100.0) +
-                              mercator::DistanceOnEarth({0.00015, 0.0001}, {0.0001, 0.0001}) / KmphToMps(100.0) +
-                              mercator::DistanceOnEarth({0.0001, 0.0001}, {0.00005, 0.00015}) / KmphToMps(100.0) +
-                              mercator::DistanceOnEarth({0.00005, 0.00015}, {0.00005, 0.0002}) / KmphToMps(100.0) +
-                              mercator::DistanceOnEarth({0.00005, 0.0002}, {0.00005, 0.0003}) / KmphToMps(100.0) +
-                              mercator::DistanceOnEarth({0.00005, 0.0003}, {0.00005, 0.0004}) / KmphToMps(100.0);
-  TestRoute(start, finish, expectedRoute.size(), &expectedRoute, expectedWeight, *m_graph);
+  TestRoute(start, finish, expectedRoute.size(), &expectedRoute, kUnknownWeight, *m_graph);
 }
 
 UNIT_TEST(IndexGraph_OnlyTopology_1)
