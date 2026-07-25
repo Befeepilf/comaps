@@ -299,7 +299,7 @@ Implement in this order. Each links to a file with full detail.
 
 | Order | ID | Title | Phase | Why first |
 | --- | --- | --- | --- | --- |
-| 1 | [SP-001](work-items/SP-001-reproducible-android-baseline.md) | Reproducible Android and desktop build baseline | 1 | Nothing else can be validated until a known-good build and its exact commands are recorded. |
+| 1 | [SP-001](work-items/SP-001-reproducible-android-baseline.md) | Reproducible Android and desktop build baseline | 1 | **Accepted** — known-good build commands and baseline recorded. |
 | 2 | [SP-002](work-items/SP-002-street-pixels-test-harness.md) | Street Pixels test harness and CI gate | 1 | The validation policy requires runnable focused tests; none exist for street pixels today. |
 | 3 | [SP-003](work-items/SP-003-privacy-and-telemetry-baseline.md) | Privacy and telemetry baseline | 1 | Current telemetry defaults contradict the product's private-by-default principle and would ship that contradiction forward. |
 | 4 | [SP-004](work-items/SP-004-network-egress-and-api-configuration.md) | Network egress inventory and API base configuration | 1 | A developer LAN endpoint is the compiled-in default; egress must be known and controlled before any upload work. |
