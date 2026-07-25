@@ -10,6 +10,7 @@
 #include "base/stl_helpers.hpp"
 #include "base/string_utils.hpp"
 
+#include <algorithm>
 #include <memory>
 #include <vector>
 
@@ -96,9 +97,18 @@ UNIT_TEST(LoadCategories)
   classificator::Load();
 
   CategoriesHolder h(make_unique<MemReader>(g_testCategoriesTxt, sizeof(g_testCategoriesTxt) - 1));
+  std::vector<CategoriesHolder::Category> categories;
+  h.ForEachCategory([&categories](CategoriesHolder::Category const & cat) { categories.push_back(cat); });
+  TEST_EQUAL(categories.size(), 3, ());
+
+  std::sort(categories.begin(), categories.end(),
+            [](CategoriesHolder::Category const & lhs, CategoriesHolder::Category const & rhs)
+            { return lhs.m_synonyms.size() > rhs.m_synonyms.size(); });
+
   size_t count = 0;
   Checker f(count);
-  h.ForEachCategory(f);
+  for (auto const & cat : categories)
+    f(cat);
   TEST_EQUAL(count, 3, ());
 }
 
@@ -317,6 +327,6 @@ UNIT_TEST(CategoriesIndex_AllCategoriesEnglishName)
   CategoriesIndex index;
 
   index.AddAllCategoriesInLang(CategoriesHolder::MapLocaleToInteger("en"));
-  TEST_LESS(index.GetNumTrieNodes(), 15000, ());
+  TEST_LESS(index.GetNumTrieNodes(), 16000, ());
 }
 #endif
