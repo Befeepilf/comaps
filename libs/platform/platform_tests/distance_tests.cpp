@@ -5,7 +5,8 @@
 #include "platform/measurement_utils.hpp"
 #include "platform/settings.hpp"
 
-#include <algorithm>
+#include <chrono>
+#include <thread>
 
 namespace platform
 {
@@ -215,7 +216,7 @@ UNIT_TEST(Distance_ToPlatformUnitsFormatted)
 
     TEST_EQUAL(newDistance.GetUnits(), Miles, (d.ToString()));
     TEST_ALMOST_EQUAL_ULPS(newDistance.GetDistance(), 6.8, (d.ToString()));
-    TEST_EQUAL(newDistance.GetDistanceString(), "6.8", (d.ToString()));
+    TEST_EQUAL(newDistance.GetDistanceString(), measurement_utils::ToStringPrecision(6.8, 1), (d.ToString()));
     TEST_EQUAL(newDistance.ToString(), MakeDistanceStr("6.8", Miles), (d.ToString()));
   }
 }
