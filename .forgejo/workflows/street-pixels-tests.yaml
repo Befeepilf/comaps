@@ -1,0 +1,61 @@
+name: Street Pixels Tests
+on:
+  workflow_dispatch:
+  push:
+    paths: &paths
+      - libs/map/street_pixels_tests/**
+      - libs/map/CMakeLists.txt
+      - libs/drape_frontend/street_pixel.hpp
+      - libs/drape_frontend/street_pixel.cpp
+      - libs/map/street_pixels_manager.hpp
+      - libs/map/street_pixels_manager.cpp
+      - cmake/**
+      - '!cmake/windows/**'
+      - CMakeLists.txt
+      - configure.sh
+      - tools/unix/build_omim.sh
+      - .forgejo/workflows/street-pixels-tests.yaml
+    branches:
+      - street-pixels
+      - main
+  pull_request:
+    paths: *paths
+
+jobs:
+  street-pixels-tests:
+    name: Build and run street_pixels_tests
+    runs-on: comaps-android
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 100
+
+      - name: Update submodules
+        uses: ./.forgejo/actions/update-submodules
+
+      - name: Configure ccache
+        uses: https://github.com/hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.workflow }}-street-pixels-tests
+
+      - name: Compile street_pixels_tests
+        shell: bash
+        env:
+          CC: clang
+          CXX: clang++
+          CMAKE_C_COMPILER_LAUNCHER: ccache
+          CMAKE_CXX_COMPILER_LAUNCHER: ccache
+          SKIP_MAP_DOWNLOAD: 1
+          CMAKE_C_FLAGS: -g1
+          CMAKE_CXX_FLAGS: -g1
+        run: ./tools/unix/build_omim.sh -d street_pixels_tests
+
+      - name: Run street_pixels_tests
+        shell: bash
+        working-directory: ../omim-build-debug
+        run: ctest -L omim-test -R '^street_pixels_tests$' --output-on-failure
