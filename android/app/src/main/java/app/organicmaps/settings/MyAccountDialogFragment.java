@@ -377,6 +377,7 @@ public class MyAccountDialogFragment extends DialogFragment implements Friends.C
       decline.setOnClickListener(v -> Friends.nativeCancelRequest(friend.userId));
       mLlIncoming.addView(row);
     }
+  }
 
   private void maybeHandlePendingAddFriend()
   {
