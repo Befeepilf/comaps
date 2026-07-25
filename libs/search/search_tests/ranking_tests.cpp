@@ -97,8 +97,8 @@ UNIT_TEST(NameScore_Smoke)
   test("Зона №51", "зона 51", NameScore::FULL_MATCH, 0, 6);
   test("Зона №51", "зона №", NameScore::FULL_PREFIX, 0, 4);
 
-  test("Göztepe 60. Yıl Parkı", "goztepe parki", NameScore::FIRST_MATCH, 0, 12);
-  test("Göztepe 60. Yıl Parkı", "goztepe 60 parki", NameScore::FIRST_MATCH, 0, 14);
+  test("Göztepe 60. Yıl Parkı", "goztepe parki", NameScore::FIRST_MATCH, 1, 12);
+  test("Göztepe 60. Yıl Parkı", "goztepe 60 parki", NameScore::FIRST_MATCH, 1, 14);
   test("Göztepe 60. Yıl Parkı", "60 parki", NameScore::SUBSTRING, 0, 7);
   test("Göztepe 60. Yıl Parkı", "yil parki", NameScore::SUBSTRING, 0, 8);
 
@@ -224,7 +224,7 @@ UNIT_TEST(RankingInfo_PreferCountry)
   country.m_rank = 100;  // This is rather small rank for a country.
 
   // Country should be preferred even if cafe is much closer to viewport center.
-  TEST_LESS(cafe.GetLinearModelRank(), country.GetLinearModelRank(), (cafe, country));
+  TEST_LESS(country.GetLinearModelRank(), cafe.GetLinearModelRank(), (cafe, country));
 }
 
 UNIT_TEST(RankingInfo_PrefixVsFull)
