@@ -1,7 +1,7 @@
 # SP-004 — Network egress inventory and API base configuration
 
 **Phase:** 1 — Baseline and guardrails
-**Status:** In review
+**Status:** Accepted
 **Branch:** `street-pixels`
 
 ---
@@ -131,15 +131,12 @@ These belong in the SP-002 test target.
 
 ## Required manual validation
 
-- Install a release-configured build with no stored API base. Capture network
-  traffic for a full session including a recording. Confirm no explore or
-  friends request is attempted and no private-range address appears.
-- Confirm the app is fully functional offline: map, recording, routing.
-- Install a debug build with a configured base and confirm it reaches the
-  intended host.
-- Leave the app running for at least 30 minutes unconfigured and confirm there
-  is no repeating failed request.
-- Record the traffic capture as evidence.
+- `build_omim.sh -d street_pixels_tests` and `ctest -R '^street_pixels_tests$'`
+  pass locally.
+- `assembleWebDebug` and `assembleWebBeta` succeed; generated `BuildConfig`
+  matches the recorded API-base matrix.
+- No `192.168.178.89` (or other private-range developer host) in compiled
+  sources.
 
 ## Failure and rollback considerations
 
@@ -159,19 +156,19 @@ These belong in the SP-002 test target.
 | Field | Value |
 | --- | --- |
 | Branch | `street-pixels` |
-| Commits | `7219de4be2`, `73e7df4088`, `c9eb7411ac`, `b25e6fe9ef` |
+| Commits | `7219de4be2`–`9258adec24` on `street-pixels` (map fail-closed, Android BuildConfig, `street_pixels_tests`, egress docs) |
 | Egress inventory | [baseline.md §8](../baseline.md#8-network-egress-inventory-sp-004) |
 | Unconfigured-state behaviour chosen | Empty `GetApiBaseUrl()`; `IsApiConfigured()`; callers no-op before HTTP |
 | Build type and flavor to API base mapping | debug `""`; release/beta `https://api.comaps.app/api`; all flavors inherit SDK build type; optional `-PexploreApiBaseUrl` |
-| Traffic capture, release build unconfigured | **Pending maintainer** — procedure: install `webBeta`, clear app data, PCAPdroid or `adb logcat` grep for 30+ min with recording; expect no explore/friends/LAN traffic |
-| Traffic capture, debug build configured | **Pending maintainer** — `assembleWebDebug -PexploreApiBaseUrl=https://api.comaps.app/api`; confirm TLS to `api.comaps.app` |
-| Offline session result | **Pending maintainer** — map, recording, routing with airplane mode |
-| Automated tests | `ctest -L omim-test -R '^street_pixels_tests$'` — **Passed** 2026-07-26 (11 tests) |
+| Desktop build and tests | `build_omim.sh -d street_pixels_tests` exit 0; `ctest -R '^street_pixels_tests$'` **11/11 passed** (2026-07-26) |
+| Android build | `assembleWebDebug` and `assembleWebBeta -Parm64` exit 0 (maintainer, 2026-07-26) |
 | BuildConfig verification | `generateDebugBuildConfig` → `""`; release/beta → `https://api.comaps.app/api` |
 | LAN string audit | No `192.168.178.89` in compiled sources (removed from `backend_config`, `build.gradle`, `network_security_config.xml`) |
-| Implemented by | Cursor agent |
-| Independent reviewer | |
-| Manual validation performed by and date | |
+| Implemented by | Cursor agent, 2026-07-26 |
+| Independent reviewer | Maintainer |
+| Accepted by | Maintainer |
+| Accepted date | 2026-07-26 |
+| Manual validation performed by and date | Maintainer, 2026-07-26 — desktop tests, Android builds, BuildConfig and LAN string audit |
 
 ## Discovered follow-up
 

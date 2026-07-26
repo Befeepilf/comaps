@@ -243,9 +243,9 @@ On `street-pixels` (macOS 26.5 arm64, toolchains above):
 
 SP-001 accepted 2026-07-25. SP-002 accepted 2026-07-26 (`street_pixels_tests`,
 local gate). SP-003 accepted 2026-07-26 (Sentry privacy defaults, device
-validation on Pixel 3a / webBeta). SP-004 implemented 2026-07-26 (fail-closed API
-base, egress inventory). Full desktop `-d` remains partially red
-(non-smoke targets); recorded in §3.
+validation on Pixel 3a / webBeta). SP-004 accepted 2026-07-26 (fail-closed API
+base, egress inventory; build and `street_pixels_tests` green). Full desktop
+`-d` remains partially red (non-smoke targets); recorded in §3.
 
 ### 8. Network egress inventory (SP-004)
 
@@ -282,6 +282,36 @@ Local override for configured debug builds:
 
 Verified via `./gradlew :sdk:generateDebugBuildConfig` (and release/beta) on
 2026-07-26.
+
+### 9. SP-004 build and test validation
+
+Recorded 2026-07-26 after fail-closed API base landed on `street-pixels`.
+
+**Desktop `street_pixels_tests`:**
+
+```bash
+export CMAKE=/opt/homebrew/bin/cmake SKIP_MAP_DOWNLOAD=1
+./tools/unix/build_omim.sh -d street_pixels_tests
+cd ../omim-build-debug && ctest -L omim-test -R '^street_pixels_tests$' --output-on-failure
+```
+
+**Result:** Exit 0. **11 / 11** tests passed (includes `backend_config` and
+caller decision-gate cases).
+
+**Android builds (maintainer, post-SP-004):**
+
+```bash
+cd android && ./gradlew assembleWebDebug
+cd android && ./gradlew -Parm64 assembleWebBeta
+```
+
+**Result:** Exit 0 on both. `EXPLORE_API_BASE_URL` in generated SDK
+`BuildConfig`: debug `""`, release/beta `https://api.comaps.app/api`.
+
+**LAN string audit:** no `192.168.178.89` in compiled sources (`backend_config`,
+`sdk/build.gradle`, `network_security_config.xml`).
+
+SP-004 accepted 2026-07-26.
 
 ### 7. Telemetry defaults (SP-003)
 
