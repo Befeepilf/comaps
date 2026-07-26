@@ -245,7 +245,7 @@ SP-001 accepted 2026-07-25. SP-002 accepted 2026-07-26 (`street_pixels_tests`,
 local gate). SP-003 accepted 2026-07-26 (Sentry privacy defaults, device
 validation on Pixel 3a / webBeta). SP-004 accepted 2026-07-26 (fail-closed API
 base, egress inventory; build and `street_pixels_tests` green). SP-005 accepted 2026-07-27 (Explorer Pro capability foundation, Android
-BuildConfig wiring, matrix tests; no UI gates). SP-006 accepted 2026-07-27 (`RecordingSession` state machine, settings breadcrumb, 15 new unit tests; no collection gate). SP-007 accepted 2026-07-27 (collection gate in `StreetPixelsManager::OnLocationUpdate`, 10 new gate tests, `RecordingSessionDebug` for debug validation). Full desktop `-d` remains
+BuildConfig wiring, matrix tests; no UI gates). SP-006 accepted 2026-07-27 (`RecordingSession` state machine, settings breadcrumb, 15 new unit tests; no collection gate). SP-007 accepted 2026-07-27 (collection gate in `StreetPixelsManager::OnLocationUpdate`, 10 new gate tests, `RecordingSessionDebug` for debug validation). SP-008 accepted 2026-07-27 (`kExploreRadiusMeters` 25 m, 4 `CollectionRadius_*` boundary tests). Full desktop `-d` remains
 partially red (non-smoke targets); recorded in §3.
 
 ### 8. Network egress inventory (SP-004)
@@ -397,6 +397,31 @@ only) calls `Framework.nativeRecordingSession*`.
 UI. Device paired-walk validation pending before SP-014.
 
 SP-007 accepted 2026-07-27.
+
+### 7.2. Collection radius alignment (SP-008)
+
+**Desktop `street_pixels_tests`:**
+
+```bash
+export CMAKE=/opt/homebrew/bin/cmake SKIP_MAP_DOWNLOAD=1
+./tools/unix/build_omim.sh -d street_pixels_tests
+./tools/unix/run_tests.sh -b ../omim-build-debug -f "street_pixels_tests"
+./tools/unix/run_tests.sh -b ../omim-build-debug -f "CollectionRadius|CollectionGate"
+```
+
+**Result:** Exit 0. **51 / 51** tests passed (4 new `CollectionRadius_*` cases);
+14/14 gate + radius filter green.
+
+**Constant:** `kExploreRadiusMeters = 25.0`; `kRadiusRads =
+kExploreRadiusMeters / kEarthRadiusMeters`. No settings key or JNI radius knob.
+
+**Fixture disc-count delta** (pixel id 1000 centre): N20=33, N25=51, delta=18
+HEALPix cells.
+
+**Behaviour:** live collection radius matches spec §15.1. Device parallel-path
+walk pending before SP-014.
+
+SP-008 accepted 2026-07-27.
 
 ### 7. Telemetry defaults (SP-003)
 

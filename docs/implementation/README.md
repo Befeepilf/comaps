@@ -165,6 +165,8 @@ roadmap tracks.
 | SP-004 | Accepted 2026-07-26 |
 | SP-005 | Accepted 2026-07-27 |
 | SP-006 | Accepted 2026-07-27 |
+| SP-007 | Accepted 2026-07-27 |
+| SP-008 | Accepted 2026-07-27 |
 
 ---
 
@@ -323,7 +325,9 @@ Implement in this order. Each links to a file with full detail.
 | 6 | [SP-006](work-items/SP-006-recording-session-state-model.md) | Shared recording-session state model | 2 | **Accepted** 2026-07-27 — `RecordingSession` state machine + settings breadcrumb; no collection gate yet. |
 | 7 | [SP-007](work-items/SP-007-pixel-collection-recording-gate.md) | Pixel-collection recording gate | 2 | **Accepted** 2026-07-27 — gate in `StreetPixelsManager::OnLocationUpdate`; 47/47 `street_pixels_tests` green. |
 
-Remaining Phase 2 work items, in intended order: SP-008, SP-009, SP-010,
+| 8 | [SP-008](work-items/SP-008-collection-radius-alignment.md) | Align collection radius with the specified 25 metres | 2 | **Accepted** 2026-07-27 — `kExploreRadiusMeters` 25 m; 51/51 `street_pixels_tests` green. |
+
+Remaining Phase 2 work items, in intended order: SP-009, SP-010,
 SP-011, SP-012, SP-013, SP-014. See
 [`phases/phase-02-recording-and-collection-correctness.md`](phases/phase-02-recording-and-collection-correctness.md).
 

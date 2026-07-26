@@ -44,13 +44,13 @@ establishes the sample-acceptance pipeline everything downstream trusts.
 
 ## Current code locations
 
-Verified 2026-07-27 against the working tree (post SP-007).
+Verified 2026-07-27 against the working tree (post SP-008).
 
 | Concern | Location | Observed state |
 | --- | --- | --- |
 | GPS entry point | `libs/map/framework.cpp` `Framework::OnLocationUpdate` | Calls `m_streetPixelsManager->OnLocationUpdate(rInfo)` unconditionally; collection gated inside the manager. |
 | Collection | `libs/map/street_pixels_manager.cpp` `StreetPixelsManager::OnLocationUpdate` | Returns immediately unless `RecordingSession::IsRecording()`. No accuracy, staleness, speed, or jump check of any kind. |
-| Collection radius | `libs/map/street_pixels_manager.cpp` `kExploreRadiusMeters` | `20.0` metres. Spec requires 25. |
+| Collection radius | `libs/map/street_pixels_manager.cpp` `kExploreRadiusMeters` | `25.0` metres; `kRadiusRads` derived. Not user-configurable. |
 | Track filter | `libs/map/gps_track_filter.cpp` | Exists for the track path only. Minimum horizontal accuracy 250 m, 10 m decimation, 2 m/s² acceleration limit, direction check, requires `HasSpeed()`. Not applied to pixel collection. |
 | Interpolation | — | **No interpolation exists in the live pixel path.** `serdes_gpx.cpp` fills GPX timestamps and `extrapolator.cpp` extrapolates for display; neither feeds pixel collection. |
 | Session concept | `libs/map/recording_session.{hpp,cpp}`, `Framework::GetRecordingSession()` | State machine `Idle` / `Recording` / `Paused` / `Finished` / `Discarded`; wired to collection gate via `SetRecordingSession`. |
@@ -90,7 +90,7 @@ no live interpolation exists yet.
 | --- | --- | --- | --- |
 | SP-006 | Shared recording-session state model | SP-002 | **Accepted** 2026-07-27 — state machine + settings breadcrumb; no collection gate yet |
 | SP-007 | Pixel-collection recording gate | SP-006 | **Accepted** 2026-07-27 — gate in `StreetPixelsManager::OnLocationUpdate`; track import ungated |
-| SP-008 | Align collection radius with the specified 25 metres | SP-007 | |
+| SP-008 | Align collection radius with the specified 25 metres | SP-007 | **Accepted** 2026-07-27 — `kExploreRadiusMeters` 25 m; 4 `CollectionRadius_*` boundary tests |
 | SP-009 | Live sample acceptance filter | SP-007 | |
 | SP-010 | Pause and resume semantics | SP-006, SP-007 | |
 | SP-011 | Segment interpolation with pause and interruption barriers | SP-009, SP-010 | |
