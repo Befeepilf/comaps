@@ -159,7 +159,7 @@ These belong in the SP-002 test target.
 | Field | Value |
 | --- | --- |
 | Branch | `street-pixels` |
-| Commits | `7219de4be2`, `73e7df4088`, `c9eb7411ac`, `f1103c6650` |
+| Commits | `7219de4be2`, `73e7df4088`, `c9eb7411ac`, `b25e6fe9ef` |
 | Egress inventory | [baseline.md §8](../baseline.md#8-network-egress-inventory-sp-004) |
 | Unconfigured-state behaviour chosen | Empty `GetApiBaseUrl()`; `IsApiConfigured()`; callers no-op before HTTP |
 | Build type and flavor to API base mapping | debug `""`; release/beta `https://api.comaps.app/api`; all flavors inherit SDK build type; optional `-PexploreApiBaseUrl` |
