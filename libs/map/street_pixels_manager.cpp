@@ -72,7 +72,7 @@ T_Healpix_Base<std::int64_t> const & GetHealpixBase()
 }  // namespace hp
 
 double constexpr kSegmentLengthMeters = 15.0;
-double constexpr kExploreRadiusMeters = 20.0;
+double constexpr kExploreRadiusMeters = 25.0;
 double constexpr kEarthRadiusMeters = 6371000.0;
 double constexpr kRadiusRads = kExploreRadiusMeters / kEarthRadiusMeters;
 
