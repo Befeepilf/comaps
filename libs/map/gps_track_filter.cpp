@@ -75,8 +75,8 @@ void GpsTrackFilter::Process(std::vector<location::GpsInfo> const & inPoints,
 
   for (location::GpsInfo const & currInfo : inPoints)
   {
-    LOG(LDEBUG, ("GpsTrackFilter: Examining point - timestamp:", currInfo.m_timestamp, "lat:", currInfo.m_latitude,
-                 "lon:", currInfo.m_longitude, "acc:", currInfo.m_horizontalAccuracy));
+    LOG(LDEBUG, ("GpsTrackFilter: Examining point - timestamp:", currInfo.m_timestamp,
+                 "acc:", currInfo.m_horizontalAccuracy));
 
     // Do not accept points from the predictor
     if (currInfo.m_source == location::EPredictor)
