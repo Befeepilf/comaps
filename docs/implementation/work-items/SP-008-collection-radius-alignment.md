@@ -1,7 +1,7 @@
 # SP-008 — Align collection radius with the specified 25 metres
 
 **Phase:** 2 — Recording and collection correctness
-**Status:** Not started
+**Status:** Accepted
 **Branch:** `street-pixels`
 
 ---
@@ -143,17 +143,19 @@ Record device, route, and observations.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commit | |
-| Other 20-metre occurrences found | |
-| Confirmation that no runtime path changes the radius | |
-| Test output | |
-| Fixture pixel-count delta, 20 m versus 25 m | |
-| Manual walk observations | |
-| Test device model and OS version | |
-| Implemented by | |
-| Independent reviewer | |
-| Manual validation performed by and date | |
+| Branch | `street-pixels` |
+| Commits | `58daeafd3a`, `00d82618b4` on `street-pixels` |
+| Other 20-metre occurrences found | Only `kExploreRadiusMeters = 20.0` in `street_pixels_manager.cpp` (changed). Unrelated `20.0` elsewhere (bookmark snap, routing, rendering `kRadiusInPixel`, track 10 m sampling, `kSegmentLengthMeters` 15 m) — out of scope. |
+| Confirmation that no runtime path changes the radius | Grep: no `ExploreRadius` / `collection_radius` settings key; no JNI radius in `Framework.java` or Android; `RecordingSessionDebug` is session-only. Radius is compile-time `kExploreRadiusMeters` → derived `kRadiusRads`. |
+| Test output | `run_tests.sh -f "street_pixels_tests"`: all passed (51 cases incl. 4 new `CollectionRadius_*`). `run_tests.sh -f "CollectionRadius\|CollectionGate"`: 14/14 passed (2026-07-27). |
+| Fixture pixel-count delta, 20 m versus 25 m | Pixel id 1000 centre: N20=33, N25=51, delta=18 HEALPix cells (one-shot `query_disc` measurement). |
+| Manual walk observations | Pending device parallel-path walk before SP-014 |
+| Test device model and OS version | Desktop validation (macOS arm64); device walk before SP-014 |
+| Implemented by | Cursor agent |
+| Independent reviewer | Maintainer |
+| Manual validation performed by and date | Maintainer code review 2026-07-27; device walk pending |
+| Accepted by | Maintainer |
+| Accepted date | 2026-07-27 |
 
 ## Discovered follow-up
 
