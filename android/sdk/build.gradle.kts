@@ -12,6 +12,9 @@ private fun Project.getPropertyValueForCMake(propertyName: String): String {
     return if (propertyValue == "ON" || propertyValue == "OFF") propertyValue else "OFF"
 }
 
+private fun Project.exploreApiBaseUrlField(defaultValue: String): String =
+    (findProperty("exploreApiBaseUrl") as? String)?.let { "\"$it\"" } ?: defaultValue
+
 android {
     namespace = "app.organicmaps.sdk"
     compileSdk = providers.gradleProperty("propCompileSdkVersion").get().toInt()
@@ -24,7 +27,7 @@ android {
 
     defaultConfig {
         minSdk = providers.gradleProperty("propMinSdkVersion").get().toInt()
-        buildConfigField("String", "EXPLORE_API_BASE_URL", "\"http://192.168.178.89:8999/api\"")
+        buildConfigField("String", "EXPLORE_API_BASE_URL", exploreApiBaseUrlField("\"\""))
 
         externalNativeBuild {
             cmake {
@@ -78,10 +81,11 @@ android {
               externalNativeBuild.cmake.arguments += "-DENABLE_ASAN=ON"
         }
         release {
-            buildConfigField("String", "EXPLORE_API_BASE_URL", "\"https://api.comaps.app/api\"")
+            buildConfigField("String", "EXPLORE_API_BASE_URL", exploreApiBaseUrlField("\"https://api.comaps.app/api\""))
         }
         register("beta") {
             matchingFallbacks += "release"
+            buildConfigField("String", "EXPLORE_API_BASE_URL", exploreApiBaseUrlField("\"https://api.comaps.app/api\""))
         }
     }
 
