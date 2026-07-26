@@ -124,9 +124,9 @@ void GpxParser::AddAttr(std::string_view attr, char const * value)
   if (IsValidCoordinatesPosition())
   {
     if (attr == "lat" && !strings::to_double(value, m_lat))
-      LOG(LERROR, ("Bad gpx latitude:", value));
+      LOG(LERROR, ("Bad gpx latitude"));
     else if (attr == "lon" && !strings::to_double(value, m_lon))
-      LOG(LERROR, ("Bad gpx longitude:", value));
+      LOG(LERROR, ("Bad gpx longitude"));
   }
 }
 
