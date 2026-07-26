@@ -17,6 +17,18 @@
 
 namespace street_pixels_tests
 {
+double constexpr kEarthRadiusMeters = 6371000.0;
+double constexpr kExploreRadiusMeters = 25.0;
+double constexpr kExploreRadiusRads = kExploreRadiusMeters / kEarthRadiusMeters;
+
+inline std::pair<double, double> OffsetLatLonByMeters(double lat, double lon, double northM, double eastM)
+{
+  double const latRad = math::DegToRad(lat);
+  double const dLat = northM / kEarthRadiusMeters;
+  double const dLon = eastM / (kEarthRadiusMeters * std::cos(latRad));
+  return {lat + math::RadToDeg(dLat), lon + math::RadToDeg(dLon)};
+}
+
 inline std::pair<double, double> LatLonForPixelId(std::int64_t pixelId)
 {
   pointing const ang = hp::GetHealpixBase().pix2ang(pixelId);
