@@ -27,6 +27,7 @@
 
 #include "map/street_pixels_manager.hpp"
 #include "map/street_stats_db.hpp"
+#include "map/recording_session.hpp"
 #include "map/track.hpp"
 
 #include "platform/country_file.hpp"
@@ -148,6 +149,110 @@ void StreetPixelsManager::OnBookmarksCreated()
 void StreetPixelsManager::SetExplorationListener(ExplorationListener const & listener)
 {
   m_explorationListener = listener;
+}
+
+void StreetPixelsManager::SetRecordingSession(RecordingSession const * session)
+{
+  m_recordingSession = session;
+}
+
+void StreetPixelsManager::SetVibrationHandler(VibrationHandler const & handler)
+{
+  m_vibrationHandler = handler;
+}
+
+void StreetPixelsManager::SetStreetPixelsForTesting(std::vector<df::StreetPixel> pixels)
+{
+  std::sort(pixels.begin(), pixels.end(),
+            [](df::StreetPixel const & a, df::StreetPixel const & b) { return a.GetPixelId() < b.GetPixelId(); });
+  m_testStreetPixelsStorage = std::move(pixels);
+  std::lock_guard<std::shared_mutex> lock(m_streetPixelsMutex);
+  m_mmapReader.reset();
+  m_streetPixels = m_testStreetPixelsStorage;
+  m_exploredPixelCount = CountExploredPixels(m_streetPixels);
+}
+
+size_t StreetPixelsManager::MarkTrackPixelsForTesting(std::set<std::int64_t> const & pixelIds)
+{
+  return MarkExploredPixelIds(pixelIds, 0.0);
+}
+
+bool StreetPixelsManager::IsPixelExploredForTesting(std::int64_t pixelId) const
+{
+  std::lock_guard<std::shared_mutex> lock(m_streetPixelsMutex);
+  auto const * pixel = FindStreetPixel(pixelId);
+  return pixel != nullptr && pixel->IsExplored();
+}
+
+size_t StreetPixelsManager::MarkExploredPixelIds(std::set<std::int64_t> const & pixelIds, double eventTimeSec)
+{
+  size_t statsNew = 0;
+  std::string countryId;
+  {
+    std::lock_guard<std::mutex> lock(m_countryIdMutex);
+    countryId = m_countryId;
+  }
+
+  {
+    std::lock_guard<std::shared_mutex> lock(m_streetPixelsMutex);
+    for (auto const pix : pixelIds)
+    {
+      auto * pixel = FindStreetPixel(pix);
+      if (pixel == nullptr)
+        continue;
+      if (!pixel->IsExplored())
+      {
+        pixel->SetExplored(true);
+        msync(pixel, sizeof(df::StreetPixel), MS_ASYNC);
+        ++m_exploredPixelCount;
+      }
+      if (!m_accountedBits.empty())
+      {
+        size_t const index = GetPixelIndexWhileLocked(pixel);
+        if (!IsAccountedIndex(index))
+        {
+          ApplyAccountedIndex(index, m_streetPixels.size());
+          ++statsNew;
+        }
+      }
+    }
+  }
+
+  if (statsNew > 0 && m_explorationListener)
+  {
+    ExplorationDelta d;
+    d.m_regionId = countryId;
+    d.m_newPixels = static_cast<uint32_t>(statsNew);
+    d.m_eventTimeSec = eventTimeSec;
+    m_explorationListener(d);
+  }
+
+  return statsNew;
+}
+
+void StreetPixelsManager::TriggerCollectionVibration(size_t numNewlyExploredPixels)
+{
+  if (numNewlyExploredPixels == 0)
+    return;
+
+  if (m_vibrationHandler)
+  {
+    m_vibrationHandler(numNewlyExploredPixels);
+    return;
+  }
+
+  if (numNewlyExploredPixels == 1)
+    platform::Vibrate(50);
+  else
+  {
+    size_t const maxPixels = 10;
+    size_t const count = std::min(numNewlyExploredPixels, maxPixels);
+
+    std::vector<uint32_t> durations(count, 30);
+    std::vector<uint32_t> delays(count, 20);
+
+    platform::VibratePattern(durations.data(), delays.data(), count);
+  }
 }
 
 void StreetPixelsManager::LoadStreetPixels(storage::LocalFilePtr const & localFile)
@@ -558,44 +663,9 @@ void StreetPixelsManager::UpdateExploredPixels()
       LOG(LINFO, ("Computing track pixels for", ti.id));
 
       auto trackPixels = ComputeTrackPixels(ti);
-      size_t statsNew = 0;
-      std::set<int64_t> renderNew;
-      {
-        std::lock_guard<std::shared_mutex> lock(m_streetPixelsMutex);
-        for (auto pix : trackPixels)
-        {
-          auto * pixel = FindStreetPixel(pix);
-          if (pixel == nullptr)
-            continue;
-          if (!pixel->IsExplored())
-          {
-            pixel->SetExplored(true);
-            msync(pixel, sizeof(df::StreetPixel), MS_ASYNC);
-            ++m_exploredPixelCount;
-            renderNew.insert(pix);
-          }
-          if (!m_accountedBits.empty())
-          {
-            size_t const index = GetPixelIndexWhileLocked(pixel);
-            if (!IsAccountedIndex(index))
-            {
-              ApplyAccountedIndex(index, m_streetPixels.size());
-              ++statsNew;
-            }
-          }
-        }
-      }
+      MarkExploredPixelIds(trackPixels, static_cast<double>(kml::ToSecondsSinceEpoch(ti.ts)));
 
       street_stats::StreetStatsDB::Instance().MarkTrackProcessed(geometryHash, countryId);
-
-      if (statsNew > 0 && m_explorationListener)
-      {
-        ExplorationDelta d;
-        d.m_regionId = countryId;
-        d.m_newPixels = static_cast<uint32_t>(statsNew);
-        d.m_eventTimeSec = static_cast<double>(kml::ToSecondsSinceEpoch(ti.ts));
-        m_explorationListener(d);
-      }
     }
 
     {
@@ -706,6 +776,9 @@ void StreetPixelsManager::AddPixelsInRadius(double lat, double lon, std::set<std
 
 void StreetPixelsManager::OnLocationUpdate(location::GpsInfo const & info)
 {
+  if (m_recordingSession == nullptr || !m_recordingSession->IsRecording())
+    return;
+
   std::set<std::int64_t> pixels;
   AddPixelsInRadius(info.m_latitude, info.m_longitude, pixels);
   size_t numNewlyExploredPixels = 0;
@@ -766,18 +839,7 @@ void StreetPixelsManager::OnLocationUpdate(location::GpsInfo const & info)
     m_explorationListener(d);
   }
 
-  if (numNewlyExploredPixels == 1)
-    platform::Vibrate(50);
-  else if (numNewlyExploredPixels > 1)
-  {
-    size_t const maxPixels = 10;
-    size_t const count = std::min(numNewlyExploredPixels, maxPixels);
-
-    std::vector<uint32_t> durations(count, 30);
-    std::vector<uint32_t> delays(count, 20);
-
-    platform::VibratePattern(durations.data(), delays.data(), count);
-  }
+  TriggerCollectionVibration(numNewlyExploredPixels);
 }
 
 void StreetPixelsManager::UpdateStreetStats(double lat, double lon, size_t numNewlyExploredPixels)

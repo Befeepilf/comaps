@@ -413,4 +413,10 @@ public class Framework
   public static native void nativeSetExplorerProCapabilities(boolean gpxImport, boolean gpxExport,
                                                            boolean advancedTrackManagement);
   public static native void nativeTriggerExploreStatsUpload();
+  public static native void nativeRecordingSessionStart();
+  public static native void nativeRecordingSessionPause();
+  public static native void nativeRecordingSessionResume();
+  public static native void nativeRecordingSessionFinish();
+  public static native void nativeRecordingSessionDiscard();
+  public static native int nativeRecordingSessionGetState();
 }

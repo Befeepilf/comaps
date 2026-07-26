@@ -503,6 +503,7 @@ Framework::Framework(FrameworkParams const & params, bool loadMaps)
         m_exploreStatsService->OnExplorationDelta(d.m_regionId, d.m_newPixels, d.m_eventTimeSec);
     }
   );
+  m_streetPixelsManager->SetRecordingSession(m_recordingSession.get());
 
   m_routingManager.SetTransitManager(&m_transitManager);
 

@@ -19,6 +19,7 @@
 #include "map/bookmark_helpers.hpp"
 #include "map/backend_config.hpp"
 #include "map/explorer_pro.hpp"
+#include "map/recording_session.hpp"
 #include "map/chart_generator.hpp"
 #include "map/everywhere_search_params.hpp"
 #include "map/friends_manager.hpp"
@@ -1013,6 +1014,36 @@ JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeSetExplorerProCa
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeTriggerExploreStatsUpload(JNIEnv *, jclass)
 {
   frm()->TriggerExploreStatsUpload();
+}
+
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeRecordingSessionStart(JNIEnv *, jclass)
+{
+  frm()->GetRecordingSession().Start();
+}
+
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeRecordingSessionPause(JNIEnv *, jclass)
+{
+  frm()->GetRecordingSession().Pause();
+}
+
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeRecordingSessionResume(JNIEnv *, jclass)
+{
+  frm()->GetRecordingSession().Resume();
+}
+
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeRecordingSessionFinish(JNIEnv *, jclass)
+{
+  frm()->GetRecordingSession().Finish();
+}
+
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeRecordingSessionDiscard(JNIEnv *, jclass)
+{
+  frm()->GetRecordingSession().Discard();
+}
+
+JNIEXPORT jint JNICALL Java_app_organicmaps_sdk_Framework_nativeRecordingSessionGetState(JNIEnv *, jclass)
+{
+  return static_cast<jint>(frm()->GetRecordingSession().GetState());
 }
 
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeClearApiPoints(JNIEnv * env, jclass clazz)

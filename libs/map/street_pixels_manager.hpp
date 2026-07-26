@@ -27,6 +27,7 @@
 #include <healpix_base.h>
 
 #include <cstdint>
+#include <functional>
 #include <mutex>
 #include <shared_mutex>
 #include <set>
@@ -47,6 +48,8 @@ struct TrackInfo
   kml::MultiGeometry::LineT geom;
   kml::Timestamp ts;
 };
+
+class RecordingSession;
 
 class StreetPixelsManager
 {
@@ -110,6 +113,15 @@ public:
   using ExplorationListener = std::function<void(ExplorationDelta const &)>;
   void SetExplorationListener(ExplorationListener const & listener);
 
+  void SetRecordingSession(RecordingSession const * session);
+
+  using VibrationHandler = std::function<void(size_t newlyExplored)>;
+  void SetVibrationHandler(VibrationHandler const & handler);
+
+  void SetStreetPixelsForTesting(std::vector<df::StreetPixel> pixels);
+  size_t MarkTrackPixelsForTesting(std::set<std::int64_t> const & pixelIds);
+  bool IsPixelExploredForTesting(std::int64_t pixelId) const;
+
 private:
   DataSource const & m_dataSource;
 
@@ -149,6 +161,12 @@ private:
 
   std::string GetCurrentCountryId() const;
   ExplorationListener m_explorationListener;
+  RecordingSession const * m_recordingSession = nullptr;
+  VibrationHandler m_vibrationHandler;
+  std::vector<df::StreetPixel> m_testStreetPixelsStorage;
+
+  void TriggerCollectionVibration(size_t numNewlyExploredPixels);
+  size_t MarkExploredPixelIds(std::set<std::int64_t> const & pixelIds, double eventTimeSec);
 
   // Updates heuristic stats for each street in the explore radius. Needed for routing to prefer streets with more
   // unexplored pixels.
