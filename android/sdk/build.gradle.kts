@@ -15,6 +15,9 @@ private fun Project.getPropertyValueForCMake(propertyName: String): String {
 private fun Project.exploreApiBaseUrlField(defaultValue: String): String =
     (findProperty("exploreApiBaseUrl") as? String)?.let { "\"$it\"" } ?: defaultValue
 
+private fun Project.explorerProCapabilitiesEnabled(defaultValue: String): String =
+    (findProperty("enableExplorerProCapabilities") as? String)?.toBoolean()?.toString() ?: defaultValue
+
 android {
     namespace = "app.organicmaps.sdk"
     compileSdk = providers.gradleProperty("propCompileSdkVersion").get().toInt()
@@ -28,6 +31,9 @@ android {
     defaultConfig {
         minSdk = providers.gradleProperty("propMinSdkVersion").get().toInt()
         buildConfigField("String", "EXPLORE_API_BASE_URL", exploreApiBaseUrlField("\"\""))
+        buildConfigField("boolean", "EXPLORER_PRO_GPX_IMPORT", explorerProCapabilitiesEnabled("false"))
+        buildConfigField("boolean", "EXPLORER_PRO_GPX_EXPORT", explorerProCapabilitiesEnabled("false"))
+        buildConfigField("boolean", "EXPLORER_PRO_ADVANCED_TRACK_MANAGEMENT", explorerProCapabilitiesEnabled("false"))
 
         externalNativeBuild {
             cmake {
@@ -82,10 +88,16 @@ android {
         }
         release {
             buildConfigField("String", "EXPLORE_API_BASE_URL", exploreApiBaseUrlField("\"https://api.comaps.app/api\""))
+            buildConfigField("boolean", "EXPLORER_PRO_GPX_IMPORT", explorerProCapabilitiesEnabled("false"))
+            buildConfigField("boolean", "EXPLORER_PRO_GPX_EXPORT", explorerProCapabilitiesEnabled("false"))
+            buildConfigField("boolean", "EXPLORER_PRO_ADVANCED_TRACK_MANAGEMENT", explorerProCapabilitiesEnabled("false"))
         }
         register("beta") {
             matchingFallbacks += "release"
             buildConfigField("String", "EXPLORE_API_BASE_URL", exploreApiBaseUrlField("\"https://api.comaps.app/api\""))
+            buildConfigField("boolean", "EXPLORER_PRO_GPX_IMPORT", explorerProCapabilitiesEnabled("false"))
+            buildConfigField("boolean", "EXPLORER_PRO_GPX_EXPORT", explorerProCapabilitiesEnabled("false"))
+            buildConfigField("boolean", "EXPLORER_PRO_ADVANCED_TRACK_MANAGEMENT", explorerProCapabilitiesEnabled("false"))
         }
     }
 
