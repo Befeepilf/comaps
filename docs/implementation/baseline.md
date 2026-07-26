@@ -245,7 +245,7 @@ SP-001 accepted 2026-07-25. SP-002 accepted 2026-07-26 (`street_pixels_tests`,
 local gate). SP-003 accepted 2026-07-26 (Sentry privacy defaults, device
 validation on Pixel 3a / webBeta). SP-004 accepted 2026-07-26 (fail-closed API
 base, egress inventory; build and `street_pixels_tests` green). SP-005 accepted 2026-07-27 (Explorer Pro capability foundation, Android
-BuildConfig wiring, matrix tests; no UI gates). SP-006 accepted 2026-07-27 (`RecordingSession` state machine, settings breadcrumb, 15 new unit tests; no collection gate). Full desktop `-d` remains
+BuildConfig wiring, matrix tests; no UI gates). SP-006 accepted 2026-07-27 (`RecordingSession` state machine, settings breadcrumb, 15 new unit tests; no collection gate). SP-007 accepted 2026-07-27 (collection gate in `StreetPixelsManager::OnLocationUpdate`, 10 new gate tests, `RecordingSessionDebug` for debug validation). Full desktop `-d` remains
 partially red (non-smoke targets); recorded in §3.
 
 ### 8. Network egress inventory (SP-004)
@@ -372,6 +372,31 @@ in-memory only (for SP-013 interruption detection).
 `StreetPixelsManager::OnLocationUpdate` still ungated (SP-007).
 
 SP-006 accepted 2026-07-27.
+
+### 7.1. Pixel collection gate (SP-007)
+
+**Desktop `street_pixels_tests`:**
+
+```bash
+export CMAKE=/opt/homebrew/bin/cmake SKIP_MAP_DOWNLOAD=1
+./tools/unix/build_omim.sh -d street_pixels_tests
+./tools/unix/run_tests.sh -b ../omim-build-debug -f "street_pixels_tests"
+```
+
+**Result:** Exit 0. **47 / 47** tests passed (10 new `CollectionGate_*` cases).
+
+**Gate:** `StreetPixelsManager::OnLocationUpdate` returns unless
+`RecordingSession::IsRecording()`. `Framework` wires
+`SetRecordingSession(m_recordingSession.get())`. Track import uses
+`MarkExploredPixelIds` (ungated).
+
+**Debug validation affordance:** `RecordingSessionDebug` (Java, `BuildConfig.DEBUG`
+only) calls `Framework.nativeRecordingSession*`.
+
+**Behaviour:** release builds collect no live pixels until SP-012 wires session
+UI. Device paired-walk validation pending before SP-014.
+
+SP-007 accepted 2026-07-27.
 
 ### 7. Telemetry defaults (SP-003)
 

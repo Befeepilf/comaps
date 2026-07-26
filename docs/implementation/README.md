@@ -321,7 +321,7 @@ Implement in this order. Each links to a file with full detail.
 | 4 | [SP-004](work-items/SP-004-network-egress-and-api-configuration.md) | Network egress inventory and API base configuration | 1 | **Accepted** 2026-07-26 — fail-closed API base, egress inventory; build and `street_pixels_tests` green. |
 | 5 | [SP-005](work-items/SP-005-feature-flag-foundation.md) | Feature-flag and entitlement foundation | 1 | **Accepted** 2026-07-27 — capability + entitlement stub, Pro flags off, matrix tests green. |
 | 6 | [SP-006](work-items/SP-006-recording-session-state-model.md) | Shared recording-session state model | 2 | **Accepted** 2026-07-27 — `RecordingSession` state machine + settings breadcrumb; no collection gate yet. |
-| 7 | [SP-007](work-items/SP-007-pixel-collection-recording-gate.md) | Pixel-collection recording gate | 2 | Closes the confirmed privacy-principle violation: pixels are collected with no session. |
+| 7 | [SP-007](work-items/SP-007-pixel-collection-recording-gate.md) | Pixel-collection recording gate | 2 | **Accepted** 2026-07-27 — gate in `StreetPixelsManager::OnLocationUpdate`; 47/47 `street_pixels_tests` green. |
 
 Remaining Phase 2 work items, in intended order: SP-008, SP-009, SP-010,
 SP-011, SP-012, SP-013, SP-014. See
