@@ -18,6 +18,7 @@
 
 #include "map/bookmark_helpers.hpp"
 #include "map/backend_config.hpp"
+#include "map/explorer_pro.hpp"
 #include "map/chart_generator.hpp"
 #include "map/everywhere_search_params.hpp"
 #include "map/friends_manager.hpp"
@@ -996,6 +997,17 @@ JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeSetExploreConsen
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeSetExploreApiBaseUrl(JNIEnv * env, jclass, jstring url)
 {
   backend::SetApiBaseUrl(jni::ToNativeString(env, url));
+}
+
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeSetExplorerProCapabilities(JNIEnv *, jclass,
+                                                                                             jboolean gpxImport,
+                                                                                             jboolean gpxExport,
+                                                                                             jboolean advancedTrackManagement)
+{
+  explorer_pro::SetCapabilityAvailable(explorer_pro::Capability::GpxImport, static_cast<bool>(gpxImport));
+  explorer_pro::SetCapabilityAvailable(explorer_pro::Capability::GpxExport, static_cast<bool>(gpxExport));
+  explorer_pro::SetCapabilityAvailable(explorer_pro::Capability::AdvancedTrackManagement,
+                                       static_cast<bool>(advancedTrackManagement));
 }
 
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeTriggerExploreStatsUpload(JNIEnv *, jclass)

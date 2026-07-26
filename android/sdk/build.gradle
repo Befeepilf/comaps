@@ -11,6 +11,13 @@ def exploreApiBaseUrlField(String defaultValue) {
   return defaultValue
 }
 
+def explorerProCapabilitiesEnabled(String defaultValue) {
+  if (project.hasProperty('enableExplorerProCapabilities')) {
+    return project.getProperty('enableExplorerProCapabilities').toBoolean() ? 'true' : 'false'
+  }
+  return defaultValue
+}
+
 android {
   namespace = 'app.organicmaps.sdk'
   compileSdk = propCompileSdkVersion.toInteger()
@@ -25,6 +32,9 @@ android {
     minSdk = propMinSdkVersion.toInteger()
     targetSdk = propTargetSdkVersion.toInteger()
     buildConfigField 'String', 'EXPLORE_API_BASE_URL', exploreApiBaseUrlField('""')
+    buildConfigField 'boolean', 'EXPLORER_PRO_GPX_IMPORT', explorerProCapabilitiesEnabled('false')
+    buildConfigField 'boolean', 'EXPLORER_PRO_GPX_EXPORT', explorerProCapabilitiesEnabled('false')
+    buildConfigField 'boolean', 'EXPLORER_PRO_ADVANCED_TRACK_MANAGEMENT', explorerProCapabilitiesEnabled('false')
 
     externalNativeBuild {
       def pchFlag = 'OFF'
@@ -95,6 +105,9 @@ android {
 //      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
       buildConfigField 'String', 'EXPLORE_API_BASE_URL',
           exploreApiBaseUrlField('"https://api.comaps.app/api"')
+      buildConfigField 'boolean', 'EXPLORER_PRO_GPX_IMPORT', explorerProCapabilitiesEnabled('false')
+      buildConfigField 'boolean', 'EXPLORER_PRO_GPX_EXPORT', explorerProCapabilitiesEnabled('false')
+      buildConfigField 'boolean', 'EXPLORER_PRO_ADVANCED_TRACK_MANAGEMENT', explorerProCapabilitiesEnabled('false')
     }
     beta {
 //      minifyEnabled true
@@ -102,6 +115,9 @@ android {
       matchingFallbacks = ['release']
       buildConfigField 'String', 'EXPLORE_API_BASE_URL',
           exploreApiBaseUrlField('"https://api.comaps.app/api"')
+      buildConfigField 'boolean', 'EXPLORER_PRO_GPX_IMPORT', explorerProCapabilitiesEnabled('false')
+      buildConfigField 'boolean', 'EXPLORER_PRO_GPX_EXPORT', explorerProCapabilitiesEnabled('false')
+      buildConfigField 'boolean', 'EXPLORER_PRO_ADVANCED_TRACK_MANAGEMENT', explorerProCapabilitiesEnabled('false')
     }
   }
 
