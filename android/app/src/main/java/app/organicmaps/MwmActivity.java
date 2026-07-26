@@ -120,7 +120,6 @@ import app.organicmaps.sdk.widget.placepage.PlacePageData;
 import app.organicmaps.search.FloatingSearchToolbarController;
 import app.organicmaps.search.SearchActivity;
 import app.organicmaps.search.SearchFragment;
-import app.organicmaps.settings.DrivingOptionsActivity;
 import app.organicmaps.settings.ExploreConsentDialogFragment;
 import app.organicmaps.settings.ExploreDeepLink;
 import app.organicmaps.settings.MyAccountDialogFragment;
