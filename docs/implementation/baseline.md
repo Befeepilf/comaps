@@ -244,8 +244,9 @@ On `street-pixels` (macOS 26.5 arm64, toolchains above):
 SP-001 accepted 2026-07-25. SP-002 accepted 2026-07-26 (`street_pixels_tests`,
 local gate). SP-003 accepted 2026-07-26 (Sentry privacy defaults, device
 validation on Pixel 3a / webBeta). SP-004 accepted 2026-07-26 (fail-closed API
-base, egress inventory; build and `street_pixels_tests` green). Full desktop
-`-d` remains partially red (non-smoke targets); recorded in §3.
+base, egress inventory; build and `street_pixels_tests` green). SP-005 accepted 2026-07-27 (Explorer Pro capability foundation, Android
+BuildConfig wiring, matrix tests; no UI gates). Full desktop `-d` remains
+partially red (non-smoke targets); recorded in §3.
 
 ### 8. Network egress inventory (SP-004)
 
@@ -312,6 +313,39 @@ cd android && ./gradlew -Parm64 assembleWebBeta
 `sdk/build.gradle`, `network_security_config.xml`).
 
 SP-004 accepted 2026-07-26.
+
+### 10. SP-005 build and test validation
+
+Recorded 2026-07-27 after Explorer Pro capability foundation landed on
+`street-pixels`.
+
+**Desktop `street_pixels_tests`:**
+
+```bash
+export CMAKE=/opt/homebrew/bin/cmake SKIP_MAP_DOWNLOAD=1
+./tools/unix/build_omim.sh -d street_pixels_tests
+./tools/unix/run_tests.sh -b ../omim-build-debug -f "street_pixels_tests"
+```
+
+**Result:** Exit 0. **22 / 22** tests passed (7 new `ExplorerPro_*` matrix cases).
+
+**Android BuildConfig (SDK module, all flavors):**
+
+| Build type | `EXPLORER_PRO_GPX_IMPORT` | `EXPLORER_PRO_GPX_EXPORT` | `EXPLORER_PRO_ADVANCED_TRACK_MANAGEMENT` |
+| --- | --- | --- | --- |
+| `debug` | `false` | `false` | `false` |
+| `release` | `false` | `false` | `false` |
+| `beta` | `false` | `false` | `false` |
+
+Internal override: `-PenableExplorerProCapabilities=true` sets all three `true`.
+
+Verified via `./gradlew :sdk:generateDebugBuildConfig` (and release/beta) on
+2026-07-27.
+
+**Behaviour:** no existing UI or GPX call sites gated; entitlement stub always
+denies; `IsCapabilityEnabled` is the sole intended gate for Phase 9.
+
+SP-005 accepted 2026-07-27.
 
 ### 7. Telemetry defaults (SP-003)
 
