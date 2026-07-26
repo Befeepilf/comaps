@@ -4,6 +4,7 @@ set(SRC
   backend_config_tests.cpp
   explorer_pro_tests.cpp
   exploration_multiplier_tests.cpp
+  recording_session_tests.cpp
   street_pixel_tests.cpp
   street_pixels_test_helpers.hpp
 )
