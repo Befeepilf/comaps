@@ -87,7 +87,7 @@ None. This phase can start immediately.
 | --- | --- | --- |
 | SP-001 | Reproducible Android and desktop build baseline | **Accepted** 2026-07-25 |
 | SP-002 | Street Pixels test harness | **Accepted** 2026-07-26 — lean `street_pixels_tests`; local gate only for V1 |
-| SP-003 | Privacy and telemetry baseline | Telemetry configuration and log-hygiene review |
+| SP-003 | Privacy and telemetry baseline | **Accepted** 2026-07-26 |
 | SP-004 | Network egress inventory and API base configuration | Removes the developer default; documents egress |
 | SP-005 | Feature-flag and entitlement foundation | Shared abstraction, Pro flags off |
 

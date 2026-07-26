@@ -161,6 +161,7 @@ roadmap tracks.
 | --- | --- |
 | SP-001 | Accepted 2026-07-25 |
 | SP-002 | Accepted 2026-07-26 |
+| SP-003 | Accepted 2026-07-26 |
 
 ---
 
@@ -313,7 +314,7 @@ Implement in this order. Each links to a file with full detail.
 | --- | --- | --- | --- | --- |
 | 1 | [SP-001](work-items/SP-001-reproducible-android-baseline.md) | Reproducible Android and desktop build baseline | 1 | **Accepted** — known-good build commands and baseline recorded. |
 | 2 | [SP-002](work-items/SP-002-street-pixels-test-harness.md) | Street Pixels test harness | 1 | **Accepted** — lean `street_pixels_tests` target; local validation gate for Phase 2. |
-| 3 | [SP-003](work-items/SP-003-privacy-and-telemetry-baseline.md) | Privacy and telemetry baseline | 1 | Current telemetry defaults contradict the product's private-by-default principle and would ship that contradiction forward. |
+| 3 | [SP-003](work-items/SP-003-privacy-and-telemetry-baseline.md) | Privacy and telemetry baseline | 1 | **Accepted** 2026-07-26 — Sentry private-by-default defaults, log scrub, manifest guard. |
 | 4 | [SP-004](work-items/SP-004-network-egress-and-api-configuration.md) | Network egress inventory and API base configuration | 1 | A developer LAN endpoint is the compiled-in default; egress must be known and controlled before any upload work. |
 | 5 | [SP-005](work-items/SP-005-feature-flag-foundation.md) | Feature-flag and entitlement foundation | 1 | Later phases depend on being able to ship incomplete surfaces disabled. |
 | 6 | [SP-006](work-items/SP-006-recording-session-state-model.md) | Shared recording-session state model | 2 | The recording gate needs a session concept that does not yet exist. |

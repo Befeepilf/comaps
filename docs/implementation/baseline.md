@@ -242,8 +242,9 @@ On `street-pixels` (macOS 26.5 arm64, toolchains above):
 - **`./configure.sh`:** still requires map workaround on fresh clone (CDN 260603 404).
 
 SP-001 accepted 2026-07-25. SP-002 accepted 2026-07-26 (`street_pixels_tests`,
-local gate). Full desktop `-d` remains partially red (non-smoke targets); recorded
-in §3.
+local gate). SP-003 accepted 2026-07-26 (Sentry privacy defaults, device
+validation on Pixel 3a / webBeta). Full desktop `-d` remains partially red
+(non-smoke targets); recorded in §3.
 
 ### 7. Telemetry defaults (SP-003)
 
