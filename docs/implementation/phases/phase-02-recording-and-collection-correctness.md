@@ -44,20 +44,21 @@ establishes the sample-acceptance pipeline everything downstream trusts.
 
 ## Current code locations
 
-Verified 2026-07-25 against the working tree.
+Verified 2026-07-27 against the working tree (post SP-007).
 
 | Concern | Location | Observed state |
 | --- | --- | --- |
-| GPS entry point | `libs/map/framework.cpp` `Framework::OnLocationUpdate` | Calls `m_streetPixelsManager->OnLocationUpdate(rInfo)` unconditionally. No session, enabled, or consent check. |
-| Collection | `libs/map/street_pixels_manager.cpp` `StreetPixelsManager::OnLocationUpdate` | Collects every pixel within the radius of the raw fix. No accuracy, staleness, speed, or jump check of any kind. |
+| GPS entry point | `libs/map/framework.cpp` `Framework::OnLocationUpdate` | Calls `m_streetPixelsManager->OnLocationUpdate(rInfo)` unconditionally; collection gated inside the manager. |
+| Collection | `libs/map/street_pixels_manager.cpp` `StreetPixelsManager::OnLocationUpdate` | Returns immediately unless `RecordingSession::IsRecording()`. No accuracy, staleness, speed, or jump check of any kind. |
 | Collection radius | `libs/map/street_pixels_manager.cpp` `kExploreRadiusMeters` | `20.0` metres. Spec requires 25. |
 | Track filter | `libs/map/gps_track_filter.cpp` | Exists for the track path only. Minimum horizontal accuracy 250 m, 10 m decimation, 2 m/s² acceleration limit, direction check, requires `HasSpeed()`. Not applied to pixel collection. |
 | Interpolation | — | **No interpolation exists in the live pixel path.** `serdes_gpx.cpp` fills GPX timestamps and `extrapolator.cpp` extrapolates for display; neither feeds pixel collection. |
-| Session concept | — | Not found. No session identifier, state, or lifecycle in `libs/map/street_pixels_manager.*` or `libs/map/street_stats_db.*`. |
-| Android recording | `android/app/.../location/TrackRecordingService.java`, `android/sdk/.../location/TrackRecorder.java` | Foreground service typed `location`; JNI start/stop/save/isEmpty/isEnabled. **No pause or resume.** |
+| Session concept | `libs/map/recording_session.{hpp,cpp}`, `Framework::GetRecordingSession()` | State machine `Idle` / `Recording` / `Paused` / `Finished` / `Discarded`; wired to collection gate via `SetRecordingSession`. |
+| Android recording | `android/app/.../location/TrackRecordingService.java`, `android/sdk/.../location/TrackRecorder.java` | Foreground service typed `location`; JNI start/stop/save/isEmpty/isEnabled. **No pause or resume.** Not wired to `RecordingSession` (SP-012). |
+| Debug session control | `android/sdk/.../location/RecordingSessionDebug.java` | DEBUG-only JNI wrappers for `RecordingSession` start/pause/resume/finish/discard (SP-007 validation affordance). |
 | Location provider | `android/sdk/.../location/LocationHelper.java` | 500 ms interval normally, 1000 ms while track recording |
 | Permissions | `android/app/src/main/AndroidManifest.xml` | `ACCESS_COARSE_LOCATION`, `ACCESS_FINE_LOCATION`, `ACCESS_LOCATION_EXTRA_COMMANDS`. **`ACCESS_BACKGROUND_LOCATION` is absent.** |
-| Haptics | `libs/map/street_pixels_manager.cpp` `OnLocationUpdate` | Vibration triggered from the collection path |
+| Haptics | `libs/map/street_pixels_manager.cpp` `OnLocationUpdate` | Vibration only after gated collection marks pixels (`TriggerCollectionVibration`) |
 
 **Differences from the technical audit:** none material. Every claim the audit
 makes about this area still holds. The audit's phrasing "no interpolation
@@ -88,7 +89,7 @@ no live interpolation exists yet.
 | ID | Title | Depends on | Notes |
 | --- | --- | --- | --- |
 | SP-006 | Shared recording-session state model | SP-002 | **Accepted** 2026-07-27 — state machine + settings breadcrumb; no collection gate yet |
-| SP-007 | Pixel-collection recording gate | SP-006 | |
+| SP-007 | Pixel-collection recording gate | SP-006 | **Accepted** 2026-07-27 — gate in `StreetPixelsManager::OnLocationUpdate`; track import ungated |
 | SP-008 | Align collection radius with the specified 25 metres | SP-007 | |
 | SP-009 | Live sample acceptance filter | SP-007 | |
 | SP-010 | Pause and resume semantics | SP-006, SP-007 | |

@@ -1,7 +1,7 @@
 # SP-007 — Pixel-collection recording gate
 
 **Phase:** 2 — Recording and collection correctness
-**Status:** Not started
+**Status:** Accepted
 **Branch:** `street-pixels`
 
 ---
@@ -180,21 +180,23 @@ Record device model, OS version, build type, and route for each.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commits | |
-| Gate location and rationale | |
-| Test output | |
-| Walk 1, no session: pixels collected | |
-| Walk 2, session recording: pixels collected | |
-| Pause segment result | |
-| GPX import regression result | |
-| Test device model and OS version | |
-| Implemented by | |
-| Independent reviewer | |
-| Manual validation performed by and date | |
+| Branch | `street-pixels` |
+| Commits | `ffd83450e4`, `05090ba101` on `street-pixels` |
+| Gate location and rationale | `StreetPixelsManager::OnLocationUpdate` — first statement checks `m_recordingSession->IsRecording()`; gate inside the manager so no caller can bypass. `Framework` wires `SetRecordingSession(m_recordingSession.get())`; call site unchanged. |
+| Test output | `street_pixels_tests`: **47 / 47** passed (10 new `CollectionGate_*` cases); `run_tests.sh -f "street_pixels_tests"` exit 0 |
+| Walk 1, no session: pixels collected | Pending device paired-walk (debug affordance ready) |
+| Walk 2, session recording: pixels collected | Pending device paired-walk (debug affordance ready) |
+| Pause segment result | Pending device paired-walk (debug affordance ready) |
+| GPX import regression result | Covered by `CollectionGate_TrackReplay_MarksRegardlessOfSession` (`MarkTrackPixelsForTesting` / `MarkExploredPixelIds` path); full `UpdateExploredPixels` bookmark fixture deferred to Phase 9 |
+| Test device model and OS version | Desktop validation only (macOS arm64); device walks before SP-014 |
+| Implemented by | Cursor agent |
+| Independent reviewer | Maintainer |
+| Manual validation performed by and date | Maintainer code review 2026-07-27; device paired-walks pending — use `RecordingSessionDebug` on debug builds |
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Exploration accumulated on existing installs without a session | Product question for Phase 3 once per-pixel source exists; do not clear retroactively without a decision |
+| Release builds collect no live pixels until SP-012 wires session UI | Expected; `RecordingSessionDebug` is debug-only for interim validation |
+| Device paired-walk validation not yet executed | Required before SP-014; use `RecordingSessionDebug` on debug APK |
