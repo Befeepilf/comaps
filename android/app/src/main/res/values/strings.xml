@@ -748,7 +748,6 @@
     <string name="avoid_motorways">Avoid freeways</string>
     <string name="avoid_steps">Avoid stairs</string>
     <string name="avoid_paved">Avoid paved roads</string>
-    <string name="routing_options_title">Routing Options</string>
     <string name="prefer_trails">Prefer trails</string>
     <string name="trail_preference">Trail preference</string>
     <string name="trail_preference_fastest">Fastest route</string>

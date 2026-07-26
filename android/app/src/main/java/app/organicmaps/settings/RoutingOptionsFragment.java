@@ -23,6 +23,7 @@ import app.organicmaps.base.BaseMwmToolbarFragment;
 import app.organicmaps.sdk.Router;
 import app.organicmaps.sdk.routing.RoutingController;
 import app.organicmaps.sdk.routing.RoutingOptions;
+import app.organicmaps.sdk.routing.StreetExplorationRoutingOptions;
 import app.organicmaps.sdk.settings.RoadType;
 import app.organicmaps.sdk.util.log.Logger;
 import app.organicmaps.settings.CyclingOptionsFragment;
@@ -186,8 +187,8 @@ public class RoutingOptionsFragment extends BaseMwmToolbarFragment
     StreetExplorationRoutingOptions currentExplorationOptions =
         StreetExplorationRoutingOptions.LoadFromSettings();
     return mRoadTypes.equals(lastActiveRoadTypes)
-           && mStreetExplorationOptions.m_enabled == currentExplorationOptions.m_enabled
-           && mStreetExplorationOptions.m_strength == currentExplorationOptions.m_strength;
+           && mInitialStreetExplorationOptions.m_enabled == currentExplorationOptions.m_enabled
+           && mInitialStreetExplorationOptions.m_strength == currentExplorationOptions.m_strength;
   }
 
   @Override
