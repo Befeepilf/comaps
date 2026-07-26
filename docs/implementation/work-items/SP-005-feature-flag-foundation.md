@@ -163,7 +163,7 @@ In the SP-002 target:
 | Field | Value |
 | --- | --- |
 | Branch | `street-pixels` |
-| Commits | `bd698538e4`, `6bd3e34299`, `a67998278f`, `4fe1b76d13` on `street-pixels` |
+| Commits | `bd698538e4`, `6bd3e34299`, `a67998278f`, `c0e49d9b2d` on `street-pixels` |
 | Capabilities defined | `GpxImport`, `GpxExport`, `AdvancedTrackManagement` in `libs/map/explorer_pro.hpp` |
 | Availability mechanism | Runtime `SetCapabilityAvailable` / `IsCapabilityAvailable`; Android pushes via `BuildConfig` → `nativeSetExplorerProCapabilities` at platform init (SP-004 pattern) |
 | Entitlement storage location chosen, unused in V1 | `platform::SecureStorage` key `ExplorerPro.Entitled` (documented only; stub never reads or writes) |
