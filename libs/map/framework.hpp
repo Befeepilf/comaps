@@ -8,6 +8,7 @@
 #include "map/mwm_url.hpp"
 #include "map/place_page_info.hpp"
 #include "map/position_provider.hpp"
+#include "map/recording_session.hpp"
 #include "map/power_management/power_manager.hpp"
 #include "map/routing_manager.hpp"
 #include "map/routing_mark.hpp"
@@ -203,6 +204,7 @@ protected:
 
   std::unique_ptr<StreetPixelsManager> m_streetPixelsManager;
   std::unique_ptr<ExploreStatsService> m_exploreStatsService;
+  std::unique_ptr<RecordingSession> m_recordingSession;
 
   SearchMarks m_searchMarks;
 
@@ -313,6 +315,9 @@ public:
 
   StreetPixelsManager & GetStreetPixelsManager();
   StreetPixelsManager const & GetStreetPixelsManager() const;
+
+  RecordingSession & GetRecordingSession();
+  RecordingSession const & GetRecordingSession() const;
 
   void EnableExploreSync(bool enabled);
   bool IsExploreSyncEnabled() const;
