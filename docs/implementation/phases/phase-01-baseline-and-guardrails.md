@@ -89,7 +89,7 @@ None. This phase can start immediately.
 | SP-002 | Street Pixels test harness | **Accepted** 2026-07-26 — lean `street_pixels_tests`; local gate only for V1 |
 | SP-003 | Privacy and telemetry baseline | **Accepted** 2026-07-26 |
 | SP-004 | Network egress inventory and API base configuration | **Accepted** 2026-07-26 — fail-closed API base, egress inventory; build and `street_pixels_tests` green |
-| SP-005 | Feature-flag and entitlement foundation | Shared abstraction, Pro flags off |
+| SP-005 | Feature-flag and entitlement foundation | **Accepted** 2026-07-27 — capability + entitlement stub, Pro flags off, matrix tests green |
 
 SP-002 is an addition to the originally suggested breakdown. It is justified by
 two repository facts: no street-pixel test exists, and the one plausible host
