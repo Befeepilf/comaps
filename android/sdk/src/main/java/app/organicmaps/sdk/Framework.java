@@ -395,5 +395,7 @@ public class Framework
   public static native boolean nativeHasExploreConsent();
   public static native void nativeSetExploreConsent(boolean consented);
   public static native void nativeSetExploreApiBaseUrl(@NonNull String url);
+  public static native void nativeSetExplorerProCapabilities(boolean gpxImport, boolean gpxExport,
+                                                           boolean advancedTrackManagement);
   public static native void nativeTriggerExploreStatsUpload();
 }
