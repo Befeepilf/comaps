@@ -1,7 +1,7 @@
 # SP-003 — Privacy and telemetry baseline
 
 **Phase:** 1 — Baseline and guardrails
-**Status:** Not started
+**Status:** In progress
 **Branch:** `street-pixels`
 
 ---
@@ -156,21 +156,25 @@ Telemetry configuration is manifest data and is not directly unit-testable.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commits | |
-| Sentry settings before | |
-| Sentry settings after | |
-| Chosen sample rates and rationale | |
-| Log statements changed | |
-| Release build telemetry inventory | |
-| Deliberate-crash report link | |
-| Test device model and OS version | |
-| Implemented by | |
-| Independent reviewer | |
-| Manual validation performed by and date | |
+| Branch | `street-pixels` |
+| Commits | `c550b53c78` build blockers; `4703e6c266` Sentry defaults; `673f89805a` log scrub; `e368541738` manifest guard; `71cc5a8a22` docs |
+| Sentry settings before | `send-default-pii=true`, `attach-screenshot=true`, `attach-view-hierarchy=true`, `traces.sample-rate=1.0`, profiling session-sample-rate `1.0`, `start-on-app-start=true`, `logs.enabled=true`, user-interaction `true` |
+| Sentry settings after | `send-default-pii=false`, `attach-screenshot=false`, `attach-view-hierarchy=false`, `traces.sample-rate=0.1`, profiling session-sample-rate `0.1`, `start-on-app-start=false`, `logs.enabled=false`, user-interaction `true` (unchanged) |
+| Chosen sample rates and rationale | Trace and profiling session sample rates `0.1` (10%): enough crash-adjacent performance signal without 100% volume in a location app. Profiling remains coupled to sampled traces (`lifecycle=trace`). App-start profiling off to avoid always-on launch capture and known ART risk. |
+| Log statements changed | `gps_track_filter.cpp` LDEBUG: dropped lat/lon. `mwm_url.cpp`, `geo_url_parser.cpp`, `serdes_gpx.cpp`: LWARNING/LERROR no longer print coordinate values or raw geo strings. |
+| Release build telemetry inventory | Packaged `web`+`beta` APK `CoMaps-26072602-web-beta.apk` (`assembleWebBeta -Parm64`). `aapt dump xmltree` confirms PII/screenshot/view-hierarchy/logs/start-on-app-start are false (`0x0`); sample rates are float `0.1` (`0x3dcccccd`); user-interaction remains true. Sentry Gradle plugin left unchanged (source/native symbol upload is org tooling, not end-user PII). `tracking::Reporter` confirmed unused outside `tracking_tests`. |
+| Deliberate-crash report link | **Pending human device validation** — no physical device attached; Pixel_9a emulator hung offline (no adb port). Trigger with search `?emulateJavaCrash` on installed webBeta, then link the comaps-dl/android event. |
+| Test device model and OS version | **Pending** — intended Pixel 3a / LineageOS 22.2 per SP-001 baseline, or successor. Emulator attempt: Pixel_9a AVD (android-36) failed to become adb-online. |
+| Implemented by | Cursor agent, 2026-07-26 |
+| Independent reviewer | — |
+| Manual validation performed by and date | Partial: APK build + packaged-manifest inspection + `./tools/unix/check_sentry_privacy.sh` (OK), 2026-07-26. Full location session, logcat, and deliberate-crash Sentry inspection **not executed** (device unavailable). |
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| `webBeta` build was broken: missing `#include "geometry/distance_on_sphere.hpp"` in `Framework.cpp`; duplicate `routing_options_title` string; stale `DrivingOptionsActivity` import; missing `StreetExplorationRoutingOptions` import / wrong field name in `RoutingOptionsFragment`. | Fixed on `street-pixels` as build-blocker commits under SP-003 so release-configured validation could run. Broader routing-options WIP still needs a dedicated work item if incomplete. |
+| Pre-fix Sentry events may contain PII/screenshots. | Operational purge in Sentry org; not code. |
+| Device crash + logcat acceptance criteria still open. | Maintainer installs `CoMaps-26072602-web-beta.apk` (or rebuild), runs location session + `?emulateJavaCrash`, records Sentry event URL and logcat result in this table. |
+| Sentry Logs and user-interaction tracing residual policy. | Logs disabled; user-interaction left on. Revisit if UI surfaces coordinates. |
+| Gradle sentry plugin still uploads source/native symbols when auth is present. | Leave as-is unless a later privacy decision forbids org source upload. |
