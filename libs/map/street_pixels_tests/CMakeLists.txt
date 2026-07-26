@@ -3,6 +3,7 @@ project(street_pixels_tests)
 set(SRC
   backend_config_tests.cpp
   collection_gate_tests.cpp
+  collection_radius_tests.cpp
   explorer_pro_tests.cpp
   exploration_multiplier_tests.cpp
   recording_session_tests.cpp
