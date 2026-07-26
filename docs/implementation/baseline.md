@@ -243,8 +243,45 @@ On `street-pixels` (macOS 26.5 arm64, toolchains above):
 
 SP-001 accepted 2026-07-25. SP-002 accepted 2026-07-26 (`street_pixels_tests`,
 local gate). SP-003 accepted 2026-07-26 (Sentry privacy defaults, device
-validation on Pixel 3a / webBeta). Full desktop `-d` remains partially red
+validation on Pixel 3a / webBeta). SP-004 implemented 2026-07-26 (fail-closed API
+base, egress inventory). Full desktop `-d` remains partially red
 (non-smoke targets); recorded in §3.
+
+### 8. Network egress inventory (SP-004)
+
+Recorded 2026-07-26 from code review and BuildConfig generation. App product
+flavors (`google`, `web`, `fdroid`, `huawei`) share the SDK build type; the
+`EXPLORE_API_BASE_URL` column applies to every flavor × build type combination.
+
+| Destination | Scheme | Trigger | Frequency | Gated by |
+| --- | --- | --- | --- | --- |
+| Map meta `cdn-us-1.comaps.app/servers` | HTTPS | Map download / update | On user download | User action; offline uses local maps |
+| Map CDN peers (`comaps.firewall-gateway.de`, `cdn-us-2.comaps.tech`, `cdn-fi-1.comaps.app`, `comaps.openstreetmap.fr`, `comaps-it1.unfoxo.it`, `comaps-cdn.s3-website.cloud.ru`, `mapgen-fi-1.comaps.app`) | HTTPS | Map file fetch after meta | On download | Same; fallback list in `private.h` |
+| Custom map download URL (`pref_custom_map_download_url` → `nativeSetCustomMapDownloadUrl`) | As configured | Map download | On download | Optional user override |
+| Explore `{apiBase}/stats/upload` | From base (HTTPS in release/beta) | `ExploreStatsService::TryUpload` | 1-minute check loop; upload if sync on and dirty | `Explore.SyncEnabled` **and** `backend::IsApiConfigured()`; endpoint not implemented (Phase 8) |
+| Friends/account `{apiBase}/friends/*`, `/signup`, `/update_username`, `/account`, `/account/export` | From base | `FriendsManager` UI actions | On user action; `Refresh` on account UI open | `backend::IsApiConfigured()`; UI also gates sync/visibility (OQ-6: feature retained) |
+| Sentry `ingest.de.sentry.io` | HTTPS | Crashes / sampled traces | Event-driven; traces 10% | Sentry SDK init; privacy defaults per §7 |
+| OSM `openstreetmap.org` / `api.openstreetmap.org` | HTTPS | Map editor / notes / OAuth | On editor use | Editor flows only |
+| Diff list / traffic data clients | — | — | — | Disabled (`DIFF_LIST_URL` / `TRAFFIC_DATA_BASE_URL` empty) |
+| `tracking::Reporter` | — | — | — | Unused (SP-003) |
+
+**Unconfigured-state behaviour:** `GetApiBaseUrl()` returns empty when
+`Explore.ApiBaseUrl` is unset. `IsApiConfigured()` is false. Explore stats and
+friends callers return before `HttpClient`. No LAN or private-range default.
+
+**Android `EXPLORE_API_BASE_URL` (SDK module, all flavors):**
+
+| Build type | Injected value |
+| --- | --- |
+| `debug` | `""` (empty — unconfigured) |
+| `release` | `https://api.comaps.app/api` |
+| `beta` | `https://api.comaps.app/api` (explicit; `matchingFallbacks` does not copy BuildConfig) |
+
+Local override for configured debug builds:
+`./gradlew assembleWebDebug -PexploreApiBaseUrl=https://api.comaps.app/api`
+
+Verified via `./gradlew :sdk:generateDebugBuildConfig` (and release/beta) on
+2026-07-26.
 
 ### 7. Telemetry defaults (SP-003)
 

@@ -1,7 +1,7 @@
 # SP-004 — Network egress inventory and API base configuration
 
 **Phase:** 1 — Baseline and guardrails
-**Status:** Not started
+**Status:** In review
 **Branch:** `street-pixels`
 
 ---
@@ -158,15 +158,18 @@ These belong in the SP-002 test target.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commits | |
-| Egress inventory | |
-| Unconfigured-state behaviour chosen | |
-| Build type and flavor to API base mapping | |
-| Traffic capture, release build unconfigured | |
-| Traffic capture, debug build configured | |
-| Offline session result | |
-| Implemented by | |
+| Branch | `street-pixels` |
+| Commits | `7219de4be2`, `73e7df4088`, `c9eb7411ac`, `f1103c6650` |
+| Egress inventory | [baseline.md §8](../baseline.md#8-network-egress-inventory-sp-004) |
+| Unconfigured-state behaviour chosen | Empty `GetApiBaseUrl()`; `IsApiConfigured()`; callers no-op before HTTP |
+| Build type and flavor to API base mapping | debug `""`; release/beta `https://api.comaps.app/api`; all flavors inherit SDK build type; optional `-PexploreApiBaseUrl` |
+| Traffic capture, release build unconfigured | **Pending maintainer** — procedure: install `webBeta`, clear app data, PCAPdroid or `adb logcat` grep for 30+ min with recording; expect no explore/friends/LAN traffic |
+| Traffic capture, debug build configured | **Pending maintainer** — `assembleWebDebug -PexploreApiBaseUrl=https://api.comaps.app/api`; confirm TLS to `api.comaps.app` |
+| Offline session result | **Pending maintainer** — map, recording, routing with airplane mode |
+| Automated tests | `ctest -L omim-test -R '^street_pixels_tests$'` — **Passed** 2026-07-26 (11 tests) |
+| BuildConfig verification | `generateDebugBuildConfig` → `""`; release/beta → `https://api.comaps.app/api` |
+| LAN string audit | No `192.168.178.89` in compiled sources (removed from `backend_config`, `build.gradle`, `network_security_config.xml`) |
+| Implemented by | Cursor agent |
 | Independent reviewer | |
 | Manual validation performed by and date | |
 
@@ -174,4 +177,7 @@ These belong in the SP-002 test target.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| `ExploreStatsService` checks every minute vs spec §25.3 (15 min + jitter) | Phase 8 competition upload protocol |
+| `/stats/upload` endpoint missing on backend | Phase 8 |
+| Friends feature vs V1 non-goal | OQ-6; not resolved in SP-004 |
+| `network_security_config.xml` still permits cleartext globally (`base-config cleartextTrafficPermitted="true"`) | Audit separately; SP-004 removed developer LAN domain only |
