@@ -1,7 +1,7 @@
 # SP-005 — Feature-flag and entitlement foundation
 
 **Phase:** 1 — Baseline and guardrails
-**Status:** Not started
+**Status:** Accepted
 **Branch:** `street-pixels`
 
 ---
@@ -162,17 +162,18 @@ In the SP-002 target:
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commits | |
-| Capabilities defined | |
-| Availability mechanism | |
-| Entitlement storage location chosen, unused in V1 | |
-| Build configuration to capability mapping | |
-| Matrix test output | |
-| Confirmation that no behaviour changed | |
-| Implemented by | |
-| Independent reviewer | |
-| Manual validation performed by and date | |
+| Branch | `street-pixels` |
+| Commits | `bd698538e4`, `6bd3e34299`, `a67998278f`, `4fe1b76d13` on `street-pixels` |
+| Capabilities defined | `GpxImport`, `GpxExport`, `AdvancedTrackManagement` in `libs/map/explorer_pro.hpp` |
+| Availability mechanism | Runtime `SetCapabilityAvailable` / `IsCapabilityAvailable`; Android pushes via `BuildConfig` → `nativeSetExplorerProCapabilities` at platform init (SP-004 pattern) |
+| Entitlement storage location chosen, unused in V1 | `platform::SecureStorage` key `ExplorerPro.Entitled` (documented only; stub never reads or writes) |
+| Build configuration to capability mapping | All flavors × debug/release/beta → three `EXPLORER_PRO_*` BuildConfig booleans `false`; `-PenableExplorerProCapabilities=true` sets all three `true` |
+| Matrix test output | `street_pixels_tests`: **22 / 22** passed (7 new `ExplorerPro_*` cases); `ctest -R '^street_pixels_tests$'` exit 0 |
+| Confirmation that no behaviour changed | No call sites gated; diff touches only foundation + wiring + tests |
+| Implemented by | Cursor agent |
+| Accepted by | Maintainer |
+| Accepted date | 2026-07-27 |
+| Manual validation performed by and date | Maintainer, 2026-07-27 — BuildConfig verified; device UI unchanged (no new gates) |
 
 ## Discovered follow-up
 
