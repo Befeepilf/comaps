@@ -7,6 +7,22 @@ env:
   SKIP_MAP_DOWNLOAD: true
 
 jobs:
+  sentry-privacy:
+    name: Sentry Privacy Manifest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            android/app/src/main/AndroidManifest.xml
+            tools/unix/check_sentry_privacy.sh
+
+      - name: Check Sentry privacy meta-data
+        shell: bash
+        run: ./tools/unix/check_sentry_privacy.sh
+
   lint:
     name: Android Lint
     runs-on: ubuntu-latest
