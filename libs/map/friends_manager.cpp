@@ -136,6 +136,9 @@ void FriendsManager::RemoveSubscriber(Subscriber * sub)
 
 void FriendsManager::Refresh()
 {
+  if (!backend::IsApiConfigured())
+    return;
+
   GetPlatform().RunTask(Platform::Thread::Network, [this]()
   {
     std::string const url = backend::GetApiBaseUrl() + "/friends/list";
@@ -169,6 +172,9 @@ void FriendsManager::Refresh()
 
 void FriendsManager::Signup(std::string const & username)
 {
+  if (!backend::IsApiConfigured())
+    return;
+
   GetPlatform().RunTask(Platform::Thread::Network, [this, username]()
   {
     std::string const url = backend::GetApiBaseUrl() + "/signup";
@@ -191,6 +197,9 @@ void FriendsManager::Signup(std::string const & username)
 
 void FriendsManager::ChangeUsername(std::string const & username)
 {
+  if (!backend::IsApiConfigured())
+    return;
+
   GetPlatform().RunTask(Platform::Thread::Network, [this, username]()
   {
     std::string const url = backend::GetApiBaseUrl() + "/update_username";
@@ -213,6 +222,9 @@ void FriendsManager::ChangeUsername(std::string const & username)
 
 void FriendsManager::SearchByUsername(std::string const & query, SearchCallback const & callback)
 {
+  if (!backend::IsApiConfigured())
+    return;
+
   GetPlatform().RunTask(Platform::Thread::Network, [query, callback]()
   {
     std::string const url = backend::GetApiBaseUrl() + "/friends/search?query=" + url::UrlEncode(query);
@@ -238,6 +250,9 @@ void FriendsManager::SearchByUsername(std::string const & query, SearchCallback 
 
 void FriendsManager::SendRequest(std::string const & userId)
 {
+  if (!backend::IsApiConfigured())
+    return;
+
   GetPlatform().RunTask(Platform::Thread::Network, [this, userId]()
   {
     std::string const url =
@@ -258,6 +273,9 @@ void FriendsManager::SendRequest(std::string const & userId)
 
 void FriendsManager::AcceptRequest(std::string const & userId)
 {
+  if (!backend::IsApiConfigured())
+    return;
+
   GetPlatform().RunTask(Platform::Thread::Network, [this, userId]()
   {
     std::string const url =
@@ -278,6 +296,9 @@ void FriendsManager::AcceptRequest(std::string const & userId)
 
 void FriendsManager::CancelRequest(std::string const & userId)
 {
+  if (!backend::IsApiConfigured())
+    return;
+
   GetPlatform().RunTask(Platform::Thread::Network, [this, userId]()
   {
     std::string const url =
@@ -309,6 +330,9 @@ void FriendsManager::ClearLocalAccountData()
 
 void FriendsManager::DeleteAccount()
 {
+  if (!backend::IsApiConfigured())
+    return;
+
   GetPlatform().RunTask(Platform::Thread::Network, [this]()
   {
     std::string const url = backend::GetApiBaseUrl() + "/account";
@@ -331,6 +355,9 @@ void FriendsManager::DeleteAccount()
 
 void FriendsManager::ExportAccount(ExportCallback const & callback)
 {
+  if (!backend::IsApiConfigured())
+    return;
+
   GetPlatform().RunTask(Platform::Thread::Network, [callback]()
   {
     std::string const url = backend::GetApiBaseUrl() + "/account/export";
