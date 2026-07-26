@@ -4,6 +4,13 @@ plugins {
   id 'com.android.library'
 }
 
+def exploreApiBaseUrlField(String defaultValue) {
+  if (project.hasProperty('exploreApiBaseUrl')) {
+    return "\"${project.getProperty('exploreApiBaseUrl')}\""
+  }
+  return defaultValue
+}
+
 android {
   namespace = 'app.organicmaps.sdk'
   compileSdk = propCompileSdkVersion.toInteger()
@@ -17,7 +24,7 @@ android {
   defaultConfig {
     minSdk = propMinSdkVersion.toInteger()
     targetSdk = propTargetSdkVersion.toInteger()
-    buildConfigField 'String', 'EXPLORE_API_BASE_URL', '"http://192.168.178.89:8999/api"'
+    buildConfigField 'String', 'EXPLORE_API_BASE_URL', exploreApiBaseUrlField('""')
 
     externalNativeBuild {
       def pchFlag = 'OFF'
@@ -86,12 +93,15 @@ android {
     release {
 //      minifyEnabled true
 //      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-      buildConfigField 'String', 'EXPLORE_API_BASE_URL', '"https://api.comaps.app/api"'
+      buildConfigField 'String', 'EXPLORE_API_BASE_URL',
+          exploreApiBaseUrlField('"https://api.comaps.app/api"')
     }
     beta {
 //      minifyEnabled true
 //      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
       matchingFallbacks = ['release']
+      buildConfigField 'String', 'EXPLORE_API_BASE_URL',
+          exploreApiBaseUrlField('"https://api.comaps.app/api"')
     }
   }
 
