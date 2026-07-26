@@ -244,3 +244,27 @@ On `street-pixels` (macOS 26.5 arm64, toolchains above):
 SP-001 accepted 2026-07-25. SP-002 accepted 2026-07-26 (`street_pixels_tests`,
 local gate). Full desktop `-d` remains partially red (non-smoke targets); recorded
 in §3.
+
+### 7. Telemetry defaults (SP-003)
+
+Android Sentry meta-data (all flavors/types share
+`android/app/src/main/AndroidManifest.xml`):
+
+| Setting | Value | Notes |
+| --- | --- | --- |
+| `send-default-pii` | `false` | No default PII |
+| `attach-screenshot` | `false` | Map screenshot is location data |
+| `attach-view-hierarchy` | `false` | Hierarchy can expose map/location UI |
+| `traces.sample-rate` | `0.1` | 10% of transactions |
+| `traces.profiling.session-sample-rate` | `0.1` | 10% of sessions; `lifecycle=trace` |
+| `traces.profiling.start-on-app-start` | `false` | No always-on launch profiling |
+| `logs.enabled` | `false` | Do not ship app logs to Sentry |
+| `traces.user-interaction.enable` | `true` | Breadcrumbs only; residual risk accepted |
+
+Guard: `./tools/unix/check_sentry_privacy.sh` (also wired into GitHub and Forgejo
+`android-check` as a hard-fail job).
+
+Release-configured validation build used for SP-003 packaging inspection:
+`cd android && ./gradlew -Parm64 assembleWebBeta` →
+`app/build/outputs/apk/web/beta/CoMaps-*-web-beta.apk`.
+Device crash/logcat confirmation still pending (see SP-003 evidence).
