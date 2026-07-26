@@ -81,19 +81,19 @@ bool ParseLatLon(std::string const & key, std::string const & value, double & la
   size_t const firstComma = value.find(',');
   if (firstComma == std::string::npos)
   {
-    LOG(LWARNING, ("Map API: no comma between lat and lon for key:", key, " value:", value));
+    LOG(LWARNING, ("Map API: no comma between lat and lon for key:", key));
     return false;
   }
 
   if (!strings::to_double(value.substr(0, firstComma), lat) || !strings::to_double(value.substr(firstComma + 1), lon))
   {
-    LOG(LWARNING, ("Map API: can't parse lat,lon for key:", key, " value:", value));
+    LOG(LWARNING, ("Map API: can't parse lat,lon for key:", key));
     return false;
   }
 
   if (!mercator::ValidLat(lat) || !mercator::ValidLon(lon))
   {
-    LOG(LWARNING, ("Map API: incorrect value for lat and/or lon", key, value, lat, lon));
+    LOG(LWARNING, ("Map API: incorrect value for lat and/or lon for key:", key));
     return false;
   }
   return true;
@@ -273,7 +273,7 @@ ParsedMapApi::UrlType ParsedMapApi::ParseGeoNav(std::string const & raw)
       if (tokens.size() != 2 || !strings::to_double(tokens[0], lat) || !strings::to_double(tokens[1], lon) ||
           !mercator::ValidLat(lat) || !mercator::ValidLon(lon))
       {
-        LOG(LWARNING, ("Invalid lat,lon in", raw));
+        LOG(LWARNING, ("Invalid lat,lon in map URL"));
         return m_requestType = UrlType::Incorrect;
       }
 
