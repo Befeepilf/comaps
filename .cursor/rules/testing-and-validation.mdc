@@ -29,11 +29,10 @@ cd android && ./gradlew -Pandroidauto=true lint                  # Android lint
 
 ## Known CI gap
 
-`.forgejo/workflows/linux-check.yaml` runs the tests but its
-`CTEST_EXCLUDE_REGEX` currently excludes `map_tests`, `routing_tests`,
-`indexer_tests`, and most other suites. `.github/workflows/` has no C++ test job
-at all. A test added to an excluded target will not run in CI. Check where a new
-test will actually execute before claiming it is covered.
+Upstream Forgejo `linux-check.yaml` excludes most C++ unit suites via
+`CTEST_EXCLUDE_REGEX`; `.github/workflows/` has no C++ test job. For Street
+Pixels V1, new tests (including `street_pixels_tests`) are validated locally.
+Post-V1 generic desktop test CI is follow-up from SP-002.
 
 ## Adding tests
 

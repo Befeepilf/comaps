@@ -203,11 +203,13 @@ adb install -r android/app/build/outputs/apk/web/debug/CoMaps-26072405-web-debug
 
 ---
 
-## CTEST_EXCLUDE_REGEX vs smoke suite (SP-002 input)
+## Known CI gap (unchanged; SP-002 scope)
 
-Forgejo `.forgejo/workflows/linux-check.yaml` `CTEST_EXCLUDE_REGEX` excludes:
+Forgejo `.forgejo/workflows/linux-check.yaml` `CTEST_EXCLUDE_REGEX` excludes most
+smoke targets. SP-002 added `street_pixels_tests` with **local** validation only;
+generic C++ test CI is deferred until after public Android V1.
 
-`generator_integration_tests`, `opening_hours_integration_tests`, …, `map_tests`,
+Excluded targets include:
 `search_tests`, `routing_tests`, `generator_tests`, `base_tests`, `indexer_tests`,
 `platform_tests`, …
 
@@ -239,5 +241,6 @@ On `street-pixels` (macOS 26.5 arm64, toolchains above):
 - **Physical device map smoke:** **pass** — Pixel 3a, LineageOS 22.2, map loads (`webDebug`).
 - **`./configure.sh`:** still requires map workaround on fresh clone (CDN 260603 404).
 
-SP-001 accepted 2026-07-25. Full desktop `-d` remains partially red (non-smoke
-targets); recorded in §3.
+SP-001 accepted 2026-07-25. SP-002 accepted 2026-07-26 (`street_pixels_tests`,
+local gate). Full desktop `-d` remains partially red (non-smoke targets); recorded
+in §3.

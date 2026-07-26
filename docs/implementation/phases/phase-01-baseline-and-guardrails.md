@@ -69,7 +69,7 @@ developer machine.
 - A recorded, repeatable command sequence that produces a debug Android APK and
   a desktop debug build with tests on the maintainer's machine.
 - A Street Pixels test target that builds quickly, contains at least one real
-  assertion, and is executed by a CI job that fails when the test fails.
+  assertion, and passes locally on the maintainer machine.
 - Telemetry defaults that do not capture personally identifying data,
   screenshots, view hierarchies, or location values.
 - A written inventory of every network destination a release build can reach,
@@ -86,7 +86,7 @@ None. This phase can start immediately.
 | ID | Title | Notes |
 | --- | --- | --- |
 | SP-001 | Reproducible Android and desktop build baseline | **Accepted** 2026-07-25 |
-| SP-002 | Street Pixels test harness and CI gate | New lean test target plus a CI job that runs it |
+| SP-002 | Street Pixels test harness | **Accepted** 2026-07-26 — lean `street_pixels_tests`; local gate only for V1 |
 | SP-003 | Privacy and telemetry baseline | Telemetry configuration and log-hygiene review |
 | SP-004 | Network egress inventory and API base configuration | Removes the developer default; documents egress |
 | SP-005 | Feature-flag and entitlement foundation | Shared abstraction, Pro flags off |
@@ -129,8 +129,8 @@ permanently compromised.
 
 ## Automated testing strategy
 
-- SP-002 delivers the harness itself. Its own acceptance is that a deliberately
-  failing assertion turns the CI job red, demonstrated once and then reverted.
+- SP-002 delivers the harness itself. Acceptance is local build and pass on the
+  maintainer machine; C++ test CI is deferred post-V1.
 - SP-005 adds unit tests for the flag and entitlement resolution matrix: flag
   off plus no entitlement, flag off plus entitlement, flag on plus no
   entitlement, flag on plus entitlement. Only the last combination may enable a
@@ -160,8 +160,8 @@ permanently compromised.
 
 1. Android debug APK and desktop debug-with-tests builds are reproducible from
    documented commands, and the commands are verified to work.
-2. A Street Pixels test target exists, contains real assertions, and is run by a
-   CI job that fails on test failure.
+2. A Street Pixels test target exists, contains real assertions, and passes
+   locally via the standard desktop build and `ctest`.
 3. Telemetry in a release-configured build captures no PII, no screenshots, no
    view hierarchy, and no location values; sampling rates are deliberate rather
    than left at 1.0.

@@ -43,7 +43,7 @@ broken before Street Pixels work begins.
 - Changing CMake structure, Gradle flavors, or dependency versions.
 - Adding new build targets. SP-002 does that.
 - Fixing pre-existing test failures. They are recorded, not repaired.
-- Changing CI configuration. SP-002 does that.
+- Changing CI configuration. Deferred post-V1 (see SP-002 discovered follow-up).
 - Upgrading toolchains.
 
 ## Relevant product requirements
