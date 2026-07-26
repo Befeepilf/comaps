@@ -155,10 +155,12 @@ roadmap tracks.
 
 ### 4.3 Current phase status
 
-**Active phase: Phase 1 — Baseline and guardrails. No work items started.**
+**Active phase: Phase 1 — Baseline and guardrails.**
 
-No phase or work item in this repository has been marked completed. Status
-values are set only by the human maintainer after a merge.
+| Work item | Status |
+| --- | --- |
+| SP-001 | Accepted 2026-07-25 |
+| SP-002 | Accepted 2026-07-26 |
 
 ---
 
@@ -295,11 +297,11 @@ Additional standing rules:
 | Android lint | `cd android && ./gradlew -Pandroidauto=true lint` | `.github/workflows/android-check.yaml` |
 | C++ formatting check | `./tools/unix/clang-format.sh` | `.github/workflows/code-style-check.yaml` |
 
-Known CI gap, relevant to step 5: the Forgejo `linux-check.yaml` test job
-excludes `map_tests` (and most other suites) through `CTEST_EXCLUDE_REGEX`, and
-`.github/workflows/` contains no C++ test job at all. New Street Pixels tests
-must therefore be placed in a target that is actually executed, and the CI gap
-is itself addressed by work item **SP-002**.
+Known CI gap: Forgejo `linux-check.yaml` excludes most C++ unit suites via
+`CTEST_EXCLUDE_REGEX`, and `.github/workflows/` has no C++ test job. For V1,
+focused tests (including `street_pixels_tests`) are validated locally per
+`docs/implementation/README.md` §8. Post-V1 generic C++ test CI is tracked as
+follow-up from SP-002.
 
 ---
 
@@ -310,7 +312,7 @@ Implement in this order. Each links to a file with full detail.
 | Order | ID | Title | Phase | Why first |
 | --- | --- | --- | --- | --- |
 | 1 | [SP-001](work-items/SP-001-reproducible-android-baseline.md) | Reproducible Android and desktop build baseline | 1 | **Accepted** — known-good build commands and baseline recorded. |
-| 2 | [SP-002](work-items/SP-002-street-pixels-test-harness.md) | Street Pixels test harness and CI gate | 1 | The validation policy requires runnable focused tests; none exist for street pixels today. |
+| 2 | [SP-002](work-items/SP-002-street-pixels-test-harness.md) | Street Pixels test harness | 1 | **Accepted** — lean `street_pixels_tests` target; local validation gate for Phase 2. |
 | 3 | [SP-003](work-items/SP-003-privacy-and-telemetry-baseline.md) | Privacy and telemetry baseline | 1 | Current telemetry defaults contradict the product's private-by-default principle and would ship that contradiction forward. |
 | 4 | [SP-004](work-items/SP-004-network-egress-and-api-configuration.md) | Network egress inventory and API base configuration | 1 | A developer LAN endpoint is the compiled-in default; egress must be known and controlled before any upload work. |
 | 5 | [SP-005](work-items/SP-005-feature-flag-foundation.md) | Feature-flag and entitlement foundation | 1 | Later phases depend on being able to ship incomplete surfaces disabled. |
