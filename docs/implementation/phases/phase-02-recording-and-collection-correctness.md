@@ -188,7 +188,7 @@ Record device model, OS version, build type, route, and outcome for each.
 ## Entry criteria
 
 - Phase 1 exit criteria met.
-- SP-002's test target is executable and running in CI.
+- SP-002's test target is executable locally (`street_pixels_tests`).
 - At least two physical Android test devices are available.
 
 ## Exit criteria

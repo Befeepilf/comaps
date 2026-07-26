@@ -1,15 +1,15 @@
-# SP-002 — Street Pixels test harness and CI gate
+# SP-002 — Street Pixels test harness
 
 **Phase:** 1 — Baseline and guardrails
-**Status:** Not started
+**Status:** Accepted (2026-07-26)
 **Branch:** `street-pixels`
 
 ---
 
 ## Objective
 
-Create a fast, dependency-light C++ test target for Street Pixels logic, and a
-CI job that runs it and fails the build when a test fails.
+Create a fast, dependency-light C++ test target for Street Pixels logic that
+Phase 2 work items can extend with focused, locally runnable assertions.
 
 ## Motivation
 
@@ -41,9 +41,8 @@ exactly the things that need cheap, fast, repeatable tests.
   `StreetPixelsManager`, or the `df::StreetPixel` bit accessors.
 - Small test helpers for building synthetic `location::GpsInfo` sequences and
   synthetic pixel sets, so that Phase 2 work items do not each invent their own.
-- A CI job that builds and runs this target and fails on failure.
-- Narrowing `CTEST_EXCLUDE_REGEX` so the new target is not excluded, or adding
-  a separate job — whichever is less disruptive to the existing pipeline.
+- Local validation: the target builds and passes on the maintainer machine via
+  `build_omim.sh` and `ctest`.
 
 ## Out-of-scope behavior
 
@@ -58,11 +57,13 @@ exactly the things that need cheap, fast, repeatable tests.
   work item, because a refactor of that file must not ride along with harness
   setup.
 - Coverage measurement.
+- CI automation for C++ unit tests. Deferred until after public Android V1;
+  local execution is the gate for V1.
 
 ## Relevant product requirements
 
 Indirect. This implements the validation policy in
-`docs/implementation/README.md` §8, steps 4 and 5.
+`docs/implementation/README.md` §8, steps 4 and 5 (local focused tests).
 
 ## Relevant source files or symbols
 
@@ -75,8 +76,6 @@ Indirect. This implements the validation policy in
   `SetExplored`
 - `libs/platform/location.hpp`: `location::GpsInfo`
 - `tools/unix/run_tests.sh`
-- `.forgejo/workflows/linux-check.yaml`, `CTEST_EXCLUDE_REGEX`
-- `.github/workflows/`
 
 ## Dependencies
 
@@ -97,27 +96,22 @@ Indirect. This implements the validation policy in
 5. Add at least one real assertion. The multiplier formula
    `1.0 + strength * 9.0 * exploredRatio` and the `StreetPixel` bit accessors
    are both fully deterministic and need no fixtures.
-6. Add a CI job that builds and runs the target. Prefer extending the existing
-   Forgejo test step by narrowing the exclusion regex; if that risks turning
-   the pipeline red for unrelated reasons, add a dedicated job instead.
-7. Demonstrate the gate works: temporarily break an assertion, observe CI fail,
-   revert. Record the failing run in the evidence table. The revert must be in
-   the same branch before review.
+6. Validate locally with `build_omim.sh -d street_pixels_tests` and
+   `ctest -L omim-test -R '^street_pixels_tests$'`.
 
 ## Acceptance criteria
 
 1. `libs/map/street_pixels_tests` builds through the standard desktop build.
-2. It runs through `./tools/unix/run_tests.sh` and through `ctest -L omim-test`.
+2. It runs through `ctest -L omim-test` and is included in the full
+   `run_tests.sh` suite (`find … '*_tests'`).
 3. It contains at least one assertion that would fail if the behaviour it tests
    changed.
 4. Test helpers for synthetic GPS sequences and pixel sets are available for
    later work items.
-5. A CI job runs the target, and a deliberately failing assertion was observed
-   turning it red.
-6. The target does not require a Qt event loop or a test server, or the reason
+5. The target does not require a Qt event loop or a test server, or the reason
    it must is documented.
-7. No existing test target's behaviour changed.
-8. No production source file is modified.
+6. No existing test target's behaviour changed.
+7. No production source file is modified.
 
 ## Required automated tests
 
@@ -134,19 +128,12 @@ The work item is the tests. Specifically, at minimum:
 
 - Run the target locally and confirm it completes in a small number of seconds.
 - Confirm it appears in the ctest list with the `omim-test` label.
-- Observe the CI job pass on the branch.
-- Observe the CI job fail with a deliberately broken assertion, then pass again
-  after revert. Link both runs.
 
 ## Failure and rollback considerations
 
 - Adding a test target cannot affect the shipped application; the worst case is
   a build-configuration problem, and `SKIP_TESTS=ON` already excludes tests
   from Android builds.
-- Narrowing `CTEST_EXCLUDE_REGEX` risks exposing unrelated failing suites and
-  turning the pipeline red. If that happens, revert the narrowing and add a
-  dedicated job instead; do not re-exclude the new target and do not "fix" the
-  unrelated suites here.
 - If the target cannot be built without Qt, do not force it. Record the
   constraint and accept the heavier target rather than restructuring
   `StreetPixelsManager` inside this work item.
@@ -156,20 +143,20 @@ The work item is the tests. Specifically, at minimum:
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commits | |
-| Test target path | |
-| `omim_add_test` options used | |
-| Local run output | |
-| Target runtime | |
-| CI job link, passing | |
-| CI job link, deliberately failing | |
-| Implemented by | |
-| Independent reviewer | |
-| Manual validation performed by and date | |
+| Branch | `street-pixels` |
+| Commits | `eac83c5eab` `[map] Add street_pixels_tests for pixel bits and multiplier` |
+| Test target path | `libs/map/street_pixels_tests/` |
+| `omim_add_test` options used | `NO_PLATFORM_INIT` (no `REQUIRE_QT`, no `REQUIRE_SERVER`) |
+| Local run output | `ctest -L omim-test -R '^street_pixels_tests$'`: 8/8 cases passed, 2026-07-26 |
+| Target runtime | ~0.07 s (ctest), 8 test cases |
+| CI | Deferred post-V1; not required for acceptance |
+| Implemented by | Maintainer session 2026-07-26 |
+| Independent reviewer | — |
+| Manual validation performed by and date | Maintainer, 2026-07-26 (macOS arm64, CMake 4.4.0) |
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Multiplier tests duplicate `1.0 + strength * 9.0 * exploredRatio` from `GetSegmentExplorationWeightMultiplier` rather than calling production code (manager needs DataSource/road geometry). | Extract a pure helper in a later work item (likely Phase 6 routing) and point tests at it; do not refactor in SP-002. |
+| C++ unit-test CI (Forgejo `linux-check` exclusions, no GitHub C++ job). | Post-V1: one generic desktop test workflow; not a per-feature pipeline. Out of V1 scope per maintainer decision 2026-07-26. |
