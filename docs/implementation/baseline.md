@@ -245,7 +245,7 @@ SP-001 accepted 2026-07-25. SP-002 accepted 2026-07-26 (`street_pixels_tests`,
 local gate). SP-003 accepted 2026-07-26 (Sentry privacy defaults, device
 validation on Pixel 3a / webBeta). SP-004 accepted 2026-07-26 (fail-closed API
 base, egress inventory; build and `street_pixels_tests` green). SP-005 accepted 2026-07-27 (Explorer Pro capability foundation, Android
-BuildConfig wiring, matrix tests; no UI gates). Full desktop `-d` remains
+BuildConfig wiring, matrix tests; no UI gates). SP-006 accepted 2026-07-27 (`RecordingSession` state machine, settings breadcrumb, 15 new unit tests; no collection gate). Full desktop `-d` remains
 partially red (non-smoke targets); recorded in §3.
 
 ### 8. Network egress inventory (SP-004)
@@ -346,6 +346,32 @@ Verified via `./gradlew :sdk:generateDebugBuildConfig` (and release/beta) on
 denies; `IsCapabilityEnabled` is the sole intended gate for Phase 9.
 
 SP-005 accepted 2026-07-27.
+
+### 11. SP-006 build and test validation
+
+Recorded 2026-07-27 after shared recording-session state model landed on
+`street-pixels`.
+
+**Desktop `street_pixels_tests`:**
+
+```bash
+export CMAKE=/opt/homebrew/bin/cmake SKIP_MAP_DOWNLOAD=1
+./tools/unix/build_omim.sh -d street_pixels_tests
+./tools/unix/run_tests.sh -b ../omim-build-debug -f "street_pixels_tests"
+```
+
+**Result:** Exit 0. **37 / 37** tests passed (15 new `RecordingSession_*` cases).
+
+**Module:** `libs/map/recording_session.{hpp,cpp}`; `Framework::GetRecordingSession()`.
+
+**Persistence:** `settings::` key `RecordingSessionActive` — boolean breadcrumb
+set on session `Start()`, cleared on `Finish()`/`Discard()`; full session state
+in-memory only (for SP-013 interruption detection).
+
+**Behaviour:** no pixel collection, track recording, routing, or UI changes;
+`StreetPixelsManager::OnLocationUpdate` still ungated (SP-007).
+
+SP-006 accepted 2026-07-27.
 
 ### 7. Telemetry defaults (SP-003)
 

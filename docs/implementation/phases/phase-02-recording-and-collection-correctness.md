@@ -1,6 +1,6 @@
 # Phase 2 — Recording and collection correctness
 
-**Status:** Not started
+**Status:** In progress
 **Depends on:** Phase 1
 **Blocks:** Phase 3, and through it Phases 4, 6, 8, 9
 
@@ -85,17 +85,17 @@ no live interpolation exists yet.
 
 ## Proposed work-item breakdown
 
-| ID | Title | Depends on |
-| --- | --- | --- |
-| SP-006 | Shared recording-session state model | SP-002 |
-| SP-007 | Pixel-collection recording gate | SP-006 |
-| SP-008 | Align collection radius with the specified 25 metres | SP-007 |
-| SP-009 | Live sample acceptance filter | SP-007 |
-| SP-010 | Pause and resume semantics | SP-006, SP-007 |
-| SP-011 | Segment interpolation with pause and interruption barriers | SP-009, SP-010 |
-| SP-012 | Android recording controls and foreground-service integration | SP-010 |
-| SP-013 | Interrupted-session detection and recovery | SP-010, SP-012 |
-| SP-014 | Recording end-to-end validation | all of the above |
+| ID | Title | Depends on | Notes |
+| --- | --- | --- | --- |
+| SP-006 | Shared recording-session state model | SP-002 | **Accepted** 2026-07-27 — state machine + settings breadcrumb; no collection gate yet |
+| SP-007 | Pixel-collection recording gate | SP-006 | |
+| SP-008 | Align collection radius with the specified 25 metres | SP-007 | |
+| SP-009 | Live sample acceptance filter | SP-007 | |
+| SP-010 | Pause and resume semantics | SP-006, SP-007 | |
+| SP-011 | Segment interpolation with pause and interruption barriers | SP-009, SP-010 | |
+| SP-012 | Android recording controls and foreground-service integration | SP-010 | |
+| SP-013 | Interrupted-session detection and recovery | SP-010, SP-012 | |
+| SP-014 | Recording end-to-end validation | all of the above | |
 
 Adjustments to the originally suggested breakdown, and why:
 

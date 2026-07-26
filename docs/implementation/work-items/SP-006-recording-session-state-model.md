@@ -1,7 +1,7 @@
 # SP-006 — Shared recording-session state model
 
 **Phase:** 2 — Recording and collection correctness
-**Status:** Not started
+**Status:** Accepted
 **Branch:** `street-pixels`
 
 ---
@@ -154,16 +154,17 @@ Light, because nothing user-visible changes.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commits | |
-| Module path | |
-| States and transitions implemented | |
-| Persistence decision and rationale | |
-| Test output | |
-| Confirmation that no behaviour changed | |
-| Implemented by | |
-| Independent reviewer | |
-| Manual validation performed by and date | |
+| Branch | `street-pixels` |
+| Commits | `55b2afe5d9`, `c97c38263b` on `street-pixels` |
+| Module path | `libs/map/recording_session.{hpp,cpp}`; owned by `Framework` via `GetRecordingSession()` |
+| States and transitions implemented | `Idle`, `Recording`, `Paused`, `Finished`, `Discarded`; `Start`, `Pause`, `Resume`, `Finish`, `Discard`, `Reset` with `TransitionResult::Ok` / `Rejected` |
+| Persistence decision and rationale | `settings::` boolean key `RecordingSessionActive` only — set on `Start()`, cleared on `Finish()`/`Discard()`, unchanged on `Pause`/`Resume`/`Reset()`. Full session state in-memory. Enough for SP-013 interruption detection without restore-on-launch. |
+| Test output | `street_pixels_tests`: **37 / 37** passed (15 new `RecordingSession_*` cases); `run_tests.sh -f "street_pixels_tests"` exit 0 |
+| Confirmation that no behaviour changed | No edits to `StreetPixelsManager`, `GpsTracker`, or Android recording UI; Framework getters only |
+| Implemented by | Cursor agent |
+| Accepted by | Maintainer |
+| Accepted date | 2026-07-27 |
+| Manual validation performed by and date | Maintainer, 2026-07-27 — build and tests green; no user-visible behaviour change expected |
 
 ## Discovered follow-up
 
