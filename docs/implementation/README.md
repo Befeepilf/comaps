@@ -77,7 +77,7 @@ V1 scope. Explorer Pro **purchasing** is not.
 | # | Phase | File | Status |
 | --- | --- | --- | --- |
 | 1 | Baseline and guardrails | [`phases/phase-01-baseline-and-guardrails.md`](phases/phase-01-baseline-and-guardrails.md) | Not started |
-| 2 | Recording and collection correctness | [`phases/phase-02-recording-and-collection-correctness.md`](phases/phase-02-recording-and-collection-correctness.md) | Not started |
+| 2 | Recording and collection correctness | [`phases/phase-02-recording-and-collection-correctness.md`](phases/phase-02-recording-and-collection-correctness.md) | In progress |
 | 3 | Exploration storage and map-update reconciliation | [`phases/phase-03-exploration-storage-and-reconciliation.md`](phases/phase-03-exploration-storage-and-reconciliation.md) | Not started |
 | 4 | Administrative-area pipeline | [`phases/phase-04-administrative-area-pipeline.md`](phases/phase-04-administrative-area-pipeline.md) | Not started |
 | 5 | Area progress and map interaction | [`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md) | Not started |
@@ -155,7 +155,7 @@ roadmap tracks.
 
 ### 4.3 Current phase status
 
-**Active phase: Phase 1 — Baseline and guardrails.**
+**Active phase: Phase 2 — Recording and collection correctness.**
 
 | Work item | Status |
 | --- | --- |
@@ -163,6 +163,8 @@ roadmap tracks.
 | SP-002 | Accepted 2026-07-26 |
 | SP-003 | Accepted 2026-07-26 |
 | SP-004 | Accepted 2026-07-26 |
+| SP-005 | Accepted 2026-07-27 |
+| SP-006 | Accepted 2026-07-27 |
 
 ---
 
@@ -317,8 +319,8 @@ Implement in this order. Each links to a file with full detail.
 | 2 | [SP-002](work-items/SP-002-street-pixels-test-harness.md) | Street Pixels test harness | 1 | **Accepted** — lean `street_pixels_tests` target; local validation gate for Phase 2. |
 | 3 | [SP-003](work-items/SP-003-privacy-and-telemetry-baseline.md) | Privacy and telemetry baseline | 1 | **Accepted** 2026-07-26 — Sentry private-by-default defaults, log scrub, manifest guard. |
 | 4 | [SP-004](work-items/SP-004-network-egress-and-api-configuration.md) | Network egress inventory and API base configuration | 1 | **Accepted** 2026-07-26 — fail-closed API base, egress inventory; build and `street_pixels_tests` green. |
-| 5 | [SP-005](work-items/SP-005-feature-flag-foundation.md) | Feature-flag and entitlement foundation | 1 | Later phases depend on being able to ship incomplete surfaces disabled. |
-| 6 | [SP-006](work-items/SP-006-recording-session-state-model.md) | Shared recording-session state model | 2 | The recording gate needs a session concept that does not yet exist. |
+| 5 | [SP-005](work-items/SP-005-feature-flag-foundation.md) | Feature-flag and entitlement foundation | 1 | **Accepted** 2026-07-27 — capability + entitlement stub, Pro flags off, matrix tests green. |
+| 6 | [SP-006](work-items/SP-006-recording-session-state-model.md) | Shared recording-session state model | 2 | **Accepted** 2026-07-27 — `RecordingSession` state machine + settings breadcrumb; no collection gate yet. |
 | 7 | [SP-007](work-items/SP-007-pixel-collection-recording-gate.md) | Pixel-collection recording gate | 2 | Closes the confirmed privacy-principle violation: pixels are collected with no session. |
 
 Remaining Phase 2 work items, in intended order: SP-008, SP-009, SP-010,
