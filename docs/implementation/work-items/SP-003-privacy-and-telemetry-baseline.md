@@ -157,7 +157,7 @@ Telemetry configuration is manifest data and is not directly unit-testable.
 | Field | Value |
 | --- | --- |
 | Branch | `street-pixels` |
-| Commits | `c550b53c78` build blockers; `4703e6c266` Sentry defaults; `673f89805a` log scrub; `e368541738` manifest guard; `71cc5a8a22` docs |
+| Commits | `c550b53c78` build blockers; `4703e6c266` Sentry defaults; `673f89805a` log scrub; `e368541738` manifest guard; docs commit on `street-pixels` (this file) |
 | Sentry settings before | `send-default-pii=true`, `attach-screenshot=true`, `attach-view-hierarchy=true`, `traces.sample-rate=1.0`, profiling session-sample-rate `1.0`, `start-on-app-start=true`, `logs.enabled=true`, user-interaction `true` |
 | Sentry settings after | `send-default-pii=false`, `attach-screenshot=false`, `attach-view-hierarchy=false`, `traces.sample-rate=0.1`, profiling session-sample-rate `0.1`, `start-on-app-start=false`, `logs.enabled=false`, user-interaction `true` (unchanged) |
 | Chosen sample rates and rationale | Trace and profiling session sample rates `0.1` (10%): enough crash-adjacent performance signal without 100% volume in a location app. Profiling remains coupled to sampled traces (`lifecycle=trace`). App-start profiling off to avoid always-on launch capture and known ART risk. |
