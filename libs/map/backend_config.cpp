@@ -8,7 +8,6 @@
 namespace
 {
 constexpr char kApiBaseUrlKey[] = "Explore.ApiBaseUrl";
-constexpr char kDefaultApiBaseUrl[] = "http://192.168.178.89:8999/api";
 
 std::string NormalizeBaseUrl(std::string_view url)
 {
@@ -33,10 +32,15 @@ std::string backend::GetApiBaseUrl()
   std::string value;
   if (settings::Get(std::string_view(kApiBaseUrlKey), value) && !value.empty())
     return NormalizeBaseUrl(value);
-  return kDefaultApiBaseUrl;
+  return {};
 }
+
+bool backend::IsApiConfigured() { return !GetApiBaseUrl().empty(); }
 
 std::string backend::GetStatsUploadUrl()
 {
-  return GetApiBaseUrl() + "/stats/upload";
+  auto const base = GetApiBaseUrl();
+  if (base.empty())
+    return {};
+  return base + "/stats/upload";
 }
