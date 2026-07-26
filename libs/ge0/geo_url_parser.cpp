@@ -224,7 +224,7 @@ bool GeoParser::Parse(std::string const & raw, GeoURLInfo & info) const
     VERIFY(strings::to_double(m[2].str(), lon), ());
     if (!mercator::ValidLat(lat) || !mercator::ValidLon(lon))
     {
-      LOG(LWARNING, ("Invalid lat,lon in", raw));
+      LOG(LWARNING, ("Invalid lat,lon in geo URL"));
       return false;
     }
     info.m_lat = lat;
@@ -246,7 +246,7 @@ bool GeoParser::Parse(std::string const & raw, GeoURLInfo & info) const
       VERIFY(strings::to_double(m[2].str(), lon), ());
       if (!mercator::ValidLat(lat) || !mercator::ValidLon(lon))
       {
-        LOG(LWARNING, ("Invalid lat,lon after q=", raw));
+        LOG(LWARNING, ("Invalid lat,lon after q= in geo URL"));
         info.m_query = *q;
       }
       else
