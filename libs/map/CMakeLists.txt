@@ -23,6 +23,8 @@ set(SRC
   explore_stats_service.hpp
   backend_config.cpp
   backend_config.hpp
+  explorer_pro.cpp
+  explorer_pro.hpp
   extrapolation/extrapolator.cpp
   extrapolation/extrapolator.hpp
   features_fetcher.cpp
