@@ -393,6 +393,7 @@ void Framework::OnViewportChanged(ScreenBase const & screen)
 Framework::Framework(FrameworkParams const & params, bool loadMaps)
   : m_streetPixelsManager(std::make_unique<StreetPixelsManager>(m_featuresFetcher.GetDataSource()))
   , m_exploreStatsService(std::make_unique<ExploreStatsService>())
+  , m_recordingSession(std::make_unique<RecordingSession>())
   , m_enabledDiffs(params.m_enableDiffs)
   , m_isRenderingEnabled(true)
   , m_transitManager(m_featuresFetcher.GetDataSource(),
@@ -2136,6 +2137,18 @@ StreetPixelsManager const & Framework::GetStreetPixelsManager() const
 {
   ASSERT(m_streetPixelsManager != nullptr, ("Street pixel manager is not initialized."));
   return *m_streetPixelsManager.get();
+}
+
+RecordingSession & Framework::GetRecordingSession()
+{
+  ASSERT(m_recordingSession != nullptr, ("Recording session is not initialized."));
+  return *m_recordingSession.get();
+}
+
+RecordingSession const & Framework::GetRecordingSession() const
+{
+  ASSERT(m_recordingSession != nullptr, ("Recording session is not initialized."));
+  return *m_recordingSession.get();
 }
 
 void Framework::SetPlacePageListeners(PlacePageEvent::OnOpen onOpen, PlacePageEvent::OnClose onClose,
