@@ -2,8 +2,13 @@
 
 #include "drape_frontend/street_pixel.hpp"
 
+#include "map/street_pixels_manager.hpp"
+
 #include "platform/location.hpp"
 
+#include "base/math.hpp"
+
+#include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <initializer_list>
@@ -12,6 +17,14 @@
 
 namespace street_pixels_tests
 {
+inline std::pair<double, double> LatLonForPixelId(std::int64_t pixelId)
+{
+  pointing const ang = hp::GetHealpixBase().pix2ang(pixelId);
+  double const lat = math::RadToDeg(M_PI_2 - ang.theta);
+  double const lon = math::RadToDeg(ang.phi);
+  return {lat, lon};
+}
+
 inline location::GpsInfo MakeGpsInfo(double lat, double lon, double horizontalAccuracyM, double timestampSec,
                                      location::TLocationSource source = location::EAndroidNative)
 {
