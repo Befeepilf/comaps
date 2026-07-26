@@ -7,5 +7,6 @@ namespace backend
 {
 void SetApiBaseUrl(std::string_view url);
 std::string GetApiBaseUrl();
+bool IsApiConfigured();
 std::string GetStatsUploadUrl();
 }

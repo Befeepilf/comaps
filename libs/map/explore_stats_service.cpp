@@ -245,10 +245,19 @@ void ExploreStatsService::TryUpload()
     }
   }
 
+  if (!backend::IsApiConfigured())
+  {
+    LOG(LINFO, ("API base not configured; skipping upload"));
+    return;
+  }
+
+  std::string const url = backend::GetStatsUploadUrl();
+  if (url.empty())
+    return;
+
   LOG(LINFO, ("Uploading stats..."));
 
   std::string const body = BuildUploadJson();
-  std::string const url = backend::GetStatsUploadUrl();
 
   GetPlatform().RunTask(Platform::Thread::Network,
                         [this, body, url]()
