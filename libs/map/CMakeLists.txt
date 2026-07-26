@@ -25,6 +25,8 @@ set(SRC
   backend_config.hpp
   explorer_pro.cpp
   explorer_pro.hpp
+  recording_session.cpp
+  recording_session.hpp
   extrapolation/extrapolator.cpp
   extrapolation/extrapolator.hpp
   features_fetcher.cpp
