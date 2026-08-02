@@ -4,6 +4,8 @@
 
 #include "platform/settings.hpp"
 
+#include <chrono>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -313,4 +315,50 @@ UNIT_TEST(RecordingSession_BreadcrumbClearedOnFinishAndDiscard)
   TEST(discardSession.HasActiveSessionBreadcrumb(), ());
   TEST_OK(discardSession.Discard());
   TEST(!discardSession.HasActiveSessionBreadcrumb(), ());
+}
+
+UNIT_TEST(RecordingSession_PausedDuration_AccumulatesAcrossCycles)
+{
+  BreadcrumbCleanup cleanup;
+  RecordingSession session;
+
+  TEST_EQUAL(session.GetPausedDurationSec(), 0ULL, ());
+  TEST_OK(session.Start());
+  TEST_EQUAL(session.GetPausedDurationSec(), 0ULL, ());
+
+  TEST_OK(session.Pause());
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+  uint64_t const duringFirstPause = session.GetPausedDurationSec();
+  TEST(duringFirstPause >= 1ULL, (duringFirstPause));
+
+  TEST_OK(session.Resume());
+  uint64_t const afterFirstResume = session.GetPausedDurationSec();
+  TEST(afterFirstResume >= 1ULL, (afterFirstResume));
+
+  TEST_OK(session.Pause());
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+  TEST_OK(session.Resume());
+  uint64_t const afterSecondResume = session.GetPausedDurationSec();
+  TEST(afterSecondResume >= afterFirstResume + 1ULL, (afterSecondResume, afterFirstResume));
+
+  TEST_OK(session.Pause());
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+  TEST_OK(session.Finish());
+  uint64_t const afterFinishFromPaused = session.GetPausedDurationSec();
+  TEST(afterFinishFromPaused >= afterSecondResume + 1ULL, (afterFinishFromPaused, afterSecondResume));
+
+  TEST_OK(session.Reset());
+  TEST_EQUAL(session.GetPausedDurationSec(), 0ULL, ());
+}
+
+UNIT_TEST(RecordingSession_PausedDuration_DiscardFromPausedAccumulates)
+{
+  BreadcrumbCleanup cleanup;
+  RecordingSession session;
+
+  TEST_OK(session.Start());
+  TEST_OK(session.Pause());
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+  TEST_OK(session.Discard());
+  TEST(session.GetPausedDurationSec() >= 1ULL, (session.GetPausedDurationSec()));
 }

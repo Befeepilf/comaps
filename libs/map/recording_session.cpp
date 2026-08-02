@@ -22,6 +22,8 @@ RecordingSession::TransitionResult RecordingSession::Start()
 
   m_sessionId = ++NextSessionId();
   m_startTimestampSec = base::SecondsSinceEpoch();
+  m_pausedDurationSec = 0;
+  m_pauseStartedTimestampSec = 0;
   SetActiveSessionBreadcrumb(true);
   return TransitionTo(State::Recording);
 }
@@ -31,6 +33,7 @@ RecordingSession::TransitionResult RecordingSession::Pause()
   if (m_state != State::Recording)
     return TransitionResult::Rejected;
 
+  m_pauseStartedTimestampSec = base::SecondsSinceEpoch();
   return TransitionTo(State::Paused);
 }
 
@@ -39,6 +42,7 @@ RecordingSession::TransitionResult RecordingSession::Resume()
   if (m_state != State::Paused)
     return TransitionResult::Rejected;
 
+  AccumulatePausedDuration();
   return TransitionTo(State::Recording);
 }
 
@@ -46,6 +50,9 @@ RecordingSession::TransitionResult RecordingSession::Finish()
 {
   if (m_state != State::Recording && m_state != State::Paused)
     return TransitionResult::Rejected;
+
+  if (m_state == State::Paused)
+    AccumulatePausedDuration();
 
   SetActiveSessionBreadcrumb(false);
   return TransitionTo(State::Finished);
@@ -55,6 +62,9 @@ RecordingSession::TransitionResult RecordingSession::Discard()
 {
   if (m_state != State::Recording && m_state != State::Paused)
     return TransitionResult::Rejected;
+
+  if (m_state == State::Paused)
+    AccumulatePausedDuration();
 
   SetActiveSessionBreadcrumb(false);
   return TransitionTo(State::Discarded);
@@ -76,6 +86,18 @@ bool RecordingSession::IsRecording() const { return m_state == State::Recording;
 uint64_t RecordingSession::GetSessionId() const { return m_sessionId; }
 
 uint64_t RecordingSession::GetStartTimestampSec() const { return m_startTimestampSec; }
+
+uint64_t RecordingSession::GetPausedDurationSec() const
+{
+  uint64_t duration = m_pausedDurationSec;
+  if (m_state == State::Paused && m_pauseStartedTimestampSec != 0)
+  {
+    uint64_t const now = base::SecondsSinceEpoch();
+    if (now > m_pauseStartedTimestampSec)
+      duration += now - m_pauseStartedTimestampSec;
+  }
+  return duration;
+}
 
 bool RecordingSession::HasActiveSessionBreadcrumb() const
 {
@@ -106,6 +128,19 @@ void RecordingSession::ClearSessionMetadata()
 {
   m_sessionId = 0;
   m_startTimestampSec = 0;
+  m_pausedDurationSec = 0;
+  m_pauseStartedTimestampSec = 0;
+}
+
+void RecordingSession::AccumulatePausedDuration()
+{
+  if (m_pauseStartedTimestampSec == 0)
+    return;
+
+  uint64_t const now = base::SecondsSinceEpoch();
+  if (now > m_pauseStartedTimestampSec)
+    m_pausedDurationSec += now - m_pauseStartedTimestampSec;
+  m_pauseStartedTimestampSec = 0;
 }
 
 std::string DebugPrint(RecordingSession::State state)
