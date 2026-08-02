@@ -35,6 +35,7 @@ public:
   bool IsRecording() const;
   uint64_t GetSessionId() const;
   uint64_t GetStartTimestampSec() const;
+  uint64_t GetPausedDurationSec() const;
   bool HasActiveSessionBreadcrumb() const;
 
   void SetStateListener(StateChangedFn const & fn);
@@ -43,10 +44,13 @@ private:
   TransitionResult TransitionTo(State next);
   void SetActiveSessionBreadcrumb(bool active);
   void ClearSessionMetadata();
+  void AccumulatePausedDuration();
 
   State m_state = State::Idle;
   uint64_t m_sessionId = 0;
   uint64_t m_startTimestampSec = 0;
+  uint64_t m_pausedDurationSec = 0;
+  uint64_t m_pauseStartedTimestampSec = 0;
   StateChangedFn m_stateListener;
 };
 
