@@ -69,6 +69,8 @@ void GpsTrack::AddPoint(location::GpsInfo const & point)
 {
   {
     std::lock_guard lg(m_dataGuard);
+    if (m_appendSuspended)
+      return;
     m_points.emplace_back(point);
   }
   ScheduleTask();
@@ -78,9 +80,60 @@ void GpsTrack::AddPoints(vector<location::GpsInfo> const & points)
 {
   {
     std::lock_guard lg(m_dataGuard);
+    if (m_appendSuspended)
+      return;
     m_points.insert(m_points.end(), points.begin(), points.end());
   }
   ScheduleTask();
+}
+
+void GpsTrack::SetAppendSuspended(bool suspended)
+{
+  if (!suspended)
+    FlushPendingWhileSuspended();
+
+  std::lock_guard lg(m_dataGuard);
+  m_appendSuspended = suspended;
+}
+
+void GpsTrack::FlushPendingWhileSuspended()
+{
+  // Hold the worker lock so ProcessPoints cannot run concurrently, then drain any
+  // pending pre-pause points and apply a pending segment mark while append is still
+  // suspended. Resume must not clear suspend until this completes, or post-resume
+  // points can share a ProcessPoints batch with the mark and move the boundary.
+  std::lock_guard<std::mutex> threadLock(m_threadGuard);
+
+  bool needProcess = false;
+  {
+    std::lock_guard lg(m_dataGuard);
+    needProcess = m_needMarkBoundary || !m_points.empty() || m_needClear;
+  }
+  if (!needProcess)
+    return;
+
+  ProcessPoints();
+}
+
+bool GpsTrack::IsAppendSuspended() const
+{
+  std::lock_guard lg(m_dataGuard);
+  return m_appendSuspended;
+}
+
+void GpsTrack::MarkSegmentBoundary()
+{
+  {
+    std::lock_guard lg(m_dataGuard);
+    m_needMarkBoundary = true;
+  }
+  ScheduleTask();
+}
+
+std::vector<size_t> GpsTrack::GetSegmentBoundaryIndices() const
+{
+  std::lock_guard lg(m_dataGuard);
+  return m_segmentBoundaryIndices;
 }
 
 TrackStatistics GpsTrack::GetTrackStatistics() const
@@ -99,6 +152,9 @@ void GpsTrack::Clear()
     std::lock_guard lg(m_dataGuard);
     m_points.clear();
     m_needClear = true;
+    m_appendSuspended = false;
+    m_needMarkBoundary = false;
+    m_segmentBoundaryIndices.clear();
   }
   ScheduleTask();
 }
@@ -220,12 +276,15 @@ void GpsTrack::ProcessPoints()
 {
   vector<location::GpsInfo> originPoints;
   bool needClear;
+  bool needMarkBoundary;
   // Steal data for processing
   {
     std::lock_guard lg(m_dataGuard);
     originPoints.swap(m_points);
     needClear = m_needClear;
     m_needClear = false;
+    needMarkBoundary = m_needMarkBoundary;
+    m_needMarkBoundary = false;
   }
 
   // Create collection only if callback appears
@@ -238,7 +297,14 @@ void GpsTrack::ProcessPoints()
   UpdateStorage(needClear, originPoints);
 
   if (!m_collection)
+  {
+    if (needMarkBoundary)
+    {
+      std::lock_guard lg(m_dataGuard);
+      m_needMarkBoundary = true;
+    }
     return;
+  }
 
   vector<location::GpsInfo> points;
   m_filter->Process(originPoints, points);
@@ -246,6 +312,17 @@ void GpsTrack::ProcessPoints()
   pair<size_t, size_t> addedIds;
   pair<size_t, size_t> evictedIds;
   UpdateCollection(needClear, points, addedIds, evictedIds);
+
+  if (needMarkBoundary)
+  {
+    size_t const size = m_collection->GetSize();
+    if (size > 0)
+    {
+      std::lock_guard lg(m_dataGuard);
+      if (m_segmentBoundaryIndices.empty() || m_segmentBoundaryIndices.back() != size)
+        m_segmentBoundaryIndices.push_back(size);
+    }
+  }
 
   NotifyCallback(addedIds, evictedIds);
 }
