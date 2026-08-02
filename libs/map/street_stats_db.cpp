@@ -246,6 +246,37 @@ void StreetStatsDB::DeleteMwmData(std::string const & mwmName)
   }
 }
 
+void StreetStatsDB::DeleteProcessedTracksForCountry(storage::CountryId const & countryId)
+{
+  ASSERT(m_db, ("Street stats database is not initialized"));
+
+  std::lock_guard<std::recursive_mutex> lock(m_mutex);
+
+  sqlite3_stmt * stmt = nullptr;
+  SCOPE_GUARD(finalize, [&stmt]()
+  {
+    if (stmt)
+      sqlite3_finalize(stmt);
+  });
+
+  char const * sql = "DELETE FROM processed_tracks WHERE country_id = ?;";
+  if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+  {
+    LOG(LERROR, ("Failed to prepare processed_tracks delete:", sqlite3_errmsg(m_db)));
+    return;
+  }
+
+  sqlite3_bind_text(stmt, 1, countryId.c_str(), -1, SQLITE_TRANSIENT);
+  if (sqlite3_step(stmt) != SQLITE_DONE)
+    LOG(LERROR, ("Failed to delete processed_tracks for", countryId, "reason:", sqlite3_errmsg(m_db)));
+}
+
+void StreetStatsDB::ReconcileStatsAfterRematch(storage::CountryId const & countryId)
+{
+  DeleteMwmData(countryId);
+  DeleteProcessedTracksForCountry(countryId);
+}
+
 bool StreetStatsDB::IsTrackProcessed(std::int64_t const geometryHash, storage::CountryId const & countryId)
 {
   ASSERT(m_db, ("Street stats database is not initialized"));

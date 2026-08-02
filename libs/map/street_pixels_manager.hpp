@@ -89,8 +89,16 @@ public:
   void LoadStreetPixels(storage::LocalFilePtr const & localFile);
 
   std::set<std::int64_t> DeriveStreetPixelsFromFeatures(FeaturesVectorTest & featuresVector);
+  std::set<std::int64_t> DeriveStreetPixelsFromFeatures(FeaturesVectorTest & featuresVector,
+                                                       storage::CountryId const & countryId);
   void LoadStreetPixelsFromFile(storage::CountryId const & countryId, std::int64_t mapDataVersion);
   void SaveStreetPixelsToFile(std::set<std::int64_t> const & streetPixels, std::int64_t mapDataVersion);
+
+  void RematchStreetPixelsOnMapUpdate(storage::CountryId const & countryId,
+                                      storage::LocalFilePtr const & localFile);
+  bool RematchStreetPixelsWithNewUniverseForTesting(storage::CountryId const & countryId,
+                                                    std::set<std::int64_t> const & newIds,
+                                                    std::int64_t mapDataVersion);
 
   void CleanupStreetPixels(storage::CountryId const & countryId);
 
@@ -183,6 +191,11 @@ private:
   void TriggerCollectionVibration(size_t numNewlyExploredPixels);
   size_t MarkExploredPixelIds(std::set<std::int64_t> const & pixelIds, double eventTimeSec);
 
+  bool RematchStreetPixelsWithNewUniverseUnlocked(storage::CountryId const & countryId,
+                                                  std::set<std::int64_t> const & newIds,
+                                                  std::int64_t mapDataVersion);
+  bool ReloadStreetPixelsAfterRematchUnlocked(storage::CountryId const & countryId, std::int64_t mapDataVersion);
+
   // Updates heuristic stats for each street in the explore radius. Needed for routing to prefer streets with more
   // unexplored pixels.
   void UpdateStreetStats(double lat, double lon, size_t numNewlyExploredPixels);
@@ -198,4 +211,6 @@ private:
   void ApplyAccountedIndex(size_t idx, size_t totalPixels);
   size_t GetPixelIndex(df::StreetPixel const * ptr) const;
   size_t GetPixelIndexWhileLocked(df::StreetPixel const * ptr) const;
+
+  mutable std::mutex m_pixFileMutex;
 };
