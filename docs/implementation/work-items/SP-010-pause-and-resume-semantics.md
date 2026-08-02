@@ -1,7 +1,7 @@
 # SP-010 — Pause and resume semantics
 
 **Phase:** 2 — Recording and collection correctness
-**Status:** Not started
+**Status:** Accepted
 **Branch:** `street-pixels`
 
 ---
@@ -176,24 +176,28 @@ Also:
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commits | |
-| Subscription decision and rationale | |
-| Track boundary mechanism | |
-| Test output | |
-| Bus test: distance travelled while paused | |
-| Bus test: pixels collected while paused | |
-| Bus test: stored track inspection | |
-| Multiple pause cycles result | |
-| Resume latency, if subscription suspended | |
-| `gps_track_*` regression result | |
-| Test device model and OS version | |
-| Implemented by | |
-| Independent reviewer | |
-| Manual validation performed by and date | |
+| Branch | `street-pixels` |
+| Commits | See git history after SP-010 commit series on `street-pixels` |
+| Subscription decision and rationale | **D1:** Keep location subscription running while paused; discard samples in shared code via `GpsTrack::SetAppendSuspended(true)` / `GpsTracker` forwarding. Do not suspend `LocationHelper`. Rationale: simpler resume (no reacquire delay), matches approved decision; battery cost of a long pause accepted for V1. |
+| Track boundary mechanism | In-memory only on `GpsTrack`: `MarkSegmentBoundary()` deferred until worker drains pending points; `SetAppendSuspended(false)` calls `FlushPendingWhileSuspended()` so the mark commits before post-resume points can share a `ProcessPoints` batch. `MakeTrackRecordingGeometry` / `BookmarkManager::SaveTrackRecording` split lines at boundary indices. No `gpstrack.bin` format bump. Live drape break **deferred (D2)**. |
+| Test output | `street_pixels_tests` green including `PauseResume_*` (7) and `RecordingSession_PausedDuration_*` (2); regression `PauseResume_TrackBoundary_ImmediateResumeAdd_SplitsCorrectly` passed. `GpsTrackCollection_Simple`, `GpsTrackStorage_WriteRead`, `GpsTrack_Simple` passed. |
+| Bus test: distance travelled while paused | Deferred to SP-014 / device validation |
+| Bus test: pixels collected while paused | Deferred to SP-014 / device validation |
+| Bus test: stored track inspection | Deferred to SP-014 / device validation |
+| Multiple pause cycles result | Automated `PauseResume_ThreeCycles_CollectionMatchesIntervals` passed |
+| Resume latency, if subscription suspended | N/A — subscription kept running (D1) |
+| `gps_track_*` regression result | `GpsTrackCollection_Simple`, `GpsTrackStorage_WriteRead`, `GpsTrack_Simple`: passed |
+| Test device model and OS version | Desktop validation (macOS); device bus test pending SP-014 |
+| Implemented by | Cursor agent |
+| Independent reviewer | Cursor review agent (blocked on race; fixed; race regression added) |
+| Manual validation performed by and date | Maintainer accepted 2026-08-02; device bus test pending |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-02 |
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Live overlay may still draw a continuous line across pause (`libs/drape_frontend/gps_track_*` untouched per D2). | Defer to a later work item that breaks live GpsTrackRenderer segments; stored track + pixels are correct now. |
+| Device bus test (pause, transit, resume) not executed | Required before SP-014 |
+| `GpsTrackFilter` still pairs post-resume track points with pre-pause history | Optional follow-up; does not join saved MultiGeometry lines |
