@@ -1,7 +1,7 @@
 # SP-017 — Crash-safe rematch on map update
 
 **Phase:** 3 — Exploration storage and map-update reconciliation
-**Status:** Planned
+**Status:** In progress
 **Branch:** `street-pixels`
 
 ---
@@ -112,13 +112,13 @@ deletes `.pix` / `.pixa` and `street_exploration` rows. `processed_tracks` is
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commits | |
-| processed_tracks policy | |
-| Rematch timing notes | |
-| Test output | |
-| Manual validation | |
-| Implemented by | |
+| Branch | `street-pixels` |
+| Commits | (uncommitted; do not mark accepted) |
+| processed_tracks policy | Clear-per-country **after** durable rematch commit (stage E). `ReconcileStatsAfterRematch(countryId)` = `DeleteMwmData` (street_exploration + mwms) + `DeleteProcessedTracksForCountry`. Survivors come from `.pix` ∩ new universe; track replay may fill **new** cells under old tracks after clear. |
+| Rematch timing notes | Peak extra RAM strategy: stream-scan old `.pix` with ~1 MB (`kMigrateChunkBytes`) buffer → explored-only `unordered_map` (O(explored)) → derive `std::set` new universe (existing O(universe) cost) → temp+atomic write. Unmap active country before write. **Not** 2–3× full `.pix` in RAM. Uusimaa wall-time / RSS device measure deferred to SP-022. Synthetic 20k-cell rematch in `Rematch_ChunkedLargeSyntheticUniverse` ~16 ms locally. |
+| Test output | `ninja street_pixels_tests` OK. `./street_pixels_tests --filter=Rematch` → All tests passed (EXIT_REMATCH=0): UnchangedRemovedAddedMatrix, EverLivePersistsForSurvivors, InterruptBeforeRenameKeepsOld, ProcessedTracksClearedAfterRematch, ChunkedLargeSyntheticUniverse, ReconcileStatsClearsProcessedTracks, ScanFailureDoesNotWipeExplored, EqualVersionDoesNotRewrite. Full `./street_pixels_tests` → **All tests passed.** (EXIT_ALL=0). |
+| Manual validation | Deferred to SP-022 / device country-update check |
+| Implemented by | Agent |
 | Accepted by | |
 | Accepted date | |
 
@@ -126,4 +126,8 @@ deletes `.pix` / `.pixa` and `street_exploration` rows. `processed_tracks` is
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Download path may still run `OnUpdateCurrentCountry` after rematch for the viewed country (double load). Serialized via `m_pixFileMutex`; download rematch now skips when header map-data version already matches. | Accept for SP-017; optional skip of second load later if profiling shows waste. |
+| Interrupt-before-rename test models orphan temp + intact dest (does not force `WriteToTempAndRenameToFile` write-failure, which aborts under test `LERROR`). | Accept; helper already deletes temp and leaves dest on write failure. |
+| Rematch write-failure path still logs `LERROR` inside `SaveRematchedUniverse` (test-aborting); production leaves dest intact via temp+rename helper. | Accept; covered by interrupt/orphan-temp model. |
+| `df::StreetPixel` still duplicates bit-mask constants vs `street_pixels_file` (pre-existing SP-016). | Defer consolidation. |
+| Active-country rematch that clears mmap then fails reload of unsupported/corrupt `.pix` leaves `NotReady` until next country change (file on disk intact). | Accept; prefer intact file over wipe. |

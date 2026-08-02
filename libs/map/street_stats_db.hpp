@@ -29,6 +29,9 @@ public:
 
   void DeleteMwmData(std::string const & mwmName);
 
+  void DeleteProcessedTracksForCountry(storage::CountryId const & countryId);
+  void ReconcileStatsAfterRematch(storage::CountryId const & countryId);
+
   bool IsTrackProcessed(std::int64_t const geometryHash, storage::CountryId const & countryId);
   void MarkTrackProcessed(std::int64_t const geometryHash, storage::CountryId const & countryId);
 
