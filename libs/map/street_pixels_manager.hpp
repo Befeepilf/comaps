@@ -129,7 +129,9 @@ public:
 
   void SetStreetPixelsForTesting(std::vector<df::StreetPixel> pixels);
   size_t MarkTrackPixelsForTesting(std::set<std::int64_t> const & pixelIds);
+  size_t MarkImportedPixelsForTesting(std::set<std::int64_t> const & pixelIds);
   bool IsPixelExploredForTesting(std::int64_t pixelId) const;
+  bool IsPixelEverLiveForTesting(std::int64_t pixelId) const;
 
 private:
   DataSource const & m_dataSource;

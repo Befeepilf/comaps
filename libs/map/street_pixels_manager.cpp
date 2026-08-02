@@ -193,9 +193,14 @@ void StreetPixelsManager::SetStreetPixelsForTesting(std::vector<df::StreetPixel>
   m_exploredPixelCount = CountExploredPixels(m_streetPixels);
 }
 
-size_t StreetPixelsManager::MarkTrackPixelsForTesting(std::set<std::int64_t> const & pixelIds)
+size_t StreetPixelsManager::MarkImportedPixelsForTesting(std::set<std::int64_t> const & pixelIds)
 {
   return MarkExploredPixelIds(pixelIds, 0.0);
+}
+
+size_t StreetPixelsManager::MarkTrackPixelsForTesting(std::set<std::int64_t> const & pixelIds)
+{
+  return MarkImportedPixelsForTesting(pixelIds);
 }
 
 bool StreetPixelsManager::IsPixelExploredForTesting(std::int64_t pixelId) const
@@ -203,6 +208,13 @@ bool StreetPixelsManager::IsPixelExploredForTesting(std::int64_t pixelId) const
   std::lock_guard<std::shared_mutex> lock(m_streetPixelsMutex);
   auto const * pixel = FindStreetPixel(pixelId);
   return pixel != nullptr && pixel->IsExplored();
+}
+
+bool StreetPixelsManager::IsPixelEverLiveForTesting(std::int64_t pixelId) const
+{
+  std::lock_guard<std::shared_mutex> lock(m_streetPixelsMutex);
+  auto const * pixel = FindStreetPixel(pixelId);
+  return pixel != nullptr && pixel->IsEverLive();
 }
 
 size_t StreetPixelsManager::MarkExploredPixelIds(std::set<std::int64_t> const & pixelIds, double eventTimeSec)
@@ -363,7 +375,8 @@ void StreetPixelsManager::LoadStreetPixelsFromFile(storage::CountryId const & co
     break;
   case street_pixels_file::FileKind::Corrupt:
     MYTHROW(street_pixels_file::CorruptStreetPixelsFile, ("Corrupt or missing street pixels file", filePath));
-  case street_pixels_file::FileKind::HeaderedV1: break;
+  case street_pixels_file::FileKind::HeaderedV1:
+  case street_pixels_file::FileKind::HeaderedV2: break;
   }
 
   std::unique_ptr<MmapReader> mmapReader =
@@ -375,7 +388,9 @@ void StreetPixelsManager::LoadStreetPixelsFromFile(storage::CountryId const & co
   }
 
   auto const header = street_pixels_file::ReadHeader(mmapReader->Data());
-  if (header.magic != street_pixels_file::kMagic || header.formatVersion != street_pixels_file::kFormatVersionV1 ||
+  bool const supportedVersion = header.formatVersion == street_pixels_file::kFormatVersionV1 ||
+                                header.formatVersion == street_pixels_file::kFormatVersionV2;
+  if (header.magic != street_pixels_file::kMagic || !supportedVersion ||
       (header.flags & street_pixels_file::kFlagsHasHeaderBit) == 0)
   {
     MYTHROW(street_pixels_file::CorruptStreetPixelsFile, ("Invalid street pixels header after open", filePath));
@@ -890,17 +905,31 @@ void StreetPixelsManager::OnLocationUpdate(location::GpsInfo const & info)
   for (auto const & pix : pixels)
   {
     size_t idx = 0;
+    bool newlyExplored = false;
     {
       std::lock_guard<std::shared_mutex> lock(m_streetPixelsMutex);
       auto * pixel = FindStreetPixel(pix);
-      if (pixel == nullptr || pixel->IsExplored())
+      if (pixel == nullptr || (pixel->IsExplored() && pixel->IsEverLive()))
         continue;
       idx = GetPixelIndexWhileLocked(pixel);
-      pixel->SetExplored(true);
-      msync(pixel, sizeof(df::StreetPixel), MS_ASYNC);
-      ++numNewlyExploredPixels;
-      ++m_exploredPixelCount;
+      if (!pixel->IsExplored())
+      {
+        pixel->SetExplored(true);
+        pixel->SetEverLive(true);
+        msync(pixel, sizeof(df::StreetPixel), MS_ASYNC);
+        ++numNewlyExploredPixels;
+        ++m_exploredPixelCount;
+        newlyExplored = true;
+      }
+      else
+      {
+        pixel->SetEverLive(true);
+        msync(pixel, sizeof(df::StreetPixel), MS_ASYNC);
+      }
     }
+
+    if (!newlyExplored)
+      continue;
 
     if (!m_accountedBits.empty())
     {

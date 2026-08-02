@@ -15,6 +15,9 @@ public:
   bool IsExplored() const;
   void SetExplored(bool explored);
 
+  bool IsEverLive() const;
+  void SetEverLive(bool everLive);
+
   dp::Color const GetColor() const;
   std::int64_t GetPixelId() const;
   m2::PointD const GetPoint() const;

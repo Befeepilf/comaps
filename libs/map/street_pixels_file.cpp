@@ -57,6 +57,8 @@ ProbeResult Probe(uint8_t const * data, uint64_t size)
     result.header = DecodeHeaderBytes(data);
     if (result.header.formatVersion == kFormatVersionV1)
       result.kind = FileKind::HeaderedV1;
+    else if (result.header.formatVersion == kFormatVersionV2)
+      result.kind = FileKind::HeaderedV2;
     else
       result.kind = FileKind::UnsupportedFormat;
     return result;
