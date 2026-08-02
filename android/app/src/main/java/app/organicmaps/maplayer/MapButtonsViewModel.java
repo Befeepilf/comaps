@@ -3,7 +3,7 @@ package app.organicmaps.maplayer;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
-import app.organicmaps.sdk.location.TrackRecorder;
+import app.organicmaps.sdk.location.RecordingSession;
 import app.organicmaps.sdk.maplayer.streetpixels.StreetPixelsState;
 
 public class MapButtonsViewModel extends ViewModel
@@ -15,8 +15,8 @@ public class MapButtonsViewModel extends ViewModel
       new MutableLiveData<>(MapButtonsController.LayoutMode.regular);
   private final MutableLiveData<Integer> mMyPositionMode = new MutableLiveData<>();
   private final MutableLiveData<SearchWheel.SearchOption> mSearchOption = new MutableLiveData<>();
-  private final MutableLiveData<Boolean> mTrackRecorderState =
-      new MutableLiveData<>(TrackRecorder.nativeIsTrackRecordingEnabled());
+  private final MutableLiveData<Integer> mRecordingSessionState =
+      new MutableLiveData<>(RecordingSession.STATE_IDLE);
   private final MutableLiveData<StreetPixelsState> mStreetPixelsState = new MutableLiveData<>();
 
   public MutableLiveData<Boolean> getButtonsHidden()
@@ -79,14 +79,14 @@ public class MapButtonsViewModel extends ViewModel
     mSearchOption.setValue(searchOption);
   }
 
-  public void setTrackRecorderState(boolean state)
+  public void setRecordingSessionState(@RecordingSession.State int state)
   {
-    mTrackRecorderState.setValue(state);
+    mRecordingSessionState.setValue(state);
   }
 
-  public MutableLiveData<Boolean> getTrackRecorderState()
+  public MutableLiveData<Integer> getRecordingSessionState()
   {
-    return mTrackRecorderState;
+    return mRecordingSessionState;
   }
 
   public void setStreetPixelsState(StreetPixelsState state)

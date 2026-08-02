@@ -99,6 +99,7 @@ import app.organicmaps.sdk.editor.Editor;
 import app.organicmaps.sdk.location.LocationHelper;
 import app.organicmaps.sdk.location.LocationListener;
 import app.organicmaps.sdk.location.LocationState;
+import app.organicmaps.sdk.location.RecordingSession;
 import app.organicmaps.sdk.location.SensorListener;
 import app.organicmaps.sdk.location.TrackRecorder;
 import app.organicmaps.sdk.maplayer.isolines.IsolinesState;
@@ -224,6 +225,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
   @NonNull
   private ActivityResultLauncher<String[]> mLocationPermissionRequest;
   private boolean mLocationPermissionRequestedForRecording = false;
+  private final RecordingSession.StateListener mRecordingSessionListener = this::onRecordingSessionStateChanged;
 
   @SuppressWarnings("NotNullFieldNotInitialized")
   @NonNull
@@ -289,11 +291,12 @@ public class MwmActivity extends BaseMwmFragmentActivity
     else if (RoutingController.get().hasSavedRoute())
       RoutingController.get().restoreRoute();
 
-    if (TrackRecorder.nativeIsTrackRecordingEnabled() && !startTrackRecording())
+    if ((RecordingSession.isActive() || TrackRecorder.nativeIsTrackRecordingEnabled())
+        && !startTrackRecordingService())
     {
       // The user has revoked location permissions in the system settings, causing the app to
       // restart while recording was active. Save the recorded data and stop the recording.
-      saveAndStopTrackRecording();
+      finishTrackRecording(true);
     }
 
     processIntent();
@@ -320,6 +323,9 @@ public class MwmActivity extends BaseMwmFragmentActivity
     }
 
     intent.putExtra(EXTRA_CONSUMED, true);
+
+    if (handleStopTrackRecordingIntent(intent))
+      return;
 
     final String addFriendUsername = intent.getStringExtra(EXTRA_ADD_FRIEND_USERNAME);
     if (addFriendUsername != null && !addFriendUsername.isEmpty())
@@ -622,7 +628,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
       UiUtils.setViewInsetsPaddingBottom(mPointChooser, windowInsets);
       UiUtils.setViewInsetsPaddingNoBottom(mPointChooserToolbar, windowInsets);
       final int trackRecorderOffset =
-          TrackRecorder.nativeIsTrackRecordingEnabled() ? dimen(this, R.dimen.map_button_size) : 0;
+          RecordingSession.isActive() ? dimen(this, R.dimen.map_button_size) : 0;
       mNavBarHeight = isFullscreen() ? 0 : windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
       // For the first loading, set compass top margin to status bar size
       // The top inset will be then be updated by the routing controller
@@ -868,7 +874,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     });
 
     buttonsHolder.registerButton(new LeftToggleButton() {
-      private boolean isRecording = TrackRecorder.nativeIsTrackRecordingEnabled();
+      private boolean isRecording = RecordingSession.isActive();
 
       @Override
       public void setChecked(boolean checked)
@@ -952,7 +958,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
       showBottomSheet(MAIN_MENU_ID);
     }
     case help -> showHelp();
-    case trackRecordingStatus -> showTrackSaveDialog();
+    case trackRecordingStatus -> onTrackRecordingStatusClicked();
     }
   }
 
@@ -1206,6 +1212,11 @@ public class MwmActivity extends BaseMwmFragmentActivity
     mMapButtonsViewModel.setStreetPixelsState(type);
   }
 
+  private void onRecordingSessionStateChanged(@RecordingSession.State int previous, @RecordingSession.State int current)
+  {
+    mMapButtonsViewModel.setRecordingSessionState(current);
+  }
+
   @Override
   protected void onNewIntent(Intent intent)
   {
@@ -1213,12 +1224,20 @@ public class MwmActivity extends BaseMwmFragmentActivity
     super.onNewIntent(intent);
     if (mMapController.isRenderingActive())
       processIntent();
-    if (intent.getAction() != null && intent.getAction().equals(TrackRecordingService.STOP_TRACK_RECORDING))
-    {
-      // closes the bottom sheet in case it is opened to deal with updation of track recording status in bottom sheet.
-      closeBottomSheet(MAIN_MENU_ID);
-      showTrackSaveDialog();
-    }
+    else
+      handleStopTrackRecordingIntent(intent);
+  }
+
+  private boolean handleStopTrackRecordingIntent(@Nullable Intent intent)
+  {
+    if (intent == null || intent.getAction() == null)
+      return false;
+    if (!TrackRecordingService.STOP_TRACK_RECORDING.equals(intent.getAction()))
+      return false;
+
+    closeBottomSheet(MAIN_MENU_ID);
+    showTrackSaveDialog();
+    return true;
   }
 
   @CallSuper
@@ -1271,6 +1290,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
     RoutingController.get().attach(this);
     MwmApplication.from(getApplicationContext()).getIsolinesManager().attach(this::onIsolinesStateChanged);
     MwmApplication.from(getApplicationContext()).getStreetPixelsManager().attach(this::onStreetPixelsStateChanged);
+    RecordingSession.registerListener(mRecordingSessionListener);
+    mMapButtonsViewModel.setRecordingSessionState(RecordingSession.getState());
     LocationState.nativeSetListener(this);
     MwmApplication.from(this).getLocationHelper().addListener(this);
     mSearchController.attach(this);
@@ -1291,6 +1312,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     }
     MwmApplication.from(getApplicationContext()).getIsolinesManager().detach();
     MwmApplication.from(getApplicationContext()).getStreetPixelsManager().detach();
+    RecordingSession.unregisterListener(mRecordingSessionListener);
     mSearchController.detach();
     Utils.keepScreenOn(false, getWindow());
 
@@ -1635,7 +1657,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
         offsetY = height;
     }
     final int orientation = getResources().getConfiguration().orientation;
-    final boolean isTrackRecordingEnabled = TrackRecorder.nativeIsTrackRecordingEnabled();
+    final boolean isTrackRecordingEnabled = RecordingSession.isActive();
     if (isTrackRecordingEnabled && (orientation != Configuration.ORIENTATION_LANDSCAPE))
       offsetY += dimen(this, R.dimen.map_button_size);
     if (orientation == Configuration.ORIENTATION_LANDSCAPE)
@@ -1643,7 +1665,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
       if (show)
       {
         final boolean isSmallScreen = UiUtils.getDisplayTotalHeight(this) < dimen(this, R.dimen.dp_400);
-        if (!isSmallScreen || TrackRecorder.nativeIsTrackRecordingEnabled())
+        if (!isSmallScreen || RecordingSession.isActive())
           offsetX += dimen(this, R.dimen.map_button_size);
       }
       else if (isTrackRecordingEnabled)
@@ -2309,7 +2331,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     }
 
     // TODO (rtsisyk): re-enable this new dialog for all cases after testing on the track recorder.
-    if (!TrackRecorder.nativeIsTrackRecordingEnabled())
+    if (!RecordingSession.isActive())
       return true;
 
     final Intent intent = PowerManagment.makeSystemPowerSaveSettingIntent(this);
@@ -2468,11 +2490,35 @@ public class MwmActivity extends BaseMwmFragmentActivity
     if (!LocationUtils.checkFineLocationPermission(this))
     {
       Logger.i(TAG, "Location permission not granted");
-      // This variable is a simple hack to re initiate the flow
-      // according to action of user. Calling it hack because we are avoiding
-      // creation of new methods by using this variable.
       mLocationPermissionRequestedForRecording = true;
-      mLocationPermissionRequest.launch(new String[] {ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION});
+      showRecordingLocationPermissionRationaleThenRequest();
+      return false;
+    }
+
+    final int state = RecordingSession.getState();
+    if (state == RecordingSession.STATE_FINISHED || state == RecordingSession.STATE_DISCARDED)
+      RecordingSession.reset();
+
+    if (!RecordingSession.isActive())
+    {
+      RecordingSession.start();
+      if (!RecordingSession.isActive())
+      {
+        Logger.e(TAG, "RecordingSession.start rejected; state=" + RecordingSession.getState());
+        return false;
+      }
+    }
+
+    return startTrackRecordingService();
+  }
+
+  private boolean startTrackRecordingService()
+  {
+    if (!LocationUtils.checkFineLocationPermission(this))
+    {
+      Logger.i(TAG, "Location permission not granted");
+      mLocationPermissionRequestedForRecording = true;
+      showRecordingLocationPermissionRationaleThenRequest();
       return false;
     }
 
@@ -2483,13 +2529,43 @@ public class MwmActivity extends BaseMwmFragmentActivity
       final int offset = mCurrentWindowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
       updateCompassOffset(offset + dimen(this, R.dimen.map_button_size));
     }
-    Toast.makeText(this, R.string.track_recording, Toast.LENGTH_SHORT).show();
+    final int state = RecordingSession.getState();
+    final int toastRes = state == RecordingSession.STATE_PAUSED ? R.string.track_recording_paused : R.string.track_recording;
+    Toast.makeText(this, toastRes, Toast.LENGTH_SHORT).show();
     TrackRecordingService.startForegroundService(getApplicationContext());
-    mMapButtonsViewModel.setTrackRecorderState(true);
+    mMapButtonsViewModel.setRecordingSessionState(RecordingSession.getState());
     return true;
   }
 
-  private void stopTrackRecording()
+  private void showRecordingLocationPermissionRationaleThenRequest()
+  {
+    if (mAlertDialog != null && mAlertDialog.isShowing())
+      return;
+
+    dismissAlertDialog();
+    mAlertDialog = new MaterialAlertDialogBuilder(this)
+                       .setTitle(R.string.start_track_recording)
+                       .setMessage(R.string.track_recording_location_rationale)
+                       .setPositiveButton(R.string.continue_button,
+                                          (dialog, which) -> {
+                                            mAlertDialog = null;
+                                            mLocationPermissionRequest.launch(
+                                                new String[] {ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION});
+                                          })
+                       .setNegativeButton(R.string.cancel,
+                                          (dialog, which) -> {
+                                            mLocationPermissionRequestedForRecording = false;
+                                            mAlertDialog = null;
+                                          })
+                       .setOnCancelListener(dialog -> {
+                         mLocationPermissionRequestedForRecording = false;
+                         mAlertDialog = null;
+                       })
+                       .setOnDismissListener(dialog -> mAlertDialog = null)
+                       .show();
+  }
+
+  private void stopTrackRecordingService()
   {
     if (mCurrentWindowInsets != null)
     {
@@ -2504,20 +2580,45 @@ public class MwmActivity extends BaseMwmFragmentActivity
       updateCompassOffset(offsetY, offsetX);
     }
     TrackRecordingService.stopService(getApplicationContext());
-    mMapButtonsViewModel.setTrackRecorderState(false);
+    mMapButtonsViewModel.setRecordingSessionState(RecordingSession.getState());
   }
 
-  private void saveAndStopTrackRecording()
+  private void finishTrackRecording(boolean save)
   {
-    if (!TrackRecorder.nativeIsTrackRecordingEmpty())
+    final int state = RecordingSession.getState();
+    if (RecordingSession.isActive(state))
+    {
+      if (save)
+        RecordingSession.finish();
+      else
+        RecordingSession.discard();
+    }
+
+    if (save && !TrackRecorder.nativeIsTrackRecordingEmpty())
       TrackRecorder.nativeSaveTrackRecordingWithName("");
-    TrackRecorder.nativeStopTrackRecording();
-    stopTrackRecording();
+
+    if (TrackRecorder.nativeIsTrackRecordingEnabled())
+      TrackRecorder.nativeStopTrackRecording();
+
+    final int afterEnd = RecordingSession.getState();
+    if (afterEnd == RecordingSession.STATE_FINISHED || afterEnd == RecordingSession.STATE_DISCARDED)
+      RecordingSession.reset();
+
+    stopTrackRecordingService();
+  }
+
+  private void onTrackRecordingStatusClicked()
+  {
+    final int state = RecordingSession.getState();
+    if (state == RecordingSession.STATE_RECORDING)
+      RecordingSession.pause();
+    else if (state == RecordingSession.STATE_PAUSED)
+      RecordingSession.resume();
   }
 
   private void onTrackRecordingOptionSelected()
   {
-    if (TrackRecorder.nativeIsTrackRecordingEnabled())
+    if (RecordingSession.isActive())
       showTrackSaveDialog();
     else
       startTrackRecording();
@@ -2528,7 +2629,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     if (TrackRecorder.nativeIsTrackRecordingEmpty())
     {
       Toast.makeText(this, R.string.track_recording_toast_nothing_to_save, Toast.LENGTH_SHORT).show();
-      stopTrackRecording();
+      finishTrackRecording(false);
       return;
     }
 
@@ -2536,16 +2637,15 @@ public class MwmActivity extends BaseMwmFragmentActivity
     mAlertDialog = new StackedButtonsDialog.Builder(this)
                        .setTitle(R.string.track_recording_alert_title)
                        .setCancelable(false)
-                       // Negative/Positive/Neutral do not have their usual meaning here.
                        .setNegativeButton(R.string.continue_recording, (dialog, which) -> mAlertDialog = null)
                        .setNeutralButton(R.string.stop_without_saving,
                                          (dialog, which) -> {
-                                           stopTrackRecording();
+                                           finishTrackRecording(false);
                                            mAlertDialog = null;
                                          })
                        .setPositiveButton(R.string.save,
                                           (dialog, which) -> {
-                                            saveAndStopTrackRecording();
+                                            finishTrackRecording(true);
                                             mAlertDialog = null;
                                           })
                        .build();

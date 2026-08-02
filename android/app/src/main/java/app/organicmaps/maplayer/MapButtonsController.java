@@ -34,7 +34,8 @@ import app.organicmaps.sdk.Framework;
 import app.organicmaps.sdk.downloader.CountryItem;
 import app.organicmaps.sdk.downloader.MapManager;
 import app.organicmaps.sdk.downloader.UpdateInfo;
-import app.organicmaps.sdk.location.TrackRecorder;
+import app.organicmaps.sdk.location.RecordingSession;
+import app.organicmaps.location.RecordingSessionUiModel;
 import app.organicmaps.sdk.maplayer.isolines.IsolinesManager;
 import app.organicmaps.sdk.maplayer.streetpixels.StreetPixelsManager;
 import app.organicmaps.sdk.maplayer.streetpixels.StreetPixelsState;
@@ -69,6 +70,8 @@ public class MapButtonsController extends Fragment
   FloatingActionButton mTrackRecordingStatusButton;
   @Nullable
   private ExtendedFloatingActionButton mExplorationBadge;
+  @Nullable
+  private ObjectAnimator mTrackRecordingBlinkAnimator;
 
   @Nullable
   private MyPositionButton mNavMyPosition;
@@ -85,12 +88,7 @@ public class MapButtonsController extends Fragment
   private final Observer<Boolean> mButtonHiddenObserver = this::setButtonsHidden;
   private final Observer<Integer> mMyPositionModeObserver = this::updateNavMyPositionButton;
   private final Observer<SearchWheel.SearchOption> mSearchOptionObserver = this::onSearchOptionChange;
-  private final Observer<Boolean> mTrackRecorderObserver = (enable) ->
-  {
-    updateMenuBadge(enable);
-    showButton(enable, MapButtons.trackRecordingStatus);
-    updateLeftButtonToggleState(enable);
-  };
+  private final Observer<Integer> mRecordingSessionObserver = this::onRecordingSessionStateChanged;
   private final Observer<StreetPixelsState> mStreetPixelsStateObserver = this::updateExplorationBadge;
   private final Observer<Integer> mTopButtonMarginObserver = this::updateTopButtonsMargin;
 
@@ -263,22 +261,64 @@ public class MapButtonsController extends Fragment
       break;
     case trackRecordingStatus:
       UiUtils.showIf(show, buttonView);
-      animateIconBlinking(show, (FloatingActionButton) buttonView);
+      break;
     }
   }
 
-  void animateIconBlinking(boolean show, @NonNull FloatingActionButton button)
+  private void onRecordingSessionStateChanged(@Nullable Integer stateBoxed)
   {
-    if (show)
+    final int state = stateBoxed != null ? stateBoxed : RecordingSession.STATE_IDLE;
+    final boolean active = RecordingSessionUiModel.isActive(state);
+    updateMenuBadge(active);
+    showButton(active, MapButtons.trackRecordingStatus);
+    updateLeftButtonToggleState(active);
+    updateTrackRecordingStatusAppearance(state);
+  }
+
+  private void updateTrackRecordingStatusAppearance(@RecordingSession.State int state)
+  {
+    if (mTrackRecordingStatusButton == null)
+      return;
+
+    stopTrackRecordingBlink();
+    final Context context = getContext();
+    if (context == null)
+      return;
+
+    if (state == RecordingSession.STATE_RECORDING)
     {
-      Drawable drawable = button.getDrawable();
-      ObjectAnimator colorAnimator = ObjectAnimator.ofArgb(drawable, "tint", 0xFF757575, 0xFFFF0000);
-      colorAnimator.setDuration(2500);
-      colorAnimator.setEvaluator(new ArgbEvaluator());
-      colorAnimator.setRepeatCount(ObjectAnimator.INFINITE);
-      colorAnimator.setRepeatMode(ObjectAnimator.REVERSE);
-      colorAnimator.start();
+      mTrackRecordingStatusButton.setImageTintList(null);
+      mTrackRecordingStatusButton.setContentDescription(getString(R.string.pause));
+      animateIconBlinking(mTrackRecordingStatusButton);
     }
+    else if (state == RecordingSession.STATE_PAUSED)
+    {
+      mTrackRecordingStatusButton.setContentDescription(getString(R.string.continue_recording));
+      mTrackRecordingStatusButton.setImageTintList(
+          ColorStateList.valueOf(ContextCompat.getColor(context, R.color.active_track_recording)));
+    }
+  }
+
+  void animateIconBlinking(@NonNull FloatingActionButton button)
+  {
+    Drawable drawable = button.getDrawable();
+    mTrackRecordingBlinkAnimator = ObjectAnimator.ofArgb(drawable, "tint", 0xFF757575, 0xFFFF0000);
+    mTrackRecordingBlinkAnimator.setDuration(2500);
+    mTrackRecordingBlinkAnimator.setEvaluator(new ArgbEvaluator());
+    mTrackRecordingBlinkAnimator.setRepeatCount(ObjectAnimator.INFINITE);
+    mTrackRecordingBlinkAnimator.setRepeatMode(ObjectAnimator.REVERSE);
+    mTrackRecordingBlinkAnimator.start();
+  }
+
+  private void stopTrackRecordingBlink()
+  {
+    if (mTrackRecordingBlinkAnimator != null)
+    {
+      mTrackRecordingBlinkAnimator.cancel();
+      mTrackRecordingBlinkAnimator = null;
+    }
+    if (mTrackRecordingStatusButton != null)
+      mTrackRecordingStatusButton.clearColorFilter();
   }
 
   private static int dpToPx(float dp, Context context)
@@ -340,7 +380,7 @@ public class MapButtonsController extends Fragment
     mBadgeDrawable.setVisible(count > 0);
     BadgeUtils.attachBadgeDrawable(mBadgeDrawable, menuButton);
 
-    updateMenuBadge(TrackRecorder.nativeIsTrackRecordingEnabled());
+    updateMenuBadge(RecordingSession.isActive());
   }
 
   public void updateLayerButton()
@@ -492,7 +532,7 @@ public class MapButtonsController extends Fragment
     mMapButtonsViewModel.getButtonsHidden().observe(activity, mButtonHiddenObserver);
     mMapButtonsViewModel.getMyPositionMode().observe(activity, mMyPositionModeObserver);
     mMapButtonsViewModel.getSearchOption().observe(activity, mSearchOptionObserver);
-    mMapButtonsViewModel.getTrackRecorderState().observe(activity, mTrackRecorderObserver);
+    mMapButtonsViewModel.getRecordingSessionState().observe(activity, mRecordingSessionObserver);
     mMapButtonsViewModel.getStreetPixelsState().observe(activity, mStreetPixelsStateObserver);
     mMapButtonsViewModel.getTopButtonsMarginTop().observe(activity, mTopButtonMarginObserver);
   }
@@ -534,6 +574,7 @@ public class MapButtonsController extends Fragment
     mMapButtonsViewModel.getButtonsHidden().removeObserver(mButtonHiddenObserver);
     mMapButtonsViewModel.getMyPositionMode().removeObserver(mMyPositionModeObserver);
     mMapButtonsViewModel.getSearchOption().removeObserver(mSearchOptionObserver);
+    mMapButtonsViewModel.getRecordingSessionState().removeObserver(mRecordingSessionObserver);
     mMapButtonsViewModel.getStreetPixelsState().removeObserver(mStreetPixelsStateObserver);
   }
 
