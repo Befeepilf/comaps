@@ -8,6 +8,7 @@
 #include "map/street_pixels_tests/street_pixels_test_helpers.hpp"
 
 #include "geometry/distance_on_sphere.hpp"
+#include "geometry/mercator.hpp"
 
 #include "indexer/data_source.hpp"
 
@@ -384,7 +385,7 @@ UNIT_TEST(SegmentInterpolation_CyclingSequence_ContinuousCoverage)
     TEST(fixture.Manager().IsPixelExploredForTesting(id), ());
 }
 
-UNIT_TEST(SegmentInterpolation_StepSize_MatchesTenMeters)
+UNIT_TEST(SegmentInterpolation_StepSize_MatchesFifteenMeters)
 {
   auto const from = GpsAt(kInterpBaseLat, kInterpBaseLon, 1000.0);
   auto const [lat, lon] = street_pixels_tests::OffsetLatLonByMeters(kInterpBaseLat, kInterpBaseLon, 100.0, 0.0);
@@ -393,7 +394,8 @@ UNIT_TEST(SegmentInterpolation_StepSize_MatchesTenMeters)
   size_t const expectedSegments =
       std::max<size_t>(1, static_cast<size_t>(std::ceil(distMeters / kInterpolationStepMeters)));
   TEST_EQUAL(CountInterpolationSamples(from, to), expectedSegments + 1, ());
-  TEST_ALMOST_EQUAL_ABS(kInterpolationStepMeters, 10.0, 1e-12, ());
+  TEST_ALMOST_EQUAL_ABS(kInterpolationStepMeters, 15.0, 1e-12, ());
+  TEST_ALMOST_EQUAL_ABS(kPathSamplingStepMeters, 15.0, 1e-12, ());
   TEST_ALMOST_EQUAL_ABS(kMaxInterpolationGapSeconds, 30.0, 1e-12, ());
 }
 
@@ -419,7 +421,40 @@ UNIT_TEST(SegmentInterpolation_PerUpdateCost_MaxGapSegment)
   double const msPerCall =
       std::chrono::duration<double, std::milli>(elapsed).count() / 1000.0;
   TEST_EQUAL(samples, 1000 * expectedSamplesPerCall, ());
-  TEST_LESS(msPerCall, 1.0, ("~200 m / 10 m sampling should be well under 1 ms per update"));
+  TEST_LESS(msPerCall, 1.0, ("~200 m / 15 m sampling should be well under 1 ms per update"));
+}
+
+UNIT_TEST(PathSampling_StepConstant_EqualsFifteenMeters)
+{
+  TEST_ALMOST_EQUAL_ABS(kPathSamplingStepMeters, 15.0, 1e-12, ());
+  TEST_ALMOST_EQUAL_ABS(kInterpolationStepMeters, kPathSamplingStepMeters, 1e-12, ());
+  TEST_ALMOST_EQUAL_ABS(kInterpolationStepMeters, 15.0, 1e-12, ());
+}
+
+UNIT_TEST(PathSampling_ForEachMercatorSegmentSample_Deterministic)
+{
+  auto const from = mercator::FromLatLon(kInterpBaseLat, kInterpBaseLon);
+  auto const [lat, lon] = street_pixels_tests::OffsetLatLonByMeters(kInterpBaseLat, kInterpBaseLon, 100.0, 0.0);
+  auto const to = mercator::FromLatLon(lat, lon);
+
+  auto collect = [&]()
+  {
+    std::vector<std::pair<double, double>> samples;
+    ForEachMercatorSegmentSample(from, to, kPathSamplingStepMeters,
+                                 [&samples](double sampleLat, double sampleLon)
+                                 { samples.emplace_back(sampleLat, sampleLon); });
+    return samples;
+  };
+
+  auto const first = collect();
+  auto const second = collect();
+  TEST_EQUAL(first.size(), second.size(), ());
+  TEST_EQUAL(first.size(), 8, ());
+  for (size_t i = 0; i < first.size(); ++i)
+  {
+    TEST_EQUAL(first[i].first, second[i].first, ());
+    TEST_EQUAL(first[i].second, second[i].second, ());
+  }
 }
 
 UNIT_TEST(SegmentInterpolation_OriginClearedByBarrier_NotByFilterReference)
