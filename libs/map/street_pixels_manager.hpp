@@ -101,6 +101,7 @@ public:
                                                     std::int64_t mapDataVersion);
 
   void CleanupStreetPixels(storage::CountryId const & countryId);
+  void CleanupStreetPixelsForTesting(storage::CountryId const & countryId);
 
   void ClearPixels();
 
@@ -195,6 +196,7 @@ private:
                                                   std::set<std::int64_t> const & newIds,
                                                   std::int64_t mapDataVersion);
   bool ReloadStreetPixelsAfterRematchUnlocked(storage::CountryId const & countryId, std::int64_t mapDataVersion);
+  void CleanupStreetPixelsUnlocked(storage::CountryId const & countryId);
 
   // Updates heuristic stats for each street in the explore radius. Needed for routing to prefer streets with more
   // unexplored pixels.

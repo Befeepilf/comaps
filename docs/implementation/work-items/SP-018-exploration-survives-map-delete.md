@@ -1,7 +1,7 @@
 # SP-018 — Explored state survives map delete and redownload
 
 **Phase:** 3 — Exploration storage and map-update reconciliation
-**Status:** Planned
+**Status:** In progress
 **Branch:** `street-pixels`
 
 ---
@@ -83,12 +83,12 @@ regional `.pix` without losing progress.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commits | |
-| Decision id | |
-| Test output | |
-| Manual validation | |
-| Implemented by | |
+| Branch | `street-pixels` |
+| Commits | (uncommitted; proposed message below) |
+| Decision id | SPD-016 |
+| Test output | `ninja street_pixels_tests` OK. `./street_pixels_tests --filter=Archive` → All tests passed (EXIT_ARCHIVE=0): Roundtrip, SizeMuchSmallerThanFull, CleanupArchivesExplored, CleanupIdempotent, ScanFailKeepsPix, CorruptPixKeepsPixAndArchive, ProbeRejectsArchiveMagicAsLegacy, RematchFallsBackToPixrWhenPixUnreadable, RedownloadRematchFromPixrOnly, RematchFailKeepsArchive, OrphanCleanup, LoadPathNoBlankDerive. `./street_pixels_tests --filter=Rematch` → All tests passed (EXIT_REMATCH=0) including SP-017 rematch suite. Full `./street_pixels_tests` → **All tests passed.** (EXIT_ALL=0). |
+| Manual validation | Deferred to SP-022 / device delete+redownload check |
+| Implemented by | Agent |
 | Accepted by | |
 | Accepted date | |
 
@@ -96,4 +96,7 @@ regional `.pix` without losing progress.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| `Archive_LoadPathNoBlankDerive` exercises rematch-from-archive seed (same entry as load recovery) rather than full `LoadStreetPixels` with a real MWM; load path still refuses blank `SaveUnexploredIds` when `.pixr` is present. | Accept for SP-018; optional MWM-backed load integration later. |
+| Production `CleanupStreetPixels` remains background-async; sync `CleanupStreetPixelsForTesting` used by unit tests. | Accept; pre-existing async pattern. |
+| Many deleted countries retain one `.pixr` each (explored-only); growth is O(explored) not O(universe). | Note for storage monitoring; no change. |
+| Review fixed: `ScanExploredEverLive(Corrupt)` previously returned empty success (Cleanup deleted `.pixr`); archive magic probed as Legacy; unreadable `.pix`+`.pixr` did not fall back on rematch/load. | Fixed in this implementation; covered by CorruptPix / ProbeRejects / RematchFallsBack tests. |

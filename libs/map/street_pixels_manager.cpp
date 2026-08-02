@@ -306,32 +306,50 @@ void StreetPixelsManager::LoadStreetPixels(storage::LocalFilePtr const & localFi
 
   std::int64_t const mapDataVersion = localFile ? localFile->GetVersion() : 0;
   std::string const filePath = GetPlatform().WritablePathForFile(countryId + ".pix");
+  std::string const archivePath = GetPlatform().WritablePathForFile(countryId + ".pixr");
+  bool const hasArchive = Platform::IsFileExistsByFullPath(archivePath);
   auto const probe = street_pixels_file::ProbeFile(filePath);
+
+  auto const tryRematchFromLocalMap = [&]() -> bool
+  {
+    if (!localFile || !localFile->OnDisk(MapFileType::Map))
+    {
+      LOG(LWARNING, ("Cannot rematch street pixels without local map", countryId));
+      return false;
+    }
+    try
+    {
+      std::string const mwmPath = localFile->GetPath(MapFileType::Map);
+      FeaturesVectorTest featuresVector(mwmPath);
+      auto const newIds = DeriveStreetPixelsFromFeatures(featuresVector, countryId);
+      return RematchStreetPixelsWithNewUniverseUnlocked(countryId, newIds, mapDataVersion);
+    }
+    catch (std::exception const & e)
+    {
+      LOG(LWARNING, ("Rematch on load aborted", countryId, e.what()));
+      return false;
+    }
+  };
+
   if ((probe.kind == street_pixels_file::FileKind::HeaderedV1 ||
        probe.kind == street_pixels_file::FileKind::HeaderedV2) &&
       probe.header.mapDataVersion != mapDataVersion)
   {
     LOG(LINFO, ("Street pixels map-data version mismatch; rematching", countryId, "file",
                 probe.header.mapDataVersion, "mwm", mapDataVersion));
-    if (!localFile || !localFile->OnDisk(MapFileType::Map))
-    {
-      LOG(LWARNING, ("Cannot rematch street pixels without local map", countryId));
-    }
-    else
-    {
-      try
-      {
-        std::string const mwmPath = localFile->GetPath(MapFileType::Map);
-        FeaturesVectorTest featuresVector(mwmPath);
-        auto const newIds = DeriveStreetPixelsFromFeatures(featuresVector, countryId);
-        if (RematchStreetPixelsWithNewUniverseUnlocked(countryId, newIds, mapDataVersion))
-          return;
-      }
-      catch (std::exception const & e)
-      {
-        LOG(LWARNING, ("Rematch on load aborted; falling back to existing file", countryId, e.what()));
-      }
-    }
+    if (tryRematchFromLocalMap())
+      return;
+  }
+
+  if ((probe.kind == street_pixels_file::FileKind::Corrupt ||
+       probe.kind == street_pixels_file::FileKind::UnsupportedFormat) &&
+      hasArchive)
+  {
+    LOG(LINFO, ("Street pixels file unusable; rematching from explored archive", countryId));
+    if (tryRematchFromLocalMap())
+      return;
+    LOG(LWARNING, ("Rematch from explored archive failed; refusing blank derive", countryId));
+    return;
   }
 
   try
@@ -341,6 +359,14 @@ void StreetPixelsManager::LoadStreetPixels(storage::LocalFilePtr const & localFi
   catch (street_pixels_file::UnsupportedStreetPixelsFormat const & e)
   {
     LOG(LWARNING, ("Unsupported street pixels format:", e.what()));
+    if (Platform::IsFileExistsByFullPath(archivePath))
+    {
+      LOG(LINFO, ("Recovering street pixels from explored archive", countryId));
+      if (tryRematchFromLocalMap())
+        return;
+      LOG(LWARNING, ("Rematch from explored archive failed; refusing blank derive", countryId));
+      return;
+    }
   }
   catch (street_pixels_file::StreetPixelsMigrationException const & e)
   {
@@ -349,6 +375,14 @@ void StreetPixelsManager::LoadStreetPixels(storage::LocalFilePtr const & localFi
   catch (std::exception const & e)
   {
     LOG(LWARNING, ("Failed to memory-map pix file:", e.what()));
+    if (Platform::IsFileExistsByFullPath(archivePath))
+    {
+      LOG(LINFO, ("Recovering street pixels from explored archive", countryId));
+      if (tryRematchFromLocalMap())
+        return;
+      LOG(LWARNING, ("Rematch from explored archive failed; refusing blank derive", countryId));
+      return;
+    }
     auto const recoverProbe = street_pixels_file::ProbeFile(filePath);
     if (!street_pixels_file::MayRecoverByDerive(recoverProbe.kind))
     {
@@ -467,23 +501,72 @@ void StreetPixelsManager::CleanupStreetPixels(storage::CountryId const & country
 {
   GetPlatform().RunTask(Platform::Thread::Background, [this, countryId]()
   {
-    LOG(LINFO, ("Cleaning up street pixels files for", countryId));
-
-    {
-      std::lock_guard<std::mutex> lock(m_countryIdMutex);
-      if (m_countryId == countryId)
-      {
-        m_countryId.clear();
-        ClearPixels();
-      }
-    }
-
-    street_stats::StreetStatsDB::Instance().DeleteMwmData(countryId);
-
-    std::vector<std::string> extensions = {".pix", ".pixa", ".pixf"};
-    for (auto const & ext : extensions)
-      Platform::RemoveFileIfExists(GetPlatform().WritablePathForFile(countryId + ext));
+    std::lock_guard<std::mutex> pixLock(m_pixFileMutex);
+    CleanupStreetPixelsUnlocked(countryId);
   });
+}
+
+void StreetPixelsManager::CleanupStreetPixelsForTesting(storage::CountryId const & countryId)
+{
+  std::lock_guard<std::mutex> pixLock(m_pixFileMutex);
+  CleanupStreetPixelsUnlocked(countryId);
+}
+
+void StreetPixelsManager::CleanupStreetPixelsUnlocked(storage::CountryId const & countryId)
+{
+  LOG(LINFO, ("Cleaning up street pixels files for", countryId));
+
+  {
+    std::lock_guard<std::mutex> lock(m_countryIdMutex);
+    if (m_countryId == countryId)
+    {
+      m_countryId.clear();
+      ClearPixels();
+    }
+  }
+
+  street_stats::StreetStatsDB::Instance().DeleteMwmData(countryId);
+
+  std::string const pixPath = GetPlatform().WritablePathForFile(countryId + ".pix");
+  std::string const archivePath = GetPlatform().WritablePathForFile(countryId + ".pixr");
+  std::string const accountedPath = GetPlatform().WritablePathForFile(countryId + ".pixa");
+  std::string const pixfPath = GetPlatform().WritablePathForFile(countryId + ".pixf");
+
+  uint64_t pixSize = 0;
+  bool const pixExists = Platform::GetFileSizeByFullPath(pixPath, pixSize) && pixSize > 0;
+  if (!pixExists)
+    return;
+
+  auto const scanned = street_pixels_file::ScanExploredEverLive(pixPath);
+  if (!scanned)
+  {
+    LOG(LWARNING, ("Street pixels scan failed during cleanup; keeping .pix", countryId));
+    return;
+  }
+
+  if (scanned->empty())
+  {
+    Platform::RemoveFileIfExists(archivePath);
+  }
+  else
+  {
+    int64_t mapDataVersion = 0;
+    auto const probe = street_pixels_file::ProbeFile(pixPath);
+    if (probe.kind == street_pixels_file::FileKind::HeaderedV1 ||
+        probe.kind == street_pixels_file::FileKind::HeaderedV2)
+    {
+      mapDataVersion = probe.header.mapDataVersion;
+    }
+    if (!street_pixels_file::SaveExploredArchive(archivePath, *scanned, mapDataVersion))
+    {
+      LOG(LERROR, ("Failed to write explored archive; keeping .pix", countryId));
+      return;
+    }
+  }
+
+  Platform::RemoveFileIfExists(pixPath);
+  Platform::RemoveFileIfExists(accountedPath);
+  Platform::RemoveFileIfExists(pixfPath);
 }
 
 void StreetPixelsManager::RematchStreetPixelsOnMapUpdate(storage::CountryId const & countryId,
@@ -502,12 +585,14 @@ void StreetPixelsManager::RematchStreetPixelsOnMapUpdate(storage::CountryId cons
     {
       std::int64_t const mapDataVersion = localFile->GetVersion();
       std::string const filePath = GetPlatform().WritablePathForFile(countryId + ".pix");
+      std::string const archivePath = GetPlatform().WritablePathForFile(countryId + ".pixr");
       auto const probe = street_pixels_file::ProbeFile(filePath);
       if ((probe.kind == street_pixels_file::FileKind::HeaderedV1 ||
            probe.kind == street_pixels_file::FileKind::HeaderedV2) &&
           probe.header.mapDataVersion == mapDataVersion)
       {
         LOG(LINFO, ("Rematch skipped; map-data version already current", countryId, mapDataVersion));
+        Platform::RemoveFileIfExists(archivePath);
         return;
       }
 
@@ -565,23 +650,72 @@ bool StreetPixelsManager::RematchStreetPixelsWithNewUniverseUnlocked(storage::Co
     return m_countryId == countryId;
   }();
 
+  std::string const filePath = GetPlatform().WritablePathForFile(countryId + ".pix");
+  std::string const archivePath = GetPlatform().WritablePathForFile(countryId + ".pixr");
+
+  auto const probe = street_pixels_file::ProbeFile(filePath);
+  if ((probe.kind == street_pixels_file::FileKind::HeaderedV1 ||
+       probe.kind == street_pixels_file::FileKind::HeaderedV2) &&
+      probe.header.mapDataVersion == mapDataVersion)
+  {
+    LOG(LINFO, ("Rematch skipped; map-data version already current", countryId, mapDataVersion));
+    Platform::RemoveFileIfExists(archivePath);
+    if (isActiveCountry)
+      return ReloadStreetPixelsAfterRematchUnlocked(countryId, mapDataVersion);
+    return true;
+  }
+
   if (isActiveCountry)
   {
     ClearPixels();
     ChangeState(StreetPixelsState{m_state.enabled, StreetPixelsStatus::Loading});
   }
 
-  std::string const filePath = GetPlatform().WritablePathForFile(countryId + ".pix");
-  auto const scanned = street_pixels_file::ScanExploredEverLive(filePath);
-  if (!scanned)
+  street_pixels_file::ExploredEverLiveMap seed;
+  uint64_t pixSize = 0;
+  bool const pixExists = Platform::GetFileSizeByFullPath(filePath, pixSize) && pixSize > 0;
+  bool const archiveExists = Platform::IsFileExistsByFullPath(archivePath);
+  if (pixExists)
   {
-    LOG(LWARNING, ("Rematch scan failed; leaving previous street pixels intact", countryId));
-    if (isActiveCountry)
-      ReloadStreetPixelsAfterRematchUnlocked(countryId, mapDataVersion);
-    return false;
+    auto const scanned = street_pixels_file::ScanExploredEverLive(filePath);
+    if (scanned)
+    {
+      seed = *scanned;
+    }
+    else if (archiveExists)
+    {
+      auto const archived = street_pixels_file::LoadExploredArchive(archivePath);
+      if (!archived)
+      {
+        LOG(LWARNING, ("Rematch archive load failed; leaving previous street pixels intact", countryId));
+        if (isActiveCountry)
+          ReloadStreetPixelsAfterRematchUnlocked(countryId, mapDataVersion);
+        return false;
+      }
+      seed = *archived;
+    }
+    else
+    {
+      LOG(LWARNING, ("Rematch scan failed; leaving previous street pixels intact", countryId));
+      if (isActiveCountry)
+        ReloadStreetPixelsAfterRematchUnlocked(countryId, mapDataVersion);
+      return false;
+    }
+  }
+  else if (archiveExists)
+  {
+    auto const archived = street_pixels_file::LoadExploredArchive(archivePath);
+    if (!archived)
+    {
+      LOG(LWARNING, ("Rematch archive load failed; leaving explored archive intact", countryId));
+      if (isActiveCountry)
+        ChangeState(StreetPixelsState{m_state.enabled, StreetPixelsStatus::NotReady});
+      return false;
+    }
+    seed = *archived;
   }
 
-  if (!street_pixels_file::SaveRematchedUniverse(filePath, newIds, *scanned, mapDataVersion))
+  if (!street_pixels_file::SaveRematchedUniverse(filePath, newIds, seed, mapDataVersion))
   {
     LOG(LERROR, ("Rematch failed before commit; leaving previous street pixels intact", countryId));
     if (isActiveCountry)
@@ -591,6 +725,7 @@ bool StreetPixelsManager::RematchStreetPixelsWithNewUniverseUnlocked(storage::Co
 
   Platform::RemoveFileIfExists(GetPlatform().WritablePathForFile(countryId + ".pixa"));
   Platform::RemoveFileIfExists(GetPlatform().WritablePathForFile(countryId + ".pixf"));
+  Platform::RemoveFileIfExists(archivePath);
   street_stats::StreetStatsDB::Instance().ReconcileStatsAfterRematch(countryId);
 
   bool const stillActive = [&]()
