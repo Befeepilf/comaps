@@ -418,5 +418,6 @@ public class Framework
   public static native void nativeRecordingSessionResume();
   public static native void nativeRecordingSessionFinish();
   public static native void nativeRecordingSessionDiscard();
+  public static native void nativeRecordingSessionReset();
   public static native int nativeRecordingSessionGetState();
 }
