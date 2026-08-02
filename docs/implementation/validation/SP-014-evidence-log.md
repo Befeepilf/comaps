@@ -2,79 +2,60 @@
 
 **Plan:** [SP-014-validation-plan.md](SP-014-validation-plan.md)
 **Branch:** `street-pixels`
-**Status:** In progress
+**Status:** Accepted
 
 ## Build / automated baseline
 
 | Field | Value |
 | --- | --- |
 | Date | 2026-08-02 |
-| Git SHA (plan baseline) | `a4b17ef88a` (HEAD at automated run; plan commit follows) |
+| Git SHA (plan baseline) | `a4b17ef88a` |
+| Git SHA (status FAB fix) | `aa1fc0fe9e` |
 | `street_pixels_tests` | **109/109** All tests passed |
 | `gps_track_*` (via `map_tests` filter GpsTrack) | `GpsTrackCollection_Simple`, `GpsTrackStorage_WriteRead`, `GpsTrack_Simple` — All tests passed |
-| Smoke suite | Not completed in this environment (`run_tests.sh -s smoke` aborted: `Can't find test base_tests`). Re-run on a full smoke-capable build before Phase 2 exit. |
+| Smoke suite | Not completed in agent environment (`base_tests` missing). Maintainer accepted SP-014 on device evidence; re-run smoke before public release (Phase 10). |
 
 ## Device roster
 
 | Slot | Model | OS | Battery exemption | Walker |
 | --- | --- | --- | --- | --- |
-| D1 | Google Pixel 3a | | | |
-| D2 | TBD aggressive OEM | | | |
+| D1 | Google Pixel 3a | *(device OS as tested)* | *(as tested)* | Maintainer |
+| D2 | Aggressive OEM | — | — | **Deferred** to Phase 10 release hardening |
 
-## Scenario results
+## Scenario results (D1 Pixel 3a)
 
-One row per (scenario × device). Leave blank until walked.
+Maintainer attestation 2026-08-03: **all planned checks passed on Pixel 3a**, except the status-FAB stop dialog defect (SP014-1) found and fixed before accept.
 
-| Scenario | Device | Date | Route / notes | Expected samples | Received | Result | Screenshots | Defect / WI |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| A1 | D1 Pixel 3a | | | n/a | n/a | | | |
-| A2 | D1 Pixel 3a | | | | | | | |
-| A3 | D1 Pixel 3a | | | | | | | |
-| A4 | D1 Pixel 3a | | | | | | | |
-| A5 | D1 Pixel 3a | | | | | | | |
-| A6 | D1 Pixel 3a | | | | | | | |
-| A7 | D1 Pixel 3a | | | | | | | |
-| B4 | D1 Pixel 3a | | | ~1800 / 30 min | | | | |
-| B5 | D1 Pixel 3a | | | ~900 / 15 min | | | | |
-| B12 | D1 Pixel 3a | | | n/a | battery % | | | |
-| B13 | D1 Pixel 3a | | | | | | | |
-| C3 | D1 Pixel 3a | | | | | | | |
-| D-open | D1 Pixel 3a | | | | | | | |
-| D-canyon | D1 Pixel 3a | | | | | | | |
-| D6 | D1 Pixel 3a | | | | | | **required** | |
-| D7 | D1 Pixel 3a | | | | | | | |
-| D8 | D1 Pixel 3a | | | | | | | |
-| E9 | D1 Pixel 3a | | | | | | | |
-| E-reboot | D1 Pixel 3a | | | | | | | |
-| E-air | D1 Pixel 3a | | | | | | | |
-| F-radius | D1 Pixel 3a | | | | | | | |
-| F-poor | D1 Pixel 3a | | | | | | | |
-| *(repeat critical rows for D2 when available)* | | | | | | | | |
+| Scenario | Device | Result | Notes |
+| --- | --- | --- | --- |
+| A1–A7, B4–B5, B12–B13, C3, D-*, E-*, F-* | D1 Pixel 3a | **Pass** (maintainer) | Full catalogue per validation plan |
+| Status FAB stop dialog | D1 Pixel 3a | Fail → **fixed** | SP014-1 → `aa1fc0fe9e` |
+| D2 aggressive OEM matrix | — | Not run | Follow-up Phase 10 / exit criterion 7 residual |
 
-## ABL recommendation (after B4/B5)
+## ABL recommendation (after Pixel 3a Block B)
 
 | Field | Value |
 | --- | --- |
-| Continuity on D1 without ABL | |
-| Continuity on D2 without ABL | |
-| Recommendation | |
-| Phase 10 follow-up? | |
+| Continuity on D1 without ABL | Pass (maintainer; screen-off / background checks included in “all checks pass”) |
+| Continuity on D2 without ABL | Not measured |
+| Recommendation | Keep `ACCESS_BACKGROUND_LOCATION` **absent** pending aggressive-OEM measurement in Phase 10 |
+| Phase 10 follow-up? | Yes — OEM screen-off continuity + final ABL decision |
 
 ## Phase 2 exit status
 
 | Exit # | Status | Evidence pointers |
 | --- | --- | --- |
-| 1 | | |
-| 2 | | |
-| 3 | | |
-| 4 | | |
-| 5 | | |
-| 6 | | |
-| 7 | Blocked — D2 aggressive OEM not named; B4 not run | Plan D1 = Pixel 3a only so far |
-| 8 | Pending smoke re-run; `gps_track_*` green | GpsTrack_* OK; smoke blocked on missing `base_tests` binary locally |
+| 1 | Met | SP-007 tests + Pixel 3a A1/A2 |
+| 2 | Met | SP-006–012 + Pixel 3a A6; SP014-1 FAB fix |
+| 3 | Met | SP-009 + Pixel 3a Block D |
+| 4 | Met | SP-011 + Pixel 3a C3/D6/D7 |
+| 5 | Met | SP-013 + Pixel 3a Block E |
+| 6 | Met | SP-008 + Pixel 3a F-radius |
+| 7 | **Partial** | Pixel 3a background/screen-off met; aggressive OEM **not** run — deferred to Phase 10 |
+| 8 | Met (gps_track); smoke deferred | GpsTrack_* OK; smoke → Phase 10 |
 
 ## Defects found
 
-| ID | Summary | Owning WI | Repro |
+| ID | Summary | Owning WI | Disposition |
 | --- | --- | --- | --- |
-| SP014-1 | Top-right recording status FAB did nothing useful / did not open stop dialog while session active (menu path worked). Wired FAB to `showTrackSaveDialog`; pause/resume remains on notification. | SP-012 | Pixel 3a; start recording; tap top-right status FAB |
+| SP014-1 | Top-right recording status FAB did not open stop dialog | SP-012 | Fixed in `aa1fc0fe9e`; pause/resume remains on notification |
