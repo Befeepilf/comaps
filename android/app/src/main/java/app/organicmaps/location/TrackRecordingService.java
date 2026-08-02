@@ -4,6 +4,7 @@ import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.POST_NOTIFICATIONS;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
+import android.app.Activity;
 import android.app.ForegroundServiceStartNotAllowedException;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -13,7 +14,10 @@ import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.location.Location;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresPermission;
@@ -41,15 +45,28 @@ public class TrackRecordingService extends Service implements LocationListener
   public static final String RESUME_TRACK_RECORDING = "RESUME_TRACK_RECORDING";
   public static final int TRACK_REC_NOTIFICATION_ID = 54321;
   private static final String TAG = TrackRecordingService.class.getSimpleName();
+  private static final long RECORDING_INTERRUPTION_GAP_MS = 60_000;
+  private static final long LOCATION_UPDATE_TIMEOUT_MS = 30_000;
+  private static final long RECORDING_INTERRUPTION_FOLLOWUP_MS =
+      RECORDING_INTERRUPTION_GAP_MS - LOCATION_UPDATE_TIMEOUT_MS;
 
   private boolean mWarningNotification = false;
+  private boolean mInterruptedNotification = false;
+  private boolean mInterruptionLatched = false;
+  private final Handler mHandler = new Handler(Looper.getMainLooper());
+  private final Runnable mInterruptionFollowupRunnable = this::onRecordingInterruptionFollowup;
   private NotificationCompat.Builder mWarningBuilder;
   private PendingIntent mPendingIntent;
   private PendingIntent mStopPendingIntent;
   private PendingIntent mPausePendingIntent;
   private PendingIntent mResumePendingIntent;
 
-  private final RecordingSession.StateListener mSessionStateListener = (previous, current) -> updateNotification();
+  private final RecordingSession.StateListener mSessionStateListener = (previous, current) -> {
+    mHandler.removeCallbacks(mInterruptionFollowupRunnable);
+    mInterruptionLatched = false;
+    mInterruptedNotification = false;
+    updateNotification();
+  };
 
   @Nullable
   @Override
@@ -190,6 +207,7 @@ public class TrackRecordingService extends Service implements LocationListener
   @Override
   public void onDestroy()
   {
+    mHandler.removeCallbacks(mInterruptionFollowupRunnable);
     RecordingSession.unregisterListener(mSessionStateListener);
     mWarningBuilder = null;
     if (TrackRecorder.nativeIsTrackRecordingEnabled())
@@ -275,8 +293,47 @@ public class TrackRecordingService extends Service implements LocationListener
       return;
 
     mWarningNotification = false;
+    mInterruptedNotification = false;
     NotificationManagerCompat.from(this).notify(TRACK_REC_NOTIFICATION_ID,
                                                 buildNotification(this, RecordingSession.getState()).build());
+  }
+
+  @NonNull
+  private NotificationCompat.Builder buildInterruptedNotification(@NonNull Context context)
+  {
+    return new NotificationCompat.Builder(context, TRACK_REC_CHANNEL_ID)
+        .setCategory(NotificationCompat.CATEGORY_SERVICE)
+        .setPriority(NotificationManager.IMPORTANCE_DEFAULT)
+        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+        .setOngoing(true)
+        .setShowWhen(true)
+        .setOnlyAlertOnce(true)
+        .setSmallIcon(R.drawable.ic_logo_small)
+        .setContentTitle(context.getString(R.string.track_recording_interrupted))
+        .setContentText(context.getString(R.string.track_recording_interrupted_text))
+        .setStyle(new NotificationCompat.BigTextStyle().bigText(
+            context.getString(R.string.track_recording_interrupted_text)))
+        .addAction(0, context.getString(R.string.navigation_stop_button), getStopPendingIntent(context))
+        .setContentIntent(getContentPendingIntent(context))
+        .setColor(ContextCompat.getColor(context, R.color.notification));
+  }
+
+  private void notifyRecordingInterrupted()
+  {
+    final Activity activity = MwmApplication.from(this).getTopActivity();
+    if (activity != null)
+    {
+      activity.runOnUiThread(
+          () -> Toast.makeText(activity, R.string.track_recording_interrupted_text, Toast.LENGTH_LONG).show());
+    }
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+        && ActivityCompat.checkSelfPermission(this, POST_NOTIFICATIONS) != PERMISSION_GRANTED)
+      return;
+
+    mInterruptedNotification = true;
+    mWarningNotification = false;
+    NotificationManagerCompat.from(this).notify(TRACK_REC_NOTIFICATION_ID, buildInterruptedNotification(this).build());
   }
 
   public NotificationCompat.Builder getWarningBuilder(Context context)
@@ -304,10 +361,30 @@ public class TrackRecordingService extends Service implements LocationListener
     return mWarningBuilder;
   }
 
+  private void onRecordingInterruptionFollowup()
+  {
+    if (mInterruptionLatched || RecordingSession.getState() != RecordingSession.STATE_RECORDING)
+      return;
+
+    mInterruptionLatched = true;
+    RecordingSession.applyInterruptionEffects();
+    notifyRecordingInterrupted();
+  }
+
   @Override
   public void onLocationUpdateTimeout()
   {
     Logger.i(TAG, "Location update timeout");
+
+    if (RecordingSession.getState() == RecordingSession.STATE_RECORDING && !mInterruptionLatched)
+    {
+      mHandler.removeCallbacks(mInterruptionFollowupRunnable);
+      mHandler.postDelayed(mInterruptionFollowupRunnable, RECORDING_INTERRUPTION_FOLLOWUP_MS);
+    }
+
+    if (mInterruptionLatched)
+      return;
+
     mWarningNotification = true;
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
         && ActivityCompat.checkSelfPermission(this, POST_NOTIFICATIONS) != PERMISSION_GRANTED)
@@ -321,9 +398,13 @@ public class TrackRecordingService extends Service implements LocationListener
   {
     Logger.i(TAG, "Location is being updated in Track Recording service");
 
-    if (mWarningNotification)
+    mHandler.removeCallbacks(mInterruptionFollowupRunnable);
+    mInterruptionLatched = false;
+
+    if (mWarningNotification || mInterruptedNotification)
     {
       mWarningNotification = false;
+      mInterruptedNotification = false;
 
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
           && ActivityCompat.checkSelfPermission(this, POST_NOTIFICATIONS) != PERMISSION_GRANTED)

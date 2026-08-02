@@ -291,11 +291,16 @@ public class MwmActivity extends BaseMwmFragmentActivity
     else if (RoutingController.get().hasSavedRoute())
       RoutingController.get().restoreRoute();
 
-    if ((RecordingSession.isActive() || TrackRecorder.nativeIsTrackRecordingEnabled())
-        && !startTrackRecordingService())
+    if (RecordingSession.hasActiveSessionBreadcrumb() && !RecordingSession.isActive())
     {
-      // The user has revoked location permissions in the system settings, causing the app to
-      // restart while recording was active. Save the recorded data and stop the recording.
+      forceFinishInterruptedRecording();
+    }
+    else if (!RecordingSession.isActive() && TrackRecorder.nativeIsTrackRecordingEnabled())
+    {
+      TrackRecorder.nativeStopTrackRecording();
+    }
+    else if (RecordingSession.isActive() && !startTrackRecordingService())
+    {
       finishTrackRecording(true);
     }
 
@@ -2581,6 +2586,19 @@ public class MwmActivity extends BaseMwmFragmentActivity
     }
     TrackRecordingService.stopService(getApplicationContext());
     mMapButtonsViewModel.setRecordingSessionState(RecordingSession.getState());
+  }
+
+  private void forceFinishInterruptedRecording()
+  {
+    if (!TrackRecorder.nativeIsTrackRecordingEmpty())
+      TrackRecorder.nativeSaveTrackRecordingWithName("");
+
+    if (TrackRecorder.nativeIsTrackRecordingEnabled())
+      TrackRecorder.nativeStopTrackRecording();
+
+    RecordingSession.consumeActiveSessionBreadcrumb();
+    stopTrackRecordingService();
+    Toast.makeText(this, R.string.track_recording_interrupted_toast, Toast.LENGTH_LONG).show();
   }
 
   private void finishTrackRecording(boolean save)
