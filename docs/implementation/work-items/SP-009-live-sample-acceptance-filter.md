@@ -1,7 +1,7 @@
 # SP-009 — Live sample acceptance filter
 
 **Phase:** 2 — Recording and collection correctness
-**Status:** In progress
+**Status:** Accepted
 **Branch:** `street-pixels`
 
 ---
@@ -202,24 +202,29 @@ validated synthetically.
 | Field | Value |
 | --- | --- |
 | Branch | `street-pixels` |
-| Commits | Pending human review (not committed) |
+| Commits | `8a3193a76e`, `37b9092604` on `street-pixels` |
+| Filter location and rationale | `LiveSampleAcceptanceFilter` in `libs/map/live_sample_acceptance_filter.{hpp,cpp}`; applied in `StreetPixelsManager::OnLocationUpdate` after the recording gate and before `AddPixelsInRadius`. Reference resets when not recording, on session id change, and via `ResetSampleAcceptanceReference()` for SP-010/SP-013. |
 | Staleness rule chosen and rationale | Reject when `nowSec − m_timestamp > 120 s` (`kMaxSampleAgeSeconds`). Also reject non-monotonic or zero timestamps vs previous accepted. 30 s (interpolation gap) is too tight for OEM/screen-off batching; 120 s still rejects last-known-location hours later. Mandatory screen-off field check before acceptance. |
 | Teleport rule chosen and rationale | Reject when distance from last accepted sample exceeds 200 m (`kMaxJumpMeters`), matching spec §16.3/§16.4 gap cap. Catches long slow jumps that pass the implied-speed check (e.g. tunnel exit kilometres away with a long Δt). Classified before implied-speed when both could apply. |
 | Constants and values | `kMaxHorizontalAccuracyMeters = 25.0`; `kMaxSampleAgeSeconds = 120.0`; `kMaxImpliedSpeedMps = 50.0 / 3.6`; `kMaxJumpMeters = 200.0` in `libs/map/live_sample_acceptance_filter.hpp` |
-| Test output | `street_pixels_tests` 71/71 passed (2026-07-27 local build) |
-| Open-area walk: accepted / rejected counts | Pending field validation |
-| Urban-canyon walk: accepted / rejected counts | Pending field validation |
-| Cycling route: accepted / rejected counts | Pending field validation |
-| Vehicle-passenger result | Pending field validation |
-| Tunnel result | Pending field validation |
-| Screen-off batched-sample result | Pending field validation |
-| Test device models and OS versions | Pending field validation |
-| Implemented by | |
-| Independent reviewer | |
-| Manual validation performed by and date | |
+| Rejection reason exposure | `SampleRejectReason` enum; `StreetPixelsManager::GetLastSampleRejectReason()` for callers |
+| Test output | `street_pixels_tests` **71 / 71** passed (15 `LiveSampleAcceptance_*` filter cases, 5 `SampleAcceptanceManager_*` integration cases). `run_tests.sh -f "street_pixels_tests"` exit 0 (2026-08-02). |
+| Open-area walk: accepted / rejected counts | Pending field validation (deferred to SP-014) |
+| Urban-canyon walk: accepted / rejected counts | Pending field validation (deferred to SP-014) |
+| Cycling route: accepted / rejected counts | Pending field validation (deferred to SP-014) |
+| Vehicle-passenger result | Pending field validation (deferred to SP-014) |
+| Tunnel result | Pending field validation (deferred to SP-014) |
+| Screen-off batched-sample result | Pending field validation (deferred to SP-014) |
+| Test device models and OS versions | Desktop validation (macOS arm64); device walks before SP-014 |
+| Implemented by | Cursor agent |
+| Independent reviewer | Maintainer |
+| Manual validation performed by and date | Maintainer code review 2026-08-02; device field validation pending — use `RecordingSessionDebug` on debug builds |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-02 |
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Device field validation for accuracy, cycling, tunnel, and screen-off batching not yet executed | Required before SP-014; thresholds may need a documented decision if spike 5 criteria fail |
+| `GpsTrackFilter` still uses 250 m accuracy for the recorded-track path | Out of scope for SP-009; consider tightening separately once live collection thresholds are validated in the field |
