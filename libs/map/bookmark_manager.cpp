@@ -2,6 +2,7 @@
 #include "map/gps_tracker.hpp"
 #include "map/search_api.hpp"
 #include "map/track_mark.hpp"
+#include "map/track_recording_geometry.hpp"
 #include "map/user_mark_id_storage.hpp"
 
 #include "drape_frontend/drape_engine.hpp"
@@ -1131,24 +1132,16 @@ kml::TrackId BookmarkManager::SaveTrackRecording(std::string trackName)
   auto const & tracker = GpsTracker::Instance();
   CHECK(!tracker.IsEmpty(), ("Track recording should be not be empty"));
 
-  kml::MultiGeometry geometry;
-  geometry.m_lines.emplace_back();
-  geometry.m_timestamps.emplace_back();
-  auto & line = geometry.m_lines.back();
-  auto & timestamps = geometry.m_timestamps.back();
-  auto const trackSize = tracker.GetTrackSize();
-  line.reserve(trackSize);
-  timestamps.reserve(trackSize);
-
-  tracker.ForEachTrackPoint([&line, &timestamps](location::GpsInfo const & pt, size_t id) -> bool
+  std::vector<location::GpsInfo> points;
+  points.reserve(tracker.GetTrackSize());
+  tracker.ForEachTrackPoint([&points](location::GpsInfo const & pt, size_t) -> bool
   {
-    line.emplace_back(mercator::FromLatLon(pt.m_latitude, pt.m_longitude), pt.m_altitude);
-    timestamps.emplace_back(pt.m_timestamp);
+    points.push_back(pt);
     return true;
   });
 
   kml::TrackData trackData;
-  trackData.m_geometry = std::move(geometry);
+  trackData.m_geometry = MakeTrackRecordingGeometry(points, tracker.GetSegmentBoundaryIndices());
 
   if (trackName.empty())
     trackName = GenerateTrackRecordingName();
