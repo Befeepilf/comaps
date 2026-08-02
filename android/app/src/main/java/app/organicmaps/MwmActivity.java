@@ -2627,11 +2627,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
   private void onTrackRecordingStatusClicked()
   {
-    final int state = RecordingSession.getState();
-    if (state == RecordingSession.STATE_RECORDING)
-      RecordingSession.pause();
-    else if (state == RecordingSession.STATE_PAUSED)
-      RecordingSession.resume();
+    if (RecordingSession.isActive())
+      showTrackSaveDialog();
   }
 
   private void onTrackRecordingOptionSelected()

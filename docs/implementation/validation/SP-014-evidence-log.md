@@ -77,4 +77,4 @@ One row per (scenario × device). Leave blank until walked.
 
 | ID | Summary | Owning WI | Repro |
 | --- | --- | --- | --- |
-| | | | |
+| SP014-1 | Top-right recording status FAB did nothing useful / did not open stop dialog while session active (menu path worked). Wired FAB to `showTrackSaveDialog`; pause/resume remains on notification. | SP-012 | Pixel 3a; start recording; tap top-right status FAB |

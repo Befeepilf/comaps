@@ -46,11 +46,11 @@ public class RecordingSessionUiModelTest
   }
 
   @Test
-  public void statusButtonAction_pauseOrResume()
+  public void statusButtonAction_stopWhenActive()
   {
-    assertEquals(RecordingSessionUiModel.NotificationAction.PAUSE,
+    assertEquals(RecordingSessionUiModel.NotificationAction.STOP,
                  RecordingSessionUiModel.statusButtonAction(RecordingSession.STATE_RECORDING));
-    assertEquals(RecordingSessionUiModel.NotificationAction.RESUME,
+    assertEquals(RecordingSessionUiModel.NotificationAction.STOP,
                  RecordingSessionUiModel.statusButtonAction(RecordingSession.STATE_PAUSED));
     assertNull(RecordingSessionUiModel.statusButtonAction(RecordingSession.STATE_IDLE));
   }
