@@ -4,6 +4,7 @@ set(SRC
   backend_config_tests.cpp
   collection_gate_tests.cpp
   collection_radius_tests.cpp
+  ever_live_tests.cpp
   explorer_pro_tests.cpp
   exploration_multiplier_tests.cpp
   interrupted_session_tests.cpp

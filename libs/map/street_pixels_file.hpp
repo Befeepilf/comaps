@@ -13,6 +13,7 @@ namespace street_pixels_file
 {
 uint32_t constexpr kMagic = 0x58495053u;
 uint16_t constexpr kFormatVersionV1 = 1;
+uint16_t constexpr kFormatVersionV2 = 2;
 uint16_t constexpr kFlagsHasHeaderBit = 1;
 size_t constexpr kHeaderSize = 24;
 size_t constexpr kMigrateChunkBytes = 1 << 20;
@@ -42,6 +43,7 @@ static_assert(offsetof(Header, reserved) == 16);
 enum class FileKind
 {
   HeaderedV1,
+  HeaderedV2,
   Legacy,
   UnsupportedFormat,
   Corrupt
@@ -59,7 +61,7 @@ ProbeResult Probe(uint8_t const * data, uint64_t size);
 ProbeResult ProbeFile(std::string const & path);
 bool MayRecoverByDerive(FileKind kind);
 
-void WriteHeader(Writer & writer, int64_t mapDataVersion, uint16_t formatVersion = kFormatVersionV1,
+void WriteHeader(Writer & writer, int64_t mapDataVersion, uint16_t formatVersion = kFormatVersionV2,
                  uint16_t flags = kFlagsHasHeaderBit);
 
 bool SaveUnexploredIds(std::string const & path, std::set<int64_t> const & pixelIds, int64_t mapDataVersion);

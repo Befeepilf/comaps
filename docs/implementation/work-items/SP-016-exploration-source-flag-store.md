@@ -1,7 +1,7 @@
 # SP-016 — Per-pixel ever-live bit in `.pix`
 
 **Phase:** 3 — Exploration storage and map-update reconciliation
-**Status:** Planned
+**Status:** In progress
 **Branch:** `street-pixels`
 
 ---
@@ -109,11 +109,11 @@ ever-live bit by maintainer decision.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commits | |
-| Bit layout constants | |
-| Interim track-replay policy | |
-| Test output | |
+| Branch | `street-pixels` |
+| Commits | *(not committed — pending human)* |
+| Bit layout constants | bit 63 explored `0x8000000000000000`; bit 62 ever-live `0x4000000000000000`; `GetPixelId` mask `0x3FFFFFFFFFFFFFFF`; format v2 (`kFormatVersionV2`); v1 load = imported-only (bit 62 clear) |
+| Interim track-replay policy | Bookmark-track replay (`UpdateExploredPixels` → `MarkExploredPixelIds` / `MarkTrackPixelsForTesting`) uses imported-only semantics until Phase 9: `SetExplored(true)` only, never sets ever-live, never clears a set ever-live bit. `MarkTrackPixelsForTesting` delegates to `MarkImportedPixelsForTesting`. Covered by `EverLive_TrackAloneLeavesClear` and `EverLive_TrackAfterLiveRemainsSet`. |
+| Test output | `ninja street_pixels_tests` OK. `./street_pixels_tests --filter=EverLive` → All tests passed (EXIT=0). `--filter=StreetPixel` → All tests passed (EXIT=0). `--filter=StreetPixelsFile` → All tests passed (EXIT=0). Full `./street_pixels_tests` → **All tests passed.** (EXIT_ALL=0). Includes `EverLive_*` (upgrade no double-count), `StreetPixel_*`, `StreetPixelsFile_*`, `StreetPixelsManager_LiveEverLiveSurvivesReload`. |
 | Manual validation | |
 | Implemented by | |
 | Accepted by | |
@@ -123,4 +123,5 @@ ever-live bit by maintainer decision.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Live `OnLocationUpdate` can set ever-live in-place on an already-open v1 mmap without rewriting the header to v2. Save/migrate/new writes stamp v2. | Accept for SP-016 (load accepts v1+v2; bit is readable either way). Optional header bump on first ever-live write can be a later follow-up if reviewers want stricter format/bit coupling. |
+| Review fixed live skip condition: bare `IsEverLive()` alone skipped corrupt ever-live-without-explored entries forever. Now requires explored∧ever-live. | Fixed in this change set. |

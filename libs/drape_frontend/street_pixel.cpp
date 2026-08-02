@@ -16,11 +16,30 @@
 
 namespace df
 {
-std::int64_t StreetPixel::GetPixelId() const { return m_pixelId & 0x7FFFFFFFFFFFFFFF; }
+namespace
+{
+std::int64_t constexpr kPixelIdMask = 0x3FFFFFFFFFFFFFFF;
+std::int64_t constexpr kExploredBit = static_cast<std::int64_t>(0x8000000000000000ULL);
+std::int64_t constexpr kEverLiveBit = static_cast<std::int64_t>(0x4000000000000000ULL);
+}  // namespace
 
-bool StreetPixel::IsExplored() const { return m_pixelId & 0x8000000000000000; }
+std::int64_t StreetPixel::GetPixelId() const { return m_pixelId & kPixelIdMask; }
 
-void StreetPixel::SetExplored(bool explored) { m_pixelId |= (explored ? 0x8000000000000000 : 0); }
+bool StreetPixel::IsExplored() const { return (m_pixelId & kExploredBit) != 0; }
+
+void StreetPixel::SetExplored(bool explored)
+{
+  if (explored)
+    m_pixelId |= kExploredBit;
+}
+
+bool StreetPixel::IsEverLive() const { return (m_pixelId & kEverLiveBit) != 0; }
+
+void StreetPixel::SetEverLive(bool everLive)
+{
+  if (everLive)
+    m_pixelId |= kEverLiveBit;
+}
 
 dp::Color const StreetPixel::GetColor() const
 {

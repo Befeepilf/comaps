@@ -1,5 +1,6 @@
 #include "testing/testing.hpp"
 
+#include "map/recording_session.hpp"
 #include "map/street_pixels_file.hpp"
 #include "map/street_pixels_manager.hpp"
 #include "map/street_pixels_tests/street_pixels_test_helpers.hpp"
@@ -13,6 +14,7 @@
 #include "indexer/data_source.hpp"
 
 #include "platform/platform.hpp"
+#include "platform/settings.hpp"
 
 #include "base/file_name_utils.hpp"
 
@@ -61,10 +63,10 @@ std::vector<uint8_t> EncodeHeaderBytes(uint16_t formatVersion, uint16_t flags, i
   return bytes;
 }
 
-void WriteHeaderedRawWords(std::string const & path, int64_t mapDataVersion, std::vector<int64_t> const & words)
+void WriteHeaderedRawWords(std::string const & path, int64_t mapDataVersion, std::vector<int64_t> const & words,
+                           uint16_t formatVersion = street_pixels_file::kFormatVersionV1)
 {
-  auto bytes = EncodeHeaderBytes(street_pixels_file::kFormatVersionV1, street_pixels_file::kFlagsHasHeaderBit,
-                                 mapDataVersion);
+  auto bytes = EncodeHeaderBytes(formatVersion, street_pixels_file::kFlagsHasHeaderBit, mapDataVersion);
   for (int64_t word : words)
   {
     uint8_t raw[sizeof(int64_t)];
@@ -89,7 +91,12 @@ void WriteLegacyRawWords(std::string const & path, std::vector<int64_t> const & 
 
 int64_t RawExploredWord(int64_t pixelId)
 {
-  return (pixelId & 0x7FFFFFFFFFFFFFFFLL) | static_cast<int64_t>(0x8000000000000000ULL);
+  return (pixelId & 0x3FFFFFFFFFFFFFFFLL) | static_cast<int64_t>(0x8000000000000000ULL);
+}
+
+int64_t RawEverLiveWord(int64_t pixelId)
+{
+  return RawExploredWord(pixelId) | static_cast<int64_t>(0x4000000000000000ULL);
 }
 
 std::span<df::StreetPixel> MapPixBody(MmapReader & reader)
@@ -126,8 +133,15 @@ UNIT_TEST(StreetPixelsFile_ProbeHeaderedLegacyUnsupported)
   {
     auto bytes = EncodeHeaderBytes(2, street_pixels_file::kFlagsHasHeaderBit, 99);
     auto const probe = street_pixels_file::Probe(bytes.data(), bytes.size());
-    TEST_EQUAL(static_cast<int>(probe.kind), static_cast<int>(street_pixels_file::FileKind::UnsupportedFormat), ());
+    TEST_EQUAL(static_cast<int>(probe.kind), static_cast<int>(street_pixels_file::FileKind::HeaderedV2), ());
     TEST_EQUAL(probe.header.formatVersion, 2, ());
+  }
+
+  {
+    auto bytes = EncodeHeaderBytes(3, street_pixels_file::kFlagsHasHeaderBit, 99);
+    auto const probe = street_pixels_file::Probe(bytes.data(), bytes.size());
+    TEST_EQUAL(static_cast<int>(probe.kind), static_cast<int>(street_pixels_file::FileKind::UnsupportedFormat), ());
+    TEST_EQUAL(probe.header.formatVersion, 3, ());
   }
 
   {
@@ -162,12 +176,49 @@ UNIT_TEST(StreetPixelsFile_RoundTripHeaderedPreservesExploredMsbs)
   TEST_EQUAL(body.size(), words.size(), ());
   TEST_EQUAL(body[0].GetPixelId(), 11, ());
   TEST(!body[0].IsExplored(), ());
+  TEST(!body[0].IsEverLive(), ());
   TEST_EQUAL(body[1].GetPixelId(), 22, ());
   TEST(body[1].IsExplored(), ());
+  TEST(!body[1].IsEverLive(), ());
   TEST_EQUAL(body[2].GetPixelId(), 33, ());
   TEST(!body[2].IsExplored(), ());
   TEST_EQUAL(body[3].GetPixelId(), 44, ());
   TEST(body[3].IsExplored(), ());
+  TEST(!body[3].IsEverLive(), ());
+
+  auto const onDisk = ReadAllBytes(path);
+  TEST_EQUAL(onDisk.size(), street_pixels_file::kHeaderSize + words.size() * sizeof(int64_t), ());
+
+  RemoveIfExists(path);
+}
+
+UNIT_TEST(StreetPixelsFile_RoundTripHeaderedV2PreservesEverLive)
+{
+  std::string const path = TestPixPath("sp016_roundtrip_everlive.pix");
+  RemoveIfExists(path);
+
+  int64_t constexpr kVersion = 20260804;
+  std::vector<int64_t> const words = {11, RawExploredWord(22), RawEverLiveWord(33), 44};
+  WriteHeaderedRawWords(path, kVersion, words, street_pixels_file::kFormatVersionV2);
+
+  auto const probe = street_pixels_file::ProbeFile(path);
+  TEST_EQUAL(static_cast<int>(probe.kind), static_cast<int>(street_pixels_file::FileKind::HeaderedV2), ());
+
+  MmapReader reader(path, MmapReader::Advice::Normal, true);
+  auto body = MapPixBody(reader);
+  TEST_EQUAL(body.size(), words.size(), ());
+  TEST_EQUAL(body[0].GetPixelId(), 11, ());
+  TEST(!body[0].IsExplored(), ());
+  TEST(!body[0].IsEverLive(), ());
+  TEST_EQUAL(body[1].GetPixelId(), 22, ());
+  TEST(body[1].IsExplored(), ());
+  TEST(!body[1].IsEverLive(), ());
+  TEST_EQUAL(body[2].GetPixelId(), 33, ());
+  TEST(body[2].IsExplored(), ());
+  TEST(body[2].IsEverLive(), ());
+  TEST_EQUAL(body[3].GetPixelId(), 44, ());
+  TEST(!body[3].IsExplored(), ());
+  TEST(!body[3].IsEverLive(), ());
 
   auto const onDisk = ReadAllBytes(path);
   TEST_EQUAL(onDisk.size(), street_pixels_file::kHeaderSize + words.size() * sizeof(int64_t), ());
@@ -185,7 +236,7 @@ UNIT_TEST(StreetPixelsFile_SaveUnexploredIdsStampsVersion)
   TEST(street_pixels_file::SaveUnexploredIds(path, ids, kVersion), ());
 
   auto const probe = street_pixels_file::ProbeFile(path);
-  TEST_EQUAL(static_cast<int>(probe.kind), static_cast<int>(street_pixels_file::FileKind::HeaderedV1), ());
+  TEST_EQUAL(static_cast<int>(probe.kind), static_cast<int>(street_pixels_file::FileKind::HeaderedV2), ());
   TEST_EQUAL(probe.header.mapDataVersion, kVersion, ());
 
   MmapReader reader(path, MmapReader::Advice::Normal, false);
@@ -193,6 +244,7 @@ UNIT_TEST(StreetPixelsFile_SaveUnexploredIdsStampsVersion)
   TEST_EQUAL(body.size(), 3, ());
   TEST_EQUAL(body[0].GetPixelId(), 100, ());
   TEST(!body[0].IsExplored(), ());
+  TEST(!body[0].IsEverLive(), ());
   TEST_EQUAL(body[1].GetPixelId(), 200, ());
   TEST_EQUAL(body[2].GetPixelId(), 300, ());
 
@@ -213,7 +265,7 @@ UNIT_TEST(StreetPixelsFile_LegacyMigratesPreservingExplored)
   street_pixels_file::MigrateLegacyFile(path, kVersion);
 
   auto const probe = street_pixels_file::ProbeFile(path);
-  TEST_EQUAL(static_cast<int>(probe.kind), static_cast<int>(street_pixels_file::FileKind::HeaderedV1), ());
+  TEST_EQUAL(static_cast<int>(probe.kind), static_cast<int>(street_pixels_file::FileKind::HeaderedV2), ());
   TEST_EQUAL(probe.header.mapDataVersion, kVersion, ());
 
   auto const after = ReadAllBytes(path);
@@ -225,10 +277,13 @@ UNIT_TEST(StreetPixelsFile_LegacyMigratesPreservingExplored)
   TEST_EQUAL(body.size(), 4, ());
   TEST_EQUAL(body[0].GetPixelId(), 5, ());
   TEST(!body[0].IsExplored(), ());
+  TEST(!body[0].IsEverLive(), ());
   TEST_EQUAL(body[1].GetPixelId(), 6, ());
   TEST(body[1].IsExplored(), ());
+  TEST(!body[1].IsEverLive(), ());
   TEST_EQUAL(body[2].GetPixelId(), 7, ());
   TEST(body[2].IsExplored(), ());
+  TEST(!body[2].IsEverLive(), ());
   TEST_EQUAL(body[3].GetPixelId(), 8, ());
   TEST(!body[3].IsExplored(), ());
 
@@ -282,12 +337,77 @@ UNIT_TEST(StreetPixelsManager_LoadHeaderedSetsMapDataVersion)
   manager.LoadStreetPixelsFromFile(countryId, kVersion);
   TEST_EQUAL(manager.GetPixMapDataVersion(), kVersion, ());
   TEST(manager.IsPixelExploredForTesting(1), ());
+  TEST(!manager.IsPixelEverLiveForTesting(1), ());
   TEST(!manager.IsPixelExploredForTesting(2), ());
 
   manager.ClearPixels();
   TEST_EQUAL(manager.GetPixMapDataVersion(), 0, ());
 
   RemoveIfExists(path);
+}
+
+UNIT_TEST(StreetPixelsManager_LoadHeaderedV2PreservesEverLive)
+{
+  std::string const countryId = "sp016_mgr_v2";
+  std::string const path = GetPlatform().WritablePathForFile(countryId + ".pix");
+  RemoveIfExists(path);
+
+  int64_t constexpr kVersion = 990012;
+  WriteHeaderedRawWords(path, kVersion, {RawEverLiveWord(1), RawExploredWord(2), 3},
+                        street_pixels_file::kFormatVersionV2);
+
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  manager.LoadStreetPixelsFromFile(countryId, kVersion);
+  TEST_EQUAL(manager.GetPixMapDataVersion(), kVersion, ());
+  TEST(manager.IsPixelExploredForTesting(1), ());
+  TEST(manager.IsPixelEverLiveForTesting(1), ());
+  TEST(manager.IsPixelExploredForTesting(2), ());
+  TEST(!manager.IsPixelEverLiveForTesting(2), ());
+  TEST(!manager.IsPixelExploredForTesting(3), ());
+
+  RemoveIfExists(path);
+}
+
+UNIT_TEST(StreetPixelsManager_LiveEverLiveSurvivesReload)
+{
+  settings::Delete("RecordingSessionActive");
+  std::string const countryId = "sp016_live_reload";
+  std::string const path = GetPlatform().WritablePathForFile(countryId + ".pix");
+  RemoveIfExists(path);
+
+  int64_t constexpr kPixelId = 1000;
+  int64_t constexpr kVersion = 990013;
+  WriteHeaderedRawWords(path, kVersion, {kPixelId}, street_pixels_file::kFormatVersionV2);
+
+  {
+    FrozenDataSource dataSource;
+    StreetPixelsManager manager(dataSource);
+    RecordingSession session;
+    manager.SetRecordingSession(&session);
+    manager.LoadStreetPixelsFromFile(countryId, kVersion);
+    TEST(!manager.IsPixelExploredForTesting(kPixelId), ());
+    TEST(!manager.IsPixelEverLiveForTesting(kPixelId), ());
+
+    TEST_EQUAL(session.Start(), RecordingSession::TransitionResult::Ok, ());
+    auto const [lat, lon] = street_pixels_tests::LatLonForPixelId(kPixelId);
+    manager.OnLocationUpdate(
+        street_pixels_tests::MakeGpsInfo(lat, lon, 5.0, street_pixels_tests::CurrentTimestampSec()));
+    TEST(manager.IsPixelExploredForTesting(kPixelId), ());
+    TEST(manager.IsPixelEverLiveForTesting(kPixelId), ());
+    manager.ClearPixels();
+  }
+
+  {
+    FrozenDataSource dataSource;
+    StreetPixelsManager manager(dataSource);
+    manager.LoadStreetPixelsFromFile(countryId, kVersion);
+    TEST(manager.IsPixelExploredForTesting(kPixelId), ());
+    TEST(manager.IsPixelEverLiveForTesting(kPixelId), ());
+  }
+
+  RemoveIfExists(path);
+  settings::Delete("RecordingSessionActive");
 }
 
 UNIT_TEST(StreetPixelsManager_LegacyLoadMigratesAndStampsVersion)
@@ -308,7 +428,7 @@ UNIT_TEST(StreetPixelsManager_LegacyLoadMigratesAndStampsVersion)
   TEST(!manager.IsPixelExploredForTesting(10), ());
 
   auto const probe = street_pixels_file::ProbeFile(path);
-  TEST_EQUAL(static_cast<int>(probe.kind), static_cast<int>(street_pixels_file::FileKind::HeaderedV1), ());
+  TEST_EQUAL(static_cast<int>(probe.kind), static_cast<int>(street_pixels_file::FileKind::HeaderedV2), ());
   TEST_EQUAL(probe.header.mapDataVersion, kVersion, ());
 
   RemoveIfExists(path);
@@ -317,6 +437,7 @@ UNIT_TEST(StreetPixelsManager_LegacyLoadMigratesAndStampsVersion)
 UNIT_TEST(StreetPixelsFile_MayRecoverByDeriveOnlyCorrupt)
 {
   TEST(!street_pixels_file::MayRecoverByDerive(street_pixels_file::FileKind::HeaderedV1), ());
+  TEST(!street_pixels_file::MayRecoverByDerive(street_pixels_file::FileKind::HeaderedV2), ());
   TEST(!street_pixels_file::MayRecoverByDerive(street_pixels_file::FileKind::Legacy), ());
   TEST(!street_pixels_file::MayRecoverByDerive(street_pixels_file::FileKind::UnsupportedFormat), ());
   TEST(street_pixels_file::MayRecoverByDerive(street_pixels_file::FileKind::Corrupt), ());

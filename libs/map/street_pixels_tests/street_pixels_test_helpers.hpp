@@ -74,11 +74,13 @@ inline std::vector<location::GpsInfo> MakeGpsSequence(double startLat, double st
   return sequence;
 }
 
-inline df::StreetPixel MakeStreetPixel(std::int64_t pixelId, bool explored = false)
+inline df::StreetPixel MakeStreetPixel(std::int64_t pixelId, bool explored = false, bool everLive = false)
 {
-  std::int64_t raw = pixelId & 0x7FFFFFFFFFFFFFFF;
+  std::int64_t raw = pixelId & 0x3FFFFFFFFFFFFFFF;
   if (explored)
     raw |= static_cast<std::int64_t>(0x8000000000000000ULL);
+  if (everLive)
+    raw |= static_cast<std::int64_t>(0x4000000000000000ULL);
   df::StreetPixel pixel;
   static_assert(sizeof(df::StreetPixel) == sizeof(std::int64_t));
   std::memcpy(&pixel, &raw, sizeof(raw));
