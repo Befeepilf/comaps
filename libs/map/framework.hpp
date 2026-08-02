@@ -205,6 +205,7 @@ protected:
   std::unique_ptr<StreetPixelsManager> m_streetPixelsManager;
   std::unique_ptr<ExploreStatsService> m_exploreStatsService;
   std::unique_ptr<RecordingSession> m_recordingSession;
+  RecordingSession::StateChangedFn m_recordingSessionPlatformListener;
 
   SearchMarks m_searchMarks;
 
@@ -318,6 +319,7 @@ public:
 
   RecordingSession & GetRecordingSession();
   RecordingSession const & GetRecordingSession() const;
+  void SetRecordingSessionPlatformListener(RecordingSession::StateChangedFn const & fn);
 
   void EnableExploreSync(bool enabled);
   bool IsExploreSyncEnabled() const;

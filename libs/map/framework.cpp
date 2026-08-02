@@ -508,6 +508,8 @@ Framework::Framework(FrameworkParams const & params, bool loadMaps)
   m_recordingSession->SetStateListener([this](RecordingSession::State previous, RecordingSession::State current)
   {
     ApplyRecordingPauseResumeEffects(previous, current, &GpsTracker::Instance(), m_streetPixelsManager.get());
+    if (m_recordingSessionPlatformListener)
+      m_recordingSessionPlatformListener(previous, current);
   });
 
   m_routingManager.SetTransitManager(&m_transitManager);
@@ -2154,6 +2156,11 @@ RecordingSession const & Framework::GetRecordingSession() const
 {
   ASSERT(m_recordingSession != nullptr, ("Recording session is not initialized."));
   return *m_recordingSession.get();
+}
+
+void Framework::SetRecordingSessionPlatformListener(RecordingSession::StateChangedFn const & fn)
+{
+  m_recordingSessionPlatformListener = fn;
 }
 
 void Framework::SetPlacePageListeners(PlacePageEvent::OnOpen onOpen, PlacePageEvent::OnClose onClose,
