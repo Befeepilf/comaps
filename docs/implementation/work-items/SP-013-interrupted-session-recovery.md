@@ -1,7 +1,7 @@
 # SP-013 — Interrupted-session detection and recovery
 
 **Phase:** 2 — Recording and collection correctness
-**Status:** Not started
+**Status:** Accepted
 **Branch:** `street-pixels`
 
 ---
@@ -190,29 +190,70 @@ In the SP-002 target:
 - Rollback is a revert. A leftover breadcrumb value must be harmless to code
   that does not understand it.
 
+## Decisions (approved)
+
+### D1 — Cold-start recovery: force-finish
+
+When breadcrumb is present and in-memory session is Idle (process death /
+cold start), **force-finish**: save non-empty track, stop tracker and FGS,
+consume breadcrumb, show non-blocking interrupted toast. **Do not** restore or
+`Start` the session. Rationale: honest about unrecoverable OS termination
+(§11.2); preserves track and pixels; avoids a resumed session with an
+unexplained gap that the user did not choose to continue.
+
+Mid-session interruption (process still alive, gap while `Recording`) keeps
+the session in `Recording`, applies barrier/filter reset only, and informs the
+user — recording continues from the next accepted sample (§11.5).
+
+### D2 — Mid-session gap threshold: 60 seconds
+
+`kRecordingInterruptionGapSeconds = 60`. Android classifies interruption after
+LocationHelper's existing 30 s `LOCATION_UPDATE_TIMEOUT_MS` plus a 30 s
+follow-up while state is `Recording` (LocationHelper fires its timeout once and
+does not re-arm). While `Paused`, gaps are not interruptions. The 30 s Wi‑Fi
+warning remains at the first timeout; interrupt copy replaces it at 60 s.
+
+### D3 — Separate interrupt user copy
+
+New strings `track_recording_interrupted`, `track_recording_interrupted_toast`
+(cold-start), and `track_recording_interrupted_text` (mid-session). Do not reuse
+pause strings or `dialog_routing_location_turn_wifi`.
+
+### Barrier mechanism
+
+Shared with SP-010/SP-011: `ApplyRecordingInterruptionEffects` calls
+`GpsTracker::MarkSegmentBoundary` (if enabled) and
+`StreetPixelsManager::ResetSampleAcceptanceReference` (filter reset +
+`MarkInterpolationBarrier`). Does **not** call `SetAppendSuspended(true)` and
+does **not** transition to `Paused`.
+
 ## Completion evidence
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commits | |
-| Interruption definition and gap threshold, with justification | |
-| Recovery policy and rationale | |
-| Barrier mechanism, shared with SP-011 | |
-| Test output | |
-| Force-stop test result | |
-| Device-restart test result | |
-| Natural OEM kill test result, device model | |
-| Airplane-mode test result | |
-| Clean-finish false-positive check | |
-| Screen-off batched-delivery false-positive check | |
-| Test device models and OS versions | |
-| Implemented by | |
-| Independent reviewer | |
-| Manual validation performed by and date | |
+| Branch | `street-pixels` |
+| Commits | See git history after SP-013 commit series on `street-pixels` |
+| Interruption definition and gap threshold, with justification | Cold start: breadcrumb + Idle. Mid-session: 60 s without location while `Recording` (30 s LocationHelper timeout + 30 s follow-up). Long enough to avoid misclassifying a single delayed/batched delivery after the first 30 s warning. |
+| Recovery policy and rationale | D1: cold start force-finish (save, stop, toast); mid-session keep Recording with barrier. See Decisions above. |
+| Barrier mechanism, shared with SP-011 | `ApplyRecordingInterruptionEffects` → `MarkSegmentBoundary` + `ResetSampleAcceptanceReference` / `MarkInterpolationBarrier`. No append suspend; no Pause. |
+| Test output | `InterruptedSession_*` **10/10** OK (incl. TrackBeforeInterruptionIntact). Full `street_pixels_tests` previously green; track/boundary nit fixed before accept. |
+| Force-stop test result | Deferred to SP-014 / manual device validation |
+| Device-restart test result | Deferred to SP-014 / manual device validation |
+| Natural OEM kill test result, device model | Deferred to SP-014 / manual device validation |
+| Airplane-mode test result | Deferred to SP-014 / manual device validation |
+| Clean-finish false-positive check | Deferred to SP-014 / manual device validation |
+| Screen-off batched-delivery false-positive check | Deferred to SP-014 / manual device validation |
+| Test device models and OS versions | Desktop macOS Debug (`street_pixels_tests`); device pending SP-014 |
+| Implemented by | Cursor agent |
+| Independent reviewer | Cursor review agent (approve with nits; toast copy, 60 s constant, track boundary test fixed) |
+| Manual validation performed by and date | Maintainer accepted 2026-08-02; device matrix pending SP-014 |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-02 |
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| LocationHelper `onLocationUpdateTimeout` is one-shot (does not re-arm); mid-session 60 s uses timeout + delayed follow-up rather than two native timeouts. | Keep; document. Re-arming LocationHelper globally would change navigation battery-saver prompting. |
+| Manual device matrix (force-stop, reboot, OEM kill, airplane, clean finish, screen-off) | SP-014 / dedicated manual validation pass |
+| Orphan `TrackRecorder` enabled without breadcrumb or active session: stop quietly, no interrupt toast | Implemented in cold-start path; confirm on device |

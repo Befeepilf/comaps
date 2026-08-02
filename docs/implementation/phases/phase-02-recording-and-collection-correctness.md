@@ -44,7 +44,7 @@ establishes the sample-acceptance pipeline everything downstream trusts.
 
 ## Current code locations
 
-Verified 2026-08-02 against the working tree (post SP-012).
+Verified 2026-08-02 against the working tree (post SP-013).
 
 | Concern | Location | Observed state |
 | --- | --- | --- |
@@ -96,7 +96,7 @@ nothing to prevent.
 | SP-010 | Pause and resume semantics | SP-006, SP-007, SP-009 | **Accepted** 2026-08-02 — append suspend + in-memory segment boundaries; filter reset on pause/resume; D2 live drape deferred |
 | SP-011 | Segment interpolation with pause and interruption barriers | SP-009, SP-010 | **Accepted** 2026-08-02 — `LiveSegmentInterpolation` 10 m sampling + barriers; shared `ForEachMercatorSegmentSample`; 19 segment tests; 98/98 suite |
 | SP-012 | Android recording controls and foreground-service integration | SP-010 | **Accepted** 2026-08-02 — one Record Track control; FGS while Recording/Paused; notification Pause/Resume/Stop; ABL deferred; device matrix → SP-014 |
-| SP-013 | Interrupted-session detection and recovery | SP-010, SP-012 | |
+| SP-013 | Interrupted-session detection and recovery | SP-010, SP-012 | **Accepted** 2026-08-02 — breadcrumb force-finish + 60 s gap latch; `ApplyRecordingInterruptionEffects`; 10 InterruptedSession tests; device matrix → SP-014 |
 | SP-014 | Recording end-to-end validation | all of the above | |
 
 Adjustments to the originally suggested breakdown, and why:
