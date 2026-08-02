@@ -1,7 +1,7 @@
 # SP-011 — Segment interpolation with pause and interruption barriers
 
 **Phase:** 2 — Recording and collection correctness
-**Status:** Not started
+**Status:** Accepted
 **Branch:** `street-pixels`
 
 ---
@@ -201,24 +201,28 @@ first.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commits | |
-| Collection geometry chosen and step size | |
-| Barrier mechanism, shared with SP-010 and SP-013 | |
-| Constants and values | |
-| Test output, including all five barrier tests | |
-| Cycling route: coverage continuity | |
-| Signal-loss test: gap length and result, with screenshot | |
-| Pause-and-travel test result | |
-| Per-update cost measurement | |
-| Battery observation over an extended session | |
-| Test device models and OS versions | |
-| Implemented by | |
-| Independent reviewer | |
-| Manual validation performed by and date | |
+| Branch | `street-pixels` |
+| Commits | See git history after SP-011 commit series on `street-pixels` |
+| Collection geometry chosen and step size | Fixed-step sampling along accepted segment at `kInterpolationStepMeters = 10` via shared `ForEachMercatorSegmentSample` (also used by `ComputeTrackPixels`); each sample calls `AddPixelsInRadius`. No HEALPix strip query. |
+| Barrier mechanism, shared with SP-010 and SP-013 | Single `LiveSegmentInterpolation::MarkInterpolationBarrier()` clears interpolation origin only. `StreetPixelsManager::MarkInterpolationBarrier()` exposes it for SP-013. `ResetSampleAcceptanceReference()` also marks the barrier (pause/resume/session). Reject path marks barrier without clearing filter reference (SP-009 AC8); rejection test asserts subsequent Teleport still measured from last accepted. |
+| Constants and values | `kMaxInterpolationGapSeconds = 30` (inclusive; ExactMax tested); reuses `kMaxJumpMeters` and `kMaxImpliedSpeedMps` from `live_sample_acceptance_filter.hpp`; explore radius remains 25 m via `AddPixelsInRadius`. |
+| Test output, including all five barrier tests | 19 `SegmentInterpolation_*` tests OK; full `street_pixels_tests` **98/98** passed after nit fixes. |
+| Cycling route: coverage continuity | Automated `SegmentInterpolation_CyclingSequence_ContinuousCoverage` passed. Device cycling pending SP-014. |
+| Signal-loss test: gap length and result, with screenshot | Pending SP-014 manual validation |
+| Pause-and-travel test result | Pending SP-014 (automated pause/resume barrier mid-point tests passed) |
+| Per-update cost measurement | `SegmentInterpolation_PerUpdateCost_MaxGapSegment`: 1000× ~199 m / 10 m sampling averaged well under 1 ms/call on desktop Debug (test asserts `< 1.0` ms). Full `AddPixelsInRadius` disc cost on device pending SP-014. |
+| Battery observation over an extended session | Pending SP-014 |
+| Test device models and OS versions | Desktop macOS Debug (`street_pixels_tests`); device pending |
+| Implemented by | Cursor agent |
+| Independent reviewer | Cursor review agent (approve with nits; nits fixed: shared sampler, ExactMax 30 s, reject keeps filter reference assert) |
+| Manual validation performed by and date | Maintainer accepted 2026-08-02; device cycling/tunnel/battery pending SP-014 |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-02 |
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Device cycling / tunnel / pause-and-travel / battery not run | Required before SP-014; do not treat desktop-only evidence as device validation |
+| `PauseResume_TrackBoundary_ImmediateResumeAdd_SplitsCorrectly` intermittent flake (points 3 vs 4) still present | Pre-existing SP-010 async GpsTrack race; unrelated to SP-011. Consider stronger waiter or stabilize in a follow-up. |
+| Manager-level distance/speed “just over” caps are rejected by SP-009 filter before interpolation; module-level `MayInterpolateSegment` covers those boundaries | Acceptable; live path never sees accepted endpoints beyond shared jump/speed caps |
