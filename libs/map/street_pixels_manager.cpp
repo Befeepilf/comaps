@@ -26,6 +26,7 @@
 #include "kml/type_utils.hpp"
 
 #include "map/street_pixels_manager.hpp"
+#include "map/street_pixels_file.hpp"
 #include "map/street_stats_db.hpp"
 #include "map/recording_session.hpp"
 #include "map/live_sample_acceptance_filter.hpp"
@@ -291,19 +292,39 @@ void StreetPixelsManager::LoadStreetPixels(storage::LocalFilePtr const & localFi
     return;
   }
 
+  std::int64_t const mapDataVersion = localFile ? localFile->GetVersion() : 0;
+
   try
   {
-    LoadStreetPixelsFromFile(countryId);
+    LoadStreetPixelsFromFile(countryId, mapDataVersion);
+  }
+  catch (street_pixels_file::UnsupportedStreetPixelsFormat const & e)
+  {
+    LOG(LWARNING, ("Unsupported street pixels format:", e.what()));
+  }
+  catch (street_pixels_file::StreetPixelsMigrationException const & e)
+  {
+    LOG(LWARNING, ("Street pixels migration failed:", e.what()));
   }
   catch (std::exception const & e)
   {
     LOG(LWARNING, ("Failed to memory-map pix file:", e.what()));
-    LOG(LINFO, ("Calculating street pixels for region:", countryId));
-    std::string const mwmPath = localFile->GetPath(MapFileType::Map);
-    FeaturesVectorTest featuresVector(mwmPath);
-    auto newStreetPixels = DeriveStreetPixelsFromFeatures(featuresVector);
-    SaveStreetPixelsToFile(newStreetPixels);
-    LoadStreetPixelsFromFile(countryId);
+    std::string const filePath = GetPlatform().WritablePathForFile(countryId + ".pix");
+    auto const probe = street_pixels_file::ProbeFile(filePath);
+    if (!street_pixels_file::MayRecoverByDerive(probe.kind))
+    {
+      LOG(LWARNING, ("Not re-deriving street pixels over existing file", filePath,
+                     static_cast<int>(probe.kind)));
+    }
+    else
+    {
+      LOG(LINFO, ("Calculating street pixels for region:", countryId));
+      std::string const mwmPath = localFile->GetPath(MapFileType::Map);
+      FeaturesVectorTest featuresVector(mwmPath);
+      auto newStreetPixels = DeriveStreetPixelsFromFeatures(featuresVector);
+      SaveStreetPixelsToFile(newStreetPixels, mapDataVersion);
+      LoadStreetPixelsFromFile(countryId, mapDataVersion);
+    }
   }
 
   {
@@ -323,15 +344,47 @@ void StreetPixelsManager::LoadStreetPixels(storage::LocalFilePtr const & localFi
   LoadAccountedBits();
 }
 
-void StreetPixelsManager::LoadStreetPixelsFromFile(storage::CountryId const & countryId)
+void StreetPixelsManager::LoadStreetPixelsFromFile(storage::CountryId const & countryId,
+                                                   std::int64_t mapDataVersion)
 {
   LOG(LINFO, ("LoadStreetPixelsFromFile", countryId));
 
   std::string const filePath = GetPlatform().WritablePathForFile(countryId + ".pix");
   LOG(LINFO, ("Trying to memory-map existing pix file for", countryId));
 
-  std::unique_ptr<MmapReader> mmapReader = std::make_unique<MmapReader>(filePath, MmapReader::Advice::Sequential, true);
-  std::span<df::StreetPixel const> const streetPixels = mmapReader->DataSpan<df::StreetPixel>();
+  auto const probe = street_pixels_file::ProbeFile(filePath);
+  switch (probe.kind)
+  {
+  case street_pixels_file::FileKind::UnsupportedFormat:
+    MYTHROW(street_pixels_file::UnsupportedStreetPixelsFormat,
+            ("Unsupported street pixels format version", probe.header.formatVersion, filePath));
+  case street_pixels_file::FileKind::Legacy:
+    street_pixels_file::MigrateLegacyFile(filePath, mapDataVersion);
+    break;
+  case street_pixels_file::FileKind::Corrupt:
+    MYTHROW(street_pixels_file::CorruptStreetPixelsFile, ("Corrupt or missing street pixels file", filePath));
+  case street_pixels_file::FileKind::HeaderedV1: break;
+  }
+
+  std::unique_ptr<MmapReader> mmapReader =
+      std::make_unique<MmapReader>(filePath, MmapReader::Advice::Sequential, true);
+  if (mmapReader->Size() < street_pixels_file::kHeaderSize ||
+      ((mmapReader->Size() - street_pixels_file::kHeaderSize) % sizeof(df::StreetPixel)) != 0)
+  {
+    MYTHROW(street_pixels_file::CorruptStreetPixelsFile, ("Invalid headered street pixels size", filePath));
+  }
+
+  auto const header = street_pixels_file::ReadHeader(mmapReader->Data());
+  if (header.magic != street_pixels_file::kMagic || header.formatVersion != street_pixels_file::kFormatVersionV1 ||
+      (header.flags & street_pixels_file::kFlagsHasHeaderBit) == 0)
+  {
+    MYTHROW(street_pixels_file::CorruptStreetPixelsFile, ("Invalid street pixels header after open", filePath));
+  }
+
+  size_t const entryCount =
+      static_cast<size_t>((mmapReader->Size() - street_pixels_file::kHeaderSize) / sizeof(df::StreetPixel));
+  auto * const body = reinterpret_cast<df::StreetPixel *>(mmapReader->Data() + street_pixels_file::kHeaderSize);
+  std::span<df::StreetPixel> const streetPixels(body, entryCount);
   LOG(LINFO, ("Mapped", streetPixels.size(), "pixels for", countryId));
 
   size_t const exploredCount = CountExploredPixels(streetPixels);
@@ -339,12 +392,14 @@ void StreetPixelsManager::LoadStreetPixelsFromFile(storage::CountryId const & co
   {
     std::lock_guard<std::shared_mutex> lock(m_streetPixelsMutex);
     m_mmapReader = std::move(mmapReader);
-    m_streetPixels = m_mmapReader->DataSpan<df::StreetPixel>();
+    m_streetPixels = streetPixels;
     m_exploredPixelCount = exploredCount;
+    m_pixMapDataVersion = header.mapDataVersion;
   }
 }
 
-void StreetPixelsManager::SaveStreetPixelsToFile(std::set<std::int64_t> const & streetPixels)
+void StreetPixelsManager::SaveStreetPixelsToFile(std::set<std::int64_t> const & streetPixels,
+                                                 std::int64_t mapDataVersion)
 {
   LOG(LINFO, ("SaveStreetPixelsToFile", streetPixels.size()));
 
@@ -356,12 +411,14 @@ void StreetPixelsManager::SaveStreetPixelsToFile(std::set<std::int64_t> const & 
 
   LOG(LINFO, ("Saving street pixels for", countryId));
   std::string const filePath = GetPlatform().WritablePathForFile(countryId + ".pix");
-  {
-    std::unique_ptr<FileWriter> writer(new FileWriter(filePath, FileWriter::OP_WRITE_TRUNCATE));
-    for (auto const & pixel : streetPixels)
-      writer->Write(&pixel, sizeof(int64_t));
-    writer->Flush();
-  }
+  if (!street_pixels_file::SaveUnexploredIds(filePath, streetPixels, mapDataVersion))
+    MYTHROW(street_pixels_file::StreetPixelsFileException, ("Failed to save street pixels file", filePath));
+}
+
+std::int64_t StreetPixelsManager::GetPixMapDataVersion() const
+{
+  std::shared_lock<std::shared_mutex> lock(m_streetPixelsMutex);
+  return m_pixMapDataVersion;
 }
 
 void StreetPixelsManager::CleanupStreetPixels(storage::CountryId const & countryId)
@@ -1028,6 +1085,7 @@ void StreetPixelsManager::ClearPixels()
     m_streetPixels = {};
     m_mmapReader.reset();
     m_exploredPixelCount = 0;
+    m_pixMapDataVersion = 0;
   }
   m_accountedBits.clear();
   m_accountedDirty = false;

@@ -89,14 +89,16 @@ public:
   void LoadStreetPixels(storage::LocalFilePtr const & localFile);
 
   std::set<std::int64_t> DeriveStreetPixelsFromFeatures(FeaturesVectorTest & featuresVector);
-  void LoadStreetPixelsFromFile(storage::CountryId const & countryId);
-  void SaveStreetPixelsToFile(std::set<std::int64_t> const & streetPixels);
+  void LoadStreetPixelsFromFile(storage::CountryId const & countryId, std::int64_t mapDataVersion);
+  void SaveStreetPixelsToFile(std::set<std::int64_t> const & streetPixels, std::int64_t mapDataVersion);
 
   void CleanupStreetPixels(storage::CountryId const & countryId);
 
   void ClearPixels();
 
   void UpdateExploredPixels();
+
+  std::int64_t GetPixMapDataVersion() const;
 
   double GetTotalExploredFraction() const;
 
@@ -148,6 +150,7 @@ private:
   std::span<df::StreetPixel> m_streetPixels;
   mutable std::shared_mutex m_streetPixelsMutex;
   size_t m_exploredPixelCount = 0;
+  std::int64_t m_pixMapDataVersion = 0;
 
   std::unique_ptr<MmapReader> m_mmapReader;
 
