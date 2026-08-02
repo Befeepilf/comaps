@@ -1,4 +1,4 @@
-# SP-019 — Align derivation sampling to ~10 metres
+# SP-019 — Unify path sampling at 15 metres
 
 **Phase:** 3 — Exploration storage and map-update reconciliation
 **Status:** Planned
@@ -8,92 +8,92 @@
 
 ## Objective
 
-Make on-device street-pixel derivation sample at the spec's ~10 metre step and
-eliminate divergent hard-coded sampling constants so one constant defines the
-valid-pixel universe.
+Make derivation, live segment interpolation, and track/import sampling share
+one **15.0 m** path-sampling step (SPD-019). Eliminate the 10 m live/track
+constant and the hard-coded `10.0` literal so the valid-pixel universe and
+collection sampling agree without densifying on-disk `.pix` files.
 
 ## Motivation
 
-`kSegmentLengthMeters = 15.0` drives `DeriveStreetPixelsFromFeatures` /
-`SegmentizeStreet`. Spec §14 requires ~10 m path sampling. Live and track
-sampling already use `kInterpolationStepMeters = 10.0`. Dual constants also
-tie `street_exploration` bitmask indices to 15 m buckets.
+`kSegmentLengthMeters = 15.0` already drives `DeriveStreetPixelsFromFeatures` /
+`SegmentizeStreet`. Live and track sampling use `kInterpolationStepMeters =
+10.0`, and `UpdateStreetStatsForTrack` hard-codes `10.0`. Dual steps diverge
+collection density from the derived universe.
 
-Phase 3 requires this change in the **same release** as rematch so denominator
-shifts are absorbed by the update story.
+Phase 3 originally planned moving derivation to ~10 m (spec §14). After
+Uusimaa `.pix` ≈ 50 MB, densifying the universe was rejected. SPD-019 locks
+V1 at **15 m everywhere** — a recorded divergence from the spec’s ~10 m
+figure in favour of storage headroom and one constant.
 
 ## In-scope behavior
 
-- Derivation sampling uses 10 m (shared named constant with the interpolation
-  step, or a single derivation constant equal to it — record choice).
+- Live interpolation and active track replay sample at 15 m (same value as
+  derivation).
+- One sampling constant (or two equal aliases with a single definition) —
+  record choice in evidence.
 - Remove or align the legacy `10.0` literal in `UpdateStreetStatsForTrack` so
   no third value remains.
-- Any stats bitmask indexing that assumed 15 m is updated or explicitly
-  invalidated/regenerated under rematch.
-- Determinism test: derive twice from the same fixture → byte-identical `.pix`
-  payload (entries).
-- Fixture asserting expected pixel-count behaviour at 10 m vs old 15 m
-  (document expected direction: denser universe).
+- Update automated tests that asserted 10 m (including SP-011-era segment
+  interpolation tests) to 15 m.
+- Determinism: derive twice from the same fixture → byte-identical `.pix`
+  payload (entries). Derivation step itself is unchanged at 15 m.
 
 ## Out-of-scope behavior
 
-- Rematch implementation (SP-017) — coordinate landing order only.
+- Densifying derivation to 10 m (explicitly rejected by SPD-019).
+- Changing `nside` (SPD-017 locked).
+- Rematch implementation (SP-017 already landed) — no universe rebuild is
+  required solely for this sampling unify.
 - Eligibility policy (SP-020).
 - Renderer LOD.
-- Changing `nside` (SPD-017 locked).
+- Editing the product spec text (§14 remains ~10 m as product intent).
 
 ## Relevant product requirements
 
-- §14.1–§14.3 ~10 m sampling; determinism.
+- §14.1–§14.3 sampling / determinism (V1 implements 15 m per SPD-019).
+- SPD-019.
 
 ## Relevant source files or symbols
 
 - `libs/map/street_pixels_manager.cpp` — `kSegmentLengthMeters`,
   `SegmentizeStreet`, `DeriveStreetPixelsFromFeatures`,
-  `UpdateStreetStatsForTrack`
-- `libs/map/live_segment_interpolation.hpp` — `kInterpolationStepMeters`
-- `libs/map/street_pixels_tests/*`
+  `ComputeTrackPixels`, `UpdateStreetStatsForTrack`
+- `libs/map/live_segment_interpolation.{hpp,cpp}` — `kInterpolationStepMeters`
+- `libs/map/street_pixels_tests/segment_interpolation_tests.cpp` and related
 
 ## Implementation notes / constraints
 
 - Prefer one constant name used by derivation and segment sampling.
-- Expect rematch (or first load after upgrade) to rebuild universes; do not
-  silently keep 15 m files without a version bump story (SP-015 map-data /
-  format interaction — record how rebuild is triggered).
-- **Size watch:** Uusimaa `.pix` is already ~50 MB at 15 m derivation. 10 m
-  sampling densifies the valid universe. Measure cell count / file size before
-  and after on a Uusimaa-class (or largest available) region and record in
-  evidence. If growth is severe, report — do not silently accept unbounded
-  expansion; maintainer decides. `nside` stays locked (SPD-017); do not
-  “fix” size by changing grid resolution.
+- Do not bump `.pix` format or force rematch for this change; existing 15 m
+  universes remain valid.
+- **Size watch:** Uusimaa stays at current ~50 MB class because derivation is
+  unchanged. Record that SPD-019 avoids the 10 m densification risk.
 
 ## Acceptance criteria
 
-1. Derivation samples at 10 m; no remaining 15 m derivation constant.
+1. Live and track sampling use 15 m; no remaining 10 m sampling constant for
+   Street Pixels path sampling.
 2. One sampling constant (or two equal aliases with a single definition).
-3. Repeat-derivation determinism test passes.
-4. Landing is ordered for the same release as SP-017 rematch.
-5. Before/after size (or cell count) recorded for at least one regional-scale
-   fixture or device region.
+3. Repeat-derivation determinism test passes (still 15 m derive).
+4. SP-011 / segment-interpolation tests updated and green.
+5. Evidence records constant choice and that `.pix` size is unchanged by design.
 6. Covered by `street_pixels_tests`.
 
 ## Required automated tests
 
+- Sampling step constant assertion (= 15.0).
 - Deterministic double derive.
-- Sampling step constant assertion.
-- Fixture geometry pixel-count at 10 m (expected value recorded in test).
+- Fixture / segment tests updated for 15 m step (expected sample counts).
 
 ## Required manual validation
 
-- After update/rebuild, visual density of red pixels on a known street looks
-  consistent with denser sampling (spot check; quantitative proof is
-  automated).
+- Short recorded walk still paints greens; sampling feels consistent with the
+  existing red universe (spot check; no denser red field expected).
 
 ## Failure and rollback considerations
 
-- Universe change without rematch would desync explored bits; do not ship this
-  without SP-017 in the same release train.
-- Rollback requires reverting constant and regenerating.
+- Rollback: restore 10 m live/track constants; derivation already 15 m.
+- No explored-bit wipe risk from this change alone.
 
 ## Completion evidence
 
