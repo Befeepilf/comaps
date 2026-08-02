@@ -631,6 +631,14 @@
     <string name="navigation_stop_button">Stop</string>
     <!-- Shown as toast when starting the recent track recording -->
     <string name="track_recording">Recording the track</string>
+    <!-- Notification title while recording is paused -->
+    <string name="track_recording_paused">Recording paused</string>
+    <!-- Notification text while a track is being recorded -->
+    <string name="track_recording_in_progress_text">Recording continues while the screen is off. Stops when you finish the session.</string>
+    <!-- Notification text while recording is paused -->
+    <string name="track_recording_paused_text">Recording is paused. Resume to continue collecting.</string>
+    <!-- Rationale shown before requesting location permission to start a recording session -->
+    <string name="track_recording_location_rationale">CoMaps needs location access to record your exploration session. Location is used only while a session is active and is not shared for competition signup.</string>
     <!-- For the first routing -->
     <string name="accept">Accept</string>
     <!-- For the first routing -->
