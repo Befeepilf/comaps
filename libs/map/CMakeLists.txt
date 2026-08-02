@@ -75,6 +75,8 @@ set(SRC
   search_product_info.hpp
   street_exploration_routing_adapter.cpp
   street_exploration_routing_adapter.hpp
+  street_pixels_file.cpp
+  street_pixels_file.hpp
   street_pixels_manager.cpp
   street_pixels_manager.hpp
   street_stats_db.cpp
