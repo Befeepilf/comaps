@@ -1,7 +1,7 @@
 # SP-012 — Android recording controls and foreground-service integration
 
 **Phase:** 2 — Recording and collection correctness
-**Status:** Not started
+**Status:** Accepted
 **Branch:** `street-pixels`
 
 ---
@@ -211,23 +211,34 @@ whether any battery-optimisation exemption was granted.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commits | |
-| JNI surface added | |
-| Notification behaviour by state | |
-| `ACCESS_BACKGROUND_LOCATION` added? Evidence for the decision | |
-| Device 1: model, OS, screen-off samples received versus expected | |
-| Device 2: model, OS, screen-off samples received versus expected | |
-| Battery-optimisation exemptions granted, if any | |
-| Pause and resume from notification result | |
-| Permission-denied path result | |
-| Background-location-denied path result | |
-| Implemented by | |
-| Independent reviewer | |
-| Manual validation performed by and date | |
+| Branch | `street-pixels` |
+| Commits | See git history after SP-012 commit series on `street-pixels` |
+| JNI surface added | `nativeRecordingSessionReset`; state-change callback via `RecordingSession.nativeAddListener` / `nativeRemoveListener`; production `RecordingSession` Java API (Start/Pause/Resume/Finish/Discard/Reset/GetState). Existing Start–Discard/GetState JNI retained. Platform listener fan-out on shared `Framework::SetRecordingSessionPlatformListener`. |
+| Notification behaviour by state | Recording: title `track_recording`, text in-progress, actions Pause + Stop. Paused: title `track_recording_paused`, text paused, actions Resume + Stop. Stop opens finish/save dialog via `STOP_TRACK_RECORDING` including cold Activity start. FGS stays up for Recording and Paused; stopped on Finish/Discard. Discard remains in-app only (D2). |
+| `ACCESS_BACKGROUND_LOCATION` added? Evidence for the decision | **Not added.** Per approved D3: measure first. No ABL request path in this pass. |
+| Device 1: model, OS, screen-off samples received versus expected | Deferred to SP-014 / device validation |
+| Device 2: model, OS, screen-off samples received versus expected | Deferred to SP-014 / device validation |
+| Battery-optimisation exemptions granted, if any | Deferred to SP-014 |
+| Pause and resume from notification result | Implemented (service PendingIntents); device confirmation deferred to SP-014 |
+| Permission-denied path result | Rationale dialog then request at start; device confirmation deferred to SP-014 |
+| Background-location-denied path result | Deferred — ABL not requested yet |
+| Implemented by | Cursor agent |
+| Independent reviewer | Cursor review agent (blocked on Stop cold-start / Start-without-session / warning refresh; fixed before accept) |
+| Manual validation performed by and date | Maintainer accepted 2026-08-02; device matrix pending SP-014 |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-02 |
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Review fixes applied: Stop on cold start; reset terminal states before Start; refuse FGS start without active session; session notification refresh clears location-timeout warning | Landed with SP-012 |
+| Screen-off / OEM continuity device matrix not yet run | Required before SP-014; record results in evidence table |
+| `ACCESS_BACKGROUND_LOCATION` decision awaits measurement | Keep absent until evidence; if required, flag Phase 10 Play data-safety governance |
+| Background-location-denied messaging not implemented (AC6) | Only needed if/when ABL is requested; add degraded-copy UX then |
+| Instrumented Android UI tests absent | Out of scope per work item; optional follow-up if instrumented harness is added |
+| Session history / track inspect-delete UI | Later UI work item (spec §11.4 / §30) |
+| Breadcrumb / interrupted-session recovery UX; process death may leave GpsTracker without session | SP-013 |
+| Live drape line may still look continuous across pause | SP-010 D2 deferred follow-up |
+| Review fixes applied: Stop on cold start; reset terminal states before Start; refuse FGS start without active session; session notification refresh clears location-timeout warning | Retained in tree; re-verify on device |
+| Suggested commit subjects (do not commit here) | `[map] Fan out recording-session platform listener`; `[android] Add production RecordingSession JNI API`; `[android] Wire session controls to map UI and FGS`; `[android] Add recording notification pause/resume actions`; `[android] Add RecordingSessionUiModel JVM tests`; `[docs] Record SP-012 in-progress evidence` |
