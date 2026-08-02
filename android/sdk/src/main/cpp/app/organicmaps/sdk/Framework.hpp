@@ -75,6 +75,7 @@ private:
   void TransitSchemeStateChanged(TransitReadManager::TransitSchemeState state);
   void IsolinesSchemeStateChanged(IsolinesManager::IsolinesState state);
   void StreetPixelsStateChanged(bool enabled, StreetPixelsManager::StreetPixelsStatus status, storage::CountryId const & countryId);
+  void RecordingSessionStateChanged(RecordingSession::State previous, RecordingSession::State current);
 
   void MyPositionModeChanged(location::EMyPositionMode mode, bool routingActive);
 
@@ -84,6 +85,7 @@ private:
   TransitReadManager::TransitStateChangedFn m_onTransitStateChangedFn;
   IsolinesManager::IsolinesStateChangedFn m_onIsolinesStateChangedFn;
   StreetPixelsManager::StreetPixelsStateChangedFn m_onStreetPixelsStateChangedFn;
+  RecordingSession::StateChangedFn m_onRecordingSessionStateChangedFn;
 
   ChoosePositionMode m_isChoosePositionMode = ChoosePositionMode::None;
   bool m_isSurfaceDestroyed = false;
@@ -178,6 +180,7 @@ public:
   void SetTransitSchemeListener(TransitReadManager::TransitStateChangedFn const & fn);
   void SetIsolinesListener(IsolinesManager::IsolinesStateChangedFn const & fn);
   void SetStreetPixelsListener(StreetPixelsManager::StreetPixelsStateChangedFn const & fn);
+  void SetRecordingSessionListener(RecordingSession::StateChangedFn const & fn);
 
   bool IsTrafficEnabled();
   void EnableTraffic();

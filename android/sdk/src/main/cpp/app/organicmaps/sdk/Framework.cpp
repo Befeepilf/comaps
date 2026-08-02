@@ -132,6 +132,7 @@ Framework::Framework(std::function<void()> && afterMapsLoaded) : m_work({} /* pa
   m_work.GetTransitManager().SetStateListener(bind(&Framework::TransitSchemeStateChanged, this, _1));
   m_work.GetIsolinesManager().SetStateListener(bind(&Framework::IsolinesSchemeStateChanged, this, _1));
   m_work.GetStreetPixelsManager().SetStateListener(bind(&Framework::StreetPixelsStateChanged, this, _1, _2, _3));
+  m_work.SetRecordingSessionPlatformListener(bind(&Framework::RecordingSessionStateChanged, this, _1, _2));
   m_work.GetPowerManager().Subscribe(this);
 }
 
@@ -193,6 +194,12 @@ void Framework::StreetPixelsStateChanged(bool enabled, StreetPixelsManager::Stre
 {
   if (m_onStreetPixelsStateChangedFn)
     m_onStreetPixelsStateChangedFn(enabled, status, countryId);
+}
+
+void Framework::RecordingSessionStateChanged(RecordingSession::State previous, RecordingSession::State current)
+{
+  if (m_onRecordingSessionStateChangedFn)
+    m_onRecordingSessionStateChangedFn(previous, current);
 }
 
 bool Framework::CreateDrapeEngine(JNIEnv * env, jobject jSurface, int densityDpi, bool firstLaunch,
@@ -679,6 +686,11 @@ void Framework::SetStreetPixelsListener(StreetPixelsManager::StreetPixelsStateCh
   m_onStreetPixelsStateChangedFn = function;
 }
 
+void Framework::SetRecordingSessionListener(RecordingSession::StateChangedFn const & function)
+{
+  m_onRecordingSessionStateChangedFn = function;
+}
+
 bool Framework::IsTrafficEnabled()
 {
   return m_work.GetTrafficManager().IsEnabled();
@@ -956,9 +968,35 @@ JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeRecordingSession
   frm()->GetRecordingSession().Discard();
 }
 
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeRecordingSessionReset(JNIEnv *, jclass)
+{
+  frm()->GetRecordingSession().Reset();
+}
+
 JNIEXPORT jint JNICALL Java_app_organicmaps_sdk_Framework_nativeRecordingSessionGetState(JNIEnv *, jclass)
 {
   return static_cast<jint>(frm()->GetRecordingSession().GetState());
+}
+
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_location_RecordingSession_nativeAddListener(JNIEnv * env, jclass,
+                                                                                           jobject listener)
+{
+  CHECK(g_framework, ("Framework isn't created yet!"));
+  auto globalListener = jni::make_global_ref(listener);
+  g_framework->SetRecordingSessionListener(
+      [globalListener](RecordingSession::State previous, RecordingSession::State current)
+      {
+        JNIEnv * jenv = jni::GetEnv();
+        jenv->CallVoidMethod(*globalListener,
+                             jni::GetMethodID(jenv, *globalListener, "onStateChanged", "(II)V"),
+                             static_cast<jint>(previous), static_cast<jint>(current));
+      });
+}
+
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_location_RecordingSession_nativeRemoveListener(JNIEnv *, jclass)
+{
+  CHECK(g_framework, ("Framework isn't created yet!"));
+  g_framework->SetRecordingSessionListener(nullptr);
 }
 
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeClearApiPoints(JNIEnv * env, jclass clazz)
