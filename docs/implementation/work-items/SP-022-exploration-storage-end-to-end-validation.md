@@ -51,7 +51,8 @@ evidence log, and a human exit decision.
 
 - Evidence-only discipline from SP-014.
 - Prefer Uusimaa (or equally large ~50 MB `.pix` region) for rematch timing,
-  RAM behaviour, delete/redownload archive size, and 10 m sampling growth.
+  RAM behaviour, delete/redownload archive size, and confirmation that 15 m
+  sampling (SPD-019) did not densify `.pix`.
 - Pixel 3a may remain the handset; region choice matters more than OEM here.
 
 ## Acceptance criteria
