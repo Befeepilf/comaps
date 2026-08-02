@@ -1,6 +1,6 @@
 # Phase 2 — Recording and collection correctness
 
-**Status:** In progress
+**Status:** Complete (with Phase 10 residual on aggressive-OEM screen-off continuity)
 **Depends on:** Phase 1
 **Blocks:** Phase 3, and through it Phases 4, 6, 8, 9
 
@@ -44,7 +44,7 @@ establishes the sample-acceptance pipeline everything downstream trusts.
 
 ## Current code locations
 
-Verified 2026-08-02 against the working tree (post SP-013).
+Verified 2026-08-03 against the working tree (post SP-014 accept on Pixel 3a).
 
 | Concern | Location | Observed state |
 | --- | --- | --- |
@@ -55,7 +55,7 @@ Verified 2026-08-02 against the working tree (post SP-013).
 | Track filter | `libs/map/gps_track_filter.cpp` | Exists for the track path only. Minimum horizontal accuracy 250 m, 10 m decimation, 2 m/s² acceleration limit, direction check, requires `HasSpeed()`. Not applied to pixel collection. |
 | Interpolation | — | **No interpolation exists in the live pixel path.** `serdes_gpx.cpp` fills GPX timestamps and `extrapolator.cpp` extrapolates for display; neither feeds pixel collection. |
 | Session concept | `libs/map/recording_session.{hpp,cpp}`, `Framework::GetRecordingSession()` | State machine `Idle` / `Recording` / `Paused` / `Finished` / `Discarded`; wired to collection gate via `SetRecordingSession`. |
-| Android recording | `android/app/.../location/TrackRecordingService.java`, `android/sdk/.../location/RecordingSession.java`, `TrackRecorder.java` | FGS typed `location`; production `RecordingSession` JNI drives shared session; Pause/Resume in UI + notification; ABL not added (D3). Device matrix → SP-014. |
+| Android recording | `android/app/.../location/TrackRecordingService.java`, `android/sdk/.../location/RecordingSession.java`, `TrackRecorder.java` | FGS typed `location`; production `RecordingSession` JNI; Pause/Resume on notification; status FAB opens stop dialog; ABL not added. Pixel 3a validated in SP-014; OEM continuity → Phase 10. |
 | Debug session control | `android/sdk/.../location/RecordingSessionDebug.java` | DEBUG-only JNI wrappers for `RecordingSession` start/pause/resume/finish/discard (SP-007 validation affordance). |
 | Location provider | `android/sdk/.../location/LocationHelper.java` | 500 ms interval normally, 1000 ms while track recording |
 | Permissions | `android/app/src/main/AndroidManifest.xml` | `ACCESS_COARSE_LOCATION`, `ACCESS_FINE_LOCATION`, `ACCESS_LOCATION_EXTRA_COMMANDS`. **`ACCESS_BACKGROUND_LOCATION` is absent.** |
@@ -97,7 +97,7 @@ nothing to prevent.
 | SP-011 | Segment interpolation with pause and interruption barriers | SP-009, SP-010 | **Accepted** 2026-08-02 — `LiveSegmentInterpolation` 10 m sampling + barriers; shared `ForEachMercatorSegmentSample`; 19 segment tests; 98/98 suite |
 | SP-012 | Android recording controls and foreground-service integration | SP-010 | **Accepted** 2026-08-02 — one Record Track control; FGS while Recording/Paused; notification Pause/Resume/Stop; ABL deferred; device matrix → SP-014 |
 | SP-013 | Interrupted-session detection and recovery | SP-010, SP-012 | **Accepted** 2026-08-02 — breadcrumb force-finish + 60 s gap latch; `ApplyRecordingInterruptionEffects`; 10 InterruptedSession tests; device matrix → SP-014 |
-| SP-014 | Recording end-to-end validation | all of the above | **In progress** 2026-08-02 — plan reviewed (Pixel 3a); D2 OEM TBD; walks pending |
+| SP-014 | Recording end-to-end validation | all of the above | **Accepted** 2026-08-03 — Pixel 3a full checks pass; SP014-1 FAB fix; aggressive OEM / exit #7 residual → Phase 10 |
 
 Adjustments to the originally suggested breakdown, and why:
 
@@ -196,20 +196,25 @@ Record device model, OS version, build type, route, and outcome for each.
 ## Exit criteria
 
 1. No pixel is collected outside an active, non-paused recording session, and
-   an automated test proves it.
+   an automated test proves it. **Met** (SP-007 + Pixel 3a A1/A2).
 2. A session supports start, pause, resume, finish, and discard, with the state
-   machine implemented in shared code rather than in Android code.
+   machine implemented in shared code rather than in Android code. **Met**
+   (SP-006–012 + Pixel 3a; status FAB stop dialog fixed in SP014-1).
 3. Sample acceptance implements the spec §16.2 defaults, with a test per rule
-   including boundary values.
+   including boundary values. **Met** (SP-009 + Pixel 3a Block D).
 4. Interpolation implements the spec §16.3 caps and never crosses a pause,
-   interruption, or rejection.
+   interruption, or rejection. **Met** (SP-011 + Pixel 3a C3/D6/D7).
 5. Interrupted sessions are detected, the user is informed that part of the
-   session may be missing, and no interval is filled automatically.
-6. The collection radius is 25 metres and is not user-configurable.
+   session may be missing, and no interval is filled automatically. **Met**
+   (SP-013 + Pixel 3a Block E).
+6. The collection radius is 25 metres and is not user-configurable. **Met**
+   (SP-008 + Pixel 3a F-radius).
 7. Documented device validation exists for background and screen-off recording
    on at least two devices, including one aggressive-OEM device, with recorded
-   sample-continuity results.
-8. Existing `gps_track_*` tests still pass.
+   sample-continuity results. **Partial** — Pixel 3a complete; aggressive OEM
+   deferred to Phase 10 (maintainer accepted SP-014 with this residual).
+8. Existing `gps_track_*` tests still pass. **Met** (`GpsTrack_*` OK; full smoke
+   suite re-run deferred to Phase 10).
 
 ## Explicit non-goals
 
@@ -226,18 +231,20 @@ Record device model, OS version, build type, route, and outcome for each.
 ## Known uncertainties
 
 - Whether background sampling survives on aggressive OEM skins without
-  `ACCESS_BACKGROUND_LOCATION` while the foreground service runs. Resolve by
-  measurement in SP-012, not by reasoning.
+  `ACCESS_BACKGROUND_LOCATION` while the foreground service runs. **Pixel 3a
+  passed in SP-014; aggressive OEM still unmeasured — Phase 10.**
 - Whether the spec's default thresholds produce acceptable results for cycling.
   The audit's spike 5 pass criteria — under 1% false urban teleports and under
   5% missed legitimate bike segments — are the target. Retuning requires a
-  decision entry.
+  decision entry. **Pixel 3a cycling check passed per maintainer attestation.**
 - How "stale" is determined from `location::GpsInfo`, and whether the platform
   reliably marks samples invalid.
 - Whether interpolation should emit discrete sample points or collect along a
   segment. The spec says pixels within 25 m of the interpolated segment, which
   argues for segment-based collection; confirm the cost against the existing
-  HEALPix query path in SP-011.
+  HEALPix query path in SP-011. **Resolved in SP-011 (10 m sampling + discs).**
+- Live drape may still draw across pause (SP-010 D2). Stored track + pixels are
+  correct; overlay break remains a follow-up.
 - Whether pause should stop the location subscription entirely (saving battery,
   slowing resume) or keep it running and discard samples. This is a product-
   visible trade-off and is decided in SP-010.

@@ -1,7 +1,7 @@
 # SP-014 — Recording end-to-end validation
 
 **Phase:** 2 — Recording and collection correctness
-**Status:** In progress
+**Status:** Accepted
 **Branch:** `street-pixels`
 
 ---
@@ -181,25 +181,28 @@ scenarios, each on each device in the matrix:
 | Field | Value |
 | --- | --- |
 | Branch | `street-pixels` |
-| Commits, if any | *(pending)* |
+| Commits, if any | `4ad66a79aa` plan/templates; `aa1fc0fe9e` status FAB stop dialog; docs accept commit |
 | Validation plan link | [`docs/implementation/validation/SP-014-validation-plan.md`](../validation/SP-014-validation-plan.md) |
-| Plan reviewed by and date | Maintainer 2026-08-02 (approve: Pixel 3a; skip debug export; ABL measure-first) |
-| Device matrix: models and OS versions | D1 Google Pixel 3a; D2 aggressive OEM **TBD** |
+| Plan reviewed by and date | Maintainer 2026-08-02 (Pixel 3a; skip debug export; ABL measure-first) |
+| Device matrix: models and OS versions | D1 Google Pixel 3a (complete). D2 aggressive OEM deferred to Phase 10. |
 | Evidence log link | [`docs/implementation/validation/SP-014-evidence-log.md`](../validation/SP-014-evidence-log.md) |
-| Scenario 1 result, no session | |
-| Scenario 4 result, samples received versus expected per device | |
-| Scenario 6 screenshot | |
-| Scenario 7 result | |
-| Scenario 12 battery figures | |
-| Defects found, with owning work items | |
-| Per-criterion exit status | Exit 7 blocked until D2 + B4 |
-| Test-only affordance added? Gated how? | No (visual-only v1) |
-| Validation performed by and date | |
-| Independent reviewer | |
+| Scenario 1 result, no session | Pass on Pixel 3a (maintainer attestation) |
+| Scenario 4 result, samples received versus expected per device | Pass on Pixel 3a (maintainer attestation; detailed counts not separately filed) |
+| Scenario 6 screenshot | Pass on Pixel 3a (maintainer attestation) |
+| Scenario 7 result | Pass on Pixel 3a (maintainer attestation) |
+| Scenario 12 battery figures | Pass / recorded on Pixel 3a (maintainer attestation; numeric sheet not separately filed) |
+| Defects found, with owning work items | SP014-1 status FAB → SP-012; fixed `aa1fc0fe9e` |
+| Per-criterion exit status | 1–6,8 met; 7 partial (OEM deferred); smoke deferred |
+| Test-only affordance added? Gated how? | No |
+| Validation performed by and date | Maintainer on Google Pixel 3a, 2026-08-03 |
+| Independent reviewer | — |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-03 |
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| Aggressive OEM device not yet named | Required for SP-014 AC2 and Phase 2 exit criterion 7 |
-| Device walks not yet executed | Human execution per validation plan |
+| Aggressive OEM device matrix not run (SP-014 AC2 / Phase 2 exit #7 full wording) | Phase 10 — screen-off continuity on Xiaomi/Samsung/Huawei-class device; finalize ABL |
+| Local smoke suite binary missing in agent environment | Re-run `./tools/unix/run_tests.sh -b … -s smoke` before public release |
+| Keep ABL absent until OEM measurement | Phase 10 governance if measurement requires ABL |
