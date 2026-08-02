@@ -77,7 +77,7 @@ V1 scope. Explorer Pro **purchasing** is not.
 | # | Phase | File | Status |
 | --- | --- | --- | --- |
 | 1 | Baseline and guardrails | [`phases/phase-01-baseline-and-guardrails.md`](phases/phase-01-baseline-and-guardrails.md) | Not started |
-| 2 | Recording and collection correctness | [`phases/phase-02-recording-and-collection-correctness.md`](phases/phase-02-recording-and-collection-correctness.md) | In progress |
+| 2 | Recording and collection correctness | [`phases/phase-02-recording-and-collection-correctness.md`](phases/phase-02-recording-and-collection-correctness.md) | Complete (OEM screen-off residual → Phase 10) |
 | 3 | Exploration storage and map-update reconciliation | [`phases/phase-03-exploration-storage-and-reconciliation.md`](phases/phase-03-exploration-storage-and-reconciliation.md) | Not started |
 | 4 | Administrative-area pipeline | [`phases/phase-04-administrative-area-pipeline.md`](phases/phase-04-administrative-area-pipeline.md) | Not started |
 | 5 | Area progress and map interaction | [`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md) | Not started |
@@ -331,11 +331,13 @@ Implement in this order. Each links to a file with full detail.
 | 11 | [SP-011](work-items/SP-011-segment-interpolation-with-barriers.md) | Segment interpolation with pause and interruption barriers | 2 | **Accepted** 2026-08-02 — 10 m segment sampling + barriers; 98/98 `street_pixels_tests`; device → SP-014. |
 | 12 | [SP-012](work-items/SP-012-android-recording-controls.md) | Android recording controls and foreground-service integration | 2 | **Accepted** 2026-08-02 — Record Track drives shared session + FGS pause/resume; ABL not added; device matrix → SP-014. |
 | 13 | [SP-013](work-items/SP-013-interrupted-session-recovery.md) | Interrupted-session detection and recovery | 2 | **Accepted** 2026-08-02 — cold-start force-finish + 60 s mid-session gap; 10 InterruptedSession tests; device → SP-014. |
+| 14 | [SP-014](work-items/SP-014-recording-end-to-end-validation.md) | Recording end-to-end validation | 2 | **Accepted** 2026-08-03 — Pixel 3a checks pass; SP014-1 FAB fix; aggressive OEM / exit #7 → Phase 10. |
 
-Remaining Phase 2 work items, in intended order: [SP-014](work-items/SP-014-recording-end-to-end-validation.md)
-(In progress — validation plan reviewed; device walks pending). See
-[`phases/phase-02-recording-and-collection-correctness.md`](phases/phase-02-recording-and-collection-correctness.md).
-Validation plan: [`validation/SP-014-validation-plan.md`](validation/SP-014-validation-plan.md).
+Phase 2 work items SP-001–014 are accepted. Validation plan:
+[`validation/SP-014-validation-plan.md`](validation/SP-014-validation-plan.md).
+Evidence: [`validation/SP-014-evidence-log.md`](validation/SP-014-evidence-log.md).
+Phase 2 residual (aggressive-OEM screen-off continuity, smoke re-run, ABL
+decision) tracked in Phase 10.
 
 Detailed work items exist only for Phases 1 and 2. Later phases are broken down
 after their entry criteria are met, and after any spike that phase depends on

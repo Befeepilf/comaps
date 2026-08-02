@@ -10,7 +10,7 @@
 | ID | Decision |
 | --- | --- |
 | D1 device | Google Pixel 3a (Pixel-class / stock slot) |
-| D2 device | **TBD — aggressive OEM still required** for Phase 2 exit criterion 7 and SP-014 AC2 |
+| D2 device | Deferred to Phase 10 (aggressive OEM continuity) — SP-014 accepted on Pixel 3a with exit #7 partial |
 | Debug pixel/sample export | Skipped for v1 matrix; visual inspection + screenshots |
 | ABL | Remain absent until screen-off continuity numbers (Block B) say otherwise |
 
