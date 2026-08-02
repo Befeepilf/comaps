@@ -37,6 +37,11 @@ public:
 
   void OnLocationUpdated(location::GpsInfo const & info);
 
+  void SetAppendSuspended(bool suspended);
+  bool IsAppendSuspended() const;
+  void MarkSegmentBoundary();
+  std::vector<size_t> GetSegmentBoundaryIndices() const;
+
   using GpsTrackCallback = std::function<bool(location::GpsInfo const &, size_t)>;
   void ForEachTrackPoint(GpsTrackCallback const & callback) const;
 

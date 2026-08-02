@@ -10,6 +10,7 @@
 #include "base/file_name_utils.hpp"
 
 #include <string>
+#include <vector>
 
 #include "defines.hpp"
 
@@ -106,6 +107,17 @@ void GpsTracker::OnLocationUpdated(location::GpsInfo const & info)
   if (!m_enabled)
     return;
   m_track.AddPoint(info);
+}
+
+void GpsTracker::SetAppendSuspended(bool suspended) { m_track.SetAppendSuspended(suspended); }
+
+bool GpsTracker::IsAppendSuspended() const { return m_track.IsAppendSuspended(); }
+
+void GpsTracker::MarkSegmentBoundary() { m_track.MarkSegmentBoundary(); }
+
+std::vector<size_t> GpsTracker::GetSegmentBoundaryIndices() const
+{
+  return m_track.GetSegmentBoundaryIndices();
 }
 
 void GpsTracker::ForEachTrackPoint(GpsTrackCallback const & callback) const
