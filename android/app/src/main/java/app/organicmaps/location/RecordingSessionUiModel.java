@@ -55,10 +55,8 @@ public final class RecordingSessionUiModel
   @Nullable
   public static NotificationAction statusButtonAction(@RecordingSession.State int state)
   {
-    if (canPause(state))
-      return NotificationAction.PAUSE;
-    if (canResume(state))
-      return NotificationAction.RESUME;
+    if (canFinishOrDiscard(state))
+      return NotificationAction.STOP;
     return null;
   }
 
