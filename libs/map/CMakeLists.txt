@@ -27,6 +27,8 @@ set(SRC
   explorer_pro.hpp
   live_sample_acceptance_filter.cpp
   live_sample_acceptance_filter.hpp
+  live_segment_interpolation.cpp
+  live_segment_interpolation.hpp
   recording_session.cpp
   recording_session.hpp
   recording_pause_resume.cpp
