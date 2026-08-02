@@ -14,6 +14,7 @@ class Writer;
 namespace street_pixels_file
 {
 uint32_t constexpr kMagic = 0x58495053u;
+uint32_t constexpr kArchiveMagic = 0x52584950u;
 uint16_t constexpr kFormatVersionV1 = 1;
 uint16_t constexpr kFormatVersionV2 = 2;
 uint16_t constexpr kFlagsHasHeaderBit = 1;
@@ -70,7 +71,7 @@ ProbeResult ProbeFile(std::string const & path);
 bool MayRecoverByDerive(FileKind kind);
 
 void WriteHeader(Writer & writer, int64_t mapDataVersion, uint16_t formatVersion = kFormatVersionV2,
-                 uint16_t flags = kFlagsHasHeaderBit);
+                 uint16_t flags = kFlagsHasHeaderBit, uint32_t magic = kMagic);
 
 bool SaveUnexploredIds(std::string const & path, std::set<int64_t> const & pixelIds, int64_t mapDataVersion);
 void MigrateLegacyFile(std::string const & path, int64_t mapDataVersion);
@@ -79,4 +80,8 @@ int64_t PackPixelEntry(int64_t pixelId, bool explored, bool everLive);
 std::optional<ExploredEverLiveMap> ScanExploredEverLive(std::string const & path);
 bool SaveRematchedUniverse(std::string const & path, std::set<int64_t> const & newIds,
                            ExploredEverLiveMap const & exploredEverLive, int64_t mapDataVersion);
+
+bool SaveExploredArchive(std::string const & path, ExploredEverLiveMap const & exploredEverLive,
+                         int64_t mapDataVersion);
+std::optional<ExploredEverLiveMap> LoadExploredArchive(std::string const & path);
 }  // namespace street_pixels_file

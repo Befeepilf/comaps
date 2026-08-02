@@ -66,6 +66,17 @@ ProbeResult Probe(uint8_t const * data, uint64_t size)
     return result;
   }
 
+  if (data != nullptr && size >= kHeaderSize)
+  {
+    Header const header = DecodeHeaderBytes(data);
+    if (header.magic == kArchiveMagic)
+    {
+      result.header = header;
+      result.kind = FileKind::UnsupportedFormat;
+      return result;
+    }
+  }
+
   if (size > 0 && (size % sizeof(int64_t)) == 0)
   {
     result.kind = FileKind::Legacy;
@@ -108,9 +119,9 @@ bool MayRecoverByDerive(FileKind kind)
   return kind == FileKind::Corrupt;
 }
 
-void WriteHeader(Writer & writer, int64_t mapDataVersion, uint16_t formatVersion, uint16_t flags)
+void WriteHeader(Writer & writer, int64_t mapDataVersion, uint16_t formatVersion, uint16_t flags, uint32_t magic)
 {
-  WriteToSink(writer, kMagic);
+  WriteToSink(writer, magic);
   WriteToSink(writer, formatVersion);
   WriteToSink(writer, flags);
   WriteToSink(writer, mapDataVersion);
@@ -226,7 +237,8 @@ std::optional<ExploredEverLiveMap> ScanExploredEverLive(std::string const & path
     LOG(LWARNING, ("Unsupported street pixels format; refusing scan", path));
     return std::nullopt;
   case FileKind::Corrupt:
-    return explored;
+    LOG(LWARNING, ("Corrupt street pixels file; refusing scan", path));
+    return std::nullopt;
   }
 
   try
@@ -298,5 +310,93 @@ bool SaveRematchedUniverse(std::string const & path, std::set<int64_t> const & n
       return false;
     }
   });
+}
+
+bool SaveExploredArchive(std::string const & path, ExploredEverLiveMap const & exploredEverLive,
+                         int64_t mapDataVersion)
+{
+  return base::WriteToTempAndRenameToFile(path, [&](std::string const & tmpPath)
+  {
+    try
+    {
+      FileWriter writer(tmpPath, FileWriter::OP_WRITE_TRUNCATE);
+      WriteHeader(writer, mapDataVersion, kFormatVersionV1, kFlagsHasHeaderBit, kArchiveMagic);
+      for (auto const & [pixelId, everLive] : exploredEverLive)
+        WriteToSink(writer, PackPixelEntry(pixelId, true, everLive));
+      writer.Flush();
+      return true;
+    }
+    catch (Writer::Exception const & ex)
+    {
+      LOG(LERROR, ("Failed to write street pixels explored archive", path, ex.what()));
+      return false;
+    }
+  });
+}
+
+std::optional<ExploredEverLiveMap> LoadExploredArchive(std::string const & path)
+{
+  ExploredEverLiveMap explored;
+  uint64_t size = 0;
+  if (!Platform::GetFileSizeByFullPath(path, size) || size == 0)
+    return explored;
+
+  if (size < kHeaderSize || ((size - kHeaderSize) % sizeof(int64_t)) != 0)
+  {
+    LOG(LWARNING, ("Street pixels archive size invalid", path));
+    return std::nullopt;
+  }
+
+  try
+  {
+    FileReader reader(path);
+    uint8_t headerBytes[kHeaderSize] = {};
+    reader.Read(0, headerBytes, kHeaderSize);
+    Header const header = DecodeHeaderBytes(headerBytes);
+    if (header.magic != kArchiveMagic || header.formatVersion != kFormatVersionV1 ||
+        (header.flags & kFlagsHasHeaderBit) == 0 || header.reserved != 0)
+    {
+      LOG(LWARNING, ("Street pixels archive header invalid", path));
+      return std::nullopt;
+    }
+
+    uint64_t offset = kHeaderSize;
+    if (offset == size)
+      return explored;
+
+    std::vector<uint8_t> buffer(static_cast<size_t>(std::min<uint64_t>(size - offset, kMigrateChunkBytes)));
+    size_t const wordsPerChunk = buffer.size() / sizeof(int64_t);
+    buffer.resize(wordsPerChunk * sizeof(int64_t));
+    if (buffer.empty())
+      return explored;
+
+    while (offset < size)
+    {
+      size_t const chunk = static_cast<size_t>(std::min<uint64_t>(size - offset, buffer.size()));
+      if ((chunk % sizeof(int64_t)) != 0)
+      {
+        LOG(LWARNING, ("Street pixels archive hit misaligned trailing bytes", path));
+        return std::nullopt;
+      }
+      reader.Read(offset, buffer.data(), chunk);
+      size_t const wordCount = chunk / sizeof(int64_t);
+      for (size_t i = 0; i < wordCount; ++i)
+      {
+        int64_t word = 0;
+        std::memcpy(&word, buffer.data() + i * sizeof(int64_t), sizeof(word));
+        int64_t const pixelId = word & kPixelIdMask;
+        bool const everLive = (word & kEverLiveBit) != 0;
+        explored[pixelId] = everLive;
+      }
+      offset += chunk;
+    }
+  }
+  catch (Reader::Exception const & ex)
+  {
+    LOG(LWARNING, ("Failed to load street pixels explored archive", path, ex.what()));
+    return std::nullopt;
+  }
+
+  return explored;
 }
 }  // namespace street_pixels_file
