@@ -40,6 +40,14 @@ inline std::pair<double, double> LatLonForPixelId(std::int64_t pixelId)
   return {lat, lon};
 }
 
+inline std::int64_t PixelIdForLatLon(double lat, double lon)
+{
+  double const latRad = math::DegToRad(lat);
+  double const lonRad = math::DegToRad(lon);
+  pointing const ang(M_PI_2 - latRad, lonRad);
+  return hp::GetHealpixBase().ang2pix(ang);
+}
+
 inline location::GpsInfo MakeGpsInfo(double lat, double lon, double horizontalAccuracyM, double timestampSec,
                                      location::TLocationSource source = location::EAndroidNative)
 {
