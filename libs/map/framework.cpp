@@ -582,7 +582,7 @@ void Framework::OnCountryFileDownloaded(storage::CountryId const & countryId, st
   {
     auto const res = RegisterMap(*localFile);
     if (res.second == MwmSet::RegResult::Success)
-      m_streetPixelsManager->CleanupStreetPixels(countryId);
+      m_streetPixelsManager->RematchStreetPixelsOnMapUpdate(countryId, localFile);
 
     MwmSet::MwmId const & id = res.first;
     if (id.IsAlive())

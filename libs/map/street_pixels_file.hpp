@@ -4,8 +4,10 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <set>
 #include <string>
+#include <unordered_map>
 
 class Writer;
 
@@ -17,6 +19,12 @@ uint16_t constexpr kFormatVersionV2 = 2;
 uint16_t constexpr kFlagsHasHeaderBit = 1;
 size_t constexpr kHeaderSize = 24;
 size_t constexpr kMigrateChunkBytes = 1 << 20;
+
+int64_t constexpr kPixelIdMask = 0x3FFFFFFFFFFFFFFFLL;
+int64_t constexpr kExploredBit = static_cast<int64_t>(0x8000000000000000ULL);
+int64_t constexpr kEverLiveBit = static_cast<int64_t>(0x4000000000000000ULL);
+
+using ExploredEverLiveMap = std::unordered_map<int64_t, bool>;
 
 DECLARE_EXCEPTION(StreetPixelsFileException, RootException);
 DECLARE_EXCEPTION(UnsupportedStreetPixelsFormat, StreetPixelsFileException);
@@ -66,4 +74,9 @@ void WriteHeader(Writer & writer, int64_t mapDataVersion, uint16_t formatVersion
 
 bool SaveUnexploredIds(std::string const & path, std::set<int64_t> const & pixelIds, int64_t mapDataVersion);
 void MigrateLegacyFile(std::string const & path, int64_t mapDataVersion);
+
+int64_t PackPixelEntry(int64_t pixelId, bool explored, bool everLive);
+std::optional<ExploredEverLiveMap> ScanExploredEverLive(std::string const & path);
+bool SaveRematchedUniverse(std::string const & path, std::set<int64_t> const & newIds,
+                           ExploredEverLiveMap const & exploredEverLive, int64_t mapDataVersion);
 }  // namespace street_pixels_file

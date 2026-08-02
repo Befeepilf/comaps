@@ -305,6 +305,34 @@ void StreetPixelsManager::LoadStreetPixels(storage::LocalFilePtr const & localFi
   }
 
   std::int64_t const mapDataVersion = localFile ? localFile->GetVersion() : 0;
+  std::string const filePath = GetPlatform().WritablePathForFile(countryId + ".pix");
+  auto const probe = street_pixels_file::ProbeFile(filePath);
+  if ((probe.kind == street_pixels_file::FileKind::HeaderedV1 ||
+       probe.kind == street_pixels_file::FileKind::HeaderedV2) &&
+      probe.header.mapDataVersion != mapDataVersion)
+  {
+    LOG(LINFO, ("Street pixels map-data version mismatch; rematching", countryId, "file",
+                probe.header.mapDataVersion, "mwm", mapDataVersion));
+    if (!localFile || !localFile->OnDisk(MapFileType::Map))
+    {
+      LOG(LWARNING, ("Cannot rematch street pixels without local map", countryId));
+    }
+    else
+    {
+      try
+      {
+        std::string const mwmPath = localFile->GetPath(MapFileType::Map);
+        FeaturesVectorTest featuresVector(mwmPath);
+        auto const newIds = DeriveStreetPixelsFromFeatures(featuresVector, countryId);
+        if (RematchStreetPixelsWithNewUniverseUnlocked(countryId, newIds, mapDataVersion))
+          return;
+      }
+      catch (std::exception const & e)
+      {
+        LOG(LWARNING, ("Rematch on load aborted; falling back to existing file", countryId, e.what()));
+      }
+    }
+  }
 
   try
   {
@@ -321,19 +349,18 @@ void StreetPixelsManager::LoadStreetPixels(storage::LocalFilePtr const & localFi
   catch (std::exception const & e)
   {
     LOG(LWARNING, ("Failed to memory-map pix file:", e.what()));
-    std::string const filePath = GetPlatform().WritablePathForFile(countryId + ".pix");
-    auto const probe = street_pixels_file::ProbeFile(filePath);
-    if (!street_pixels_file::MayRecoverByDerive(probe.kind))
+    auto const recoverProbe = street_pixels_file::ProbeFile(filePath);
+    if (!street_pixels_file::MayRecoverByDerive(recoverProbe.kind))
     {
       LOG(LWARNING, ("Not re-deriving street pixels over existing file", filePath,
-                     static_cast<int>(probe.kind)));
+                     static_cast<int>(recoverProbe.kind)));
     }
     else
     {
       LOG(LINFO, ("Calculating street pixels for region:", countryId));
       std::string const mwmPath = localFile->GetPath(MapFileType::Map);
       FeaturesVectorTest featuresVector(mwmPath);
-      auto newStreetPixels = DeriveStreetPixelsFromFeatures(featuresVector);
+      auto newStreetPixels = DeriveStreetPixelsFromFeatures(featuresVector, countryId);
       SaveStreetPixelsToFile(newStreetPixels, mapDataVersion);
       LoadStreetPixelsFromFile(countryId, mapDataVersion);
     }
@@ -459,19 +486,141 @@ void StreetPixelsManager::CleanupStreetPixels(storage::CountryId const & country
   });
 }
 
-std::set<std::int64_t> StreetPixelsManager::DeriveStreetPixelsFromFeatures(FeaturesVectorTest & featuresVector)
+void StreetPixelsManager::RematchStreetPixelsOnMapUpdate(storage::CountryId const & countryId,
+                                                         storage::LocalFilePtr const & localFile)
 {
-  LOG(LINFO, ("DeriveStreetPixelsFromFeatures"));
+  GetPlatform().RunTask(Platform::Thread::Background, [this, countryId, localFile]()
+  {
+    std::lock_guard<std::mutex> pixLock(m_pixFileMutex);
+    if (!localFile || !localFile->OnDisk(MapFileType::Map))
+    {
+      LOG(LWARNING, ("Rematch skipped; local map missing", countryId));
+      return;
+    }
 
-  MwmSet::MwmId mwmId;
+    try
+    {
+      std::int64_t const mapDataVersion = localFile->GetVersion();
+      std::string const filePath = GetPlatform().WritablePathForFile(countryId + ".pix");
+      auto const probe = street_pixels_file::ProbeFile(filePath);
+      if ((probe.kind == street_pixels_file::FileKind::HeaderedV1 ||
+           probe.kind == street_pixels_file::FileKind::HeaderedV2) &&
+          probe.header.mapDataVersion == mapDataVersion)
+      {
+        LOG(LINFO, ("Rematch skipped; map-data version already current", countryId, mapDataVersion));
+        return;
+      }
+
+      std::string const mwmPath = localFile->GetPath(MapFileType::Map);
+      FeaturesVectorTest featuresVector(mwmPath);
+      auto const newIds = DeriveStreetPixelsFromFeatures(featuresVector, countryId);
+      RematchStreetPixelsWithNewUniverseUnlocked(countryId, newIds, mapDataVersion);
+    }
+    catch (std::exception const & e)
+    {
+      LOG(LWARNING, ("Rematch aborted; leaving previous street pixels intact", countryId, e.what()));
+    }
+  });
+}
+
+bool StreetPixelsManager::RematchStreetPixelsWithNewUniverseForTesting(storage::CountryId const & countryId,
+                                                                       std::set<std::int64_t> const & newIds,
+                                                                       std::int64_t mapDataVersion)
+{
+  std::lock_guard<std::mutex> pixLock(m_pixFileMutex);
+  return RematchStreetPixelsWithNewUniverseUnlocked(countryId, newIds, mapDataVersion);
+}
+
+bool StreetPixelsManager::ReloadStreetPixelsAfterRematchUnlocked(storage::CountryId const & countryId,
+                                                                 std::int64_t mapDataVersion)
+{
+  try
+  {
+    LoadStreetPixelsFromFile(countryId, mapDataVersion);
+    {
+      std::shared_lock<std::shared_mutex> lock(m_streetPixelsMutex);
+      m_drapeEngine.SafeCall(&df::DrapeEngine::UpdateStreetPixels, m_streetPixels);
+    }
+    LoadAccountedBits();
+    ChangeState(StreetPixelsState{m_state.enabled, StreetPixelsStatus::Ready});
+    return true;
+  }
+  catch (std::exception const & e)
+  {
+    LOG(LERROR, ("Failed to reload street pixels after rematch", countryId, e.what()));
+    ChangeState(StreetPixelsState{m_state.enabled, StreetPixelsStatus::NotReady});
+    return false;
+  }
+}
+
+bool StreetPixelsManager::RematchStreetPixelsWithNewUniverseUnlocked(storage::CountryId const & countryId,
+                                                                     std::set<std::int64_t> const & newIds,
+                                                                     std::int64_t mapDataVersion)
+{
+  LOG(LINFO, ("RematchStreetPixels", countryId, "newUniverse", newIds.size(), "mapDataVersion", mapDataVersion));
+
+  bool const isActiveCountry = [&]()
   {
     std::lock_guard<std::mutex> lock(m_countryIdMutex);
-    if (m_countryId.empty())
-      return std::set<std::int64_t>{};
-    mwmId = m_dataSource.GetMwmIdByCountryFile(platform::CountryFile(m_countryId));
+    return m_countryId == countryId;
+  }();
+
+  if (isActiveCountry)
+  {
+    ClearPixels();
+    ChangeState(StreetPixelsState{m_state.enabled, StreetPixelsStatus::Loading});
   }
 
-  if (!mwmId.IsAlive())
+  std::string const filePath = GetPlatform().WritablePathForFile(countryId + ".pix");
+  auto const scanned = street_pixels_file::ScanExploredEverLive(filePath);
+  if (!scanned)
+  {
+    LOG(LWARNING, ("Rematch scan failed; leaving previous street pixels intact", countryId));
+    if (isActiveCountry)
+      ReloadStreetPixelsAfterRematchUnlocked(countryId, mapDataVersion);
+    return false;
+  }
+
+  if (!street_pixels_file::SaveRematchedUniverse(filePath, newIds, *scanned, mapDataVersion))
+  {
+    LOG(LERROR, ("Rematch failed before commit; leaving previous street pixels intact", countryId));
+    if (isActiveCountry)
+      ReloadStreetPixelsAfterRematchUnlocked(countryId, mapDataVersion);
+    return false;
+  }
+
+  Platform::RemoveFileIfExists(GetPlatform().WritablePathForFile(countryId + ".pixa"));
+  Platform::RemoveFileIfExists(GetPlatform().WritablePathForFile(countryId + ".pixf"));
+  street_stats::StreetStatsDB::Instance().ReconcileStatsAfterRematch(countryId);
+
+  bool const stillActive = [&]()
+  {
+    std::lock_guard<std::mutex> lock(m_countryIdMutex);
+    return m_countryId == countryId;
+  }();
+
+  if (stillActive)
+    return ReloadStreetPixelsAfterRematchUnlocked(countryId, mapDataVersion);
+
+  return true;
+}
+
+std::set<std::int64_t> StreetPixelsManager::DeriveStreetPixelsFromFeatures(FeaturesVectorTest & featuresVector)
+{
+  storage::CountryId countryId;
+  {
+    std::lock_guard<std::mutex> lock(m_countryIdMutex);
+    countryId = m_countryId;
+  }
+  return DeriveStreetPixelsFromFeatures(featuresVector, countryId);
+}
+
+std::set<std::int64_t> StreetPixelsManager::DeriveStreetPixelsFromFeatures(FeaturesVectorTest & featuresVector,
+                                                                          storage::CountryId const & countryId)
+{
+  LOG(LINFO, ("DeriveStreetPixelsFromFeatures", countryId));
+
+  if (countryId.empty())
     return std::set<std::int64_t>{};
 
   auto const & healpix = hp::GetHealpixBase();
@@ -1082,6 +1231,7 @@ void StreetPixelsManager::OnUpdateCurrentCountry(storage::CountryId const & coun
 
   GetPlatform().RunTask(Platform::Thread::Background, [this, countryId, localFile]()
   {
+    std::lock_guard<std::mutex> pixLock(m_pixFileMutex);
     ClearPixels();
     if (countryId.empty() || !localFile || !localFile->OnDisk(MapFileType::Map))
     {
