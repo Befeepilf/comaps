@@ -105,6 +105,14 @@ bool RecordingSession::HasActiveSessionBreadcrumb() const
   return settings::Get(kActiveSessionKey, active) && active;
 }
 
+bool RecordingSession::ConsumeActiveSessionBreadcrumb()
+{
+  if (!HasActiveSessionBreadcrumb())
+    return false;
+  SetActiveSessionBreadcrumb(false);
+  return true;
+}
+
 void RecordingSession::SetStateListener(StateChangedFn const & fn) { m_stateListener = fn; }
 
 RecordingSession::TransitionResult RecordingSession::TransitionTo(State next)
