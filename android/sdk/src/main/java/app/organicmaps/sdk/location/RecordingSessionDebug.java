@@ -2,66 +2,57 @@ package app.organicmaps.sdk.location;
 
 import androidx.annotation.IntDef;
 
-import app.organicmaps.sdk.BuildConfig;
-import app.organicmaps.sdk.Framework;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 public final class RecordingSessionDebug
 {
-  public static final int STATE_IDLE = 0;
-  public static final int STATE_RECORDING = 1;
-  public static final int STATE_PAUSED = 2;
-  public static final int STATE_FINISHED = 3;
-  public static final int STATE_DISCARDED = 4;
+  public static final int STATE_IDLE = RecordingSession.STATE_IDLE;
+  public static final int STATE_RECORDING = RecordingSession.STATE_RECORDING;
+  public static final int STATE_PAUSED = RecordingSession.STATE_PAUSED;
+  public static final int STATE_FINISHED = RecordingSession.STATE_FINISHED;
+  public static final int STATE_DISCARDED = RecordingSession.STATE_DISCARDED;
 
   @Retention(RetentionPolicy.SOURCE)
-  @IntDef({ STATE_IDLE, STATE_RECORDING, STATE_PAUSED, STATE_FINISHED, STATE_DISCARDED })
-  public @interface State {}
+  @IntDef({STATE_IDLE, STATE_RECORDING, STATE_PAUSED, STATE_FINISHED, STATE_DISCARDED})
+  public @interface State
+  {}
 
   private RecordingSessionDebug() {}
 
   public static void start()
   {
-    if (!BuildConfig.DEBUG)
-      return;
-    Framework.nativeRecordingSessionStart();
+    RecordingSession.start();
   }
 
   public static void pause()
   {
-    if (!BuildConfig.DEBUG)
-      return;
-    Framework.nativeRecordingSessionPause();
+    RecordingSession.pause();
   }
 
   public static void resume()
   {
-    if (!BuildConfig.DEBUG)
-      return;
-    Framework.nativeRecordingSessionResume();
+    RecordingSession.resume();
   }
 
   public static void finish()
   {
-    if (!BuildConfig.DEBUG)
-      return;
-    Framework.nativeRecordingSessionFinish();
+    RecordingSession.finish();
   }
 
   public static void discard()
   {
-    if (!BuildConfig.DEBUG)
-      return;
-    Framework.nativeRecordingSessionDiscard();
+    RecordingSession.discard();
+  }
+
+  public static void reset()
+  {
+    RecordingSession.reset();
   }
 
   @State
   public static int getState()
   {
-    if (!BuildConfig.DEBUG)
-      return STATE_IDLE;
-    return Framework.nativeRecordingSessionGetState();
+    return RecordingSession.getState();
   }
 }
