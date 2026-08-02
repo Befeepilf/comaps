@@ -47,7 +47,7 @@ void ForEachInterpolationSample(location::GpsInfo const & from, location::GpsInf
 {
   ForEachMercatorSegmentSample(mercator::FromLatLon(from.m_latitude, from.m_longitude),
                                mercator::FromLatLon(to.m_latitude, to.m_longitude),
-                               kInterpolationStepMeters, fn);
+                               kPathSamplingStepMeters, fn);
 }
 
 void LiveSegmentInterpolation::MarkInterpolationBarrier()
