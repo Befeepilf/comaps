@@ -1,7 +1,7 @@
 # SP-016 — Per-pixel ever-live bit in `.pix`
 
 **Phase:** 3 — Exploration storage and map-update reconciliation
-**Status:** In progress
+**Status:** Accepted
 **Branch:** `street-pixels`
 
 ---
@@ -110,14 +110,14 @@ ever-live bit by maintainer decision.
 | Field | Value |
 | --- | --- |
 | Branch | `street-pixels` |
-| Commits | *(not committed — pending human)* |
+| Commits | `9be9ebe915` |
 | Bit layout constants | bit 63 explored `0x8000000000000000`; bit 62 ever-live `0x4000000000000000`; `GetPixelId` mask `0x3FFFFFFFFFFFFFFF`; format v2 (`kFormatVersionV2`); v1 load = imported-only (bit 62 clear) |
 | Interim track-replay policy | Bookmark-track replay (`UpdateExploredPixels` → `MarkExploredPixelIds` / `MarkTrackPixelsForTesting`) uses imported-only semantics until Phase 9: `SetExplored(true)` only, never sets ever-live, never clears a set ever-live bit. `MarkTrackPixelsForTesting` delegates to `MarkImportedPixelsForTesting`. Covered by `EverLive_TrackAloneLeavesClear` and `EverLive_TrackAfterLiveRemainsSet`. |
 | Test output | `ninja street_pixels_tests` OK. `./street_pixels_tests --filter=EverLive` → All tests passed (EXIT=0). `--filter=StreetPixel` → All tests passed (EXIT=0). `--filter=StreetPixelsFile` → All tests passed (EXIT=0). Full `./street_pixels_tests` → **All tests passed.** (EXIT_ALL=0). Includes `EverLive_*` (upgrade no double-count), `StreetPixel_*`, `StreetPixelsFile_*`, `StreetPixelsManager_LiveEverLiveSurvivesReload`. |
-| Manual validation | |
-| Implemented by | |
-| Accepted by | |
-| Accepted date | |
+| Manual validation | Deferred to SP-022 / device short-walk check |
+| Implemented by | Agent |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-03 |
 
 ## Discovered follow-up
 
