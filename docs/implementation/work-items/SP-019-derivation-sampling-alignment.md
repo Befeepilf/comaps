@@ -1,7 +1,7 @@
 # SP-019 — Unify path sampling at 15 metres
 
 **Phase:** 3 — Exploration storage and map-update reconciliation
-**Status:** In progress
+**Status:** Accepted
 **Branch:** `street-pixels`
 
 ---
@@ -100,13 +100,13 @@ figure in favour of storage headroom and one constant.
 | Field | Value |
 | --- | --- |
 | Branch | `street-pixels` |
-| Commits | (uncommitted) |
+| Commits | `a2efaa843d` |
 | Constant choice | Single definition `kPathSamplingStepMeters = 15.0` in `live_segment_interpolation.hpp`; aliases `kInterpolationStepMeters` and `kSegmentLengthMeters`. Live/`ForEachInterpolationSample`, `ComputeTrackPixels`, and `UpdateStreetStatsForTrack` all pass `kPathSamplingStepMeters`. `.pix` size unchanged by design (derivation step not densified). |
 | Test output | `ninja street_pixels_tests` OK. `--filter=SegmentInterpolation` 19/19 All tests passed; `--filter=PathSampling` 2/2 All tests passed; full suite 155/155 All tests passed (2026-08-03 re-run after call-site unify). Prior note: intermittent `PauseResume_TrackBoundary_ImmediateResumeAdd_SplitsCorrectly` observed once under repeated suite runs (points.size 3 vs 4); passes alone; unrelated to sampling step. |
-| Manual validation | Pending — short recorded walk spot-check (greens paint; red universe not denser). |
-| Implemented by | mo |
-| Accepted by | |
-| Accepted date | |
+| Manual validation | Deferred to SP-022 / short recorded walk spot-check |
+| Implemented by | Agent |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-03 |
 
 ## Discovered follow-up
 
