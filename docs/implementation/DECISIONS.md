@@ -394,6 +394,112 @@ competition"); audit §15, §17; `phases/phase-08-competition.md`.
 
 ---
 
+## SPD-015 — Exploration live-eligibility bit packed in `.pix`
+
+**Decision.** Each explored pixel stores a single **ever-live** bit in a spare
+bit of the existing `.pix` `int64_t` entry, not in a side table and not as a
+multi-value `live` / `imported` / `both` enum.
+
+- Explored + ever-live `0` → imported-only (personal completion only).
+- Explored + ever-live `1` → live-eligible (including cells that were first
+  imported and later validated live).
+- Live collection sets the bit; GPX/import must not clear it. “Both” is not
+  stored separately — once live, the cell counts as live for competition and
+  related consumers.
+
+The explored MSB remains bit 63. `GetPixelId()` must return only the HEALPix
+id (mask out flag bits). Phase 8 live-recency timestamps stay out of `.pix`
+and use a sparse store later.
+
+**Status.** Accepted.
+
+**Context.** Spec §15.2–§15.3 require distinguishing live from imported for
+competition. Competition and later live visits need **ever-live** behaviour,
+not an archaeological first-source enum: an imported-then-walked cell must
+become competition-eligible (§15.2 later live visits). A two-bit `both` state
+is unnecessary for V1. Uusimaa `.pix` ≈ 50 MB (~6.5×10⁶ cells) ruled out a
+HEALPix-keyed side table; one spare bit adds **zero** bytes. Literal §15.2
+“first-explored source” wording is satisfied operationally by this bit meaning
+ever-live / live-eligible; true first-source archaeology is not a V1 store
+requirement.
+
+**Consequences.**
+
+- SP-016 implements one ever-live bit and updates `df::StreetPixel` accessors;
+  format version must bump when the layout is written.
+- Rematch (SP-017) preserves the bit by copying it from old entries.
+- Do not add per-pixel timestamps or other wide fields into `.pix`.
+- Phase 9 GPX marks imported-only when first exploring via import; if the cell
+  is already ever-live, leave the bit set.
+
+**Related documents.** Product spec §15.2–§15.3; phase-03; SP-016; SPD-017.
+
+---
+
+## SPD-016 — Explored state survives map delete and redownload
+
+**Decision.** Deleting a country map must not destroy the user's explored
+HEALPix set or ever-live bits. On later redownload, rematch retained exploration
+onto the new derived universe. Retention must use a **compact explored-only
+archive**, not an indefinite keep of the full valid-universe `.pix` (regional
+files are tens of megabytes).
+
+**Status.** Accepted.
+
+**Context.** Spec §3.6 permanence is not limited to in-place updates. Today's
+`OnCountryFileDelete` / `OnMapDeregistered` paths call `CleanupStreetPixels`
+and wipe exploration. Keeping a full ~50 MB `.pix` per deleted region would
+punish users who free map storage.
+
+**Consequences.**
+
+- SP-018 implements compact retention + rematch-on-redownload.
+- Download/update rematch remains SP-017; delete path must not call today's
+  wipe for explored state.
+
+**Related documents.** Product spec §3.6, §27; phase-03; SP-018.
+
+---
+
+## SPD-017 — HEALPix `nside` locked at 1048576 for V1
+
+**Decision.** Street Pixels V1 keeps HEALPix `nside = 1048576` (NEST). Changing
+`nside` is out of scope for Phase 3 and for public Android V1; it would
+redefine every pixel id and invalidate every stored exploration file.
+
+**Status.** Accepted. Closes OQ-8 for V1.
+
+**Context.** Maintainer lock during Phase 3 entry. Regional `.pix` files are
+already large (~50 MB for Uusimaa); a finer grid would multiply storage and
+memory. Rendering performance remains a separate measurement concern but does
+not reopen `nside` for V1 without a new decision that accepts a full migration.
+
+**Consequences.**
+
+- OQ-8 is struck for V1; a post-V1 change needs a new SPD and a migration plan.
+- Phase 3 non-goal reinforced; SP-015/019 must not alter `nside`.
+
+**Related documents.** Product spec §14; audit §27 Q8; phase-03; OQ-8.
+
+---
+
+## SPD-018 — `.pixf` is unused and not part of the V1 store
+
+**Decision.** The `.pixf` extension has no reader or writer in the tree. It is
+not part of the V1 exploration store. Cleanup may continue deleting stray
+`.pixf` files; no feature may start writing them without a new decision.
+
+**Status.** Accepted.
+
+**Context.** Phase 3 re-verify (2026-08-03) confirmed `.pixf` is only named in
+`CleanupStreetPixels` and docs.
+
+**Consequences.** Rematch and retention designs ignore `.pixf`.
+
+**Related documents.** phase-03; SP-017.
+
+---
+
 ## 15. Recorded open questions (not decisions)
 
 These are carried from existing project documents. They are listed so they are
@@ -409,7 +515,7 @@ treated as authorisation.
 | OQ-5 | Bridge and tunnel eligibility, and the motorway-with-explicit-bicycle-access case, after a tag-survival audit. | Product spec §13.1; audit §6, §27 Q9 | Phase 3 (eligibility tightening). |
 | OQ-6 | Whether the in-progress friends feature is retained in Street Pixels builds. Friends exist in Android and in `comaps_backend` but are a product non-goal for V1. | Product spec §6; audit §15, §27 Q7 | Phase 1 (what a public build exposes) and Phase 8. |
 | OQ-7 | Production API base URL, hosting region, and data-retention policy. | Audit §27 Q6 | Phase 8, and partially Phase 1 (SP-004). |
-| OQ-8 | Whether HEALPix `nside` stays at 1048576 after rendering measurement. | Audit §27 Q8 | Phase 3 if changed, since it would redefine every pixel identifier. |
+| OQ-8 | ~~Whether HEALPix `nside` stays at 1048576 after rendering measurement.~~ | Audit §27 Q8 | **Closed for V1 by SPD-017** — `nside = 1048576` locked. |
 
 When one of these is answered, add a new `SPD-NNN` entry above and strike the
 row here with a reference to it.

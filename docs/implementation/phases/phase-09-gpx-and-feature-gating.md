@@ -86,16 +86,15 @@ Not yet decomposed. Likely shape:
 ## Data and migration concerns
 
 - Existing installs may already have pixels explored through track replay,
-  indistinguishable from live pixels because no source flag exists. When the
-  flag is introduced in Phase 3, those pixels have no known provenance. Since
+  indistinguishable from live pixels because no ever-live bit exists. When the
+  bit is introduced in Phase 3, those pixels have no known provenance. Since
   there is no public user base yet, the safe default is to treat pre-existing
-  explored pixels as `imported`, which excludes them from competition rather
-  than inflating it. Record the choice as a decision.
-- A pixel can be both live and imported. The spec says imported pixels count for
-  personal completion but not for competition, and that live visits create
-  recency. A pixel explored first by import and later live must count for
-  competition. The source field therefore needs a `both` state or two
-  independent flags.
+  explored pixels as imported-only (ever-live clear), which excludes them from
+  competition rather than inflating it. Recorded in SPD-015 / SP-016.
+- A pixel can be explored first by import and later live. Spec §15.2 requires
+  later live visits to become competition-eligible. Phase 3 stores this as a
+  single **ever-live** bit (SPD-015): import clears it only on first explore;
+  live sets it and import must not clear it. No separate `both` state.
 - `processed_tracks` prevents duplicate processing by geometry hash. Confirm the
   hash is stable and that reimporting a modified track behaves sensibly.
 - Large imports (10,000-plus points) must not exhaust memory.
@@ -121,7 +120,8 @@ Not yet decomposed. Likely shape:
   and creates no recency entry.
 - Importing a GPX track enqueues nothing for competition upload, asserted
   against the queue rather than the network.
-- A pixel first imported then explored live becomes competition-eligible and
+- A pixel first imported then explored live becomes competition-eligible
+  (ever-live set) and
   does not double-count for personal completion.
 - A pixel first explored live then imported keeps its recency.
 - Gate matrix: flag off plus no entitlement, flag off plus entitlement, flag on
@@ -175,9 +175,10 @@ Not yet decomposed. Likely shape:
 
 ## Known uncertainties
 
-- How the `both` source state is represented, which depends on the Phase 3
-  storage decision.
-- How to treat pixels explored before the source flag existed.
+- ~~How the `both` source state is represented.~~ Resolved by SPD-015: single
+  ever-live bit; no `both` state.
+- ~~How to treat pixels explored before the source flag existed.~~ Default
+  imported-only (ever-live clear) per SPD-015 / SP-016.
 - Whether the existing bookmark import path can be reused with a flag, or
   whether a separate import entry point is cleaner. Ordinary bookmark import
   must remain free.

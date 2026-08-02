@@ -1,6 +1,6 @@
 # Phase 3 — Exploration storage and map-update reconciliation
 
-**Status:** Not started
+**Status:** In progress (phase-entry investigation complete; work items Planned)
 **Depends on:** Phase 2
 **Blocks:** Phases 4, 6, 8, 9
 
@@ -36,89 +36,138 @@ branches on that distinction.
 
 ## Current code locations
 
-Verified 2026-07-25 against the working tree.
+Re-verified 2026-08-03 against the working tree (supersedes 2026-07-25 notes
+where they differ).
 
 | Concern | Location | Observed state |
 | --- | --- | --- |
-| Pixel file | `{countryId}.pix` | Array of `int64_t` HEALPix identifiers; most significant bit is the explored flag; mmapped and read as `df::StreetPixel` |
+| Pixel file | `{countryId}.pix` | Headerless array of `int64_t`; MSB = explored; mmapped as `df::StreetPixel` |
 | Bit accessors | `libs/drape_frontend/street_pixel.cpp` | `GetPixelId` masks `0x7FFF...`; `IsExplored` tests `0x8000...` |
-| Accounting file | `{countryId}.pixa` | Bitmap, one bit per index in the `.pix` file, marking pixels already counted in statistics |
-| Third extension | `.pixf` | Deleted by `CleanupStreetPixels` but **no writer exists in the tree**. Dead extension; confirm before relying on it. |
-| Statistics DB | `libs/map/street_stats_db.cpp` | Tables `mwms(mwm_id, mwm_name)`, `street_exploration(mwm_id, feature_index, pixel_bitmask)`, `processed_tracks(geometry_hash, country_id)` |
-| Map-data version | — | **Not stored** with pixels anywhere |
-| Source flag | — | **Not stored.** Live GPS and GPX track replay set the same explored bit |
-| Per-pixel timestamps | — | Not stored. `ExplorationDelta::m_eventTimeSec` exists only transiently for statistics aggregation |
-| Wipe on update | `libs/map/framework.cpp` `OnCountryFileDownloaded` → `StreetPixelsManager::CleanupStreetPixels` | Deletes `.pix`, `.pixa`, `.pixf` and calls `StreetStatsDB::DeleteMwmData`. Also invoked from `OnCountryFileDelete` and `OnMapDeregistered`. |
-| Derivation | `StreetPixelsManager::DeriveStreetPixelsFromFeatures`, `SegmentizeStreet` | Samples at `kSegmentLengthMeters = 15.0` metres. Spec requires ~10. |
-| Track replay sampling | `StreetPixelsManager::UpdateStreetStatsForTrack` | Uses a separate hardcoded `10.0` metres |
-| Eligibility | `StreetPixelsManager::IsExplorable` | Line geometry; classificator path begins with `highway`; excludes the `driveway` and `tunnel` third-level subtypes; excludes `hwtag=private`; requires bicycle **or** pedestrian access |
-| Concurrency | `StreetStatsDB` recursive mutex; `.pix` shared mutex plus `msync` | Renderer reads spans concurrently |
+| HEALPix id width | `nside = 1048576` NEST | Id range needs **44 bits** (`12 * nside² − 1`); **19 spare bits** remain in the 63-bit payload. Earlier phase text said ~42 bits — corrected. |
+| Accounting file | `{countryId}.pixa` | Bitmap, one bit per **index** in `.pix` (not HEALPix id) |
+| Third extension | `.pixf` | Deleted by `CleanupStreetPixels`; **no reader or writer in tree**. Confirmed dead. |
+| Statistics DB | `libs/map/street_stats_db.cpp` | `mwms`, `street_exploration`, `processed_tracks`. Country completion fraction comes from `.pix` counts, not SQLite. |
+| Map-data version | — | **Not stored** |
+| Source / ever-live | — | **Not stored.** Live `OnLocationUpdate` and bookmark-track replay both only set the explored bit |
+| Wipe on update | `Framework::OnCountryFileDownloaded` → `CleanupStreetPixels` | Deletes `.pix`/`.pixa`/`.pixf` and `street_exploration` rows. **Does not clear `processed_tracks`**, so saved-track replay usually cannot rebuild wiped exploration. |
+| Derivation sampling | `kSegmentLengthMeters = 15.0` | Spec ~10 m |
+| Live / track sampling | `kInterpolationStepMeters = 10.0` via `ComputeTrackPixels` | Legacy `UpdateStreetStatsForTrack` still hardcodes `10.0` but is not on the active replay path |
+| Eligibility | `IsExplorable` | highway lines; excludes driveway/tunnel/`hwtag=private`; requires bike or foot access |
+| Renderer | `StreetPixelRenderer` | Consumes `span<StreetPixel>`; uses `GetPixelId`, `IsExplored`, `GetPoint`, `GetColor` only — no provenance |
 
-**Differences from the technical audit:** none material. Two details the audit
-did not surface: the `.pixf` extension is deleted but never written, and
-derivation and track replay use two different hardcoded sampling distances.
+**Differences from the technical audit:** material additions above — 44-bit id
+width, dead `.pixf`, and `processed_tracks` surviving wipe.
 
 ## Intended outcome
 
-- A pixel store that records, per explored pixel, whether the first exploration
-  was live or imported, and that carries a map-data version.
+- A pixel store that records, per explored pixel, whether it is ever-live or
+  imported-only (one bit in `.pix` — SPD-015), and that carries a map-data
+  version header.
 - Map updates that rematch explored HEALPix identifiers against the newly
-  derived pixel set instead of deleting them.
+  derived pixel set instead of deleting them, without duplicating ~50 MB
+  regional files longer than an atomic replace requires.
+- Map delete frees the full `.pix` while retaining a compact explored-only
+  archive for redownload rematch (SPD-016).
 - Derivation sampling aligned with the spec, with one sampling constant rather
-  than two.
+  than two, with measured size impact.
 - Eligibility tightened toward spec §13, or the divergence explicitly recorded.
 - A migration that is safe to interrupt.
+- `nside` unchanged (SPD-017).
 
 ## Dependencies
 
 - Phase 2. The source flag is only meaningful once "live" means "collected in a
   validated session".
+- Entry criterion met: storage-layout recommendation revised and accepted after
+  Uusimaa ~50 MB measurement (SPD-015–018).
 
-## Proposed work-item breakdown
+## Phase-entry investigation (2026-08-03, revised same day)
 
-Not yet decomposed into work items. Likely shape, to be confirmed by a
-Plan Mode investigation at phase entry:
+### Measured storage baseline
 
-1. Pixel-file format version and map-data version stamp.
-2. Per-pixel source flag (`live`, `imported`, `both`) and where it lives — a
-   second bit in the `.pix` entry, or a side table keyed by HEALPix identifier.
-3. Replace wipe-on-update with rematch, including crash safety and a background
-   progress state.
-4. Align derivation sampling to the spec and unify the two sampling constants.
-5. Tighten `IsExplorable` against spec §13, or record each divergence.
-6. Recalculation of denominators after an update, with the spec's "there is
-   more to explore" framing.
+| Region | `.pix` size | Approx. cells @ 8 B |
+| --- | --- | --- |
+| Uusimaa (maintainer device) | **~50 MB** | **~6.5×10⁶** |
 
-**Marked for later phase-specific Plan Mode investigation.** Source inspection
-is not sufficient to choose between an in-`.pix` bit and a side table. That
-choice depends on measured `.pix` growth, on `msync` cost, and on how the
-renderer consumes spans, none of which can be settled by reading code.
+Audit planning tables (~0.5–2.7 MB city / ~8 MB mega) **underestimated**
+regional scale. All Phase 3 designs must treat tens-of-megabytes `.pix` files
+as normal: no duplicate full-universe copies left on disk, no SQLite row per
+cell, rematch must stream / use explored-only working sets, and mmap peak
+memory is already ~size of `.pix`.
+
+### Source-flag storage decision (revised)
+
+**Accepted (SPD-015): one ever-live bit in `.pix` — not a side table, not a
+two-bit `both` enum.**
+
+| Option | Storage at Uusimaa scale | Verdict |
+| --- | --- | --- |
+| One ever-live bit inside each existing `int64_t` | **+0 bytes** on disk and in mmap | **Chosen** |
+| Two-bit `live` / `imported` / `both` in-entry | Also +0 bytes | Unnecessary — “both” collapses to ever-live for V1 consumers |
+| Sparse SQLite `(countryId, healpixId, source)` | ~5–28 MB raw at 10–50 % explored; **≫100 MB** plausible with row/index overhead | Rejected after measurement |
+
+Draft phase-entry text preferred a side table; a later draft used two source
+bits. Both are **superseded** by SPD-015 (one ever-live bit) after the Uusimaa
+measurement and maintainer simplification. Rematch keys by HEALPix id: scan
+the old `.pix` for explored entries, copy id + explored + ever-live into the
+new universe. `.pixa` remains index-coupled accounting only.
+
+**Bit layout (SP-016 to implement):** bit 63 = explored (unchanged); one further
+high bit = ever-live (`0` = imported-only when explored, `1` = live-eligible,
+including imported-then-later-live); low 44 bits = HEALPix id.
+`GetPixelId()` must mask flag bits so renderer density bucketing cannot see
+provenance. Live sets the bit; import must not clear it.
+
+**Phase 8 recency:** still sparse and out of `.pix` (timestamps would blow the
+50 MB class of files). Not Phase 3.
+
+### Other accepted decisions
+
+1. **SPD-016** — Explored + ever-live survive map delete/redownload via a
+   **compact explored-only archive**, not retention of the full `.pix`.
+2. **SPD-017** — `nside = 1048576` locked for V1 (OQ-8 closed).
+3. **SPD-018** — `.pixf` is dead.
+
+### Work-item breakdown
+
+| Order | ID | Title |
+| --- | --- | --- |
+| 1 | [SP-015](../work-items/SP-015-pixel-file-format-and-map-version.md) | Pixel-file format version and map-data version header |
+| 2 | [SP-016](../work-items/SP-016-exploration-source-flag-store.md) | Per-pixel ever-live bit in `.pix` |
+| 3 | [SP-017](../work-items/SP-017-crash-safe-map-update-rematch.md) | Crash-safe rematch on map update |
+| 4 | [SP-018](../work-items/SP-018-exploration-survives-map-delete.md) | Explored state survives map delete and redownload |
+| 5 | [SP-019](../work-items/SP-019-derivation-sampling-alignment.md) | Align derivation sampling to ~10 m |
+| 6 | [SP-020](../work-items/SP-020-eligibility-policy-alignment.md) | Eligibility vs spec §13 — tighten or record |
+| 7 | [SP-021](../work-items/SP-021-denominator-recalc-and-update-messaging.md) | Denominator recalculation and §27.3 messaging |
+| 8 | [SP-022](../work-items/SP-022-exploration-storage-end-to-end-validation.md) | Phase 3 end-to-end validation |
+
+Sampling alignment (SP-019) ships in the same release window as rematch
+(SP-017). **Size watch:** 15 m → 10 m densifies the valid universe and can grow
+`.pix` on top of the ~50 MB baseline — measure Uusimaa (or equivalent) before
+and after in SP-019 / SP-022 evidence.
 
 ## Data and migration concerns
 
 This phase *is* the data and migration concern.
 
-- The `.pix` entry currently spends 63 bits on a HEALPix identifier and 1 bit on
-  explored state. At `nside = 1048576` the identifier needs about 42 bits, so
-  spare bits exist — but changing the layout changes every file on every
-  device. A format version must be added before, or in the same change as, the
-  layout change.
+- Regional `.pix` files are large (Uusimaa ~50 MB). Designs must not duplicate
+  the full universe on disk during rematch longer than needed for atomic
+  replace; prefer temp file + rename. Mid-rematch RAM should favour streaming
+  scans and explored-only hash sets, not a second full 50 MB mirror plus a
+  SQLite copy of every id.
+- The `.pix` entry spends 1 bit on explored and 1 bit on ever-live (SPD-015).
+  Ids need 44 bits at locked `nside`. Format version header is required; keep
+  it small and fixed-size.
 - Rematch must not destroy the old explored set before the new one is durable.
-  The audit's recommended sequence — keep the old explored identifiers aside,
-  derive the new valid set, intersect, then commit — is sound. Add an explicit
-  recovery path for a crash mid-migration.
-- Changing derivation sampling from 15 m to 10 m changes the pixel universe and
-  therefore every denominator. Do it in the same release as the rematch
-  machinery, so the change is absorbed by the same "the map changed" user
-  communication.
-- `CleanupStreetPixels` has three callers. Only the download path becomes a
-  rematch. Deleting a country's map and deregistering a map are legitimate
-  reasons to drop derived data — but confirm whether the user's *explored*
-  state should survive a map deletion and later redownload. The spec's
-  permanence promise suggests it should.
-- Growth: at roughly 8 bytes per pixel, a large city is a few megabytes. Adding
-  per-pixel timestamps for every cell would change that materially. Store
-  sparse live recency only where ownership needs it.
+  Crash recovery required. Reconcile `processed_tracks` so wipe/rematch cannot
+  strand exploration behind a geometry-hash ledger.
+- Map delete retention (SPD-016 / SP-018) writes a compact explored-only
+  archive (id + packed explored/ever-live flags), not a kept full `.pix`.
+- Changing derivation sampling from 15 m to 10 m densifies the universe and can
+  grow `.pix`; land with rematch (SP-019 beside SP-017) and measure.
+- `.pixa` is ~1/64 of `.pix` (~0.8 MB at Uusimaa scale) and stays index-coupled
+  accounting only.
+- Phase 8 must not put per-pixel timestamps into `.pix`.
 
 ## Privacy and security implications
 
@@ -137,7 +186,7 @@ This phase *is* the data and migration concern.
   explored; removed cells disappear; added cells appear unexplored; the
   explored count is exactly the intersection size.
 - Rematch interrupted at each stage, asserting no state is lost.
-- Source-flag persistence across a save and reload cycle, and across a rematch.
+- Source-flag / ever-live persistence across a save and reload cycle, and across a rematch.
 - Format-version handling: an old-format file is read or migrated, not
   misinterpreted.
 - Determinism: deriving twice from the same fixture yields byte-identical
@@ -155,8 +204,8 @@ This phase *is* the data and migration concern.
 - Kill the app during migration and reopen; confirm no exploration is lost.
 - Update a country while the map is being viewed; confirm the UI stays usable
   and shows an updating state.
-- Delete a country and redownload it; confirm behaviour matches whatever the
-  team decides for that case, and that the decision is recorded.
+- Delete a country and redownload it; confirm explored ∩ new universe and
+  ever-live bits survive via the compact archive (SPD-016 / SP-018).
 
 ## Entry criteria
 
@@ -166,8 +215,7 @@ This phase *is* the data and migration concern.
 
 ## Exit criteria
 
-1. Every explored pixel records whether its first exploration was live or
-   imported.
+1. Every explored pixel records whether it is ever-live or imported-only.
 2. Pixel files carry a format version and the map-data version they were
    derived from.
 3. A country map update rematches explored identifiers; no explored state is
@@ -186,23 +234,31 @@ This phase *is* the data and migration concern.
 - Competitive recency and ownership scoring. Phase 8.
 - Generator-side pixel precomputation. Explicitly deferred by the audit's
   recommendation to keep on-device derivation for V1.
-- Changing the HEALPix `nside`. See OQ-8; changing it would redefine every
-  pixel identifier and invalidate every stored file.
+- Changing the HEALPix `nside`. **Locked** by SPD-017 (`nside = 1048576`).
 - Rendering changes.
-- GPX import behaviour beyond setting the `imported` flag correctly when it
-  reaches the store.
+- GPX import behaviour beyond setting ever-live correctly when exploration
+  reaches the store (clear on first import-only explore; never clear if set).
 
 ## Known uncertainties
 
-- Whether the source flag belongs in the `.pix` entry or in a side table.
-- Whether explored state should survive deleting and redownloading a country.
-- Whether `.pixf` is genuinely dead, or written by code not found.
+- ~~Whether the source flag belongs in the `.pix` entry or in a side table.~~
+  **SPD-015:** one ever-live bit in `.pix` (not a side table; not a `both`
+  enum; revised after Uusimaa ~50 MB measurement).
+- ~~Whether explored state should survive deleting and redownloading a country.~~
+  **SPD-016:** yes, via compact explored-only archive (SP-018).
+- ~~OQ-8 `nside`.~~ **SPD-017:** locked at 1048576 for V1.
 - Whether tightening `IsExplorable` is achievable purely client-side, or needs
   generator changes for tags that do not survive map generation. The audit
-  flags bridge and tunnel handling as unresolved (OQ-5).
+  flags bridge and tunnel handling as unresolved (OQ-5) — owned by SP-020.
 - How much of the spec §13 eligibility list is representable given what
   survives into MWM. `hwtag` values for foot, bicycle, and private are
   confirmed present; indoor, underground, proposed, construction, and
-  emergency-only are not confirmed as filterable.
-- Whether rematch can complete fast enough on a large country to avoid a
-  visible stall on a mid-tier device.
+  emergency-only are not confirmed as filterable — SP-020.
+- Whether rematch can complete fast enough on a large country (~50 MB `.pix`)
+  without a visible stall or large RAM spike — measured in SP-017 / SP-022 on
+  Uusimaa-class data.
+- How much `.pix` grows under 10 m derivation vs 15 m at regional scale —
+  measured in SP-019 / SP-022.
+- How bookmark-track replay should set ever-live before Phase 9's dedicated GPX
+  importer exists — decided inside SP-016 (must not clear ever-live for
+  live-session pixels).

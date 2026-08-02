@@ -110,7 +110,7 @@ rather than inventing file layout mid-flight.
 | Field | Value |
 | --- | --- |
 | Branch | `street-pixels` |
-| Commits | |
+| Commits | `7f3cc0cec1` |
 | Test output | `/Users/mo/dev/omim-build-debug`: `ninja street_pixels_tests`; `./street_pixels_tests --filter=StreetPixelsFile` and full `./street_pixels_tests` — all passed (2026-08-03), including after catch-narrowing harden (`MayRecoverByDerive` only for `Corrupt`). |
 | Manual validation | |
 | Implemented by | Agent (implementation done; not accepted) |
