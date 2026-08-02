@@ -32,3 +32,11 @@ void ApplyRecordingPauseResumeEffects(RecordingSession::State previous, Recordin
       tracker->SetAppendSuspended(false);
   }
 }
+
+void ApplyRecordingInterruptionEffects(GpsTracker * tracker, StreetPixelsManager * manager)
+{
+  if (tracker != nullptr && tracker->IsEnabled())
+    tracker->MarkSegmentBoundary();
+  if (manager != nullptr)
+    manager->ResetSampleAcceptanceReference();
+}
