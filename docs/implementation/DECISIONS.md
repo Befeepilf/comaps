@@ -500,6 +500,40 @@ not part of the V1 exploration store. Cleanup may continue deleting stray
 
 ---
 
+## SPD-019 — Path sampling unified at 15 metres for V1
+
+**Decision.** Derivation, live segment interpolation, and track/import sampling
+all use **15.0 m** as the single path-sampling step for Street Pixels V1. Live
+and track paths that today use 10.0 m (`kInterpolationStepMeters` and the
+hard-coded `10.0` in `UpdateStreetStatsForTrack`) align to 15 m. Derivation
+keeps `kSegmentLengthMeters = 15.0`. Do **not** densify the valid-pixel
+universe to 10 m.
+
+**Status.** Accepted.
+
+**Context.** Spec §14 calls for ~10 m path sampling. Phase 3 originally planned
+SP-019 to move derivation from 15 m → 10 m to match live/track. After the
+Uusimaa `.pix` ≈ 50 MB measurement, densifying derivation would grow regional
+files further. Maintainer product decision (2026-08-03): keep the coarser
+15 m step everywhere instead, accepting a conscious V1 divergence from the
+spec’s ~10 m figure in favour of storage/memory headroom and one constant.
+
+**Consequences.**
+
+- SP-019 changes live/track sampling to 15 m and collapses dual constants (and
+  the legacy `10.0` literal) to one definition.
+- Existing on-disk `.pix` universes derived at 15 m stay valid; this is not a
+  universe densification and does not by itself require rematch.
+- Spec §14 remains the product source of truth for intent; this SPD records the
+  V1 implementation divergence. A post-V1 move to 10 m needs a new SPD plus
+  rematch/size evidence.
+- SP-011 tests and evidence that asserted 10 m sampling must be updated under
+  SP-019.
+
+**Related documents.** Product spec §14.1–§14.3; phase-03; SP-019; SPD-017.
+
+---
+
 ## 15. Recorded open questions (not decisions)
 
 These are carried from existing project documents. They are listed so they are
