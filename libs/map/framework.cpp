@@ -8,6 +8,7 @@
 #include "map/gps_tracker.hpp"
 #include "map/place_page_info.hpp"
 #include "map/power_management/power_management_schemas.hpp"
+#include "map/recording_pause_resume.hpp"
 #include "map/track_mark.hpp"
 #include "map/user_mark.hpp"
 
@@ -504,6 +505,10 @@ Framework::Framework(FrameworkParams const & params, bool loadMaps)
     }
   );
   m_streetPixelsManager->SetRecordingSession(m_recordingSession.get());
+  m_recordingSession->SetStateListener([this](RecordingSession::State previous, RecordingSession::State current)
+  {
+    ApplyRecordingPauseResumeEffects(previous, current, &GpsTracker::Instance(), m_streetPixelsManager.get());
+  });
 
   m_routingManager.SetTransitManager(&m_transitManager);
 
