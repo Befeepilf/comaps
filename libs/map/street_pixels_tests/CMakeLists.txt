@@ -10,6 +10,7 @@ set(SRC
   pause_resume_semantics_tests.cpp
   recording_session_tests.cpp
   sample_acceptance_manager_tests.cpp
+  segment_interpolation_tests.cpp
   street_pixel_tests.cpp
   street_pixels_test_helpers.hpp
 )
