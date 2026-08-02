@@ -37,6 +37,7 @@ public:
   uint64_t GetStartTimestampSec() const;
   uint64_t GetPausedDurationSec() const;
   bool HasActiveSessionBreadcrumb() const;
+  bool ConsumeActiveSessionBreadcrumb();
 
   void SetStateListener(StateChangedFn const & fn);
 
