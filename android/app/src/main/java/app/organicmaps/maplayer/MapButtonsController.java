@@ -288,12 +288,12 @@ public class MapButtonsController extends Fragment
     if (state == RecordingSession.STATE_RECORDING)
     {
       mTrackRecordingStatusButton.setImageTintList(null);
-      mTrackRecordingStatusButton.setContentDescription(getString(R.string.pause));
+      mTrackRecordingStatusButton.setContentDescription(getString(R.string.track_recording_alert_title));
       animateIconBlinking(mTrackRecordingStatusButton);
     }
     else if (state == RecordingSession.STATE_PAUSED)
     {
-      mTrackRecordingStatusButton.setContentDescription(getString(R.string.continue_recording));
+      mTrackRecordingStatusButton.setContentDescription(getString(R.string.track_recording_alert_title));
       mTrackRecordingStatusButton.setImageTintList(
           ColorStateList.valueOf(ContextCompat.getColor(context, R.color.active_track_recording)));
     }
