@@ -1,7 +1,7 @@
 # SP-017 — Crash-safe rematch on map update
 
 **Phase:** 3 — Exploration storage and map-update reconciliation
-**Status:** In progress
+**Status:** Accepted
 **Branch:** `street-pixels`
 
 ---
@@ -113,14 +113,14 @@ deletes `.pix` / `.pixa` and `street_exploration` rows. `processed_tracks` is
 | Field | Value |
 | --- | --- |
 | Branch | `street-pixels` |
-| Commits | (uncommitted; do not mark accepted) |
+| Commits | `57c9a085a5` |
 | processed_tracks policy | Clear-per-country **after** durable rematch commit (stage E). `ReconcileStatsAfterRematch(countryId)` = `DeleteMwmData` (street_exploration + mwms) + `DeleteProcessedTracksForCountry`. Survivors come from `.pix` ∩ new universe; track replay may fill **new** cells under old tracks after clear. |
 | Rematch timing notes | Peak extra RAM strategy: stream-scan old `.pix` with ~1 MB (`kMigrateChunkBytes`) buffer → explored-only `unordered_map` (O(explored)) → derive `std::set` new universe (existing O(universe) cost) → temp+atomic write. Unmap active country before write. **Not** 2–3× full `.pix` in RAM. Uusimaa wall-time / RSS device measure deferred to SP-022. Synthetic 20k-cell rematch in `Rematch_ChunkedLargeSyntheticUniverse` ~16 ms locally. |
 | Test output | `ninja street_pixels_tests` OK. `./street_pixels_tests --filter=Rematch` → All tests passed (EXIT_REMATCH=0): UnchangedRemovedAddedMatrix, EverLivePersistsForSurvivors, InterruptBeforeRenameKeepsOld, ProcessedTracksClearedAfterRematch, ChunkedLargeSyntheticUniverse, ReconcileStatsClearsProcessedTracks, ScanFailureDoesNotWipeExplored, EqualVersionDoesNotRewrite. Full `./street_pixels_tests` → **All tests passed.** (EXIT_ALL=0). |
 | Manual validation | Deferred to SP-022 / device country-update check |
 | Implemented by | Agent |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-03 |
 
 ## Discovered follow-up
 
