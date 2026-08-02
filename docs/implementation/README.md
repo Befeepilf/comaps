@@ -162,6 +162,7 @@ roadmap tracks.
 | SP-001–014 | Accepted (Phases 1–2) |
 | SP-015 | In progress (header landed; not Accepted) |
 | SP-016 | Accepted 2026-08-03 |
+| SP-017 | Accepted 2026-08-03 |
 | SP-017 | Planned |
 | SP-018 | Planned |
 | SP-019 | Planned |
@@ -342,7 +343,7 @@ decision) tracked in Phase 10.
 | --- | --- | --- | --- | --- |
 | 15 | [SP-015](work-items/SP-015-pixel-file-format-and-map-version.md) | Pixel-file format version and map-data version header | 3 | Planned — foundation before rematch |
 | 16 | [SP-016](work-items/SP-016-exploration-source-flag-store.md) | Per-pixel ever-live bit in `.pix` | 3 | Accepted — 1 ever-live bit; +0 B (SPD-015) |
-| 17 | [SP-017](work-items/SP-017-crash-safe-map-update-rematch.md) | Crash-safe rematch on map update | 3 | Planned — replaces wipe-on-download |
+| 17 | [SP-017](work-items/SP-017-crash-safe-map-update-rematch.md) | Crash-safe rematch on map update | 3 | Accepted — replaces wipe-on-download |
 | 18 | [SP-018](work-items/SP-018-exploration-survives-map-delete.md) | Explored state survives map delete and redownload | 3 | Planned — compact archive (SPD-016) |
 | 19 | [SP-019](work-items/SP-019-derivation-sampling-alignment.md) | Align derivation sampling to ~10 m | 3 | Planned — same release as rematch; size watch |
 | 20 | [SP-020](work-items/SP-020-eligibility-policy-alignment.md) | Eligibility vs spec §13 | 3 | Planned — tighten or record (OQ-5) |
