@@ -25,6 +25,8 @@ set(SRC
   backend_config.hpp
   explorer_pro.cpp
   explorer_pro.hpp
+  live_sample_acceptance_filter.cpp
+  live_sample_acceptance_filter.hpp
   recording_session.cpp
   recording_session.hpp
   extrapolation/extrapolator.cpp

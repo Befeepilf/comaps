@@ -6,6 +6,7 @@ set(SRC
   collection_radius_tests.cpp
   explorer_pro_tests.cpp
   exploration_multiplier_tests.cpp
+  live_sample_acceptance_filter_tests.cpp
   recording_session_tests.cpp
   street_pixel_tests.cpp
   street_pixels_test_helpers.hpp
