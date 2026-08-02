@@ -59,7 +59,7 @@ UNIT_TEST(CollectionGate_Idle_CollectsNothing)
   CollectionGateBreadcrumbCleanup cleanup;
   CollectionGateFixture fixture;
   fixture.SetupPixels({{CollectionGateFixture::kPixelA, false}});
-  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelA, 1.0));
+  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelA, street_pixels_tests::CurrentTimestampSec()));
   TEST(!fixture.Manager().IsPixelExploredForTesting(CollectionGateFixture::kPixelA), ());
 }
 
@@ -71,7 +71,7 @@ UNIT_TEST(CollectionGate_Paused_CollectsNothing)
   TEST_EQUAL(fixture.Session().Start(), RecordingSession::TransitionResult::Ok, ());
   TEST_EQUAL(fixture.Session().Pause(), RecordingSession::TransitionResult::Ok, ());
 
-  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelA, 1.0));
+  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelA, street_pixels_tests::CurrentTimestampSec()));
   TEST(!fixture.Manager().IsPixelExploredForTesting(CollectionGateFixture::kPixelA), ());
 }
 
@@ -82,7 +82,7 @@ UNIT_TEST(CollectionGate_Recording_CollectsExpected)
   fixture.SetupPixels({{CollectionGateFixture::kPixelA, false}});
   TEST_EQUAL(fixture.Session().Start(), RecordingSession::TransitionResult::Ok, ());
 
-  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelA, 1.0));
+  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelA, street_pixels_tests::CurrentTimestampSec()));
   TEST(fixture.Manager().IsPixelExploredForTesting(CollectionGateFixture::kPixelA), ());
 }
 
@@ -92,12 +92,12 @@ UNIT_TEST(CollectionGate_StartMidSequence_CollectsFromStartOnward)
   CollectionGateFixture fixture;
 
   fixture.SetupPixels({{CollectionGateFixture::kPixelA, false}});
-  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelA, 1.0));
+  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelA, street_pixels_tests::CurrentTimestampSec()));
   TEST(!fixture.Manager().IsPixelExploredForTesting(CollectionGateFixture::kPixelA), ());
 
   fixture.SetupPixels({{CollectionGateFixture::kPixelB, false}});
   TEST_EQUAL(fixture.Session().Start(), RecordingSession::TransitionResult::Ok, ());
-  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelB, 2.0));
+  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelB, street_pixels_tests::CurrentTimestampSec() + 1.0));
   TEST(fixture.Manager().IsPixelExploredForTesting(CollectionGateFixture::kPixelB), ());
 }
 
@@ -108,17 +108,17 @@ UNIT_TEST(CollectionGate_PauseMidSequence_CollectsUntilPause)
   fixture.SetupPixels({{CollectionGateFixture::kPixelA, false}});
   TEST_EQUAL(fixture.Session().Start(), RecordingSession::TransitionResult::Ok, ());
 
-  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelA, 1.0));
+  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelA, street_pixels_tests::CurrentTimestampSec()));
   TEST(fixture.Manager().IsPixelExploredForTesting(CollectionGateFixture::kPixelA), ());
 
   fixture.SetupPixels({{CollectionGateFixture::kPixelB, false}});
   TEST_EQUAL(fixture.Session().Pause(), RecordingSession::TransitionResult::Ok, ());
-  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelB, 2.0));
+  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelB, street_pixels_tests::CurrentTimestampSec() + 1.0));
   TEST(!fixture.Manager().IsPixelExploredForTesting(CollectionGateFixture::kPixelB), ());
 
   fixture.SetupPixels({{CollectionGateFixture::kPixelC, false}});
   TEST_EQUAL(fixture.Session().Resume(), RecordingSession::TransitionResult::Ok, ());
-  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelC, 3.0));
+  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelC, street_pixels_tests::CurrentTimestampSec() + 2.0));
   TEST(fixture.Manager().IsPixelExploredForTesting(CollectionGateFixture::kPixelC), ());
 }
 
@@ -142,13 +142,13 @@ UNIT_TEST(CollectionGate_Rejected_NoVibration)
   size_t vibrationCalls = 0;
   fixture.Manager().SetVibrationHandler([&](size_t) { ++vibrationCalls; });
 
-  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelA, 1.0));
+  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelA, street_pixels_tests::CurrentTimestampSec()));
   TEST_EQUAL(vibrationCalls, 0, ());
 
   TEST_EQUAL(fixture.Session().Start(), RecordingSession::TransitionResult::Ok, ());
   TEST_EQUAL(fixture.Session().Pause(), RecordingSession::TransitionResult::Ok, ());
   fixture.SetupPixels({{CollectionGateFixture::kPixelB, false}});
-  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelB, 2.0));
+  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelB, street_pixels_tests::CurrentTimestampSec() + 1.0));
   TEST_EQUAL(vibrationCalls, 0, ());
 }
 
@@ -160,7 +160,7 @@ UNIT_TEST(CollectionGate_Finished_CollectsNothing)
   TEST_EQUAL(fixture.Session().Start(), RecordingSession::TransitionResult::Ok, ());
   TEST_EQUAL(fixture.Session().Finish(), RecordingSession::TransitionResult::Ok, ());
 
-  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelA, 1.0));
+  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelA, street_pixels_tests::CurrentTimestampSec()));
   TEST(!fixture.Manager().IsPixelExploredForTesting(CollectionGateFixture::kPixelA), ());
 }
 
@@ -172,7 +172,7 @@ UNIT_TEST(CollectionGate_Discarded_CollectsNothing)
   TEST_EQUAL(fixture.Session().Start(), RecordingSession::TransitionResult::Ok, ());
   TEST_EQUAL(fixture.Session().Discard(), RecordingSession::TransitionResult::Ok, ());
 
-  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelA, 1.0));
+  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelA, street_pixels_tests::CurrentTimestampSec()));
   TEST(!fixture.Manager().IsPixelExploredForTesting(CollectionGateFixture::kPixelA), ());
 }
 
@@ -185,6 +185,6 @@ UNIT_TEST(CollectionGate_Recording_TriggersVibration)
   fixture.Manager().SetVibrationHandler([&](size_t) { ++vibrationCalls; });
 
   TEST_EQUAL(fixture.Session().Start(), RecordingSession::TransitionResult::Ok, ());
-  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelA, 1.0));
+  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelA, street_pixels_tests::CurrentTimestampSec()));
   TEST_EQUAL(vibrationCalls, 1, ());
 }
