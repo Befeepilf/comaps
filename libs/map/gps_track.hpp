@@ -37,6 +37,16 @@ public:
   void AddPoint(location::GpsInfo const & point);
   void AddPoints(std::vector<location::GpsInfo> const & points);
 
+  /// When suspended, AddPoint/AddPoints become no-ops. In-memory only; not persisted.
+  void SetAppendSuspended(bool suspended);
+  bool IsAppendSuspended() const;
+
+  /// Records the current point count as the start index of the next segment.
+  /// No-op if the track is empty or the boundary is already at the current size.
+  /// In-memory only; not persisted.
+  void MarkSegmentBoundary();
+  std::vector<size_t> GetSegmentBoundaryIndices() const;
+
   /// Returns track statistics
   TrackStatistics GetTrackStatistics() const;
   ElevationInfo const & GetElevationInfo() const;
@@ -74,6 +84,7 @@ private:
 
   void ScheduleTask();
   void ProcessPoints();  // called on the worker thread
+  void FlushPendingWhileSuspended();
   bool HasCallback();
   void InitStorageIfNeed();
   void InitCollection();
@@ -87,6 +98,9 @@ private:
   mutable std::mutex m_dataGuard;           // protects data for stealing
   std::vector<location::GpsInfo> m_points;  // accumulated points for adding
   bool m_needClear;                         // need clear file
+  bool m_appendSuspended = false;
+  bool m_needMarkBoundary = false;
+  std::vector<size_t> m_segmentBoundaryIndices;
 
   std::mutex m_callbackGuard;
   // Callback is protected by m_callbackGuard. It ensures that SetCallback and call callback
