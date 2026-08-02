@@ -1,7 +1,7 @@
 # SP-014 — Recording end-to-end validation
 
 **Phase:** 2 — Recording and collection correctness
-**Status:** Not started
+**Status:** In progress
 **Branch:** `street-pixels`
 
 ---
@@ -180,20 +180,20 @@ scenarios, each on each device in the matrix:
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commits, if any | |
-| Validation plan link | |
-| Plan reviewed by and date | |
-| Device matrix: models and OS versions | |
-| Evidence log link | |
+| Branch | `street-pixels` |
+| Commits, if any | *(pending)* |
+| Validation plan link | [`docs/implementation/validation/SP-014-validation-plan.md`](../validation/SP-014-validation-plan.md) |
+| Plan reviewed by and date | Maintainer 2026-08-02 (approve: Pixel 3a; skip debug export; ABL measure-first) |
+| Device matrix: models and OS versions | D1 Google Pixel 3a; D2 aggressive OEM **TBD** |
+| Evidence log link | [`docs/implementation/validation/SP-014-evidence-log.md`](../validation/SP-014-evidence-log.md) |
 | Scenario 1 result, no session | |
 | Scenario 4 result, samples received versus expected per device | |
 | Scenario 6 screenshot | |
 | Scenario 7 result | |
 | Scenario 12 battery figures | |
 | Defects found, with owning work items | |
-| Per-criterion exit status | |
-| Test-only affordance added? Gated how? | |
+| Per-criterion exit status | Exit 7 blocked until D2 + B4 |
+| Test-only affordance added? Gated how? | No (visual-only v1) |
 | Validation performed by and date | |
 | Independent reviewer | |
 
@@ -201,4 +201,5 @@ scenarios, each on each device in the matrix:
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Aggressive OEM device not yet named | Required for SP-014 AC2 and Phase 2 exit criterion 7 |
+| Device walks not yet executed | Human execution per validation plan |

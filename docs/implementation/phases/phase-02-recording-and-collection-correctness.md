@@ -97,7 +97,7 @@ nothing to prevent.
 | SP-011 | Segment interpolation with pause and interruption barriers | SP-009, SP-010 | **Accepted** 2026-08-02 — `LiveSegmentInterpolation` 10 m sampling + barriers; shared `ForEachMercatorSegmentSample`; 19 segment tests; 98/98 suite |
 | SP-012 | Android recording controls and foreground-service integration | SP-010 | **Accepted** 2026-08-02 — one Record Track control; FGS while Recording/Paused; notification Pause/Resume/Stop; ABL deferred; device matrix → SP-014 |
 | SP-013 | Interrupted-session detection and recovery | SP-010, SP-012 | **Accepted** 2026-08-02 — breadcrumb force-finish + 60 s gap latch; `ApplyRecordingInterruptionEffects`; 10 InterruptedSession tests; device matrix → SP-014 |
-| SP-014 | Recording end-to-end validation | all of the above | |
+| SP-014 | Recording end-to-end validation | all of the above | **In progress** 2026-08-02 — plan reviewed (Pixel 3a); D2 OEM TBD; walks pending |
 
 Adjustments to the originally suggested breakdown, and why:
 
