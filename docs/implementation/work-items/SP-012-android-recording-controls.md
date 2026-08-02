@@ -232,7 +232,6 @@ whether any battery-optimisation exemption was granted.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| Review fixes applied: Stop on cold start; reset terminal states before Start; refuse FGS start without active session; session notification refresh clears location-timeout warning | Landed with SP-012 |
 | Screen-off / OEM continuity device matrix not yet run | Required before SP-014; record results in evidence table |
 | `ACCESS_BACKGROUND_LOCATION` decision awaits measurement | Keep absent until evidence; if required, flag Phase 10 Play data-safety governance |
 | Background-location-denied messaging not implemented (AC6) | Only needed if/when ABL is requested; add degraded-copy UX then |
@@ -240,5 +239,4 @@ whether any battery-optimisation exemption was granted.
 | Session history / track inspect-delete UI | Later UI work item (spec §11.4 / §30) |
 | Breadcrumb / interrupted-session recovery UX; process death may leave GpsTracker without session | SP-013 |
 | Live drape line may still look continuous across pause | SP-010 D2 deferred follow-up |
-| Review fixes applied: Stop on cold start; reset terminal states before Start; refuse FGS start without active session; session notification refresh clears location-timeout warning | Retained in tree; re-verify on device |
-| Suggested commit subjects (do not commit here) | `[map] Fan out recording-session platform listener`; `[android] Add production RecordingSession JNI API`; `[android] Wire session controls to map UI and FGS`; `[android] Add recording notification pause/resume actions`; `[android] Add RecordingSessionUiModel JVM tests`; `[docs] Record SP-012 in-progress evidence` |
+| Notification Stop cold-start, Start-without-session, and warning-notification refresh | Fixed before accept; re-verify on device during SP-014 |
