@@ -44,7 +44,7 @@ establishes the sample-acceptance pipeline everything downstream trusts.
 
 ## Current code locations
 
-Verified 2026-08-02 against the working tree (post SP-011).
+Verified 2026-08-02 against the working tree (post SP-012).
 
 | Concern | Location | Observed state |
 | --- | --- | --- |
@@ -55,7 +55,7 @@ Verified 2026-08-02 against the working tree (post SP-011).
 | Track filter | `libs/map/gps_track_filter.cpp` | Exists for the track path only. Minimum horizontal accuracy 250 m, 10 m decimation, 2 m/s² acceleration limit, direction check, requires `HasSpeed()`. Not applied to pixel collection. |
 | Interpolation | — | **No interpolation exists in the live pixel path.** `serdes_gpx.cpp` fills GPX timestamps and `extrapolator.cpp` extrapolates for display; neither feeds pixel collection. |
 | Session concept | `libs/map/recording_session.{hpp,cpp}`, `Framework::GetRecordingSession()` | State machine `Idle` / `Recording` / `Paused` / `Finished` / `Discarded`; wired to collection gate via `SetRecordingSession`. |
-| Android recording | `android/app/.../location/TrackRecordingService.java`, `android/sdk/.../location/TrackRecorder.java` | Foreground service typed `location`; JNI start/stop/save/isEmpty/isEnabled. **No pause or resume.** Not wired to `RecordingSession` (SP-012). |
+| Android recording | `android/app/.../location/TrackRecordingService.java`, `android/sdk/.../location/RecordingSession.java`, `TrackRecorder.java` | FGS typed `location`; production `RecordingSession` JNI drives shared session; Pause/Resume in UI + notification; ABL not added (D3). Device matrix → SP-014. |
 | Debug session control | `android/sdk/.../location/RecordingSessionDebug.java` | DEBUG-only JNI wrappers for `RecordingSession` start/pause/resume/finish/discard (SP-007 validation affordance). |
 | Location provider | `android/sdk/.../location/LocationHelper.java` | 500 ms interval normally, 1000 ms while track recording |
 | Permissions | `android/app/src/main/AndroidManifest.xml` | `ACCESS_COARSE_LOCATION`, `ACCESS_FINE_LOCATION`, `ACCESS_LOCATION_EXTRA_COMMANDS`. **`ACCESS_BACKGROUND_LOCATION` is absent.** |
@@ -95,7 +95,7 @@ nothing to prevent.
 | SP-009 | Live sample acceptance filter | SP-007 | **Accepted** 2026-08-02 — `LiveSampleAcceptanceFilter` in collection path; 15 filter + 5 manager tests |
 | SP-010 | Pause and resume semantics | SP-006, SP-007, SP-009 | **Accepted** 2026-08-02 — append suspend + in-memory segment boundaries; filter reset on pause/resume; D2 live drape deferred |
 | SP-011 | Segment interpolation with pause and interruption barriers | SP-009, SP-010 | **Accepted** 2026-08-02 — `LiveSegmentInterpolation` 10 m sampling + barriers; shared `ForEachMercatorSegmentSample`; 19 segment tests; 98/98 suite |
-| SP-012 | Android recording controls and foreground-service integration | SP-010 | |
+| SP-012 | Android recording controls and foreground-service integration | SP-010 | **Accepted** 2026-08-02 — one Record Track control; FGS while Recording/Paused; notification Pause/Resume/Stop; ABL deferred; device matrix → SP-014 |
 | SP-013 | Interrupted-session detection and recovery | SP-010, SP-012 | |
 | SP-014 | Recording end-to-end validation | all of the above | |
 

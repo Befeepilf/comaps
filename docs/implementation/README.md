@@ -329,9 +329,10 @@ Implement in this order. Each links to a file with full detail.
 | 9 | [SP-009](work-items/SP-009-live-sample-acceptance-filter.md) | Live sample acceptance filter | 2 | **Accepted** 2026-08-02 — `LiveSampleAcceptanceFilter` wired into collection; 71/71 `street_pixels_tests` green. |
 | 10 | [SP-010](work-items/SP-010-pause-and-resume-semantics.md) | Pause and resume semantics | 2 | **Accepted** 2026-08-02 — track boundaries + filter reset on pause/resume; D2 live drape deferred; bus test → SP-014. |
 | 11 | [SP-011](work-items/SP-011-segment-interpolation-with-barriers.md) | Segment interpolation with pause and interruption barriers | 2 | **Accepted** 2026-08-02 — 10 m segment sampling + barriers; 98/98 `street_pixels_tests`; device → SP-014. |
+| 12 | [SP-012](work-items/SP-012-android-recording-controls.md) | Android recording controls and foreground-service integration | 2 | **Accepted** 2026-08-02 — Record Track drives shared session + FGS pause/resume; ABL not added; device matrix → SP-014. |
 
-Remaining Phase 2 work items, in intended order: SP-012,
-SP-013, SP-014. See
+Remaining Phase 2 work items, in intended order: SP-013,
+SP-014. See
 [`phases/phase-02-recording-and-collection-correctness.md`](phases/phase-02-recording-and-collection-correctness.md).
 
 Detailed work items exist only for Phases 1 and 2. Later phases are broken down
