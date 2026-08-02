@@ -330,9 +330,9 @@ Implement in this order. Each links to a file with full detail.
 | 10 | [SP-010](work-items/SP-010-pause-and-resume-semantics.md) | Pause and resume semantics | 2 | **Accepted** 2026-08-02 — track boundaries + filter reset on pause/resume; D2 live drape deferred; bus test → SP-014. |
 | 11 | [SP-011](work-items/SP-011-segment-interpolation-with-barriers.md) | Segment interpolation with pause and interruption barriers | 2 | **Accepted** 2026-08-02 — 10 m segment sampling + barriers; 98/98 `street_pixels_tests`; device → SP-014. |
 | 12 | [SP-012](work-items/SP-012-android-recording-controls.md) | Android recording controls and foreground-service integration | 2 | **Accepted** 2026-08-02 — Record Track drives shared session + FGS pause/resume; ABL not added; device matrix → SP-014. |
+| 13 | [SP-013](work-items/SP-013-interrupted-session-recovery.md) | Interrupted-session detection and recovery | 2 | **Accepted** 2026-08-02 — cold-start force-finish + 60 s mid-session gap; 10 InterruptedSession tests; device → SP-014. |
 
-Remaining Phase 2 work items, in intended order: SP-013,
-SP-014. See
+Remaining Phase 2 work items, in intended order: SP-014. See
 [`phases/phase-02-recording-and-collection-correctness.md`](phases/phase-02-recording-and-collection-correctness.md).
 
 Detailed work items exist only for Phases 1 and 2. Later phases are broken down
