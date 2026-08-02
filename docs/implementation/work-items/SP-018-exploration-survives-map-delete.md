@@ -1,7 +1,7 @@
 # SP-018 — Explored state survives map delete and redownload
 
 **Phase:** 3 — Exploration storage and map-update reconciliation
-**Status:** In progress
+**Status:** Accepted
 **Branch:** `street-pixels`
 
 ---
@@ -84,13 +84,13 @@ regional `.pix` without losing progress.
 | Field | Value |
 | --- | --- |
 | Branch | `street-pixels` |
-| Commits | (uncommitted; proposed message below) |
+| Commits | `2f2c3eaa2b` |
 | Decision id | SPD-016 |
 | Test output | `ninja street_pixels_tests` OK. `./street_pixels_tests --filter=Archive` → All tests passed (EXIT_ARCHIVE=0): Roundtrip, SizeMuchSmallerThanFull, CleanupArchivesExplored, CleanupIdempotent, ScanFailKeepsPix, CorruptPixKeepsPixAndArchive, ProbeRejectsArchiveMagicAsLegacy, RematchFallsBackToPixrWhenPixUnreadable, RedownloadRematchFromPixrOnly, RematchFailKeepsArchive, OrphanCleanup, LoadPathNoBlankDerive. `./street_pixels_tests --filter=Rematch` → All tests passed (EXIT_REMATCH=0) including SP-017 rematch suite. Full `./street_pixels_tests` → **All tests passed.** (EXIT_ALL=0). |
 | Manual validation | Deferred to SP-022 / device delete+redownload check |
 | Implemented by | Agent |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-03 |
 
 ## Discovered follow-up
 

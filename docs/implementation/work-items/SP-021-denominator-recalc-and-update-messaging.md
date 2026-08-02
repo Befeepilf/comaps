@@ -15,9 +15,10 @@ percentages drop because there is more to explore — never as lost progress.
 ## Motivation
 
 Spec §27.3 requires communicating reductions correctly. Country completion
-today is `exploredCount / streetPixels.size()` from `.pix`. Rematch and 10 m
-sampling change both numerator and denominator. Without messaging, users will
-read a percentage drop as data loss — the failure mode SPD-013 calls out.
+today is `exploredCount / streetPixels.size()` from `.pix`. Rematch changes
+numerator and denominator. Without messaging, users will read a percentage
+drop as data loss — the failure mode SPD-013 calls out. (SPD-019 keeps
+sampling at 15 m and does not densify the universe.)
 
 ## In-scope behavior
 

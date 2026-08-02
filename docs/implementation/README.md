@@ -144,7 +144,7 @@ roadmap tracks.
 | --- | --- | --- |
 | 1 | Product spec and technical audit read; repository builds are attempted and the result is recorded. | Documented reproducible Android and desktop builds; a Street Pixels test target that runs in CI; telemetry defaults consistent with "private by default"; no developer-only network endpoint reachable from a release build; feature-flag and entitlement abstraction exists with all Pro flags off. |
 | 2 | Phase 1 exit criteria met. | Pixel collection happens only in an active, non-paused recording session; session state machine with start/pause/resume/finish/discard; spec-conforming sample acceptance and interpolation with pause and interruption barriers; interrupted sessions detected and reported without gap filling; automated tests cover the acceptance pipeline; documented device validation exists. |
-| 3 | Phase 2 exit criteria met. | Per-pixel ever-live vs imported-only bit and map-data version persisted; map updates rematch explored HEALPix identifiers instead of deleting them; derivation sampling aligned with the spec; migration is crash-safe and recoverable; reconciliation covered by automated tests. |
+| 3 | Phase 2 exit criteria met. | Per-pixel ever-live vs imported-only bit and map-data version persisted; map updates rematch explored HEALPix identifiers instead of deleting them; path sampling unified at 15 m (SPD-019); migration is crash-safe and recoverable; reconciliation covered by automated tests. |
 | 4 | Phase 3 exit criteria met; the area-pipeline spike has a recorded outcome. | Country-configured administrative polygons available to the client for at least one full country; deterministic pixel-to-area assignment; settlement fallback works; assignment is reproducible for a fixed map-data and policy version. |
 | 5 | Phase 4 exit criteria met. | Focused-area behaviour matches the spec; area and city completion percentages are correct for the installed map version; area selection and completed-area visual state work; rendering performance validated at city scale. |
 | 6 | Phase 3 exit criteria met; routing spike outcome recorded. | Prefer-unexplored exposed for walking and cycling; avoid-explored implemented with an explicit fallback offer; no silent abandonment of the selected rule. |
@@ -163,6 +163,7 @@ roadmap tracks.
 | SP-015 | In progress (header landed; not Accepted) |
 | SP-016 | Accepted 2026-08-03 |
 | SP-017 | Accepted 2026-08-03 |
+| SP-018 | Accepted 2026-08-03 |
 | SP-017 | Planned |
 | SP-018 | Planned |
 | SP-019 | Planned |
@@ -344,8 +345,8 @@ decision) tracked in Phase 10.
 | 15 | [SP-015](work-items/SP-015-pixel-file-format-and-map-version.md) | Pixel-file format version and map-data version header | 3 | Planned — foundation before rematch |
 | 16 | [SP-016](work-items/SP-016-exploration-source-flag-store.md) | Per-pixel ever-live bit in `.pix` | 3 | Accepted — 1 ever-live bit; +0 B (SPD-015) |
 | 17 | [SP-017](work-items/SP-017-crash-safe-map-update-rematch.md) | Crash-safe rematch on map update | 3 | Accepted — replaces wipe-on-download |
-| 18 | [SP-018](work-items/SP-018-exploration-survives-map-delete.md) | Explored state survives map delete and redownload | 3 | Planned — compact archive (SPD-016) |
-| 19 | [SP-019](work-items/SP-019-derivation-sampling-alignment.md) | Align derivation sampling to ~10 m | 3 | Planned — same release as rematch; size watch |
+| 18 | [SP-018](work-items/SP-018-exploration-survives-map-delete.md) | Explored state survives map delete and redownload | 3 | Accepted — compact archive (SPD-016) |
+| 19 | [SP-019](work-items/SP-019-derivation-sampling-alignment.md) | Unify path sampling at 15 m | 3 | Planned — live/track → 15 m (SPD-019); keep Uusimaa size |
 | 20 | [SP-020](work-items/SP-020-eligibility-policy-alignment.md) | Eligibility vs spec §13 | 3 | Planned — tighten or record (OQ-5) |
 | 21 | [SP-021](work-items/SP-021-denominator-recalc-and-update-messaging.md) | Denominator recalculation and §27.3 messaging | 3 | Planned — “more to explore” framing |
 | 22 | [SP-022](work-items/SP-022-exploration-storage-end-to-end-validation.md) | Exploration storage end-to-end validation | 3 | Planned — Phase 3 exit gate |

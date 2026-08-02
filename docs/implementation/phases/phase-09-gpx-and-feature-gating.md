@@ -46,7 +46,7 @@ Verified 2026-07-25 against the working tree.
 | GPX serialisation | `libs/kml/serdes_gpx.cpp` | Import and export both present |
 | GPX tests | `libs/kml/kml_tests/gpx_tests.cpp` | Substantial existing coverage |
 | Android import | multi-URI `importBookmarksFiles` | Batch import path exists |
-| Track-to-pixel replay | `libs/map/street_pixels_manager.cpp` `UpdateExploredPixels`, `UpdateStreetStatsForTrack` | Imported tracks set the **same** explored bit as live collection. Sampling every 10 m, hardcoded separately from `kSegmentLengthMeters`. |
+| Track-to-pixel replay | `libs/map/street_pixels_manager.cpp` `UpdateExploredPixels`, `UpdateStreetStatsForTrack` | Imported tracks set explored (ever-live clear per SP-016). Sampling currently every 10 m via `kInterpolationStepMeters` / hard-coded `10.0`; **SP-019 / SPD-019 unifies to 15 m** with derivation. |
 | Processed-track ledger | `street_stats.db` table `processed_tracks(geometry_hash, country_id)` | Prevents reprocessing the same track geometry |
 | Imported marking | — | Not found. No source distinction exists. |
 | Pro gate | — | Not found. GPX import and export are currently free and always available. |

@@ -50,8 +50,8 @@ where they differ).
 | Map-data version | — | **Not stored** |
 | Source / ever-live | — | **Not stored.** Live `OnLocationUpdate` and bookmark-track replay both only set the explored bit |
 | Wipe on update | `Framework::OnCountryFileDownloaded` → `CleanupStreetPixels` | Deletes `.pix`/`.pixa`/`.pixf` and `street_exploration` rows. **Does not clear `processed_tracks`**, so saved-track replay usually cannot rebuild wiped exploration. |
-| Derivation sampling | `kSegmentLengthMeters = 15.0` | Spec ~10 m |
-| Live / track sampling | `kInterpolationStepMeters = 10.0` via `ComputeTrackPixels` | Legacy `UpdateStreetStatsForTrack` still hardcodes `10.0` but is not on the active replay path |
+| Derivation sampling | `kSegmentLengthMeters = 15.0` | Spec ~10 m; **SPD-019 locks V1 at 15 m** |
+| Live / track sampling | `kInterpolationStepMeters = 10.0` via `ComputeTrackPixels` | Legacy `UpdateStreetStatsForTrack` still hardcodes `10.0`; **SP-019 aligns both to 15 m** |
 | Eligibility | `IsExplorable` | highway lines; excludes driveway/tunnel/`hwtag=private`; requires bike or foot access |
 | Renderer | `StreetPixelRenderer` | Consumes `span<StreetPixel>`; uses `GetPixelId`, `IsExplored`, `GetPoint`, `GetColor` only — no provenance |
 
@@ -68,8 +68,9 @@ width, dead `.pixf`, and `processed_tracks` surviving wipe.
   regional files longer than an atomic replace requires.
 - Map delete frees the full `.pix` while retaining a compact explored-only
   archive for redownload rematch (SPD-016).
-- Derivation sampling aligned with the spec, with one sampling constant rather
-  than two, with measured size impact.
+- Derivation / live / track path sampling unified at **15 m** (SPD-019), with one
+  sampling constant rather than dual 15/10 values. Spec §14 ~10 m remains
+  product intent; V1 deliberately does not densify the universe.
 - Eligibility tightened toward spec §13, or the divergence explicitly recorded.
 - A migration that is safe to interrupt.
 - `nside` unchanged (SPD-017).
@@ -136,15 +137,14 @@ provenance. Live sets the bit; import must not clear it.
 | 2 | [SP-016](../work-items/SP-016-exploration-source-flag-store.md) | Per-pixel ever-live bit in `.pix` |
 | 3 | [SP-017](../work-items/SP-017-crash-safe-map-update-rematch.md) | Crash-safe rematch on map update |
 | 4 | [SP-018](../work-items/SP-018-exploration-survives-map-delete.md) | Explored state survives map delete and redownload |
-| 5 | [SP-019](../work-items/SP-019-derivation-sampling-alignment.md) | Align derivation sampling to ~10 m |
+| 5 | [SP-019](../work-items/SP-019-derivation-sampling-alignment.md) | Unify path sampling at 15 m (SPD-019) |
 | 6 | [SP-020](../work-items/SP-020-eligibility-policy-alignment.md) | Eligibility vs spec §13 — tighten or record |
 | 7 | [SP-021](../work-items/SP-021-denominator-recalc-and-update-messaging.md) | Denominator recalculation and §27.3 messaging |
 | 8 | [SP-022](../work-items/SP-022-exploration-storage-end-to-end-validation.md) | Phase 3 end-to-end validation |
 
-Sampling alignment (SP-019) ships in the same release window as rematch
-(SP-017). **Size watch:** 15 m → 10 m densifies the valid universe and can grow
-`.pix` on top of the ~50 MB baseline — measure Uusimaa (or equivalent) before
-and after in SP-019 / SP-022 evidence.
+SP-019 unifies live/track sampling to the existing 15 m derivation step
+(SPD-019). It does **not** densify `.pix` (rejects the earlier 15→10 m plan).
+Rematch (SP-017) is already landed and is not required solely for this unify.
 
 ## Data and migration concerns
 
@@ -163,8 +163,8 @@ This phase *is* the data and migration concern.
   strand exploration behind a geometry-hash ledger.
 - Map delete retention (SPD-016 / SP-018) writes a compact explored-only
   archive (id + packed explored/ever-live flags), not a kept full `.pix`.
-- Changing derivation sampling from 15 m to 10 m densifies the universe and can
-  grow `.pix`; land with rematch (SP-019 beside SP-017) and measure.
+- Path sampling is unified at 15 m (SPD-019 / SP-019). Do **not** densify
+  derivation to 10 m; that plan was rejected after the Uusimaa size measurement.
 - `.pixa` is ~1/64 of `.pix` (~0.8 MB at Uusimaa scale) and stays index-coupled
   accounting only.
 - Phase 8 must not put per-pixel timestamps into `.pix`.
@@ -191,8 +191,8 @@ This phase *is* the data and migration concern.
   misinterpreted.
 - Determinism: deriving twice from the same fixture yields byte-identical
   output.
-- Sampling change: a fixture geometry produces the expected pixel count at the
-  new sampling distance.
+- Sampling change: live/track fixtures produce the expected sample counts at
+  the unified 15 m step; derive determinism remains at 15 m.
 - Eligibility: a fixture set of features covering each spec §13.1 inclusion and
   §13.2 exclusion.
 
@@ -221,7 +221,8 @@ This phase *is* the data and migration concern.
 3. A country map update rematches explored identifiers; no explored state is
    lost for cells that still exist.
 4. Migration is crash-safe, verified by an interrupted-migration test.
-5. Derivation sampling matches the spec and there is one sampling constant.
+5. Path sampling is unified at 15 m (SPD-019) with one sampling constant
+   (recorded V1 divergence from spec §14 ~10 m).
 6. Eligibility either matches spec §13 or every divergence is recorded with a
    reason.
 7. Denominators recalculate after an update and the reduction message follows
@@ -257,8 +258,9 @@ This phase *is* the data and migration concern.
 - Whether rematch can complete fast enough on a large country (~50 MB `.pix`)
   without a visible stall or large RAM spike — measured in SP-017 / SP-022 on
   Uusimaa-class data.
-- How much `.pix` grows under 10 m derivation vs 15 m at regional scale —
-  measured in SP-019 / SP-022.
+- ~~How much `.pix` grows under 10 m derivation vs 15 m at regional scale.~~
+  **SPD-019:** V1 stays at 15 m; densification rejected. Uusimaa baseline ~50 MB
+  unchanged by SP-019 by design.
 - How bookmark-track replay should set ever-live before Phase 9's dedicated GPX
   importer exists — decided inside SP-016 (must not clear ever-live for
   live-session pixels).
