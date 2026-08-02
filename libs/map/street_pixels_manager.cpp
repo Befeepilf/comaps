@@ -76,7 +76,7 @@ T_Healpix_Base<std::int64_t> const & GetHealpixBase()
 }
 }  // namespace hp
 
-double constexpr kSegmentLengthMeters = 15.0;
+double constexpr kSegmentLengthMeters = kPathSamplingStepMeters;
 double constexpr kExploreRadiusMeters = 25.0;
 double constexpr kEarthRadiusMeters = 6371000.0;
 double constexpr kRadiusRads = kExploreRadiusMeters / kEarthRadiusMeters;
@@ -1079,19 +1079,9 @@ void StreetPixelsManager::UpdateStreetStatsForTrack(kml::MultiGeometry::LineT co
   m2::PointD prev = geometry::GetPoint(line[0]);
   for (size_t i = 1; i < line.size(); ++i)
   {
-    auto const & ptWithAlt = line[i];
-    m2::PointD curr = geometry::GetPoint(ptWithAlt);
-    double distMerc = (curr - prev).Length();
-    double distMeters = mercator::DistanceOnEarth(prev, curr);
-    size_t segments = std::max<size_t>(1, static_cast<size_t>(std::ceil(distMeters / 10.0)));  // Sample every 10m
-    m2::PointD dir = (curr - prev).Normalize();
-    double step = distMerc / segments;
-    for (size_t s = 0; s <= segments; ++s)
-    {
-      m2::PointD p = prev + dir * (s * step);
-      auto const latlon = mercator::ToLatLon(p);
-      UpdateStreetStats(latlon.m_lat, latlon.m_lon, 1);
-    }
+    m2::PointD const curr = geometry::GetPoint(line[i]);
+    ForEachMercatorSegmentSample(prev, curr, kPathSamplingStepMeters,
+                                 [this](double lat, double lon) { UpdateStreetStats(lat, lon, 1); });
     prev = curr;
   }
 }
@@ -1118,7 +1108,7 @@ std::set<int64_t> StreetPixelsManager::ComputeTrackPixels(TrackInfo const & trac
   for (size_t i = 1; i < trackInfo.geom.size(); ++i)
   {
     m2::PointD const curr = geometry::GetPoint(trackInfo.geom[i]);
-    ForEachMercatorSegmentSample(prev, curr, kInterpolationStepMeters,
+    ForEachMercatorSegmentSample(prev, curr, kPathSamplingStepMeters,
                                  [this, &pixels](double lat, double lon)
                                  { AddPixelsInRadius(lat, lon, pixels); });
     prev = curr;

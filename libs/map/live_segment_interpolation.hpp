@@ -8,7 +8,8 @@
 #include <functional>
 
 inline constexpr double kMaxInterpolationGapSeconds = 30.0;
-inline constexpr double kInterpolationStepMeters = 10.0;
+inline constexpr double kPathSamplingStepMeters = 15.0;
+inline constexpr double kInterpolationStepMeters = kPathSamplingStepMeters;
 
 bool MayInterpolateSegment(location::GpsInfo const & from, location::GpsInfo const & to);
 
