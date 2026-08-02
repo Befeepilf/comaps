@@ -29,6 +29,8 @@ set(SRC
   live_sample_acceptance_filter.hpp
   recording_session.cpp
   recording_session.hpp
+  recording_pause_resume.cpp
+  recording_pause_resume.hpp
   extrapolation/extrapolator.cpp
   extrapolation/extrapolator.hpp
   features_fetcher.cpp
@@ -77,6 +79,8 @@ set(SRC
   street_stats_db.hpp
   track.cpp
   track.hpp
+  track_recording_geometry.cpp
+  track_recording_geometry.hpp
   track_statistics.cpp
   track_statistics.hpp
   track_mark.cpp
