@@ -2,6 +2,8 @@
 
 #include "map/bookmark_manager.hpp"
 
+#include "map/live_sample_acceptance_filter.hpp"
+
 #include "platform/location.hpp"
 
 #include "drape_frontend/drape_engine_safe_ptr.hpp"
@@ -115,6 +117,9 @@ public:
 
   void SetRecordingSession(RecordingSession const * session);
 
+  void ResetSampleAcceptanceReference();
+  SampleRejectReason GetLastSampleRejectReason() const;
+
   using VibrationHandler = std::function<void(size_t newlyExplored)>;
   void SetVibrationHandler(VibrationHandler const & handler);
 
@@ -162,6 +167,8 @@ private:
   std::string GetCurrentCountryId() const;
   ExplorationListener m_explorationListener;
   RecordingSession const * m_recordingSession = nullptr;
+  LiveSampleAcceptanceFilter m_acceptanceFilter;
+  uint64_t m_filterSessionId = 0;
   VibrationHandler m_vibrationHandler;
   std::vector<df::StreetPixel> m_testStreetPixelsStorage;
 

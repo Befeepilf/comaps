@@ -28,6 +28,9 @@
 #include "map/street_pixels_manager.hpp"
 #include "map/street_stats_db.hpp"
 #include "map/recording_session.hpp"
+#include "map/live_sample_acceptance_filter.hpp"
+
+#include "base/timer.hpp"
 #include "map/track.hpp"
 
 #include "platform/country_file.hpp"
@@ -154,6 +157,13 @@ void StreetPixelsManager::SetExplorationListener(ExplorationListener const & lis
 void StreetPixelsManager::SetRecordingSession(RecordingSession const * session)
 {
   m_recordingSession = session;
+}
+
+void StreetPixelsManager::ResetSampleAcceptanceReference() { m_acceptanceFilter.ResetAcceptedReference(); }
+
+SampleRejectReason StreetPixelsManager::GetLastSampleRejectReason() const
+{
+  return m_acceptanceFilter.GetLastRejectReason();
 }
 
 void StreetPixelsManager::SetVibrationHandler(VibrationHandler const & handler)
@@ -777,6 +787,21 @@ void StreetPixelsManager::AddPixelsInRadius(double lat, double lon, std::set<std
 void StreetPixelsManager::OnLocationUpdate(location::GpsInfo const & info)
 {
   if (m_recordingSession == nullptr || !m_recordingSession->IsRecording())
+  {
+    m_acceptanceFilter.ResetAcceptedReference();
+    m_filterSessionId = 0;
+    return;
+  }
+
+  if (m_filterSessionId != m_recordingSession->GetSessionId())
+  {
+    m_acceptanceFilter.ResetAcceptedReference();
+    m_filterSessionId = m_recordingSession->GetSessionId();
+  }
+
+  double const nowSec = static_cast<double>(base::SecondsSinceEpoch());
+  auto const result = m_acceptanceFilter.Evaluate(info, nowSec);
+  if (!result.accepted)
     return;
 
   std::set<std::int64_t> pixels;

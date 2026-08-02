@@ -8,6 +8,7 @@ set(SRC
   exploration_multiplier_tests.cpp
   live_sample_acceptance_filter_tests.cpp
   recording_session_tests.cpp
+  sample_acceptance_manager_tests.cpp
   street_pixel_tests.cpp
   street_pixels_test_helpers.hpp
 )

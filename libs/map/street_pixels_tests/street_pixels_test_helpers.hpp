@@ -7,6 +7,7 @@
 #include "platform/location.hpp"
 
 #include "base/math.hpp"
+#include "base/timer.hpp"
 
 #include <cmath>
 #include <cstdint>
@@ -20,6 +21,8 @@ namespace street_pixels_tests
 double constexpr kEarthRadiusMeters = 6371000.0;
 double constexpr kExploreRadiusMeters = 25.0;
 double constexpr kExploreRadiusRads = kExploreRadiusMeters / kEarthRadiusMeters;
+
+inline double CurrentTimestampSec() { return static_cast<double>(base::SecondsSinceEpoch()); }
 
 inline std::pair<double, double> OffsetLatLonByMeters(double lat, double lon, double northM, double eastM)
 {

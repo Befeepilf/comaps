@@ -62,7 +62,7 @@ void CollectAtNorthOffset(CollectionRadiusFixture & fixture, double northMeters)
 {
   fixture.SetupPixels({{CollectionRadiusFixture::kPixel, false}});
   TEST_EQUAL(fixture.Session().Start(), RecordingSession::TransitionResult::Ok, ());
-  fixture.Manager().OnLocationUpdate(fixture.GpsOffsetNorth(northMeters, 1.0));
+  fixture.Manager().OnLocationUpdate(fixture.GpsOffsetNorth(northMeters, street_pixels_tests::CurrentTimestampSec()));
 }
 }  // namespace
 
