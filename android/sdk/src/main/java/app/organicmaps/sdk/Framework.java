@@ -405,4 +405,7 @@ public class Framework
   public static native void nativeRecordingSessionDiscard();
   public static native void nativeRecordingSessionReset();
   public static native int nativeRecordingSessionGetState();
+  public static native boolean nativeHasActiveSessionBreadcrumb();
+  public static native boolean nativeConsumeActiveSessionBreadcrumb();
+  public static native void nativeApplyRecordingInterruptionEffects();
 }

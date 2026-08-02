@@ -19,6 +19,8 @@
 #include "map/bookmark_helpers.hpp"
 #include "map/backend_config.hpp"
 #include "map/explorer_pro.hpp"
+#include "map/gps_tracker.hpp"
+#include "map/recording_pause_resume.hpp"
 #include "map/recording_session.hpp"
 #include "map/chart_generator.hpp"
 #include "map/everywhere_search_params.hpp"
@@ -976,6 +978,21 @@ JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeRecordingSession
 JNIEXPORT jint JNICALL Java_app_organicmaps_sdk_Framework_nativeRecordingSessionGetState(JNIEnv *, jclass)
 {
   return static_cast<jint>(frm()->GetRecordingSession().GetState());
+}
+
+JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_Framework_nativeHasActiveSessionBreadcrumb(JNIEnv *, jclass)
+{
+  return frm()->GetRecordingSession().HasActiveSessionBreadcrumb() ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_Framework_nativeConsumeActiveSessionBreadcrumb(JNIEnv *, jclass)
+{
+  return frm()->GetRecordingSession().ConsumeActiveSessionBreadcrumb() ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeApplyRecordingInterruptionEffects(JNIEnv *, jclass)
+{
+  ApplyRecordingInterruptionEffects(&GpsTracker::Instance(), &frm()->GetStreetPixelsManager());
 }
 
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_location_RecordingSession_nativeAddListener(JNIEnv * env, jclass,

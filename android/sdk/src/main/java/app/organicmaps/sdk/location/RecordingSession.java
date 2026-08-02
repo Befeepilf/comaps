@@ -76,6 +76,21 @@ public final class RecordingSession
     return Framework.nativeRecordingSessionGetState();
   }
 
+  public static boolean hasActiveSessionBreadcrumb()
+  {
+    return Framework.nativeHasActiveSessionBreadcrumb();
+  }
+
+  public static boolean consumeActiveSessionBreadcrumb()
+  {
+    return Framework.nativeConsumeActiveSessionBreadcrumb();
+  }
+
+  public static void applyInterruptionEffects()
+  {
+    Framework.nativeApplyRecordingInterruptionEffects();
+  }
+
   public static boolean isActive(@State int state)
   {
     return state == STATE_RECORDING || state == STATE_PAUSED;
