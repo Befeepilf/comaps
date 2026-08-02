@@ -29,6 +29,7 @@
 #include "map/street_stats_db.hpp"
 #include "map/recording_session.hpp"
 #include "map/live_sample_acceptance_filter.hpp"
+#include "map/live_segment_interpolation.hpp"
 
 #include "base/timer.hpp"
 #include "map/track.hpp"
@@ -159,7 +160,16 @@ void StreetPixelsManager::SetRecordingSession(RecordingSession const * session)
   m_recordingSession = session;
 }
 
-void StreetPixelsManager::ResetSampleAcceptanceReference() { m_acceptanceFilter.ResetAcceptedReference(); }
+void StreetPixelsManager::ResetSampleAcceptanceReference()
+{
+  m_acceptanceFilter.ResetAcceptedReference();
+  m_segmentInterpolation.MarkInterpolationBarrier();
+}
+
+void StreetPixelsManager::MarkInterpolationBarrier()
+{
+  m_segmentInterpolation.MarkInterpolationBarrier();
+}
 
 SampleRejectReason StreetPixelsManager::GetLastSampleRejectReason() const
 {
@@ -751,19 +761,10 @@ std::set<int64_t> StreetPixelsManager::ComputeTrackPixels(TrackInfo const & trac
   m2::PointD prev = geometry::GetPoint(trackInfo.geom[0]);
   for (size_t i = 1; i < trackInfo.geom.size(); ++i)
   {
-    auto const & ptWithAlt = trackInfo.geom[i];
-    m2::PointD curr = geometry::GetPoint(ptWithAlt);
-    double distMerc = (curr - prev).Length();
-    double distMeters = mercator::DistanceOnEarth(prev, curr);
-    size_t segments = std::max<size_t>(1, static_cast<size_t>(std::ceil(distMeters / 10.0)));
-    m2::PointD dir = (curr - prev).Normalize();
-    double step = distMerc / segments;
-    for (size_t s = 0; s <= segments; ++s)
-    {
-      m2::PointD p = prev + dir * (s * step);
-      auto const latlon = mercator::ToLatLon(p);
-      AddPixelsInRadius(latlon.m_lat, latlon.m_lon, pixels);
-    }
+    m2::PointD const curr = geometry::GetPoint(trackInfo.geom[i]);
+    ForEachMercatorSegmentSample(prev, curr, kInterpolationStepMeters,
+                                 [this, &pixels](double lat, double lon)
+                                 { AddPixelsInRadius(lat, lon, pixels); });
     prev = curr;
   }
   return pixels;
@@ -788,24 +789,36 @@ void StreetPixelsManager::OnLocationUpdate(location::GpsInfo const & info)
 {
   if (m_recordingSession == nullptr || !m_recordingSession->IsRecording())
   {
-    m_acceptanceFilter.ResetAcceptedReference();
+    ResetSampleAcceptanceReference();
     m_filterSessionId = 0;
     return;
   }
 
   if (m_filterSessionId != m_recordingSession->GetSessionId())
   {
-    m_acceptanceFilter.ResetAcceptedReference();
+    ResetSampleAcceptanceReference();
     m_filterSessionId = m_recordingSession->GetSessionId();
   }
 
   double const nowSec = static_cast<double>(base::SecondsSinceEpoch());
   auto const result = m_acceptanceFilter.Evaluate(info, nowSec);
   if (!result.accepted)
+  {
+    m_segmentInterpolation.MarkInterpolationBarrier();
     return;
+  }
 
   std::set<std::int64_t> pixels;
-  AddPixelsInRadius(info.m_latitude, info.m_longitude, pixels);
+  if (m_segmentInterpolation.CanInterpolateTo(info))
+  {
+    ForEachInterpolationSample(m_segmentInterpolation.GetInterpolationOrigin(), info,
+                               [this, &pixels](double lat, double lon) { AddPixelsInRadius(lat, lon, pixels); });
+  }
+  else
+  {
+    AddPixelsInRadius(info.m_latitude, info.m_longitude, pixels);
+  }
+  m_segmentInterpolation.SetInterpolationOrigin(info);
   size_t numNewlyExploredPixels = 0;
   std::vector<ExplorationDelta> perPixelExplorationDeltas;
   if (m_explorationListener)
