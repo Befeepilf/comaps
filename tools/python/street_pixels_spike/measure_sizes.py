@@ -9,7 +9,7 @@ import sys
 import zlib
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
 from shapely.geometry import Point
 
@@ -20,12 +20,11 @@ from sp023_common import (  # noqa: E402
   load_finland_borders,
   raw_pod_bytes,
   read_mwm_sections,
-  ring_record_to_geometry,
   write_json,
 )
 
 
-def measure_record(rec: Dict[str, Any]) -> Dict[str, int]:
+def measure_record(rec: Dict[str, Any]) -> Dict[str, Any]:
   rings = rec["rings"]
   raw = raw_pod_bytes(rings)
   coded = coded_delta_bytes(rings)
@@ -35,6 +34,8 @@ def measure_record(rec: Dict[str, Any]) -> Dict[str, int]:
     "coded_delta": len(coded),
     "zlib_raw": len(zlib.compress(raw, 9)),
     "zlib_coded": len(zlib.compress(coded, 9)),
+    "raw_bytes": raw,
+    "coded_bytes": coded,
   }
 
 
@@ -106,6 +107,8 @@ def main() -> int:
 
   for rec in iter_jsonl(args.rings):
     m = measure_record(rec)
+    raw = m.pop("raw_bytes")
+    coded = m.pop("coded_bytes")
     ck = rec["class_key"]
     for k, v in m.items():
       by_class[ck][k] += v
@@ -113,8 +116,8 @@ def main() -> int:
     for k, v in m.items():
       totals[k] += v
     totals["count"] += 1
-    all_coded.extend(coded_delta_bytes(rec["rings"]))
-    all_raw.extend(raw_pod_bytes(rec["rings"]))
+    all_coded.extend(coded)
+    all_raw.extend(raw)
 
     if borders:
       hits = attribute_mwm(rec, borders)

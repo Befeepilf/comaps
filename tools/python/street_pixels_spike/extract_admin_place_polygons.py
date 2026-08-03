@@ -15,7 +15,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import osmium
 from osmium.geom import WKTFactory
 from shapely import wkt as shapely_wkt
-from shapely.geometry import MultiPolygon, Polygon, mapping
+from shapely.geometry import MultiPolygon, Polygon
 
 # Allow running as a script without installing the package.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -163,21 +163,20 @@ def _in_bbox(rec: Dict[str, Any], bbox: Tuple[float, float, float, float]) -> bo
 
 
 def export_helsinki_geojson(records: List[Dict[str, Any]], out_path: Path, bbox: Tuple[float, float, float, float]) -> int:
+  """Export subdivisions + admin_8 municipalities intersecting the metro bbox."""
+  keep_classes = {
+    "admin_8",
+    "admin_9",
+    "admin_10",
+    "admin_11",
+    "place_suburb",
+    "place_quarter",
+    "place_neighbourhood",
+  }
   features = []
   for rec in records:
-    if rec["class_key"] not in {
-      "admin_9",
-      "admin_10",
-      "admin_11",
-      "place_suburb",
-      "place_quarter",
-      "place_neighbourhood",
-    } and rec.get("admin_level") not in (8, 9, 10, 11):
-      # Keep helsinki-relevant subdivisions + municipalities for nesting checks
-      if rec["class_key"] not in ("admin_8", "admin_9", "admin_10", "admin_11") and not rec[
-        "class_key"
-      ].startswith("place_"):
-        continue
+    if rec["class_key"] not in keep_classes:
+      continue
     if not _in_bbox(rec, bbox):
       continue
     rings = rec["rings"]
