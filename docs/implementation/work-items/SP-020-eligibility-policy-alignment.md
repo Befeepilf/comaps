@@ -1,7 +1,7 @@
 # SP-020 — Eligibility vs spec §13 — tighten or record
 
 **Phase:** 3 — Exploration storage and map-update reconciliation
-**Status:** In progress
+**Status:** Accepted
 **Branch:** `street-pixels`
 
 ---
@@ -123,14 +123,14 @@ Linked from [phase-03](../phases/phase-03-exploration-storage-and-reconciliation
 | Field | Value |
 | --- | --- |
 | Branch | `street-pixels` |
-| Commits | _(not committed — awaiting review)_ |
+| Commits | `3801d4a0bb` |
 | Divergence register link | This work item § Divergence register; phase-03 eligibility row |
 | OQ-5 outcome | **Closed** — bridges include; tunnels exclude; motorway/motorway_link (incl. bridge) require `hwtag-yesbicycle`. Recorded in `DECISIONS.md` §15. |
 | Test output | `ninja street_pixels_tests` OK. `--filter=Eligib` 9/9 All tests passed; full suite 164/164 All tests passed (2026-08-03). |
 | Manual validation | Deferred — spot-check private / pedestrian path on device |
 | Implemented by | Agent |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-03 |
 
 ## Discovered follow-up
 
