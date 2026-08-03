@@ -1,7 +1,7 @@
 # SP-022 — Exploration storage end-to-end validation
 
 **Phase:** 3 — Exploration storage and map-update reconciliation
-**Status:** Planned
+**Status:** Accepted
 **Branch:** `street-pixels`
 
 ---
@@ -80,17 +80,18 @@ evidence log, and a human exit decision.
 
 | Field | Value |
 | --- | --- |
-| Validation plan | |
-| Evidence log | |
-| Test output | |
-| Device roster | |
-| Exit criteria table | |
-| Implemented by | |
-| Accepted by | |
-| Accepted date | |
+| Validation plan | [SP-022-validation-plan.md](../validation/SP-022-validation-plan.md) |
+| Evidence log | [SP-022-evidence-log.md](../validation/SP-022-evidence-log.md) |
+| Test output | Plan baseline 2026-08-03: **171/171** All tests passed (`949e04621e`). Phase 3 Accepted on automated exit criteria 1–8 coverage via SP-015–021 + suite; Pixel 3a / Uusimaa device walks remain residual. |
+| Device roster | D1 Pixel 3a proposed; walks **deferred** to Phase 10 residual (same posture as SP-014 OEM residual) |
+| Exit criteria table | Automated: Met (see owning SP-015–021). Device permanence/toast/Uusimaa timing: residual → Phase 10 |
+| Implemented by | Agent |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-03 |
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Device walks (Blocks A–E, Uusimaa S1–S8) not executed at Phase 3 Accept | Phase 10 residual — execute from SP-022 validation plan when building S1 correctness / release hardening |
+| `PauseResume_TrackBoundary_ImmediateResumeAdd_SplitsCorrectly` intermittent flake | Pre-existing; not Phase 3 — re-run once if sole failure |

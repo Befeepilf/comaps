@@ -1,7 +1,7 @@
 # SP-015 — Pixel-file format version and map-data version header
 
 **Phase:** 3 — Exploration storage and map-update reconciliation
-**Status:** In progress
+**Status:** Accepted
 **Branch:** `street-pixels`
 
 ---
@@ -112,10 +112,10 @@ rather than inventing file layout mid-flight.
 | Branch | `street-pixels` |
 | Commits | `7f3cc0cec1` |
 | Test output | `/Users/mo/dev/omim-build-debug`: `ninja street_pixels_tests`; `./street_pixels_tests --filter=StreetPixelsFile` and full `./street_pixels_tests` — all passed (2026-08-03), including after catch-narrowing harden (`MayRecoverByDerive` only for `Corrupt`). |
-| Manual validation | |
-| Implemented by | Agent (implementation done; not accepted) |
-| Accepted by | |
-| Accepted date | |
+| Manual validation | Deferred to SP-022 / device legacy-upgrade check; maintainer accepted on automated evidence |
+| Implemented by | Agent |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-03 |
 
 ## Discovered follow-up
 

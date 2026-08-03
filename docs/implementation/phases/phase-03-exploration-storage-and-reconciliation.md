@@ -1,6 +1,6 @@
 # Phase 3 — Exploration storage and map-update reconciliation
 
-**Status:** In progress (phase-entry investigation complete; work items Planned)
+**Status:** Complete (Pixel 3a / Uusimaa device-walk residual → Phase 10)
 **Depends on:** Phase 2
 **Blocks:** Phases 4, 6, 8, 9
 
