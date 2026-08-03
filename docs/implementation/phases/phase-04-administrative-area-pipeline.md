@@ -1,6 +1,6 @@
 # Phase 4 — Administrative-area pipeline
 
-**Status:** In progress (phase-entry investigation complete 2026-08-03; work items Planned)
+**Status:** In progress (SP-023–024 Accepted 2026-08-03; SP-025 next)
 **Depends on:** Phase 3
 **Blocks:** Phases 5, 7, 8
 
@@ -73,6 +73,9 @@ already noted). Spike 6 size measurement: **SP-023 accepted** 2026-08-03
   closed polygons rather than three-box approximations.
 - A deterministic pixel-to-area assignment producing at most one area per
   pixel, with the smallest-polygon rule and a stable-identifier tie-break.
+  Assignment for the valid universe is **generator-precomputed** into an
+  offline blob (SPD-021); the client consumes/rematches that blob rather than
+  running primary full-universe on-device PIP.
 - Settlement fallback where no subdivision exists.
 - A defined and tested "no area here" state.
 
@@ -92,8 +95,9 @@ already noted). Spike 6 size measurement: **SP-023 accepted** 2026-08-03
   and in-MWM optional sections exist (`cities_boundaries`, `isolines`, …) —
   neither hosts exploration areas yet.
 - Neighborhood polygon size for Finland is **measured** in SP-023 (~2.1 MiB
-  country-concat zlib coded; Helsinki slice ~0.5 MiB) — store/assignment
-  product decisions remain SP-024 (evidence recorded, not accepted).
+  country-concat zlib coded; Helsinki slice ~0.5 MiB). Store/assignment
+  architecture is **recorded** as SPD-020–025 under SP-024 (work item In
+  review — not yet Accepted).
 
 ### Work-item breakdown
 
@@ -109,30 +113,43 @@ already noted). Spike 6 size measurement: **SP-023 accepted** 2026-08-03
 | 8 | [SP-030](../work-items/SP-030-assignment-persistence-and-rematch.md) | Persist assignments and rematch hooks |
 | 9 | [SP-031](../work-items/SP-031-area-pipeline-end-to-end-validation.md) | Area-pipeline end-to-end validation |
 
-**Do not start SP-025+ coding until SP-023 numbers and SP-024 decisions exist.**
+**SP-025+ unblocked** — SP-024 Accepted 2026-08-03 (SPD-020–025).
 
-### Open decisions (for SP-024 after SP-023)
+### Open decisions (for SP-024 after SP-023) — closed
 
-1. Polygon store: in-MWM vs sidecar vs hybrid.
-2. Assignment locus: on-device vs generator-precomputed.
+1. Polygon store: in-MWM vs sidecar vs hybrid. **Closed by SPD-020** —
+   per-country downloadable sidecar; World three-box remains search-only.
+2. Assignment locus: on-device vs generator-precomputed. **Closed by SPD-021** —
+   generator-precomputed offline blob; client consumes/rematches; no primary
+   full-universe on-device PIP rematch.
 3. Assignment persistence: full-universe area-id map vs sparse vs rematerialize
-   on demand (every valid street pixel needs a deterministic answer; storage is
-   a separate choice).
-4. Country-config format / versioning / review process.
-5. Concrete suitability + privacy size thresholds.
-6. Settlement geometry: three-box vs true municipal polygons.
+   on demand. **Closed by SPD-022** — sparse explored HEALPix→compact area
+   index + rematerialize from dense uint16/uint32 sidecar map; no
+   full-universe uint64 OSM ids; keyed by (map-data version, policy_version).
+4. Country-config format / versioning / review process. **Closed by SPD-023** —
+   versioned JSON under `data/street_pixels/` (exact files SP-025); monotonic
+   `policy_version`; ISO 3166-1 alpha-2; PR review; Finland seed priority
+   recorded.
+5. Concrete suitability + privacy size thresholds. **Closed by SPD-024** —
+   closed named config-level rings only; no invented numeric pixel/area
+   floors; §23.4 anonymity stays server-side; measure before any client size
+   gate.
+6. Settlement geometry: three-box vs true municipal polygons. **Closed by
+   SPD-025** — true municipal rings from the exploration sidecar; three-box
+   `CityBoundary` is not assignment authority.
 
 **Layering:** SP-028 assigns subdivision-or-none; SP-029 applies settlement
 fallback / rural no-area on top. Do not invert that order.
 
 ## Data and migration concerns
 
-- Retaining full polygons increases MWM size for every user, including those
-  who never enable competition. The size impact is a product-visible cost and
-  needs a measured number (SP-023).
-- The country configuration is versioned independently of map data. Assignment
-  determinism is therefore keyed on the pair (map-data version, policy
-  version). Both must be stored with assignments.
+- Exploration polygons and the dense assignment map ship as a **per-country
+  sidecar** (SPD-020/022), not as mandatory in-MWM payload. Sidecar size is
+  still a product-visible cost; SP-023 measured Finland rings (~2.1 MiB
+  zlib coded national). Re-measure with the shipping encoder under SP-026/031.
+- The country configuration is versioned independently of map data
+  (`policy_version`, SPD-023). Assignment determinism is keyed on the pair
+  (map-data version, policy_version). Both must be stored with assignments.
 - A configuration change reassigns pixels without any map change. Percentages
   can move without the user updating anything. That needs the same honest
   communication as a map update.
@@ -140,10 +157,9 @@ fallback / rural no-area on top. Do not invert that order.
   between map versions. Decide what happens to a previously completed area
   whose polygon no longer exists; spec §27.4 allows keeping the original
   completion date locally.
-- Assignment state is new persisted data, keyed by HEALPix identifier for every
-  **valid street pixel** (not only explored cells). Persistence strategy
-  (full map vs sparse vs rematerialize) is an SP-024 decision informed by
-  SP-023 size estimates.
+- Client-durable assignment state is **sparse explored** HEALPix→compact area
+  index; full-universe answers rematerialize from the dense uint16/uint32
+  sidecar map (SPD-022). Do not keep full-universe uint64 OSM ids on device.
 
 ## Privacy and security implications
 
@@ -151,13 +167,13 @@ fallback / rural no-area on top. Do not invert that order.
   granularity is therefore the privacy floor of the entire competition feature.
   A very small area effectively identifies a user's neighbourhood.
 - Spec §8.4 requires areas to be "meaningfully smaller than the containing
-  settlement", which pushes toward granularity. Spec §23.4 requires anonymity
-  where fewer than three participants exist. Consider whether a minimum area
-  size or minimum pixel count is needed so that an area identifier is not
-  effectively an address. Record any such rule as a decision (SP-024).
+  settlement". V1 expresses that via country-config level selection and §8.8
+  smallest-polygon assignment — **no invented numeric pixel/area floors**
+  (SPD-024). Spec §23.4 sparse-area anonymity remains **server-side**. A
+  client size or pixel-count gate needs follow-up measurement and a new SPD.
 - Assignment must remain offline: no boundary lookup may become a network call.
-  Whether compute runs on device or is generator-precomputed is SP-024; either
-  way the client must not phone home for area membership.
+  Compute locus is **generator-precomputed** (SPD-021); the client consumes the
+  offline blob and must not phone home for area membership.
 
 ## Automated testing strategy
 
@@ -184,7 +200,8 @@ fallback / rural no-area on top. Do not invert that order.
 - Inspect a rural area and confirm exploration works with no area shown.
 - Inspect a coastal or island municipality with fragmented polygons.
 - Inspect a city that straddles an administrative boundary.
-- Confirm MWM size change against the measured budget.
+- Confirm sidecar (+ assignment blob) size against the measured budget
+  (SPD-020 / exit #7) — not mandatory country-MWM growth.
 
 ## Entry criteria
 
@@ -192,7 +209,8 @@ fallback / rural no-area on top. Do not invert that order.
 - The area-pipeline investigation is complete with recorded measurements for at
   least one full country. **Met 2026-08-03** (SP-023 Finland accepted).
 - A decision exists on where polygons live and whether assignment is on-device
-  or precomputed. **Pending SP-024.**
+  or precomputed. **Met** — SPD-020 (per-country sidecar), SPD-021
+  (generator-precomputed). SP-024 **Accepted** 2026-08-03.
 
 ## Exit criteria
 
@@ -207,7 +225,8 @@ fallback / rural no-area on top. Do not invert that order.
 5. Settlement fallback works where no suitable subdivision exists.
 6. Outside recognised settlements, exploration and routing work and no area is
    claimed.
-7. MWM or sidecar size impact is measured and accepted.
+7. Sidecar (+ assignment blob) size impact is measured and accepted
+   (SPD-020; no client numeric floor — SPD-024).
 8. No MWM country identifier is presented anywhere as a neighbourhood.
 
 ## Explicit non-goals
@@ -226,20 +245,29 @@ fallback / rural no-area on top. Do not invert that order.
 
 This phase has the highest uncertainty in the plan.
 
-- Whether full polygons can be retained at acceptable size. **Owned by SP-023.**
+- Whether full polygons can be retained at acceptable size. **Addressed by
+  SP-023** (Finland affordable as sidecar); re-measure shipping codec in
+  SP-026/031. Worldwide dense-admin countries still unmeasured.
 - How many countries need bespoke configuration before coverage feels adequate,
-  and who maintains that configuration. **Owned by SP-024/025.**
+  and who maintains that configuration. **Partial:** format/review locked by
+  SPD-023; coverage breadth remains SP-025 incremental data work.
 - Whether admin levels 5, 6, and 8 can be added to the classificator without
   disrupting upstream CoMaps behaviour that depends on the current mapping.
+  Sidecar emission (SPD-020) may reduce pressure to map every level into
+  drawable MWM types — still verify under SP-026.
 - Whether the three-box `CityBoundary` approximation can be reused for
   settlement detection while true polygons are used for subdivisions, or
-  whether settlements also need true polygons. **Owned by SP-024.**
+  whether settlements also need true polygons. **Closed by SPD-025** — true
+  municipal rings from the sidecar; three-box is not assignment authority.
 - How to keep divergence from upstream CoMaps manageable, given that the
   generator and classificator are shared with upstream.
 - Whether "meaningfully smaller than the containing settlement" and
   "containing a meaningful street-pixel set" can be expressed as concrete
-  thresholds, and what those thresholds are. **Owned by SP-024.**
+  numeric thresholds. **Closed for V1 by SPD-024** — config levels + §8.8;
+  no invented floors; follow-up measurement before any client size gate.
 - Whether area assignment on device is fast enough for a large country, or
-  whether precomputation is required. **Owned by SP-023/024.**
+  whether precomputation is required. **Closed by SPD-021** —
+  generator-precomputed; on-device full-universe PIP is not the V1 rematch
+  path.
 - How to persist assignments at universe scale without careless O(N) bloat.
-  **Owned by SP-023/024/030.**
+  **Closed by SPD-022**; implement and size-check in SP-030.

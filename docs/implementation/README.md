@@ -79,7 +79,7 @@ V1 scope. Explorer Pro **purchasing** is not.
 | 1 | Baseline and guardrails | [`phases/phase-01-baseline-and-guardrails.md`](phases/phase-01-baseline-and-guardrails.md) | Not started |
 | 2 | Recording and collection correctness | [`phases/phase-02-recording-and-collection-correctness.md`](phases/phase-02-recording-and-collection-correctness.md) | Complete (OEM screen-off residual → Phase 10) |
 | 3 | Exploration storage and map-update reconciliation | [`phases/phase-03-exploration-storage-and-reconciliation.md`](phases/phase-03-exploration-storage-and-reconciliation.md) | Complete (device-walk residual → Phase 10) |
-| 4 | Administrative-area pipeline | [`phases/phase-04-administrative-area-pipeline.md`](phases/phase-04-administrative-area-pipeline.md) | In progress (phase-entry planning) |
+| 4 | Administrative-area pipeline | [`phases/phase-04-administrative-area-pipeline.md`](phases/phase-04-administrative-area-pipeline.md) | In progress (SP-024 Accepted; SP-025 next) |
 | 5 | Area progress and map interaction | [`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md) | Not started |
 | 6 | Exploration-aware routing | [`phases/phase-06-exploration-aware-routing.md`](phases/phase-06-exploration-aware-routing.md) | Not started |
 | 7 | Milestones and share cards | [`phases/phase-07-milestones-and-share-cards.md`](phases/phase-07-milestones-and-share-cards.md) | Not started |
@@ -162,8 +162,11 @@ roadmap tracks.
 | SP-001–014 | Accepted (Phases 1–2) |
 | SP-015–022 | Accepted (Phase 3; device walks → Phase 10) |
 | SP-023 | Accepted — Finland size/coverage spike |
-| SP-024 | Planned — architecture decisions |
+| SP-024 | Accepted — SPD-020–025; entry store/locus Met |
 | SP-025–031 | Planned — config, generator, assignment, validation |
+
+Phase 4 entry criteria for polygon store and assignment locus are **Met**
+(SPD-020, SPD-021). SP-024 Accepted 2026-08-03.
 
 ## 5. Release slices
 
@@ -356,18 +359,18 @@ Phase 3 residual (Pixel 3a / Uusimaa device walks, rematch timing on large
 | Order | ID | Title | Phase | Why first |
 | --- | --- | --- | --- | --- |
 | 23 | [SP-023](work-items/SP-023-admin-polygon-size-spike.md) | Spike: admin polygon retention size and coverage | 4 | **Accepted** 2026-08-03 — Finland measurements; SP-024 inputs agreed |
-| 24 | [SP-024](work-items/SP-024-area-pipeline-architecture-decisions.md) | Area-pipeline architecture decisions | 4 | Planned — after SP-023 numbers |
-| 25 | [SP-025](work-items/SP-025-country-config-schema.md) | Versioned country-config schema | 4 | Planned — data contract; depends on SP-024 |
-| 26 | [SP-026](work-items/SP-026-generator-true-polygons.md) | Generator: emit true closed exploration polygons | 4 | Planned — depends on SP-024/025 |
-| 27 | [SP-027](work-items/SP-027-client-polygon-runtime-api.md) | Client runtime polygon API | 4 | Planned — offline load/PIP (or precomputed tables) |
-| 28 | [SP-028](work-items/SP-028-pixel-to-area-assignment.md) | Deterministic pixel-to-area assignment | 4 | Planned — subdivision-or-none (§8.8) |
-| 29 | [SP-029](work-items/SP-029-settlement-fallback-and-no-area.md) | Settlement fallback and no-area state | 4 | Planned — SPD-007 on top of SP-028 |
-| 30 | [SP-030](work-items/SP-030-assignment-persistence-and-rematch.md) | Persist assignments and rematch hooks | 4 | Planned — durable area ids; rematch |
-| 31 | [SP-031](work-items/SP-031-area-pipeline-end-to-end-validation.md) | Area-pipeline end-to-end validation | 4 | Planned — Phase 4 exit gate |
+| 24 | [SP-024](work-items/SP-024-area-pipeline-architecture-decisions.md) | Area-pipeline architecture decisions | 4 | **Accepted** 2026-08-03 — SPD-020–025 |
+| 25 | [SP-025](work-items/SP-025-country-config-schema.md) | Versioned country-config schema | 4 | Planned — `data/street_pixels/` JSON (SPD-023) |
+| 26 | [SP-026](work-items/SP-026-generator-true-polygons.md) | Generator: emit true closed exploration polygons | 4 | Planned — per-country sidecar + precompute blob (SPD-020/021) |
+| 27 | [SP-027](work-items/SP-027-client-polygon-runtime-api.md) | Client runtime polygon API | 4 | Planned — load sidecar / precomputed tables (not primary PIP) |
+| 28 | [SP-028](work-items/SP-028-pixel-to-area-assignment.md) | Deterministic pixel-to-area assignment | 4 | Planned — consume/verify precomputed subdivision map (SPD-021) |
+| 29 | [SP-029](work-items/SP-029-settlement-fallback-and-no-area.md) | Settlement fallback and no-area state | 4 | Planned — true municipal rings (SPD-025); SPD-007 |
+| 30 | [SP-030](work-items/SP-030-assignment-persistence-and-rematch.md) | Persist assignments and rematch hooks | 4 | Planned — sparse + rematerialize (SPD-022) |
+| 31 | [SP-031](work-items/SP-031-area-pipeline-end-to-end-validation.md) | Area-pipeline end-to-end validation | 4 | Planned — Phase 4 exit gate; no numeric floor yet (SPD-024) |
 
 Phase 4 entry investigation (2026-08-03) recorded in
 [`phases/phase-04-administrative-area-pipeline.md`](phases/phase-04-administrative-area-pipeline.md).
-Do not start SP-025+ until SP-023 measurements and SP-024 decisions land.
+Architecture decisions SPD-020–025 Accepted under SP-024 (2026-08-03).
 SP-028 = subdivision assignment; SP-029 = settlement fallback / no-area.
 
 Detailed work items exist for Phases 1–4. Later phases are broken down after

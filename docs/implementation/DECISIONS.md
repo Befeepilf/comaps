@@ -534,6 +534,221 @@ spec’s ~10 m figure in favour of storage/memory headroom and one constant.
 
 ---
 
+## SPD-020 — Exploration polygons ship as a per-country downloadable sidecar
+
+**Decision.** Exploration-area geometry (true closed administrative and place
+rings selected by country policy) lives in a **per-country downloadable
+sidecar**, not as a mandatory in-MWM section. The World MWM three-box
+`cities_boundaries` section remains **search-only legacy** and is not the
+exploration-area store.
+
+**Status.** Accepted.
+
+**Context.** SP-023 measured Finland true-ring retention at ~2.1 MiB
+country-concat zlib(coded) and ~0.5 MiB for the Helsinki MWM slice — small
+versus a regional MWM, but competition-optional data should not inflate every
+map download. Existing sidecars (`.pix` / `packed_polygons.bin`) already
+establish the pattern. In-MWM optional sections remain technically possible
+later; V1 does not require polygons inside the country MWM. Hybrid reuse of
+World three-box rings for assignment is rejected by SPD-025.
+
+**Consequences.**
+
+- SP-026 emits exploration polygons into the sidecar format; SP-027 loads that
+  sidecar offline for an installed country.
+- Missing sidecar → no exploration areas (settlement / no-area paths still
+  apply per SPD-007 once settlement rings are present); never invent grids.
+- World `CityBoundary` three-box data stays for search/routing containment
+  helpers that already use it; it is not assignment authority (SPD-025).
+- Phase 4 exit size budget is measured against the sidecar (and any
+  assignment blob), not against mandatory MWM growth.
+
+**Related documents.** Product spec §3.5, §8.3; SPD-006, SPD-021, SPD-025;
+SP-023; SP-024; SP-026; SP-027; SP-029;
+`phases/phase-04-administrative-area-pipeline.md`.
+
+---
+
+## SPD-021 — Pixel→area assignment is generator-precomputed
+
+**Decision.** Pixel→area assignment for the valid street-pixel universe is
+**generator-precomputed** into an offline blob that ships with map/sidecar
+artifacts. The client **consumes and rematches** that blob; it does **not**
+perform a primary full-universe on-device point-in-polygon rematch after every
+map or policy change. Offline-first holds: no network boundary lookup.
+
+**Status.** Accepted.
+
+**Context.** SP-023 desktop PIP for a Uusimaa-class proxy (~6.5×10⁶ cells) was
+~2.7 min — tolerable as a generator/derive job, painful as interactive
+on-device rematch (phone-class hardware unmeasured and expected slower).
+Precomputation keeps assignment deterministic for a fixed (map-data version,
+policy_version) pair while preserving the offline invariant.
+
+**Consequences.**
+
+- SP-026/028 emit or stage the precomputed assignment artifact; SP-027 exposes
+  load/verify APIs; SP-028 verifies consumption against §8.8 rules rather than
+  owning a primary full-universe client PIP engine.
+- On-device PIP may remain for tests, spot checks, or narrow fallbacks; it is
+  not the V1 rematch path for the full universe.
+- Rematch cost is dominated by reading/applying the new blob and updating
+  sparse local state (SPD-022 / SP-030), not by re-running PIP over every
+  valid cell.
+- Phase-04 wording that assumed “assignment is always on-device” is obsolete;
+  soften docs accordingly under SP-024.
+
+**Related documents.** Product spec §8.8; SPD-006, SPD-022; SP-023; SP-024;
+SP-026; SP-027; SP-028; SP-030;
+`phases/phase-04-administrative-area-pipeline.md`.
+
+---
+
+## SPD-022 — Assignment persistence is sparse explored plus sidecar rematerialize
+
+**Decision.** Durable client assignment state is a **sparse** map from explored
+HEALPix ids to a **compact area index**. Unexplored (and any needed full-universe
+answer) is **rematerialized** from a dense **uint16 or uint32** area-index map
+in the downloadable sidecar. Do **not** persist a full-universe table of
+uint64 OSM ids. All assignment state is keyed by the pair
+**(map-data version, policy_version)**.
+
+**Status.** Accepted.
+
+**Context.** Spec §8.8 requires a deterministic answer for every valid street
+pixel, but storing that answer twice (dense OSM ids on device for the whole
+universe) is wasteful. SP-023 estimated ~26 MiB for a full uint32 index and
+~52 MiB for uint64 OSM ids at Uusimaa scale; sparse explored-only storage is
+far smaller for typical users. A dense compact index in the sidecar lets the
+client rematerialize without live PIP (SPD-021) and without keeping uint64 OSM
+ids for every cell.
+
+**Consequences.**
+
+- SP-030 implements sparse explored persistence + rematerialize-from-sidecar;
+  document measured or budgeted size against SP-023 estimates.
+- Area ids in the dense map are dense indices into a sidecar id table that
+  carries stable OSM identifiers and display metadata — not raw OSM ids in the
+  per-pixel column.
+- Map-data or policy_version bumps trigger rematch: rebuild sparse state from
+  the new dense map without wiping exploration bits (Phase 3 rematch hooks).
+- Percentages for unexplored cells rematerialize on demand from the dense map;
+  do not require an explored-only store to invent answers for never-visited
+  cells.
+
+**Related documents.** Product spec §8.8, §27.4; SPD-016, SPD-020, SPD-021;
+SP-023; SP-024; SP-026; SP-027; SP-030;
+`phases/phase-04-administrative-area-pipeline.md`.
+
+---
+
+## SPD-023 — Country policy is versioned JSON under `data/street_pixels/`
+
+**Decision.** Country exploration-area policy is **versioned JSON** checked in
+under `data/street_pixels/` (exact filenames and schema land in SP-025). Each
+revision carries a monotonic **`policy_version`**. Countries are keyed by
+**ISO 3166-1 alpha-2**. Changes land through normal PR review. Finland seed
+priority (from SP-023 measurements): subdivision **admin_10**, then
+**admin_9**, then **admin_11**; settlement **admin_8**; closed polygonal
+**place=*** only as a sparse supplement, not the primary grain.
+
+**Status.** Accepted.
+
+**Context.** SPD-006 already requires a versioned country configuration.
+SP-023 showed Finland grain is effectively admin_10 (with 9/11 present) plus
+admin_8 settlement fallback; closed place=* rings are rare. Exact schema
+fields, loader API, and unknown-country behaviour remain SP-025
+implementation detail; this decision locks location, versioning, keying,
+review process, and the Finland seed priority.
+
+**Consequences.**
+
+- SP-025 lands schema + Finland fixture under `data/street_pixels/` and a
+  loader readable by generator and client.
+- Assignment determinism keys on (map-data version, policy_version) —
+  configuration changes can reassign without a map download (SP-030).
+- Unknown / unconfigured countries fall through settlement / no-area
+  (SPD-007); never invent grids or city allowlists (SPD-004).
+- Expanding worldwide coverage is incremental data work, not a V1 exit gate.
+
+**Related documents.** Product spec §8.3, §34; SPD-004, SPD-006, SPD-007,
+SPD-024; SP-023; SP-024; SP-025;
+`phases/phase-04-administrative-area-pipeline.md`.
+
+---
+
+## SPD-024 — Suitability and privacy use config rings; no invented numeric floors
+
+**Decision.** V1 suitability is enforced by admitting **only closed, normally
+named rings** selected by the country-config levels (SPD-023), plus the
+deterministic assignment stack in §8.8 (priority, smallest-polygon,
+stable-id tie-break). Do **not** invent numeric minimum pixel counts or
+minimum area-size floors in the client. “Meaningfully smaller than the
+containing settlement” is expressed by choosing subdivision levels in config
+and by §8.8 smallest-polygon selection — not by a hard-coded metre or pixel
+threshold. Sparse-area anonymity remains **§23.4 server-side** (fewer than
+three opted-in participants → anonymous others). Any future client-side size
+or pixel-count gate needs a **follow-up measurement** and a new decision
+before it ships.
+
+**Status.** Accepted.
+
+**Context.** Spec §8.4 lists qualitative suitability criteria; §23.4 already
+defines sparse-area privacy for competition. SP-023 did not measure per-area
+pixel counts, so inventing floors now would be guesswork and could silently
+drop real named neighbourhoods. Config-level selection plus closed/named
+rings already excludes most unsuitable candidates; anonymity for sparse
+competition is a server concern, not a reason to invent client floors in SP-024.
+
+**Consequences.**
+
+- SP-025/026 filter by configured levels and closed named geometry; they do
+  not encode invented numeric floors.
+- Phase 4 exit #7 measures sidecar/blob size acceptance; it does **not**
+  require a client pixel-count gate.
+- A later privacy or suitability floor (if product wants one) is a new SPD
+  after measurement — record under discovered follow-ups until then.
+- Competition Phase 8 still implements §23.4 server-side anonymity.
+
+**Related documents.** Product spec §8.4, §8.8, §23.4; SPD-006, SPD-007,
+SPD-023; SP-023; SP-024; SP-025; SP-026; SP-031;
+`phases/phase-04-administrative-area-pipeline.md`.
+
+---
+
+## SPD-025 — Settlement assignment uses true municipal rings from the sidecar
+
+**Decision.** Settlement membership for exploration-area assignment and
+SPD-007 fallback uses **true municipal rings** from the exploration-area
+sidecar (for Finland, admin_8). The World three-box `CityBoundary`
+approximation is **not** assignment authority.
+
+**Status.** Accepted.
+
+**Context.** SP-023 measured national admin_8 coded size at ~1.0 MiB — affordable
+in the per-country sidecar (SPD-020). Three-box World boundaries are a search
+approximation (bbox ∩ calipers ∩ diamond) and can disagree with true municipal
+geometry; using them for settlement fallback would mis-assign coastal,
+fragmented, and boundary-straddling cases. Search may keep three-box data
+unchanged.
+
+**Consequences.**
+
+- SP-026 emits settlement (municipal) rings into the same sidecar as
+  subdivisions; SP-029 uses those rings for settlement fallback / no-area.
+- SP-027 must expose true-ring containment for settlements used in assignment,
+  not `CitiesBoundariesTable` three-box `HasPoint`, as the assignment path.
+- World `cities_boundaries` remains available for existing search behaviour;
+  do not silently redefine it as exploration geometry.
+- Outside true settlement rings → no area (SPD-007); exploration and routing
+  continue.
+
+**Related documents.** Product spec §8.2, §8.5, §8.6; SPD-007, SPD-020,
+SPD-023; SP-023; SP-024; SP-026; SP-027; SP-029;
+`phases/phase-04-administrative-area-pipeline.md`.
+
+---
+
 ## 15. Recorded open questions (not decisions)
 
 These are carried from existing project documents. They are listed so they are

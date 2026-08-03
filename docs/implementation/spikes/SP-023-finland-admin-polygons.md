@@ -231,10 +231,12 @@ few (7), so place-fallback is secondary to admin_10 for Finland.
 
 ---
 
-## 9. Recommendation **inputs** for SP-024 (not Accepted SPDs)
+## 9. Recommendation **inputs** for SP-024 (historical; recorded as SPD-020–025)
 
-These are measurement-grounded **inputs**. SP-024 decides; do not treat as
-accepted architecture.
+These were measurement-grounded **inputs** at spike acceptance. SP-024 recorded
+them as SPD-020–025 (work item In review — not yet Accepted). Keep this
+section for provenance; do not treat the table below as the live decision
+text — read `DECISIONS.md`.
 
 Map to Phase 4 open decisions (phase-04 §“Open decisions”):
 
@@ -318,8 +320,8 @@ Exit status of all three scripts in this run: **0**.
 | No admin_5/6 in Finland; grain is 8 + 10 | Feed SP-025 Finland country-config defaults |
 | Place closed polygons ≪ admin_10 | Do not rely on place=* for Finland coverage |
 | Phone-class PIP not measured | Optional SP-023 follow-up or SP-028 perf gate |
-| Second dense-admin country not measured | SP-024 may want one more country before locking worldwide store policy |
-| Pixel-count per area (privacy floor) | Measure in SP-024/025 suitability work |
+| Second dense-admin country not measured | Optional before locking worldwide sidecar size expectations (Finland grounds V1 architecture per SP-024) |
+| Pixel-count per area (privacy floor) | Deferred by SPD-024 (no invented floors); follow-up measurement before any client size/anonymity gate |
 | Exact production geometry codec vs spike coded_delta | SP-026 should re-measure with shipping encoder |
 | PIP sample skips country-config level priority | SP-028 must implement full §8.8 stack; do not copy spike assigner |
 | Settlement denominator mixes place + admin_8 objects | Document when quoting %; optional municipality-only cut for SP-025 |

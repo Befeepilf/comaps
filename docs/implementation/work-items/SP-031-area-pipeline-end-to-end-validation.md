@@ -23,22 +23,27 @@ assignment, fallback, and size budget hold.
 - Validation plan + evidence log under `docs/implementation/validation/`.
 - Automated assignment/determinism suite green; counts recorded.
 - Manual: known city subdivision names look right; settlement-only city;
-  rural no-area; MWM/sidecar size vs SP-023 budget / SP-024 acceptance.
+  rural no-area; **sidecar** (+ assignment blob) size vs SP-023 budget /
+  SPD-020 acceptance (exit #7).
 - Confirm no MWM country id shown as a neighbourhood.
 - Exit criteria table (pass / fail / residual) for criteria 1–8.
 - Device walks may residual to Phase 10 if OEM/device access blocks (same
   pattern as Phase 2/3).
+- **Note (SPD-024):** exit #7 is sidecar/blob size acceptance — there is
+  **no** V1 numeric client pixel/area floor to validate yet; do not invent one
+  in the evidence log.
 
 ## Out-of-scope behavior
 
 - Phase 5 UI polish.
 - Fixing defects without routing to owning SP-023–030.
 - Worldwide config completeness.
+- Inventing or enforcing numeric suitability floors (SPD-024).
 
 ## Relevant product requirements
 
 - Phase 4 exit criteria 1–8.
-- SPD-004, SPD-006, SPD-007.
+- SPD-004, SPD-006, SPD-007, SPD-020–025.
 
 ## Exit criteria checklist (fill in evidence log)
 
@@ -50,7 +55,7 @@ assignment, fallback, and size budget hold.
 | 4 | Smallest-polygon + stable-id tie-break tested | |
 | 5 | Settlement fallback | |
 | 6 | Outside settlements: exploration works, no area | |
-| 7 | MWM/sidecar size measured and accepted | |
+| 7 | Sidecar/assignment-blob size measured and accepted (no client numeric floor yet — SPD-024) | |
 | 8 | No MWM country id as neighbourhood | |
 
 ## Acceptance criteria
@@ -78,6 +83,7 @@ assignment, fallback, and size budget hold.
 | --- | --- |
 | Validation plan | |
 | Evidence log | |
+| Decision ids (SP-024) | SPD-020–025 |
 | Test output | |
 | Exit criteria table | |
 | Residuals | |
