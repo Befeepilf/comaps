@@ -1,7 +1,7 @@
 # SP-021 — Denominator recalculation and §27.3 messaging
 
 **Phase:** 3 — Exploration storage and map-update reconciliation
-**Status:** Planned
+**Status:** Accepted
 **Branch:** `street-pixels`
 
 ---
@@ -87,17 +87,20 @@ sampling at 15 m and does not densify the universe.)
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commits | |
-| String ids used | |
-| Test output | |
-| Manual validation | |
-| Implemented by | |
-| Accepted by | |
-| Accepted date | |
+| Branch | `street-pixels` |
+| Commits | *(filled after commit)* |
+| String ids used | `street_pixels_more_to_explore` — “%1$s map was updated. Streets may have been added or removed, so your exploration stats may have changed slightly. Your progress is still saved.” |
+| Test output | `ninja street_pixels_tests`; `./street_pixels_tests --filter=Rematch` → All tests passed (incl. Rematch_DenominatorGrowsFractionDrops, Rematch_PreviousVsNewFractionSignal, Rematch_NoFractionDropLeavesNoPending, Rematch_FailLeavesNoPending, Rematch_EqualVersionLeavesNoPending, Rematch_WrongCountryTakeLeavesPending, Rematch_SuccessfulNonDropClearsSameCountryPending). `./street_pixels_tests` → All tests passed. `:sdk:compileDebugJavaWithJavac` → BUILD SUCCESSFUL. Full APK/native JNI link not run. |
+| Manual validation | Deferred to SP-022 / device map-update toast check |
+| Implemented by | Agent |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-03 |
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| `TakePendingRematchFractionChange(forCountryId)` only consumes when country matches (empty id = any, used by tests) | Keep; matches READY-gated Android toast |
+| Full Android APK / native JNI link not executed for this work item | Run SDK/APK compile before merge if CI does not |
+| Single pending slot; overlapping rematches for multiple countries can overwrite | Accept for V1; queue only if multi-country update UX needs it |
+| Ready toast still depends on Loading→Ready after rematch; forced Loading when still-active and already Ready | Covered by stillActive Ready→Loading bump; device check still needed |

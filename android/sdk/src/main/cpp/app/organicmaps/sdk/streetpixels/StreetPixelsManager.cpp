@@ -50,4 +50,28 @@ JNIEXPORT jdouble JNICALL Java_app_organicmaps_sdk_maplayer_streetpixels_StreetP
   double frac = manager.GetTotalExploredFraction();
   return static_cast<jdouble>(frac);
 }
+
+JNIEXPORT jobject JNICALL
+Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeTakePendingRematchFractionChange(
+    JNIEnv * env, jclass clazz, jstring countryId)
+{
+  CHECK(g_framework, ("Framework isn't created yet!"));
+  auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
+  auto const change = manager.TakePendingRematchFractionChange(jni::ToNativeString(env, countryId));
+  if (!change)
+    return nullptr;
+
+  static jclass const changeClass = jni::GetGlobalClassRef(
+      env, "app/organicmaps/sdk/maplayer/streetpixels/RematchFractionChange");
+  static jmethodID const ctor =
+      jni::GetConstructorID(env, changeClass, "(Ljava/lang/String;JJJJDDZ)V");
+  jni::TScopedLocalRef const jCountryId(env, jni::ToJavaString(env, change->countryId));
+  jobject const result =
+      env->NewObject(changeClass, ctor, jCountryId.get(), static_cast<jlong>(change->previousTotal),
+                     static_cast<jlong>(change->previousExplored), static_cast<jlong>(change->newTotal),
+                     static_cast<jlong>(change->newExplored), static_cast<jdouble>(change->previousFraction),
+                     static_cast<jdouble>(change->newFraction),
+                     static_cast<jboolean>(change->decreasedDueToUniverseGrowth));
+  return result;
+}
 }
