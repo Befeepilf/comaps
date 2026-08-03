@@ -165,6 +165,7 @@ roadmap tracks.
 | SP-017 | Accepted 2026-08-03 |
 | SP-018 | Accepted 2026-08-03 |
 | SP-019 | Accepted 2026-08-03 |
+| SP-020 | Accepted 2026-08-03 |
 | SP-017 | Planned |
 | SP-018 | Planned |
 | SP-019 | Planned |
@@ -348,7 +349,7 @@ decision) tracked in Phase 10.
 | 17 | [SP-017](work-items/SP-017-crash-safe-map-update-rematch.md) | Crash-safe rematch on map update | 3 | Accepted — replaces wipe-on-download |
 | 18 | [SP-018](work-items/SP-018-exploration-survives-map-delete.md) | Explored state survives map delete and redownload | 3 | Accepted — compact archive (SPD-016) |
 | 19 | [SP-019](work-items/SP-019-derivation-sampling-alignment.md) | Unify path sampling at 15 m | 3 | Accepted — live/track → 15 m (SPD-019) |
-| 20 | [SP-020](work-items/SP-020-eligibility-policy-alignment.md) | Eligibility vs spec §13 | 3 | Planned — tighten or record (OQ-5) |
+| 20 | [SP-020](work-items/SP-020-eligibility-policy-alignment.md) | Eligibility vs spec §13 | 3 | Accepted — tighten + divergence register; OQ-5 closed |
 | 21 | [SP-021](work-items/SP-021-denominator-recalc-and-update-messaging.md) | Denominator recalculation and §27.3 messaging | 3 | Planned — “more to explore” framing |
 | 22 | [SP-022](work-items/SP-022-exploration-storage-end-to-end-validation.md) | Exploration storage end-to-end validation | 3 | Planned — Phase 3 exit gate |
 
