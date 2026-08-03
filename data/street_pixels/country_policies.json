@@ -1,0 +1,15 @@
+{
+  "policy_version": 1,
+  "schema_version": 1,
+  "countries": {
+    "FI": {
+      "mwm_root_ids": ["Finland"],
+      "subdivision_admin_levels": [10, 9, 11],
+      "settlement_admin_levels": [8],
+      "place_boundaries": {
+        "enabled": true,
+        "place_types": ["neighbourhood", "quarter", "suburb"]
+      }
+    }
+  }
+}
