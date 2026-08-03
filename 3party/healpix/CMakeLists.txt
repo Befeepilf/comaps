@@ -157,12 +157,20 @@ set_property(TARGET cfitsio PROPERTY C_EXTENSIONS ON)
 add_library(${PROJECT_NAME} ${SRC})
 
 # Healpix upstream `byteswap` collides with C++23 std::byteswap. Keep the
-# patched header in-tree and apply it onto the submodule checkout at configure
-# time so we do not need a forked submodule commit.
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/cxxsupport_overrides/bstream.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/healpix/src/cxx/cxxsupport/bstream.h
-  COPYONLY
+# patched header in-tree and copy it onto the submodule checkout. Quoted
+# `#include "bstream.h"` resolves the same-directory header first, so
+# include-path shadowing cannot work — we must overwrite the submodule file.
+# PRE_BUILD re-applies after submodule resets (configure-time copy alone is lost).
+set(HEALPIX_BSTREAM_OVERRIDE ${CMAKE_CURRENT_SOURCE_DIR}/cxxsupport_overrides/bstream.h)
+set(HEALPIX_BSTREAM_TARGET ${CMAKE_CURRENT_SOURCE_DIR}/healpix/src/cxx/cxxsupport/bstream.h)
+configure_file(${HEALPIX_BSTREAM_OVERRIDE} ${HEALPIX_BSTREAM_TARGET} COPYONLY)
+add_custom_command(
+  TARGET ${PROJECT_NAME} PRE_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          ${HEALPIX_BSTREAM_OVERRIDE}
+          ${HEALPIX_BSTREAM_TARGET}
+  COMMENT "Applying Healpix bstream.h C++23 byteswap override"
+  VERBATIM
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC healpix/src/common_libraries/libsharp healpix/src/common_libraries/libsharp/libsharp healpix/src/cxx/cxxsupport healpix/src/cxx/Healpix_cxx)
