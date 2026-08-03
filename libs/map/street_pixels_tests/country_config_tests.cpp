@@ -170,6 +170,79 @@ UNIT_TEST(CountryConfig_IgnoreFloorKeysNeverApply)
   TEST_EQUAL(config.GetPolicyVersion(), 1u, ());
 }
 
+UNIT_TEST(CountryConfig_UnsupportedSchemaVersionFails)
+{
+  std::string const json = R"({
+    "policy_version": 1,
+    "schema_version": 99,
+    "countries": {}
+  })";
+
+  bool threw = false;
+  try
+  {
+    street_pixels::CountryConfig::LoadFromString(json);
+  }
+  catch (street_pixels::CountryConfig::Exception const &)
+  {
+    threw = true;
+  }
+  TEST(threw, ("Unsupported schema_version must fail."));
+}
+
+UNIT_TEST(CountryConfig_InvalidIsoKeyFails)
+{
+  std::string const json = R"({
+    "policy_version": 1,
+    "schema_version": 1,
+    "countries": {
+      "fi": {
+        "mwm_root_ids": ["Finland"],
+        "subdivision_admin_levels": [10],
+        "settlement_admin_levels": [8]
+      }
+    }
+  })";
+
+  bool threw = false;
+  try
+  {
+    street_pixels::CountryConfig::LoadFromString(json);
+  }
+  catch (street_pixels::CountryConfig::Exception const &)
+  {
+    threw = true;
+  }
+  TEST(threw, ("Lowercase ISO key must fail."));
+}
+
+UNIT_TEST(CountryConfig_LongestMwmRootWins)
+{
+  std::string const json = R"({
+    "policy_version": 1,
+    "schema_version": 1,
+    "countries": {
+      "FI": {
+        "mwm_root_ids": ["Finland"],
+        "subdivision_admin_levels": [10, 9, 11],
+        "settlement_admin_levels": [8]
+      },
+      "AX": {
+        "mwm_root_ids": ["Finland_Aland"],
+        "subdivision_admin_levels": [9],
+        "settlement_admin_levels": [8]
+      }
+    }
+  })";
+
+  auto const config = street_pixels::CountryConfig::LoadFromString(json);
+  TEST_EQUAL(config.GetByMwmId("Finland_Southern Finland_Helsinki").m_isoCode, "FI", ());
+  TEST_EQUAL(config.GetByMwmId("Finland_Aland").m_isoCode, "AX", ());
+  TEST_EQUAL(config.GetByMwmId("Finland_Aland_Mariehamn").m_isoCode, "AX", ());
+  TEST_EQUAL(config.GetByMwmId("Finland_Aland_Mariehamn").m_subdivisionAdminLevels,
+             (std::vector<int>{9}), ());
+}
+
 UNIT_TEST(CountryConfig_LoadShippedFinlandFixture)
 {
   std::string const path =

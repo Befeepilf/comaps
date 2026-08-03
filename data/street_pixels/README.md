@@ -18,12 +18,15 @@ Top-level fields:
 - `schema_version` (integer, required) — JSON shape version understood by the
   loader. Bump only when the document structure changes in a way that requires
   loader changes.
-- `countries` (object, required) — map of ISO 3166-1 alpha-2 → country entry.
+- `countries` (object, required) — map of ISO 3166-1 alpha-2 (two uppercase
+  letters) → country entry. Invalid keys fail load.
 
 Per-country fields:
 
 - `mwm_root_ids` (string array) — CoMaps MWM root ids that map to this country
-  (exact match, or any leaf whose id starts with `<root>_`).
+  (exact match, or any leaf whose id starts with `<root>_`). When multiple
+  roots match, the longest root wins (regional roots beat shorter country
+  roots).
 - `subdivision_admin_levels` (integer array) — OSM `admin_level` values for
   neighbourhood-scale areas, in priority order (first = highest priority).
 - `settlement_admin_levels` (integer array) — OSM `admin_level` values used as
