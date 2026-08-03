@@ -133,6 +133,12 @@ target_link_libraries(sharp_libs INTERFACE
   # "${libsharp_ARTIFACT_DIR}/lib/libfftpack.a"
   # "${libsharp_ARTIFACT_DIR}/lib/libc_utils.a"
 )
+if(NOT APPLE AND NOT ANDROID)
+  find_package(OpenMP)
+  if(OpenMP_C_FOUND)
+    target_link_libraries(sharp_libs INTERFACE OpenMP::OpenMP_C)
+  endif()
+endif()
 
 add_dependencies(sharp_libs libsharp_build_step)
 
@@ -149,6 +155,15 @@ set_property(TARGET cfitsio PROPERTY C_STANDARD_REQUIRED OFF)
 set_property(TARGET cfitsio PROPERTY C_EXTENSIONS ON)
 
 add_library(${PROJECT_NAME} ${SRC})
+
+# Healpix upstream `byteswap` collides with C++23 std::byteswap. Keep the
+# patched header in-tree and apply it onto the submodule checkout at configure
+# time so we do not need a forked submodule commit.
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/cxxsupport_overrides/bstream.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/healpix/src/cxx/cxxsupport/bstream.h
+  COPYONLY
+)
 
 target_include_directories(${PROJECT_NAME} PUBLIC healpix/src/common_libraries/libsharp healpix/src/common_libraries/libsharp/libsharp healpix/src/cxx/cxxsupport healpix/src/cxx/Healpix_cxx)
 
