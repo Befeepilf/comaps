@@ -258,6 +258,7 @@ target_link_libraries(${PROJECT_NAME}
     routing_common
     search
     storage
+    street_pixels_config
     transit
   PRIVATE
     traffic
