@@ -75,7 +75,7 @@ Assignment determinism requires a policy version paired with map-data version
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-025-country-config-schema-191e` |
-| Commits | `74a9a28f0` [cmake] healpix C++23/OpenMP; `1b240f6d9` [map][android][cmake] schema+loader+tests; `6324b79d8`/`326822f34`/`b2100e410` [docs] evidence; review: `0322e0840` [map] longest-root+ISO; `f63abadcc` [cmake] PRE_BUILD override; `f5322d3bb` [docs] follow-ups |
+| Commits | `74a9a28f0` [cmake] healpix C++23/OpenMP; `1b240f6d9` [map][android][cmake] schema+loader+tests; `6324b79d8`/`326822f34`/`b2100e410` [docs] evidence; review: `0322e0840` [map] longest-root+ISO; `f63abadcc`/`caa80e5d9` [cmake] healpix override before compile; `f5322d3bb` [docs] follow-ups |
 | Schema path | `data/street_pixels/country_policies.json` |
 | Fixture country | FI — subdivision [10,9,11], settlement [8], place_boundaries neighbourhood/quarter/suburb |
 | Decision ids (SP-024) | SPD-023 (primary); SPD-024 (no numeric floors) |
