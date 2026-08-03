@@ -3,7 +3,7 @@
 **Phase:** 4 — Administrative-area pipeline
 **Status:** Planned
 **Branch:** `street-pixels`
-**Depends on:** SP-024 (config format / versioning decision)
+**Depends on:** SP-024 Accepted (SPD-023 locks location/versioning/keying/Finland seed)
 
 ---
 
@@ -11,7 +11,7 @@
 
 Define and land a reviewable, versioned country-configuration schema that
 lists which `admin_level` values (and place-boundary fallbacks) are valid for
-each country and in what priority order (SPD-006).
+each country and in what priority order (SPD-006, SPD-023).
 
 ## Motivation
 
@@ -21,9 +21,16 @@ Assignment determinism requires a policy version paired with map-data version
 
 ## In-scope behavior
 
-- Schema and at least one fixture country (the SP-023 measured country).
-- Policy version field; documentation of review/update process (per SP-024).
-- Loader API used by generator and/or client (per SP-024 locus).
+- Schema and Finland fixture under **`data/street_pixels/`** (SPD-023); exact
+  filenames chosen here.
+- Monotonic **`policy_version`**; ISO 3166-1 alpha-2 country keying; document
+  PR-review / update process (SPD-023).
+- Finland seed priority (SPD-023 / SP-023): subdivision **admin_10**, then
+  **admin_9**, then **admin_11**; settlement **admin_8**; closed polygonal
+  **place=*** sparse supplement only.
+- Loader API used by generator (precompute, SPD-021) and client rematch.
+- **No invented numeric suitability floors** (SPD-024) — suitability is
+  closed/named rings at configured levels.
 - Tests: fixture selects expected levels; unknown country falls back safely
   (settlement / no-area per SPD-007 — do not invent grids).
 
@@ -34,20 +41,22 @@ Assignment determinism requires a policy version paired with map-data version
 - Generator polygon emission (SP-026).
 - UI for editing config.
 - City allowlists (SPD-004).
+- Client pixel-count / area-size gates (SPD-024).
 
 ## Relevant product requirements
 
-- §8.3, §8.4, §34 country-configuration principle; SPD-006, SPD-007.
+- §8.3, §8.4, §34 country-configuration principle; SPD-006, SPD-007, SPD-023,
+  SPD-024.
 
 ## Relevant source files or symbols
 
-- To be chosen under SP-024 (data path + loader). Likely under `data/` and a
-  small C++/Java loader used by assignment.
+- `data/street_pixels/` (SPD-023); small C++/Java loader used by generator and
+  assignment rematch.
 
 ## Acceptance criteria
 
-1. Schema lands as reviewable data under version control.
-2. At least one country fixture with priority order.
+1. Schema lands as reviewable data under version control at `data/street_pixels/`.
+2. At least one country fixture (Finland) with priority order per SPD-023.
 3. Loader + unit tests green.
 4. Policy version is readable for assignment keying with map-data version.
 
@@ -69,7 +78,7 @@ Assignment determinism requires a policy version paired with map-data version
 | Commits | |
 | Schema path | |
 | Fixture country | |
-| Decision ids (SP-024) | |
+| Decision ids (SP-024) | SPD-023 (primary); SPD-024 (no numeric floors) |
 | Test output | |
 | Accepted by | |
 | Accepted date | |
