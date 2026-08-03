@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import app.organicmaps.sdk.Framework;
 
@@ -71,6 +72,8 @@ public class StreetPixelsManager
   private static native void nativeRemoveListener(@NonNull OnStreetPixelsChangedListener listener);
   private static native boolean nativeShouldShowNotification();
   private static native double nativeGetTotalExploredFraction();
+  @Nullable
+  private static native RematchFractionChange nativeTakePendingRematchFractionChange(@NonNull String countryId);
 
   public void attach(@NonNull StreetPixelsErrorDialogListener listener)
   {
@@ -90,6 +93,12 @@ public class StreetPixelsManager
   public double getTotalExploredFraction()
   {
     return nativeGetTotalExploredFraction();
+  }
+
+  @Nullable
+  public RematchFractionChange takePendingRematchFractionChange(@NonNull String countryId)
+  {
+    return nativeTakePendingRematchFractionChange(countryId);
   }
 
   public static boolean isLoading()
