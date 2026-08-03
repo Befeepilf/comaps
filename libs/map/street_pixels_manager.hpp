@@ -54,6 +54,8 @@ struct TrackInfo
 
 class RecordingSession;
 
+bool IsExplorableFeature(feature::GeomType geomType, feature::TypesHolder const & types);
+
 class StreetPixelsManager
 {
 public:
