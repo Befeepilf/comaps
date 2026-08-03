@@ -52,7 +52,7 @@ where they differ).
 | Wipe on update | `Framework::OnCountryFileDownloaded` → `CleanupStreetPixels` | Deletes `.pix`/`.pixa`/`.pixf` and `street_exploration` rows. **Does not clear `processed_tracks`**, so saved-track replay usually cannot rebuild wiped exploration. |
 | Derivation sampling | `kSegmentLengthMeters = 15.0` | Spec ~10 m; **SPD-019 locks V1 at 15 m** |
 | Live / track sampling | `kInterpolationStepMeters = 10.0` via `ComputeTrackPixels` | Legacy `UpdateStreetStatsForTrack` still hardcodes `10.0`; **SP-019 aligns both to 15 m** |
-| Eligibility | `IsExplorable` | highway lines; excludes driveway/tunnel/`hwtag=private`; requires bike or foot access |
+| Eligibility | `IsExplorable` / `IsExplorableFeature` | highway lines; excludes driveway/tunnel/no-access/`hwtag=private`/construction/elevator/raceway; motorway needs `hwtag-yesbicycle`; bridges include. Remaining §13 gaps: [SP-020 divergence register](../work-items/SP-020-eligibility-policy-alignment.md#divergence-register-spec-13-vs-client) |
 | Renderer | `StreetPixelRenderer` | Consumes `span<StreetPixel>`; uses `GetPixelId`, `IsExplored`, `GetPoint`, `GetColor` only — no provenance |
 
 **Differences from the technical audit:** material additions above — 44-bit id
@@ -248,13 +248,17 @@ This phase *is* the data and migration concern.
 - ~~Whether explored state should survive deleting and redownloading a country.~~
   **SPD-016:** yes, via compact explored-only archive (SP-018).
 - ~~OQ-8 `nside`.~~ **SPD-017:** locked at 1048576 for V1.
-- Whether tightening `IsExplorable` is achievable purely client-side, or needs
+- ~~Whether tightening `IsExplorable` is achievable purely client-side, or needs
   generator changes for tags that do not survive map generation. The audit
-  flags bridge and tunnel handling as unresolved (OQ-5) — owned by SP-020.
+  flags bridge and tunnel handling as unresolved (OQ-5).~~ **SP-020 / OQ-5
+  closed:** bridges include; tunnels exclude; motorway/motorway_link requires
+  `hwtag-yesbicycle`. Client tightened construction/elevator/raceway/driveway/
+  no-access/private; indoor, subway-passage, emergency-only, proposed remain
+  generator gaps; parking_aisle/busway and trunk-without-yesbicycle are residual
+  includes — see
+  [SP-020 divergence register](../work-items/SP-020-eligibility-policy-alignment.md#divergence-register-spec-13-vs-client).
 - How much of the spec §13 eligibility list is representable given what
-  survives into MWM. `hwtag` values for foot, bicycle, and private are
-  confirmed present; indoor, underground, proposed, construction, and
-  emergency-only are not confirmed as filterable — SP-020.
+  survives into MWM — answered for V1 in SP-020 (enforceable vs recorded).
 - Whether rematch can complete fast enough on a large country (~50 MB `.pix`)
   without a visible stall or large RAM spike — measured in SP-017 / SP-022 on
   Uusimaa-class data.
