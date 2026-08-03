@@ -79,7 +79,7 @@ Assignment determinism requires a policy version paired with map-data version
 | Schema path | `data/street_pixels/country_policies.json` |
 | Fixture country | FI — subdivision [10,9,11], settlement [8], place_boundaries neighbourhood/quarter/suburb |
 | Decision ids (SP-024) | SPD-023 (primary); SPD-024 (no numeric floors) |
-| Test output | `./tools/unix/run_tests.sh -b … -f "CountryConfig_"` — 8/8 OK (FinlandFixturePriority, MwmLeafAndRootLookup, UnknownIsoAndMwmUnconfigured, InvalidJsonFails, DuplicateMwmRootFails, PolicyVersionReadable, IgnoreFloorKeysNeverApply, LoadShippedFinlandFixture) |
+| Test output | `./tools/unix/run_tests.sh -b … -f "CountryConfig_"` — 11/11 OK (FinlandFixturePriority, MwmLeafAndRootLookup, UnknownIsoAndMwmUnconfigured, InvalidJsonFails, DuplicateMwmRootFails, PolicyVersionReadable, IgnoreFloorKeysNeverApply, UnsupportedSchemaVersionFails, InvalidIsoKeyFails, LongestMwmRootWins, LoadShippedFinlandFixture) |
 | Accepted by | |
 | Accepted date | |
 
@@ -88,6 +88,7 @@ Assignment determinism requires a policy version paired with map-data version
 | Finding | Proposed disposition |
 | --- | --- |
 | Product §8.3 global prefer admin_11 then 10 vs SPD-023 FI 10→9→11 | Follow SPD-023 for Finland; document in `data/street_pixels/README.md`. No product-spec edit. |
-| Healpix upstream `byteswap` ambiguous with C++23 `std::byteswap`; libsharp needs OpenMP at link | Local build unblocker in `3party/healpix/` (override header + OpenMP link). Not Street Pixels scope; keep until upstream/submodule bump. |
-| Loader lives in `libs/street_pixels_config/` (not only `map`) so generator can link without map | Intentional; record for SP-026. |
+| Healpix upstream `byteswap` ambiguous with C++23 `std::byteswap`; libsharp needs OpenMP at link | Local build unblocker in `3party/healpix/` (override header + OpenMP link + PRE_BUILD re-copy). Not Street Pixels product scope; required for green `street_pixels_tests` link. Keep until upstream/submodule bump. |
+| Loader lives in `libs/street_pixels_config/` (not only `map`) so generator can link without map | Intentional; record for SP-026. No separate Java parser — Android ships JSON via assets symlink; rematch uses shared C++ (SPD-002). |
+| Directory assets symlink also packages `README.md` into the APK | Harmless (~3 KiB). Optionally switch to a file symlink of `country_policies.json` only in a later cleanup. |
 | | |
