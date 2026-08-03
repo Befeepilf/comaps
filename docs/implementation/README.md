@@ -160,14 +160,10 @@ roadmap tracks.
 | Work item | Status |
 | --- | --- |
 | SP-001–014 | Accepted (Phases 1–2) |
-| SP-015 | Accepted 2026-08-03 |
-| SP-016 | Accepted 2026-08-03 |
-| SP-017 | Accepted 2026-08-03 |
-| SP-018 | Accepted 2026-08-03 |
-| SP-019 | Accepted 2026-08-03 |
-| SP-020 | Accepted 2026-08-03 |
-| SP-021 | Accepted 2026-08-03 |
-| SP-022 | Accepted 2026-08-03 (device walks → Phase 10) |
+| SP-015–022 | Accepted (Phase 3; device walks → Phase 10) |
+| SP-023 | Planned — polygon size/coverage spike |
+| SP-024 | Planned — architecture decisions |
+| SP-025–031 | Planned — config, generator, assignment, validation |
 
 ## 5. Release slices
 
@@ -357,5 +353,22 @@ Evidence: [`validation/SP-022-evidence-log.md`](validation/SP-022-evidence-log.m
 Phase 3 residual (Pixel 3a / Uusimaa device walks, rematch timing on large
 `.pix`) tracked in Phase 10.
 
-Detailed work items exist for Phases 1–3. Phase 4 is broken down after its
-entry investigation. Later phases follow the same rule.
+| Order | ID | Title | Phase | Why first |
+| --- | --- | --- | --- | --- |
+| 23 | [SP-023](work-items/SP-023-admin-polygon-size-spike.md) | Spike: admin polygon retention size and coverage | 4 | Planned — unblocks store/assignment decisions |
+| 24 | [SP-024](work-items/SP-024-area-pipeline-architecture-decisions.md) | Area-pipeline architecture decisions | 4 | Planned — after SP-023 numbers |
+| 25 | [SP-025](work-items/SP-025-country-config-schema.md) | Versioned country-config schema | 4 | Planned — data contract |
+| 26 | [SP-026](work-items/SP-026-generator-true-polygons.md) | Generator: emit true closed exploration polygons | 4 | Planned — depends on SP-024 |
+| 27 | [SP-027](work-items/SP-027-client-polygon-runtime-api.md) | Client runtime polygon API | 4 | Planned — offline PIP |
+| 28 | [SP-028](work-items/SP-028-pixel-to-area-assignment.md) | Deterministic pixel-to-area assignment | 4 | Planned — §8.8 rules |
+| 29 | [SP-029](work-items/SP-029-settlement-fallback-and-no-area.md) | Settlement fallback and no-area state | 4 | Planned — SPD-007 |
+| 30 | [SP-030](work-items/SP-030-assignment-persistence-and-rematch.md) | Persist assignments and rematch hooks | 4 | Planned — durable area ids |
+| 31 | [SP-031](work-items/SP-031-area-pipeline-end-to-end-validation.md) | Area-pipeline end-to-end validation | 4 | Planned — Phase 4 exit gate |
+
+Phase 4 entry investigation (2026-08-03) recorded in
+[`phases/phase-04-administrative-area-pipeline.md`](phases/phase-04-administrative-area-pipeline.md).
+Do not start SP-025+ until SP-023 measurements and SP-024 decisions land.
+
+Detailed work items exist for Phases 1–4. Later phases are broken down after
+their entry criteria are met, and after any spike that phase depends on has a
+recorded outcome.
