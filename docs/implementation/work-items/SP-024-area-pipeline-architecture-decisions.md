@@ -1,8 +1,8 @@
 # SP-024 — Area-pipeline architecture decisions
 
 **Phase:** 4 — Administrative-area pipeline
-**Status:** In review
-**Branch:** `cursor/sp-024-area-pipeline-architecture-191e`
+**Status:** Accepted
+**Branch:** `street-pixels` (merged from `cursor/sp-024-area-pipeline-architecture-191e`)
 **Depends on:** SP-023 measurements accepted
 **Unblocks:** SP-025+
 
@@ -86,8 +86,8 @@ violating size or privacy constraints.
 | Commits | `8684ebf3d` (SPD-020–025 + phase-04/README); `838c66e95` (SP-024–031 work-item annotations); `2149940cf` (evidence SHA fill); `67a011750` (independent review fixes) |
 | Decision ids | SPD-020 (sidecar store), SPD-021 (generator-precomputed), SPD-022 (sparse + rematerialize), SPD-023 (JSON policy under `data/street_pixels/`), SPD-024 (no invented numeric floors), SPD-025 (true municipal rings) |
 | Depends on SP-023 | **Accepted** 2026-08-03 — Finland size/coverage; recommendation inputs agreed for store/locus/persistence/settlement; suitability floors deferred (SPD-024) |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-03 |
 
 ## Discovered follow-up
 
