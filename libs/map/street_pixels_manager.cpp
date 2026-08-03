@@ -929,40 +929,69 @@ double StreetPixelsManager::GetSegmentExplorationWeightMultiplier(std::string co
   return 1.0 + strength * kMaxExplorationPenalty * exploredRatio;
 }
 
-bool StreetPixelsManager::IsExplorable(FeatureType & ft) const
+bool IsExplorableFeature(feature::GeomType geomType, feature::TypesHolder const & types)
 {
-  if (ft.GetGeomType() != feature::GeomType::Line)
+  if (geomType != feature::GeomType::Line)
     return false;
 
   bool isHighway = false;
   bool isPrivate = false;
   bool isBikeAccessible = true;
   bool isPedestrianAccessible = true;
-  Classificator & c = classif();
-  ft.ForEachType([&](std::uint64_t type)
+  bool isMotorwayFamily = false;
+  bool hasYesBicycle = false;
+  bool hardExclude = false;
+  Classificator const & c = classif();
+  for (uint32_t type : types)
   {
-    std::vector<std::string> types = c.GetFullObjectNamePath(type);
-    if (types.size() > 0 && types[0] == "highway")
+    std::vector<std::string> const path = c.GetFullObjectNamePath(type);
+    if (!path.empty() && path[0] == "highway")
     {
-      if (types.size() < 3 || (types[2] != "driveway" && types[2] != "tunnel"))
+      if (path.size() >= 2 &&
+          (path[1] == "construction" || path[1] == "elevator" || path[1] == "raceway"))
+      {
+        hardExclude = true;
+      }
+      else if (path.size() >= 3 &&
+               (path[2] == "driveway" || path[2] == "tunnel" || path[2] == "no-access"))
+      {
+        hardExclude = true;
+      }
+      else
+      {
         isHighway = true;
+        if (path.size() >= 2 && (path[1] == "motorway" || path[1] == "motorway_link"))
+          isMotorwayFamily = true;
+      }
     }
-    if (types.size() >= 2 && types[0] == "hwtag")
+    if (path.size() >= 2 && path[0] == "hwtag")
     {
-      if (types[1] == "private")
+      if (path[1] == "private")
         isPrivate = true;
-      else if (types[1] == "nobicycle")
+      else if (path[1] == "nobicycle")
         isBikeAccessible = false;
-      else if (types[1] == "yesbicycle")
+      else if (path[1] == "yesbicycle")
+      {
         isBikeAccessible = true;
-      else if (types[1] == "nofoot")
+        hasYesBicycle = true;
+      }
+      else if (path[1] == "nofoot")
         isPedestrianAccessible = false;
-      else if (types[1] == "yesfoot")
+      else if (path[1] == "yesfoot")
         isPedestrianAccessible = true;
     }
-  });
+  }
 
-  return isHighway && !isPrivate && (isBikeAccessible || isPedestrianAccessible);
+  if (!isHighway || isPrivate || hardExclude)
+    return false;
+  if (isMotorwayFamily)
+    return hasYesBicycle;
+  return isBikeAccessible || isPedestrianAccessible;
+}
+
+bool StreetPixelsManager::IsExplorable(FeatureType & ft) const
+{
+  return IsExplorableFeature(ft.GetGeomType(), feature::TypesHolder(ft));
 }
 
 df::StreetPixel const * StreetPixelsManager::FindStreetPixel(std::int64_t pixelId) const
