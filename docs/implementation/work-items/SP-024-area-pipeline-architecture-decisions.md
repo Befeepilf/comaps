@@ -83,7 +83,7 @@ violating size or privacy constraints.
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-024-area-pipeline-architecture-191e` |
-| Commits | `8684ebf3d` (SPD-020–025 + phase-04/README); `a61dc94dd` (SP-024–031 work-item annotations) |
+| Commits | `8684ebf3d` (SPD-020–025 + phase-04/README); `838c66e95` (SP-024–031 work-item annotations) |
 | Decision ids | SPD-020 (sidecar store), SPD-021 (generator-precomputed), SPD-022 (sparse + rematerialize), SPD-023 (JSON policy under `data/street_pixels/`), SPD-024 (no invented numeric floors), SPD-025 (true municipal rings) |
 | Depends on SP-023 | **Accepted** 2026-08-03 — Finland size/coverage; recommendation inputs agreed for store/locus/persistence/settlement; suitability floors deferred (SPD-024) |
 | Accepted by | |
