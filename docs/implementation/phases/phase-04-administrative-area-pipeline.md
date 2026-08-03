@@ -113,8 +113,7 @@ already noted). Spike 6 size measurement: **SP-023 accepted** 2026-08-03
 | 8 | [SP-030](../work-items/SP-030-assignment-persistence-and-rematch.md) | Persist assignments and rematch hooks |
 | 9 | [SP-031](../work-items/SP-031-area-pipeline-end-to-end-validation.md) | Area-pipeline end-to-end validation |
 
-**Do not start SP-025+ coding until SP-024 is Accepted.** Decisions SPD-020–025
-are recorded; maintainer acceptance of the SP-024 work item is still pending.
+**SP-025+ unblocked** — SP-024 Accepted 2026-08-03 (SPD-020–025).
 
 ### Open decisions (for SP-024 after SP-023) — closed
 
