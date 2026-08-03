@@ -1,8 +1,8 @@
 # SP-023 — Spike: admin polygon retention size and coverage
 
 **Phase:** 4 — Administrative-area pipeline
-**Status:** Evidence recorded (not accepted)
-**Branch:** `cursor/sp-023-admin-polygon-spike-191e`
+**Status:** Accepted
+**Branch:** `street-pixels` (merged from `cursor/sp-023-admin-polygon-spike-191e`)
 **Depends on:** Phase 3 accepted (map-data version + rematch substrate available for sampling)
 **Unblocks:** SP-024
 
