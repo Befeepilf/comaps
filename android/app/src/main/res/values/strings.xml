@@ -729,6 +729,7 @@
     <string name="button_layer_traffic">Traffic</string>
     <string name="subway">Subway</string>
     <string name="button_layer_street_pixels">Street Pixels</string>
+    <string name="street_pixels_more_to_explore">%1$s map was updated. Streets may have been added or removed, so your exploration stats may have changed slightly. Your progress is still saved.</string>
     <string name="layers_title">Map Styles and Layers</string>
     <string name="bookmarks_empty_list_title">This list is empty</string>
     <string name="bookmarks_empty_list_message">To save a place, tap a place on the map and then tap the star icon</string>

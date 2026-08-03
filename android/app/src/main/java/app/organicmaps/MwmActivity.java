@@ -103,8 +103,10 @@ import app.organicmaps.sdk.location.RecordingSession;
 import app.organicmaps.sdk.location.SensorListener;
 import app.organicmaps.sdk.location.TrackRecorder;
 import app.organicmaps.sdk.maplayer.isolines.IsolinesState;
+import app.organicmaps.sdk.maplayer.streetpixels.RematchFractionChange;
 import app.organicmaps.sdk.maplayer.streetpixels.StreetPixelsManager;
 import app.organicmaps.sdk.maplayer.streetpixels.StreetPixelsState;
+import app.organicmaps.sdk.downloader.CountryItem;
 import app.organicmaps.sdk.routing.RouteMarkType;
 import app.organicmaps.sdk.routing.RoutingController;
 import app.organicmaps.sdk.routing.RoutingInfo;
@@ -1215,6 +1217,18 @@ public class MwmActivity extends BaseMwmFragmentActivity
   private void onStreetPixelsStateChanged(@NonNull StreetPixelsState type)
   {
     mMapButtonsViewModel.setStreetPixelsState(type);
+    if (type.getStatus() != StreetPixelsState.Status.READY || TextUtils.isEmpty(type.getCountryId()))
+      return;
+
+    RematchFractionChange change = MwmApplication.from(getApplicationContext())
+                                       .getStreetPixelsManager()
+                                       .takePendingRematchFractionChange(type.getCountryId());
+    if (change == null || !change.decreasedDueToUniverseGrowth)
+      return;
+
+    CountryItem country = CountryItem.fill(change.countryId);
+    String countryName = TextUtils.isEmpty(country.name) ? change.countryId : country.name;
+    Toast.makeText(this, getString(R.string.street_pixels_more_to_explore, countryName), Toast.LENGTH_LONG).show();
   }
 
   private void onRecordingSessionStateChanged(@RecordingSession.State int previous, @RecordingSession.State int current)
