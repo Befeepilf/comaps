@@ -32,6 +32,8 @@ struct CountryPolicy
 // Versioned country exploration-area policy (SPD-023). Unknown ISO / MWM ids
 // resolve to UnconfiguredPolicy (configured=false, empty levels) — never invent
 // grids. No numeric floor fields exist or are applied (SPD-024).
+// GetByMwmId prefers the longest matching mwm_root_ids entry (exact, else
+// `<root>_…` prefix) so regional roots beat shorter country roots.
 class CountryConfig
 {
 public:
@@ -44,6 +46,7 @@ public:
   uint32_t GetSchemaVersion() const { return m_schemaVersion; }
 
   CountryPolicy const & GetByIso(std::string const & isoCode) const;
+  // Exact mwm_root_ids match, else longest `<root>_…` prefix match.
   CountryPolicy const & GetByMwmId(std::string const & countryId) const;
 
   static CountryPolicy const & UnconfiguredPolicy();

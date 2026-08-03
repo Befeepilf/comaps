@@ -4,12 +4,19 @@
 
 #include "cppjansson/cppjansson.hpp"
 
+#include <cctype>
 #include <utility>
 
 namespace street_pixels
 {
 namespace
 {
+bool IsIso3166Alpha2(std::string const & isoCode)
+{
+  return isoCode.size() == 2 && std::isupper(static_cast<unsigned char>(isoCode[0])) &&
+         std::isupper(static_cast<unsigned char>(isoCode[1]));
+}
+
 PlaceBoundaryPolicy ParsePlaceBoundaries(json_t * countryObj)
 {
   PlaceBoundaryPolicy policy;
@@ -77,8 +84,11 @@ CountryConfig CountryConfig::LoadFromString(std::string const & json)
     json_object_foreach(countries, isoKey, countryObj)
     {
       std::string const isoCode(isoKey);
-      if (isoCode.empty())
-        MYTHROW(Exception, ("Empty ISO country key is not allowed."));
+      if (!IsIso3166Alpha2(isoCode))
+      {
+        MYTHROW(Exception,
+                ("Country key", isoCode, "must be ISO 3166-1 alpha-2 (two uppercase letters)."));
+      }
       if (config.m_byIso.contains(isoCode))
         MYTHROW(Exception, ("Duplicate ISO country key", isoCode));
 
@@ -132,11 +142,20 @@ CountryPolicy const & CountryConfig::GetByMwmId(std::string const & countryId) c
   if (exact != m_mwmRootToIso.end())
     return GetByIso(exact->second);
 
+  // Prefer the longest matching root so a regional root (e.g. Finland_Aland)
+  // wins over a shorter country root (Finland) for the same leaf id.
+  std::string const * bestIso = nullptr;
+  size_t bestRootSize = 0;
   for (auto const & [root, iso] : m_mwmRootToIso)
   {
-    if (MwmIdMatchesRoot(countryId, root))
-      return GetByIso(iso);
+    if (MwmIdMatchesRoot(countryId, root) && root.size() > bestRootSize)
+    {
+      bestRootSize = root.size();
+      bestIso = &iso;
+    }
   }
+  if (bestIso)
+    return GetByIso(*bestIso);
   return UnconfiguredPolicy();
 }
 }  // namespace street_pixels
