@@ -4,7 +4,9 @@
 **Date:** 2026-08-03  
 **Branch:** `cursor/sp-023-admin-polygon-spike-191e`  
 **Scope:** Desktop-only measurement. No production behaviour change.  
-**Source PBF:** Geofabrik `finland-latest.osm.pbf` → `finland-260802.osm.pbf` (737 359 571 bytes)  
+**Source PBF:** Geofabrik `finland-latest.osm.pbf` snapshot used as
+`finland-260802.osm.pbf` (737 359 571 bytes;
+sha256 `a446647ff15a2fc334cc83be283cc637fd66ff560b166d589525793e5ffc2724`)  
 **Universe:** highway→HEALPix `nside=1048576` proxy at 15 m (no `.pix` in workspace)
 
 Scripts: `tools/python/street_pixels_spike/`. Raw outputs under `/tmp/sp023/` (not committed).
@@ -105,7 +107,9 @@ assignment *persistence* still matter for worldwide scaling and rematch cost.
 
 ## 4. Coverage (D3)
 
-Settlements = closed `place=city|town|village|municipality` **or** `admin_level=8`.  
+Settlements = closed `place=city|town|village|municipality` **or** `admin_level=8`
+(distinct OSM objects; a nested `place=town` and its municipality `admin_8` can
+both count — breadth for SPD-007, not a municipality census).  
 Subdivision = admin_9–11 + closed place suburb/quarter/neighbourhood.  
 A settlement “has subdivision” if a subdivision polygon overlaps it with
 intersection area ≳ 1000 m² (rough filter).
@@ -157,9 +161,11 @@ PIP extrapolations.
 
 ## 6. Assignment cost (D4)
 
-STRtree query + `covers` + smallest `area_m2` then ascending `osm_id` (§8.8).  
-Candidates: 2 335 subdivision polygons; fallback: settlements intersecting the
-Helsinki border.
+STRtree query + `covers` + smallest `area_m2` then ascending `osm_id`.  
+**Coverage/cost proxy only:** candidates are all subdivision classes together
+(admin_9–11 + closed place); this does **not** apply country-config level
+priority before smallest-area (full §8.8 stack is SP-028). Fallback: settlements
+intersecting the Helsinki border.
 
 | Metric | Value |
 | --- | --- |
@@ -203,8 +209,8 @@ Programmatic checks:
 - **Closed rings:** 500/500 GeoJSON features; 745/745 subdivisions intersecting
   the Helsinki MWM border had closed outers.
 - **Names:** 744/745 named.
-- **Real district relations** (spot-checked by name against known Helsinki
-  kaupunginosat — not an allowlist):
+- **Known OSM relation IDs** (spot-check dict in `coverage_and_assign.py` —
+  not an allowlist; all 11 resolved in the retained rings):
 
 | Name | OSM | Class | Vertices |
 | --- | --- | --- | ---: |
@@ -229,6 +235,17 @@ few (7), so place-fallback is secondary to admin_10 for Finland.
 
 These are measurement-grounded **inputs**. SP-024 decides; do not treat as
 accepted architecture.
+
+Map to Phase 4 open decisions (phase-04 §“Open decisions”):
+
+| # | Open decision | Preferred input (grounded) |
+| --- | --- | --- |
+| 1 | Polygon store | Per-country sidecar (see below) |
+| 2 | Assignment locus | Generator-precomputed / once-per-derive (see below) |
+| 3 | Assignment persistence | Sparse explored + rematerialize *or* full uint16/uint32 sidecar |
+| 4 | Country-config format / versioning | Not sized here — schema still SP-025; Finland grain inputs below |
+| 5 | Suitability + privacy thresholds | Not computed (pixel counts per area) — follow-up |
+| 6 | Settlement geometry three-box vs true | True admin_8 rings affordable for FI (~1.0 MiB coded national) |
 
 ### Store location
 
@@ -304,3 +321,5 @@ Exit status of all three scripts in this run: **0**.
 | Second dense-admin country not measured | SP-024 may want one more country before locking worldwide store policy |
 | Pixel-count per area (privacy floor) | Measure in SP-024/025 suitability work |
 | Exact production geometry codec vs spike coded_delta | SP-026 should re-measure with shipping encoder |
+| PIP sample skips country-config level priority | SP-028 must implement full §8.8 stack; do not copy spike assigner |
+| Settlement denominator mixes place + admin_8 objects | Document when quoting %; optional municipality-only cut for SP-025 |
