@@ -170,7 +170,7 @@ roadmap tracks.
 | SP-018 | Planned |
 | SP-019 | Planned |
 | SP-020 | Planned |
-| SP-021 | Planned |
+| SP-021 | Accepted 2026-08-03 |
 | SP-022 | Planned |
 
 ## 5. Release slices
@@ -350,7 +350,7 @@ decision) tracked in Phase 10.
 | 18 | [SP-018](work-items/SP-018-exploration-survives-map-delete.md) | Explored state survives map delete and redownload | 3 | Accepted — compact archive (SPD-016) |
 | 19 | [SP-019](work-items/SP-019-derivation-sampling-alignment.md) | Unify path sampling at 15 m | 3 | Accepted — live/track → 15 m (SPD-019) |
 | 20 | [SP-020](work-items/SP-020-eligibility-policy-alignment.md) | Eligibility vs spec §13 | 3 | Accepted — tighten + divergence register; OQ-5 closed |
-| 21 | [SP-021](work-items/SP-021-denominator-recalc-and-update-messaging.md) | Denominator recalculation and §27.3 messaging | 3 | Planned — “more to explore” framing |
+| 21 | [SP-021](work-items/SP-021-denominator-recalc-and-update-messaging.md) | Denominator recalculation and §27.3 messaging | 3 | Accepted — rematch fraction toast; progress preserved |
 | 22 | [SP-022](work-items/SP-022-exploration-storage-end-to-end-validation.md) | Exploration storage end-to-end validation | 3 | Planned — Phase 3 exit gate |
 
 Phase 3 entry investigation (2026-08-03) recorded in
