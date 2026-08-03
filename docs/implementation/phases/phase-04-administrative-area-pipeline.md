@@ -59,8 +59,8 @@ where they differ — none material).
 
 **Difference from the technical audit:** audit’s 2–4 kept / 7,9–11 deprecated
 claim remains correct but incomplete — 5, 6, 8 were never mapped (phase doc
-already noted). Spike 6 size measurement: **SP-023 evidence recorded** on
-2026-08-03 (Finland; not accepted — see
+already noted). Spike 6 size measurement: **SP-023 accepted** 2026-08-03
+(Finland; see
 [SP-023](../work-items/SP-023-admin-polygon-size-spike.md) and
 [spike note](../spikes/SP-023-finland-admin-polygons.md)).
 
