@@ -88,7 +88,7 @@ sampling at 15 m and does not densify the universe.)
 | Field | Value |
 | --- | --- |
 | Branch | `street-pixels` |
-| Commits | *(filled after commit)* |
+| Commits | `b709cf3fc6` |
 | String ids used | `street_pixels_more_to_explore` — “%1$s map was updated. Streets may have been added or removed, so your exploration stats may have changed slightly. Your progress is still saved.” |
 | Test output | `ninja street_pixels_tests`; `./street_pixels_tests --filter=Rematch` → All tests passed (incl. Rematch_DenominatorGrowsFractionDrops, Rematch_PreviousVsNewFractionSignal, Rematch_NoFractionDropLeavesNoPending, Rematch_FailLeavesNoPending, Rematch_EqualVersionLeavesNoPending, Rematch_WrongCountryTakeLeavesPending, Rematch_SuccessfulNonDropClearsSameCountryPending). `./street_pixels_tests` → All tests passed. `:sdk:compileDebugJavaWithJavac` → BUILD SUCCESSFUL. Full APK/native JNI link not run. |
 | Manual validation | Deferred to SP-022 / device map-update toast check |
