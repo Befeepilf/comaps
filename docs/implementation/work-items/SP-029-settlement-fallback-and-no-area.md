@@ -26,7 +26,7 @@ and no-area must be explicit product states, not accidental nulls.
 ## In-scope behavior
 
 - Detect settlement membership via true municipal rings loaded from the
-  sidecar (SPD-025 / SP-027) — for Finland, admin_8 (SPD-023).
+  sidecar (SPD-025 / SP-027) — for Finland, admin_8 (SPD-023 Finland seed).
 - Input: SP-028 result (subdivision id or none), possibly already encoded in
   the precomputed blob with a settlement layer — verify product layering:
   subdivision wins over whole-settlement.

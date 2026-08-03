@@ -83,7 +83,7 @@ violating size or privacy constraints.
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-024-area-pipeline-architecture-191e` |
-| Commits | `8684ebf3d` (SPD-020–025 + phase-04/README); `838c66e95` (SP-024–031 work-item annotations) |
+| Commits | `8684ebf3d` (SPD-020–025 + phase-04/README); `838c66e95` (SP-024–031 work-item annotations); `2149940cf` (evidence SHA fill) |
 | Decision ids | SPD-020 (sidecar store), SPD-021 (generator-precomputed), SPD-022 (sparse + rematerialize), SPD-023 (JSON policy under `data/street_pixels/`), SPD-024 (no invented numeric floors), SPD-025 (true municipal rings) |
 | Depends on SP-023 | **Accepted** 2026-08-03 — Finland size/coverage; recommendation inputs agreed for store/locus/persistence/settlement; suitability floors deferred (SPD-024) |
 | Accepted by | |
@@ -99,3 +99,4 @@ violating size or privacy constraints.
 | Exact shipping geometry / assignment-blob codec vs spike encodings | Re-measure under SP-026 / SP-031 exit #7 |
 | Exact filenames and schema fields under `data/street_pixels/` | SP-025 |
 | Classificator / mapcss divergence for levels 5/6/8 | SP-026 — sidecar may reduce drawable-type pressure; document upstream impact |
+| SP-026 title still emphasises polygons while scope includes the dense assignment artifact | Optional title/objective rename when SP-026 starts; scope text already covers both |
