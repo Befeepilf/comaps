@@ -1,6 +1,6 @@
 # Phase 4 — Administrative-area pipeline
 
-**Status:** In progress (phase-entry investigation complete 2026-08-03; SP-024 decisions recorded as SPD-020–025 — work item In review; SP-025+ Planned)
+**Status:** In progress (SP-023–024 Accepted 2026-08-03; SP-025 next)
 **Depends on:** Phase 3
 **Blocks:** Phases 5, 7, 8
 
@@ -211,8 +211,7 @@ fallback / rural no-area on top. Do not invert that order.
   least one full country. **Met 2026-08-03** (SP-023 Finland accepted).
 - A decision exists on where polygons live and whether assignment is on-device
   or precomputed. **Met** — SPD-020 (per-country sidecar), SPD-021
-  (generator-precomputed). SP-024 work item remains In review until maintainer
-  acceptance.
+  (generator-precomputed). SP-024 **Accepted** 2026-08-03.
 
 ## Exit criteria
 
