@@ -160,18 +160,19 @@ add_library(${PROJECT_NAME} ${SRC})
 # patched header in-tree and copy it onto the submodule checkout. Quoted
 # `#include "bstream.h"` resolves the same-directory header first, so
 # include-path shadowing cannot work — we must overwrite the submodule file.
-# PRE_BUILD re-applies after submodule resets (configure-time copy alone is lost).
+# A custom target (not TARGET PRE_BUILD) re-applies before compile: under Ninja,
+# PRE_BUILD only runs at link time, which is too late if the checkout was reset.
 set(HEALPIX_BSTREAM_OVERRIDE ${CMAKE_CURRENT_SOURCE_DIR}/cxxsupport_overrides/bstream.h)
 set(HEALPIX_BSTREAM_TARGET ${CMAKE_CURRENT_SOURCE_DIR}/healpix/src/cxx/cxxsupport/bstream.h)
 configure_file(${HEALPIX_BSTREAM_OVERRIDE} ${HEALPIX_BSTREAM_TARGET} COPYONLY)
-add_custom_command(
-  TARGET ${PROJECT_NAME} PRE_BUILD
+add_custom_target(healpix_apply_bstream_override
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
           ${HEALPIX_BSTREAM_OVERRIDE}
           ${HEALPIX_BSTREAM_TARGET}
   COMMENT "Applying Healpix bstream.h C++23 byteswap override"
   VERBATIM
 )
+add_dependencies(${PROJECT_NAME} healpix_apply_bstream_override)
 
 target_include_directories(${PROJECT_NAME} PUBLIC healpix/src/common_libraries/libsharp healpix/src/common_libraries/libsharp/libsharp healpix/src/cxx/cxxsupport healpix/src/cxx/Healpix_cxx)
 

@@ -75,7 +75,7 @@ Assignment determinism requires a policy version paired with map-data version
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-025-country-config-schema-191e` |
-| Commits | `74a9a28f0` [cmake] healpix C++23/OpenMP; `1b240f6d9` [map][android][cmake] schema+loader+tests; `6324b79d8`/`326822f34` [docs] evidence |
+| Commits | `74a9a28f0` [cmake] healpix C++23/OpenMP; `1b240f6d9` [map][android][cmake] schema+loader+tests; `6324b79d8`/`326822f34`/`b2100e410` [docs] evidence; review: `0322e0840` [map] longest-root+ISO; `f63abadcc` [cmake] PRE_BUILD override; `f5322d3bb` [docs] follow-ups |
 | Schema path | `data/street_pixels/country_policies.json` |
 | Fixture country | FI — subdivision [10,9,11], settlement [8], place_boundaries neighbourhood/quarter/suburb |
 | Decision ids (SP-024) | SPD-023 (primary); SPD-024 (no numeric floors) |
@@ -88,7 +88,7 @@ Assignment determinism requires a policy version paired with map-data version
 | Finding | Proposed disposition |
 | --- | --- |
 | Product §8.3 global prefer admin_11 then 10 vs SPD-023 FI 10→9→11 | Follow SPD-023 for Finland; document in `data/street_pixels/README.md`. No product-spec edit. |
-| Healpix upstream `byteswap` ambiguous with C++23 `std::byteswap`; libsharp needs OpenMP at link | Local build unblocker in `3party/healpix/` (override header + OpenMP link + PRE_BUILD re-copy). Not Street Pixels product scope; required for green `street_pixels_tests` link. Keep until upstream/submodule bump. |
+| Healpix upstream `byteswap` ambiguous with C++23 `std::byteswap`; libsharp needs OpenMP at link | Local build unblocker in `3party/healpix/` (override header + OpenMP link + always-run custom target copy before compile). Not Street Pixels product scope; required for green `street_pixels_tests` link. Keep until upstream/submodule bump. |
 | Loader lives in `libs/street_pixels_config/` (not only `map`) so generator can link without map | Intentional; record for SP-026. No separate Java parser — Android ships JSON via assets symlink; rematch uses shared C++ (SPD-002). |
 | Directory assets symlink also packages `README.md` into the APK | Harmless (~3 KiB). Optionally switch to a file symlink of `country_policies.json` only in a later cleanup. |
 | | |
