@@ -1,8 +1,8 @@
 # SP-023 — Spike: admin polygon retention size and coverage
 
 **Phase:** 4 — Administrative-area pipeline
-**Status:** Planned
-**Branch:** `street-pixels`
+**Status:** Accepted
+**Branch:** `street-pixels` (merged from `cursor/sp-023-admin-polygon-spike-191e`)
 **Depends on:** Phase 3 accepted (map-data version + rematch substrate available for sampling)
 **Unblocks:** SP-024
 
@@ -106,20 +106,26 @@ the gap).
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commits | |
-| Country measured | |
-| Size / coverage table | |
-| Assignment cost / table-size estimate | |
-| Recommendation inputs | |
-| Test output | |
-| Manual validation | |
-| Implemented by | |
-| Accepted by | |
-| Accepted date | |
+| Branch | `cursor/sp-023-admin-polygon-spike-191e` |
+| Commits | `b9d0bf4ae` [tools] spike scripts; `7a6cb7e56` [docs] evidence + spike note; `03f15d4fa` [docs] evidence SHAs; `324a79f19` [tools] review fixes; `ac90adc3b` [docs] review evidence alignment |
+| Country measured | Finland (Geofabrik `finland-latest` snapshot 2026-08-02 as `finland-260802.osm.pbf`, 737 359 571 bytes, sha256 `a446647ff15a2fc334cc83be283cc637fd66ff560b166d589525793e5ffc2724`); Uusimaa-class focus via `Finland_Southern Finland_Helsinki` border |
+| Size / coverage table | Full tables in [spikes/SP-023-finland-admin-polygons.md](../spikes/SP-023-finland-admin-polygons.md). Summary: **2 751** closed rings, **609 188** vertices; country-concat zlib(coded) **~2.06 MiB**; Helsinki-attributed zlib_coded **~0.52 MiB** (**~0.42 %** of Helsinki MWM 125 MiB). World `cities_boundaries` **1 079 477** B; `packed_polygons.bin` **3 676 511** B. Settlement subdivision coverage **37.3 %** national / **49.1 %** Helsinki-MWM (settlement = closed place city/town/village/municipality **or** admin_8). Highway HEALPix sample: **75.4 %** subdivision / **24.6 %** settlement fallback / **0 %** no-area inside border. admin_5/6 absent; place closed rings rare (45). |
+| Assignment cost / table-size estimate | Universe = highway→HEALPix nside=1048576 @15 m proxy (**6 844 831** cells, ~1.05× Phase 3 N≈6.5e6). STRtree PIP ~**24.8 µs**/pt desktop → ~**2.7 min** for 6.5e6 (optimistic vs phone; **coverage proxy** — smallest-area among subdivisions, not full §8.8 level priority). Table @ N=6.5e6: uint16 full **~13 MiB**, uint32 **~26 MiB**, uint64 OSM id **~52 MiB**; sparse 1 % explored **~0.78 MiB**; rematerialize **0**. |
+| Recommendation inputs | **Store:** prefer per-country sidecar (Finland zlib ~2.1 MiB; Helsinki ~0.5 MiB); in-MWM cheap for FI but optional/lazy preferred worldwide. **Assignment locus:** prefer generator-precomputed (or once-per-derive blob); on-device PIP is minutes on desktop — measure phone before primary. **Persistence:** sparse explored + rematerialize *or* full uint16/uint32 sidecar map; avoid full uint64 OSM ids. Finland config grain: admin_10 (+9/11) subdivisions, admin_8 settlement (SPD-007 load-bearing). Phase-04 open decisions 1–3 + 6 preferred inputs grounded; 4 (config format) and 5 (suitability/privacy thresholds) deferred. Not Accepted SPDs — for SP-024. |
+| Test output | Scripts exit 0: `extract_admin_place_polygons.py`, `measure_sizes.py`, `coverage_and_assign.py` (logs under `/tmp/sp023/`). Tooling: `tools/python/street_pixels_spike/`. |
+| Manual validation | Exported Helsinki metro GeoJSON; 500/500 closed rings. Spot-checked real districts by OSM id (11/11 known relations resolved): Kamppi r/184714, Kallio r/184765, Punavuori r/184703, Ullanlinna r/184702, Etu-Töölö r/184727, Helsinki admin_8 r/34914 (admin_10 kaupunginosat). |
+| Implemented by | Cursor Agent (cloud) |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-03 |
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| No admin_5/6 in Finland; admin_10 dominates subdivisions; closed place=* rare | Feed SP-025 Finland country-config defaults — do not assume place polygons |
+| Phone-class PIP / rematch not measured | Optional perf follow-up before locking on-device locus in SP-024 |
+| Only one country measured | SP-024 may want a second dense-admin country before worldwide store policy |
+| Spike `coded_delta` ≠ shipping geometry codec | Re-measure with production encoder in SP-026 |
+| Per-area street-pixel counts (privacy / suitability floors) not computed | SP-024/025 suitability + §23.4 anonymity work |
+| Spike PIP skips country-config level priority | SP-028 must implement full §8.8; do not copy spike assigner |
+| Settlement % mixes place + admin_8 OSM objects | Quote carefully; optional municipality-only cut for SP-025 |
