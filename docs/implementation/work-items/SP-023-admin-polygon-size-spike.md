@@ -107,7 +107,7 @@ the gap).
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-023-admin-polygon-spike-191e` |
-| Commits | (see branch; tooling + docs commits with `Work item: SP-023`) |
+| Commits | `b9d0bf4ae` [tools] spike scripts; `7a6cb7e56` [docs] evidence + spike note |
 | Country measured | Finland (Geofabrik `finland-260802.osm.pbf`, 737 359 571 bytes); Uusimaa-class focus via `Finland_Southern Finland_Helsinki` border |
 | Size / coverage table | Full tables in [spikes/SP-023-finland-admin-polygons.md](../spikes/SP-023-finland-admin-polygons.md). Summary: **2 751** closed rings, **609 188** vertices; country-concat zlib(coded) **~2.06 MiB**; Helsinki-attributed zlib_coded **~0.52 MiB** (**~0.42 %** of Helsinki MWM 125 MiB). World `cities_boundaries` **1 079 477** B; `packed_polygons.bin` **3 676 511** B. Settlement subdivision coverage **37.3 %** national / **49.1 %** Helsinki-MWM. Highway HEALPix sample: **75.4 %** subdivision / **24.6 %** settlement fallback / **0 %** no-area inside border. admin_5/6 absent; place closed rings rare (45). |
 | Assignment cost / table-size estimate | Universe = highway→HEALPix nside=1048576 @15 m proxy (**6 844 831** cells, ~1.05× Phase 3 N≈6.5e6). STRtree PIP ~**24.8 µs**/pt desktop → ~**2.7 min** for 6.5e6 (optimistic vs phone). Table @ N=6.5e6: uint16 full **~13 MiB**, uint32 **~26 MiB**, uint64 OSM id **~52 MiB**; sparse 1 % explored **~0.78 MiB**; rematerialize **0**. |
