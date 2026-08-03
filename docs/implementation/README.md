@@ -162,7 +162,7 @@ roadmap tracks.
 | SP-001–014 | Accepted (Phases 1–2) |
 | SP-015–022 | Accepted (Phase 3; device walks → Phase 10) |
 | SP-023 | Accepted — Finland size/coverage spike |
-| SP-024 | In progress / In review — SPD-020–025 recorded; entry store/locus Met |
+| SP-024 | In review — SPD-020–025 recorded; entry store/locus Met |
 | SP-025–031 | Planned — config, generator, assignment, validation (gated on SP-024 Accepted) |
 
 Phase 4 entry criteria for polygon store and assignment locus are **Met**

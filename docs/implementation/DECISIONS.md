@@ -563,8 +563,9 @@ World three-box rings for assignment is rejected by SPD-025.
 - Phase 4 exit size budget is measured against the sidecar (and any
   assignment blob), not against mandatory MWM growth.
 
-**Related documents.** Product spec §3.5, §8.3; SPD-006; SP-023; SP-024;
-SP-026; SP-027; `phases/phase-04-administrative-area-pipeline.md`.
+**Related documents.** Product spec §3.5, §8.3; SPD-006, SPD-021, SPD-025;
+SP-023; SP-024; SP-026; SP-027; SP-029;
+`phases/phase-04-administrative-area-pipeline.md`.
 
 ---
 
@@ -582,7 +583,7 @@ map or policy change. Offline-first holds: no network boundary lookup.
 ~2.7 min — tolerable as a generator/derive job, painful as interactive
 on-device rematch (phone-class hardware unmeasured and expected slower).
 Precomputation keeps assignment deterministic for a fixed (map-data version,
-policy version) pair while preserving the offline invariant.
+policy_version) pair while preserving the offline invariant.
 
 **Consequences.**
 
@@ -597,8 +598,9 @@ policy version) pair while preserving the offline invariant.
 - Phase-04 wording that assumed “assignment is always on-device” is obsolete;
   soften docs accordingly under SP-024.
 
-**Related documents.** Product spec §8.8; SPD-006; SP-023; SP-024; SP-026;
-SP-027; SP-028; SP-030.
+**Related documents.** Product spec §8.8; SPD-006, SPD-022; SP-023; SP-024;
+SP-026; SP-027; SP-028; SP-030;
+`phases/phase-04-administrative-area-pipeline.md`.
 
 ---
 
@@ -634,8 +636,9 @@ ids for every cell.
   do not require an explored-only store to invent answers for never-visited
   cells.
 
-**Related documents.** Product spec §8.8, §27.4; SPD-016; SP-023; SP-024;
-SP-030.
+**Related documents.** Product spec §8.8, §27.4; SPD-016, SPD-020, SPD-021;
+SP-023; SP-024; SP-026; SP-027; SP-030;
+`phases/phase-04-administrative-area-pipeline.md`.
 
 ---
 
@@ -668,8 +671,9 @@ review process, and the Finland seed priority.
   (SPD-007); never invent grids or city allowlists (SPD-004).
 - Expanding worldwide coverage is incremental data work, not a V1 exit gate.
 
-**Related documents.** Product spec §8.3, §34; SPD-004, SPD-006, SPD-007;
-SP-023; SP-024; SP-025.
+**Related documents.** Product spec §8.3, §34; SPD-004, SPD-006, SPD-007,
+SPD-024; SP-023; SP-024; SP-025;
+`phases/phase-04-administrative-area-pipeline.md`.
 
 ---
 
@@ -706,8 +710,9 @@ competition is a server concern, not a reason to invent client floors in SP-024.
   after measurement — record under discovered follow-ups until then.
 - Competition Phase 8 still implements §23.4 server-side anonymity.
 
-**Related documents.** Product spec §8.4, §8.8, §23.4; SPD-006, SPD-023;
-SP-024; SP-025; SP-031.
+**Related documents.** Product spec §8.4, §8.8, §23.4; SPD-006, SPD-007,
+SPD-023; SP-023; SP-024; SP-025; SP-026; SP-031;
+`phases/phase-04-administrative-area-pipeline.md`.
 
 ---
 
@@ -738,8 +743,9 @@ unchanged.
 - Outside true settlement rings → no area (SPD-007); exploration and routing
   continue.
 
-**Related documents.** Product spec §8.2, §8.5, §8.6; SPD-007, SPD-020;
-SP-023; SP-024; SP-026; SP-027; SP-029.
+**Related documents.** Product spec §8.2, §8.5, §8.6; SPD-007, SPD-020,
+SPD-023; SP-023; SP-024; SP-026; SP-027; SP-029;
+`phases/phase-04-administrative-area-pipeline.md`.
 
 ---
 

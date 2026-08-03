@@ -12,7 +12,7 @@
 
 Assign every valid street pixel to at most one **configured subdivision**
 exploration area (or none), deterministically for a fixed (map-data version,
-policy version) pair, using country-config priority, smallest-polygon rule, and
+policy_version) pair, using country-config priority, smallest-polygon rule, and
 stable-identifier tie-break (§8.8).
 
 V1 locus (SPD-021): **consume and verify** the generator-precomputed

@@ -83,6 +83,7 @@ assignment, fallback, and size budget hold.
 | --- | --- |
 | Validation plan | |
 | Evidence log | |
+| Decision ids (SP-024) | SPD-020–025 |
 | Test output | |
 | Exit criteria table | |
 | Residuals | |

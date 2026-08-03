@@ -201,7 +201,8 @@ fallback / rural no-area on top. Do not invert that order.
 - Inspect a rural area and confirm exploration works with no area shown.
 - Inspect a coastal or island municipality with fragmented polygons.
 - Inspect a city that straddles an administrative boundary.
-- Confirm MWM size change against the measured budget.
+- Confirm sidecar (+ assignment blob) size against the measured budget
+  (SPD-020 / exit #7) — not mandatory country-MWM growth.
 
 ## Entry criteria
 
@@ -226,7 +227,8 @@ fallback / rural no-area on top. Do not invert that order.
 5. Settlement fallback works where no suitable subdivision exists.
 6. Outside recognised settlements, exploration and routing work and no area is
    claimed.
-7. MWM or sidecar size impact is measured and accepted.
+7. Sidecar (+ assignment blob) size impact is measured and accepted
+   (SPD-020; no client numeric floor — SPD-024).
 8. No MWM country identifier is presented anywhere as a neighbourhood.
 
 ## Explicit non-goals
