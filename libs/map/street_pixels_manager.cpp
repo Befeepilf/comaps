@@ -91,6 +91,27 @@ size_t CountExploredPixels(std::span<df::StreetPixel const> streetPixels)
       ++explored;
   return explored;
 }
+
+uint64_t CountPixBodyEntries(std::string const & path, uint64_t fileSize)
+{
+  auto const probe = street_pixels_file::ProbeFile(path);
+  switch (probe.kind)
+  {
+  case street_pixels_file::FileKind::HeaderedV1:
+  case street_pixels_file::FileKind::HeaderedV2:
+    if (fileSize < street_pixels_file::kHeaderSize ||
+        ((fileSize - street_pixels_file::kHeaderSize) % sizeof(int64_t)) != 0)
+      return 0;
+    return (fileSize - street_pixels_file::kHeaderSize) / sizeof(int64_t);
+  case street_pixels_file::FileKind::Legacy:
+    if ((fileSize % sizeof(int64_t)) != 0)
+      return 0;
+    return fileSize / sizeof(int64_t);
+  case street_pixels_file::FileKind::UnsupportedFormat:
+  case street_pixels_file::FileKind::Corrupt: return 0;
+  }
+  return 0;
+}
 }  // namespace
 
 StreetPixelsManager::StreetPixelsManager(DataSource const & dataSource) : m_dataSource(dataSource) {}
@@ -616,6 +637,19 @@ bool StreetPixelsManager::RematchStreetPixelsWithNewUniverseForTesting(storage::
   return RematchStreetPixelsWithNewUniverseUnlocked(countryId, newIds, mapDataVersion);
 }
 
+std::optional<StreetPixelsManager::RematchFractionChange> StreetPixelsManager::TakePendingRematchFractionChange(
+    storage::CountryId const & forCountryId)
+{
+  std::lock_guard<std::mutex> lock(m_pendingRematchFractionMutex);
+  if (!m_pendingRematchFractionChange)
+    return std::nullopt;
+  if (!forCountryId.empty() && m_pendingRematchFractionChange->countryId != forCountryId)
+    return std::nullopt;
+  auto change = std::move(m_pendingRematchFractionChange);
+  m_pendingRematchFractionChange.reset();
+  return change;
+}
+
 bool StreetPixelsManager::ReloadStreetPixelsAfterRematchUnlocked(storage::CountryId const & countryId,
                                                                  std::int64_t mapDataVersion)
 {
@@ -672,11 +706,13 @@ bool StreetPixelsManager::RematchStreetPixelsWithNewUniverseUnlocked(storage::Co
   }
 
   street_pixels_file::ExploredEverLiveMap seed;
+  uint64_t previousTotal = 0;
   uint64_t pixSize = 0;
   bool const pixExists = Platform::GetFileSizeByFullPath(filePath, pixSize) && pixSize > 0;
   bool const archiveExists = Platform::IsFileExistsByFullPath(archivePath);
   if (pixExists)
   {
+    previousTotal = CountPixBodyEntries(filePath, pixSize);
     auto const scanned = street_pixels_file::ScanExploredEverLive(filePath);
     if (scanned)
     {
@@ -723,6 +759,40 @@ bool StreetPixelsManager::RematchStreetPixelsWithNewUniverseUnlocked(storage::Co
     return false;
   }
 
+  {
+    uint64_t const previousExplored = seed.size();
+    uint64_t const newTotal = newIds.size();
+    uint64_t newExplored = 0;
+    for (auto const & entry : seed)
+    {
+      if (newIds.find(entry.first) != newIds.end())
+        ++newExplored;
+    }
+    double const previousFraction =
+        previousTotal == 0 ? 0.0 : static_cast<double>(previousExplored) / static_cast<double>(previousTotal);
+    double const newFraction =
+        newTotal == 0 ? 0.0 : static_cast<double>(newExplored) / static_cast<double>(newTotal);
+    bool const decreasedDueToUniverseGrowth = newFraction < previousFraction && newTotal > previousTotal;
+    std::lock_guard<std::mutex> lock(m_pendingRematchFractionMutex);
+    if (decreasedDueToUniverseGrowth)
+    {
+      RematchFractionChange change;
+      change.countryId = countryId;
+      change.previousTotal = previousTotal;
+      change.previousExplored = previousExplored;
+      change.newTotal = newTotal;
+      change.newExplored = newExplored;
+      change.previousFraction = previousFraction;
+      change.newFraction = newFraction;
+      change.decreasedDueToUniverseGrowth = true;
+      m_pendingRematchFractionChange = std::move(change);
+    }
+    else if (m_pendingRematchFractionChange && m_pendingRematchFractionChange->countryId == countryId)
+    {
+      m_pendingRematchFractionChange.reset();
+    }
+  }
+
   Platform::RemoveFileIfExists(GetPlatform().WritablePathForFile(countryId + ".pixa"));
   Platform::RemoveFileIfExists(GetPlatform().WritablePathForFile(countryId + ".pixf"));
   Platform::RemoveFileIfExists(archivePath);
@@ -735,7 +805,11 @@ bool StreetPixelsManager::RematchStreetPixelsWithNewUniverseUnlocked(storage::Co
   }();
 
   if (stillActive)
+  {
+    if (m_state.status == StreetPixelsStatus::Ready)
+      ChangeState(StreetPixelsState{m_state.enabled, StreetPixelsStatus::Loading});
     return ReloadStreetPixelsAfterRematchUnlocked(countryId, mapDataVersion);
+  }
 
   return true;
 }

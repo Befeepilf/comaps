@@ -412,3 +412,184 @@ UNIT_TEST(Rematch_EqualVersionDoesNotRewrite)
 
   RematchRemoveIfExists(path);
 }
+
+UNIT_TEST(Rematch_DenominatorGrowsFractionDrops)
+{
+  std::string const countryId = "sp021_denom_grow";
+  std::string const path = RematchTestPixPath(countryId + ".pix");
+  RematchRemoveIfExists(path);
+
+  RematchWriteHeaderedRawWords(path, 1,
+                               {street_pixels_file::PackPixelEntry(1, true, false),
+                                street_pixels_file::PackPixelEntry(2, true, false)});
+
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  TEST(!manager.TakePendingRematchFractionChange().has_value(), ());
+
+  std::set<int64_t> const newIds{1, 2, 3, 4};
+  TEST(manager.RematchStreetPixelsWithNewUniverseForTesting(countryId, newIds, 2), ());
+
+  manager.LoadStreetPixelsFromFile(countryId, 2);
+  TEST_EQUAL(manager.GetTotalExploredFraction(), 0.5, ());
+
+  auto const words = RematchReadBodyWords(path);
+  TEST_EQUAL(words.size(), 4, ());
+  TEST_EQUAL(RematchCountExploredWords(words), 2, ());
+
+  auto const pending = manager.TakePendingRematchFractionChange();
+  TEST(pending.has_value(), ());
+  TEST_EQUAL(pending->countryId, countryId, ());
+  TEST_EQUAL(pending->previousTotal, 2, ());
+  TEST_EQUAL(pending->previousExplored, 2, ());
+  TEST_EQUAL(pending->newTotal, 4, ());
+  TEST_EQUAL(pending->newExplored, 2, ());
+  TEST_EQUAL(pending->previousFraction, 1.0, ());
+  TEST_EQUAL(pending->newFraction, 0.5, ());
+  TEST(pending->decreasedDueToUniverseGrowth, ());
+  TEST(!manager.TakePendingRematchFractionChange().has_value(), ());
+
+  RematchRemoveIfExists(path);
+}
+
+UNIT_TEST(Rematch_PreviousVsNewFractionSignal)
+{
+  std::string const countryId = "sp021_prev_new";
+  std::string const path = RematchTestPixPath(countryId + ".pix");
+  RematchRemoveIfExists(path);
+
+  RematchWriteHeaderedRawWords(path, 3,
+                               {street_pixels_file::PackPixelEntry(10, true, true),
+                                street_pixels_file::PackPixelEntry(20, true, false),
+                                30});
+
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  std::set<int64_t> const newIds{10, 20, 30, 40, 50};
+  TEST(manager.RematchStreetPixelsWithNewUniverseForTesting(countryId, newIds, 4), ());
+
+  auto const pending = manager.TakePendingRematchFractionChange();
+  TEST(pending.has_value(), ());
+  TEST_EQUAL(pending->previousTotal, 3, ());
+  TEST_EQUAL(pending->previousExplored, 2, ());
+  TEST_EQUAL(pending->newTotal, 5, ());
+  TEST_EQUAL(pending->newExplored, 2, ());
+  TEST(pending->previousFraction > pending->newFraction, ());
+  TEST(pending->decreasedDueToUniverseGrowth, ());
+
+  manager.LoadStreetPixelsFromFile(countryId, 4);
+  double const expected = 2.0 / 5.0;
+  TEST_EQUAL(manager.GetTotalExploredFraction(), expected, ());
+
+  RematchRemoveIfExists(path);
+}
+
+UNIT_TEST(Rematch_NoFractionDropLeavesNoPending)
+{
+  std::string const countryId = "sp021_no_drop";
+  std::string const path = RematchTestPixPath(countryId + ".pix");
+  RematchRemoveIfExists(path);
+
+  RematchWriteHeaderedRawWords(path, 1,
+                               {street_pixels_file::PackPixelEntry(1, true, false), 2, 3, 4});
+
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  std::set<int64_t> const newIds{1, 2};
+  TEST(manager.RematchStreetPixelsWithNewUniverseForTesting(countryId, newIds, 2), ());
+  TEST(!manager.TakePendingRematchFractionChange().has_value(), ());
+
+  RematchRemoveIfExists(path);
+}
+
+UNIT_TEST(Rematch_FailLeavesNoPending)
+{
+  std::string const countryId = "sp021_fail";
+  std::string const path = RematchTestPixPath(countryId + ".pix");
+  RematchRemoveIfExists(path);
+
+  auto bytes = RematchEncodeHeaderBytes(99, street_pixels_file::kFlagsHasHeaderBit, 7);
+  int64_t const word = street_pixels_file::PackPixelEntry(55, true, true);
+  uint8_t raw[sizeof(int64_t)];
+  std::memcpy(raw, &word, sizeof(word));
+  bytes.insert(bytes.end(), raw, raw + sizeof(raw));
+  RematchWriteRawBytes(path, bytes);
+
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  std::set<int64_t> const newIds{55, 77};
+  TEST(!manager.RematchStreetPixelsWithNewUniverseForTesting(countryId, newIds, 8), ());
+  TEST(!manager.TakePendingRematchFractionChange().has_value(), ());
+
+  RematchRemoveIfExists(path);
+}
+
+UNIT_TEST(Rematch_EqualVersionLeavesNoPending)
+{
+  std::string const countryId = "sp021_equal_ver";
+  std::string const path = RematchTestPixPath(countryId + ".pix");
+  RematchRemoveIfExists(path);
+
+  int64_t constexpr kVersion = 11;
+  RematchWriteHeaderedRawWords(path, kVersion,
+                               {street_pixels_file::PackPixelEntry(1, true, false),
+                                street_pixels_file::PackPixelEntry(2, true, false)});
+
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  std::set<int64_t> const newIds{1, 2, 3, 4};
+  TEST(manager.RematchStreetPixelsWithNewUniverseForTesting(countryId, newIds, kVersion), ());
+  TEST(!manager.TakePendingRematchFractionChange().has_value(), ());
+  TEST_EQUAL(RematchReadBodyWords(path).size(), 2, ());
+
+  RematchRemoveIfExists(path);
+}
+
+UNIT_TEST(Rematch_WrongCountryTakeLeavesPending)
+{
+  std::string const countryId = "sp021_wrong_country";
+  std::string const path = RematchTestPixPath(countryId + ".pix");
+  RematchRemoveIfExists(path);
+
+  RematchWriteHeaderedRawWords(path, 1,
+                               {street_pixels_file::PackPixelEntry(1, true, false),
+                                street_pixels_file::PackPixelEntry(2, true, false)});
+
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  std::set<int64_t> const newIds{1, 2, 3, 4};
+  TEST(manager.RematchStreetPixelsWithNewUniverseForTesting(countryId, newIds, 2), ());
+
+  TEST(!manager.TakePendingRematchFractionChange("other_country").has_value(), ());
+  auto const pending = manager.TakePendingRematchFractionChange(countryId);
+  TEST(pending.has_value(), ());
+  TEST_EQUAL(pending->countryId, countryId, ());
+  TEST(pending->decreasedDueToUniverseGrowth, ());
+  TEST(!manager.TakePendingRematchFractionChange(countryId).has_value(), ());
+
+  RematchRemoveIfExists(path);
+}
+
+UNIT_TEST(Rematch_SuccessfulNonDropClearsSameCountryPending)
+{
+  std::string const countryId = "sp021_clear_pending";
+  std::string const path = RematchTestPixPath(countryId + ".pix");
+  RematchRemoveIfExists(path);
+
+  RematchWriteHeaderedRawWords(path, 1,
+                               {street_pixels_file::PackPixelEntry(1, true, false),
+                                street_pixels_file::PackPixelEntry(2, true, false)});
+
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  TEST(manager.RematchStreetPixelsWithNewUniverseForTesting(countryId, {1, 2, 3, 4}, 2), ());
+  TEST(manager.TakePendingRematchFractionChange(countryId).has_value(), ());
+
+  TEST(manager.RematchStreetPixelsWithNewUniverseForTesting(countryId, {1, 2, 3, 4, 5, 6, 7, 8}, 3), ());
+  TEST(!manager.TakePendingRematchFractionChange("other_country").has_value(), ());
+
+  TEST(manager.RematchStreetPixelsWithNewUniverseForTesting(countryId, {1, 2}, 4), ());
+  TEST(!manager.TakePendingRematchFractionChange(countryId).has_value(), ());
+
+  RematchRemoveIfExists(path);
+}

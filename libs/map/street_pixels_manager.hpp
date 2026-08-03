@@ -32,6 +32,7 @@
 #include <cstdint>
 #include <functional>
 #include <mutex>
+#include <optional>
 #include <shared_mutex>
 #include <set>
 #include <span>
@@ -101,6 +102,21 @@ public:
   bool RematchStreetPixelsWithNewUniverseForTesting(storage::CountryId const & countryId,
                                                     std::set<std::int64_t> const & newIds,
                                                     std::int64_t mapDataVersion);
+
+  struct RematchFractionChange
+  {
+    storage::CountryId countryId;
+    uint64_t previousTotal = 0;
+    uint64_t previousExplored = 0;
+    uint64_t newTotal = 0;
+    uint64_t newExplored = 0;
+    double previousFraction = 0.0;
+    double newFraction = 0.0;
+    bool decreasedDueToUniverseGrowth = false;
+  };
+
+  std::optional<RematchFractionChange> TakePendingRematchFractionChange(
+      storage::CountryId const & forCountryId = {});
 
   void CleanupStreetPixels(storage::CountryId const & countryId);
   void CleanupStreetPixelsForTesting(storage::CountryId const & countryId);
@@ -217,4 +233,7 @@ private:
   size_t GetPixelIndexWhileLocked(df::StreetPixel const * ptr) const;
 
   mutable std::mutex m_pixFileMutex;
+
+  std::optional<RematchFractionChange> m_pendingRematchFractionChange;
+  mutable std::mutex m_pendingRematchFractionMutex;
 };
