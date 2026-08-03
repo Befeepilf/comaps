@@ -59,7 +59,10 @@ where they differ — none material).
 
 **Difference from the technical audit:** audit’s 2–4 kept / 7,9–11 deprecated
 claim remains correct but incomplete — 5, 6, 8 were never mapped (phase doc
-already noted). Spike 6 size measurement is **still undone**.
+already noted). Spike 6 size measurement: **SP-023 evidence recorded** on
+2026-08-03 (Finland; not accepted — see
+[SP-023](../work-items/SP-023-admin-polygon-size-spike.md) and
+[spike note](../spikes/SP-023-finland-admin-polygons.md)).
 
 ## Intended outcome
 
@@ -88,8 +91,9 @@ already noted). Spike 6 size measurement is **still undone**.
 - Sidecar patterns exist (`packed_polygons.bin`, per-country `.pix`/`.pixr`)
   and in-MWM optional sections exist (`cities_boundaries`, `isolines`, …) —
   neither hosts exploration areas yet.
-- Neighborhood polygon **size is still unknown** — blocks store/assignment
-  product decisions.
+- Neighborhood polygon size for Finland is **measured** in SP-023 (~2.1 MiB
+  country-concat zlib coded; Helsinki slice ~0.5 MiB) — store/assignment
+  product decisions remain SP-024 (evidence recorded, not accepted).
 
 ### Work-item breakdown
 
@@ -186,7 +190,8 @@ fallback / rural no-area on top. Do not invert that order.
 
 - Phase 3 exit criteria met. **Met 2026-08-03** (device-walk residual → Phase 10).
 - The area-pipeline investigation is complete with recorded measurements for at
-  least one full country. **Pending SP-023.**
+  least one full country. **SP-023 evidence recorded 2026-08-03 (Finland);
+  awaiting human acceptance.**
 - A decision exists on where polygons live and whether assignment is on-device
   or precomputed. **Pending SP-024.**
 
