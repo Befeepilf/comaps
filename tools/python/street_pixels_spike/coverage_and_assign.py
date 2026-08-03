@@ -12,14 +12,13 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Set, Tuple
 
 import osmium
-from shapely.geometry import LineString, MultiPolygon, Point, Polygon
+from shapely.geometry import MultiPolygon, Point, Polygon
 from shapely.strtree import STRtree
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from sp023_common import (  # noqa: E402
   SETTLEMENT_PLACES,
   densify_line,
-  haversine_m,
   iter_jsonl,
   load_poly_file,
   ring_record_to_geometry,
@@ -183,7 +182,12 @@ def build_tree(areas: List[Dict[str, Any]]) -> Tuple[STRtree, List[Dict[str, Any
 
 
 def assign_point(pt: Point, tree: STRtree, areas: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
-  """Smallest containing polygon; OSM id ascending tie-break (spec §8.8)."""
+  """Smallest containing polygon; OSM id ascending tie-break.
+
+  Spike coverage/cost proxy only: does not apply country-config level priority
+  before smallest-area (full §8.8 stack is SP-028). Within the candidate set
+  passed in, matches §8.8 smallest-polygon + stable-id tie-break.
+  """
   idxs = tree.query(pt)
   candidates = []
   for i in idxs:
@@ -224,8 +228,6 @@ def coverage_stats(
   with_sub = 0
   examples = []
   for s in settlements:
-    # Representative point: centroid must be inside settlement.
-    pt = s["geom"].representative_point()
     idxs = sub_tree.query(s["geom"])
     found = False
     for i in idxs:
@@ -274,19 +276,22 @@ def validate_helsinki_sample(subdivisions: List[Dict[str, Any]], helsinki_poly: 
     if a["name"]:
       named += 1
 
-  # Known Helsinki district / neighbourhood relation IDs (OSM, stable-ish).
-  # These are real admin/place polygons used for spot-check — not an allowlist.
+  # Known Helsinki kaupunginosa / municipality relation IDs (OSM).
+  # Spot-check only — not an allowlist or country config (SPD-004).
   known_ids = {
-    1236473: "Kamppi",  # often neighbourhood/district — may vary
-    1723297: "Kallio",
-    1723301: "Punavuori",
-    1497225: "Töölö",
-    1723318: "Ullanlinna",
-    1833519: "Helsinki",  # municipality admin_8 often
+    184714: "Kamppi",
+    184765: "Kallio",
+    184703: "Punavuori",
+    184702: "Ullanlinna",
+    184727: "Etu-Töölö",
+    184728: "Taka-Töölö",
+    184655: "Lauttasaari",
+    184668: "Eira",
+    184711: "Katajanokka",
+    184712: "Kruununhaka",
+    34914: "Helsinki",  # admin_8 municipality
   }
   found_known = []
-  id_set = {a["osm_id"] for a in inside}
-  # Also search all subdivisions for known ids
   all_ids = {a["osm_id"]: a for a in subdivisions}
   for kid, label in known_ids.items():
     if kid in all_ids:
@@ -384,6 +389,19 @@ def main() -> int:
   sh = SettlementAreaHandler()
   sh.apply_file(str(args.pbf), locations=True, idx="flex_mem")
   settlements = sh.records
+  # Dedupe identical OSM objects (AreaHandler should already be 1:1; guard anyway).
+  seen_settlement_keys: Set[Tuple[str, int]] = set()
+  deduped: List[Dict[str, Any]] = []
+  for s in settlements:
+    key = (s["osm_type"], int(s["osm_id"]))
+    if key in seen_settlement_keys:
+      continue
+    seen_settlement_keys.add(key)
+    deduped.append(s)
+  settlements = deduped
+  settlement_class_counts: Dict[str, int] = defaultdict(int)
+  for s in settlements:
+    settlement_class_counts[s["class_key"]] += 1
   # Restrict coverage denominator to settlements overlapping Helsinki MWM for Uusimaa-class focus,
   # and also report national.
   settlements_hel = []
@@ -393,7 +411,12 @@ def main() -> int:
         settlements_hel.append(s)
     except Exception:
       continue
-  print(f"  settlements_national={len(settlements)} settlements_helsinki_mwm={len(settlements_hel)}", flush=True)
+  print(
+    f"  settlements_national={len(settlements)} "
+    f"settlements_helsinki_mwm={len(settlements_hel)} "
+    f"by_class={dict(settlement_class_counts)}",
+    flush=True,
+  )
 
   cov_national = coverage_stats(settlements, subdivisions)
   cov_hel = coverage_stats(settlements_hel, subdivisions)
@@ -509,8 +532,21 @@ def main() -> int:
     "coverage": {
       "national_settlements": cov_national,
       "helsinki_mwm_settlements": cov_hel,
+      "settlement_class_counts": dict(sorted(settlement_class_counts.items())),
+      "settlement_definition_note": (
+        "Closed place=city|town|village|municipality OR admin_level=8. "
+        "Distinct OSM objects only (deduped by osm_type+id). A municipality "
+        "admin_8 and a nested place=town way can both count — intentional for "
+        "SPD-007 settlement detection breadth; not a municipality census."
+      ),
       "subdivision_classes": sorted({a["class_key"] for a in subdivisions}),
       "subdivision_count": len(subdivisions),
+      "assignment_rule_note": (
+        "PIP sample uses smallest-area among admin_9–11 + closed place "
+        "suburb/quarter/neighbourhood, then settlement fallback. Does not "
+        "apply country-config admin_level priority before smallest-area "
+        "(full §8.8 stack is SP-028)."
+      ),
     },
     "pixel_assignment_sample": pixel_buckets,
     "pip_cost": extrapolate,
