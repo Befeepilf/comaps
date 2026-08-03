@@ -111,9 +111,15 @@ already noted). Spike 6 size measurement is **still undone**.
 
 1. Polygon store: in-MWM vs sidecar vs hybrid.
 2. Assignment locus: on-device vs generator-precomputed.
-3. Country-config format / versioning / review process.
-4. Concrete suitability + privacy size thresholds.
-5. Settlement geometry: three-box vs true municipal polygons.
+3. Assignment persistence: full-universe area-id map vs sparse vs rematerialize
+   on demand (every valid street pixel needs a deterministic answer; storage is
+   a separate choice).
+4. Country-config format / versioning / review process.
+5. Concrete suitability + privacy size thresholds.
+6. Settlement geometry: three-box vs true municipal polygons.
+
+**Layering:** SP-028 assigns subdivision-or-none; SP-029 applies settlement
+fallback / rural no-area on top. Do not invert that order.
 
 ## Data and migration concerns
 
@@ -130,7 +136,10 @@ already noted). Spike 6 size measurement is **still undone**.
   between map versions. Decide what happens to a previously completed area
   whose polygon no longer exists; spec §27.4 allows keeping the original
   completion date locally.
-- Assignment state is new persisted data, keyed by HEALPix identifier.
+- Assignment state is new persisted data, keyed by HEALPix identifier for every
+  **valid street pixel** (not only explored cells). Persistence strategy
+  (full map vs sparse vs rematerialize) is an SP-024 decision informed by
+  SP-023 size estimates.
 
 ## Privacy and security implications
 
@@ -142,8 +151,9 @@ already noted). Spike 6 size measurement is **still undone**.
   where fewer than three participants exist. Consider whether a minimum area
   size or minimum pixel count is needed so that an area identifier is not
   effectively an address. Record any such rule as a decision (SP-024).
-- Assignment happens entirely on device. No boundary lookup may become a
-  network call.
+- Assignment must remain offline: no boundary lookup may become a network call.
+  Whether compute runs on device or is generator-precomputed is SP-024; either
+  way the client must not phone home for area membership.
 
 ## Automated testing strategy
 
@@ -227,3 +237,5 @@ This phase has the highest uncertainty in the plan.
   thresholds, and what those thresholds are. **Owned by SP-024.**
 - Whether area assignment on device is fast enough for a large country, or
   whether precomputation is required. **Owned by SP-023/024.**
+- How to persist assignments at universe scale without careless O(N) bloat.
+  **Owned by SP-023/024/030.**
