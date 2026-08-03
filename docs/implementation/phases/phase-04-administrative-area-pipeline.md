@@ -1,6 +1,6 @@
 # Phase 4 — Administrative-area pipeline
 
-**Status:** In progress (SP-023–024 Accepted 2026-08-03; SP-025 next)
+**Status:** In progress (SP-023–024 Accepted 2026-08-03; SP-025 In review)
 **Depends on:** Phase 3
 **Blocks:** Phases 5, 7, 8
 
