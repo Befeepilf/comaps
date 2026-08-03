@@ -78,8 +78,8 @@ V1 scope. Explorer Pro **purchasing** is not.
 | --- | --- | --- | --- |
 | 1 | Baseline and guardrails | [`phases/phase-01-baseline-and-guardrails.md`](phases/phase-01-baseline-and-guardrails.md) | Not started |
 | 2 | Recording and collection correctness | [`phases/phase-02-recording-and-collection-correctness.md`](phases/phase-02-recording-and-collection-correctness.md) | Complete (OEM screen-off residual → Phase 10) |
-| 3 | Exploration storage and map-update reconciliation | [`phases/phase-03-exploration-storage-and-reconciliation.md`](phases/phase-03-exploration-storage-and-reconciliation.md) | In progress (SP-015–022 Planned) |
-| 4 | Administrative-area pipeline | [`phases/phase-04-administrative-area-pipeline.md`](phases/phase-04-administrative-area-pipeline.md) | Not started |
+| 3 | Exploration storage and map-update reconciliation | [`phases/phase-03-exploration-storage-and-reconciliation.md`](phases/phase-03-exploration-storage-and-reconciliation.md) | Complete (device-walk residual → Phase 10) |
+| 4 | Administrative-area pipeline | [`phases/phase-04-administrative-area-pipeline.md`](phases/phase-04-administrative-area-pipeline.md) | In progress (phase-entry planning) |
 | 5 | Area progress and map interaction | [`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md) | Not started |
 | 6 | Exploration-aware routing | [`phases/phase-06-exploration-aware-routing.md`](phases/phase-06-exploration-aware-routing.md) | Not started |
 | 7 | Milestones and share cards | [`phases/phase-07-milestones-and-share-cards.md`](phases/phase-07-milestones-and-share-cards.md) | Not started |
@@ -155,23 +155,19 @@ roadmap tracks.
 
 ### 4.3 Current phase status
 
-**Active phase: Phase 3 — Exploration storage and map-update reconciliation.**
+**Active phase: Phase 4 — Administrative-area pipeline.**
 
 | Work item | Status |
 | --- | --- |
 | SP-001–014 | Accepted (Phases 1–2) |
-| SP-015 | In progress (header landed; not Accepted) |
+| SP-015 | Accepted 2026-08-03 |
 | SP-016 | Accepted 2026-08-03 |
 | SP-017 | Accepted 2026-08-03 |
 | SP-018 | Accepted 2026-08-03 |
 | SP-019 | Accepted 2026-08-03 |
 | SP-020 | Accepted 2026-08-03 |
-| SP-017 | Planned |
-| SP-018 | Planned |
-| SP-019 | Planned |
-| SP-020 | Planned |
 | SP-021 | Accepted 2026-08-03 |
-| SP-022 | Planned |
+| SP-022 | Accepted 2026-08-03 (device walks → Phase 10) |
 
 ## 5. Release slices
 
@@ -344,21 +340,22 @@ decision) tracked in Phase 10.
 
 | Order | ID | Title | Phase | Why first |
 | --- | --- | --- | --- | --- |
-| 15 | [SP-015](work-items/SP-015-pixel-file-format-and-map-version.md) | Pixel-file format version and map-data version header | 3 | Planned — foundation before rematch |
+| 15 | [SP-015](work-items/SP-015-pixel-file-format-and-map-version.md) | Pixel-file format version and map-data version header | 3 | Accepted — versioned `.pix` header + legacy migrate |
 | 16 | [SP-016](work-items/SP-016-exploration-source-flag-store.md) | Per-pixel ever-live bit in `.pix` | 3 | Accepted — 1 ever-live bit; +0 B (SPD-015) |
 | 17 | [SP-017](work-items/SP-017-crash-safe-map-update-rematch.md) | Crash-safe rematch on map update | 3 | Accepted — replaces wipe-on-download |
 | 18 | [SP-018](work-items/SP-018-exploration-survives-map-delete.md) | Explored state survives map delete and redownload | 3 | Accepted — compact archive (SPD-016) |
 | 19 | [SP-019](work-items/SP-019-derivation-sampling-alignment.md) | Unify path sampling at 15 m | 3 | Accepted — live/track → 15 m (SPD-019) |
 | 20 | [SP-020](work-items/SP-020-eligibility-policy-alignment.md) | Eligibility vs spec §13 | 3 | Accepted — tighten + divergence register; OQ-5 closed |
 | 21 | [SP-021](work-items/SP-021-denominator-recalc-and-update-messaging.md) | Denominator recalculation and §27.3 messaging | 3 | Accepted — rematch fraction toast; progress preserved |
-| 22 | [SP-022](work-items/SP-022-exploration-storage-end-to-end-validation.md) | Exploration storage end-to-end validation | 3 | Planned — Phase 3 exit gate |
+| 22 | [SP-022](work-items/SP-022-exploration-storage-end-to-end-validation.md) | Exploration storage end-to-end validation | 3 | Accepted — plan + suite baseline; device walks → Phase 10 |
 
-Phase 3 entry investigation (2026-08-03) recorded in
-[`phases/phase-03-exploration-storage-and-reconciliation.md`](phases/phase-03-exploration-storage-and-reconciliation.md).
-Decisions: SPD-015 (one ever-live bit in `.pix` — not a side table / not
-`both`; after Uusimaa ~.pix ≈ 50 MB), SPD-016 (survive delete via compact
-archive), SPD-017 (`nside` locked), SPD-018 (`.pixf` dead).
+Phase 3 complete 2026-08-03. Decisions: SPD-015 (ever-live bit), SPD-016
+(delete archive), SPD-017 (`nside` locked), SPD-018 (`.pixf` dead), SPD-019
+(15 m sampling). Validation plan:
+[`validation/SP-022-validation-plan.md`](validation/SP-022-validation-plan.md).
+Evidence: [`validation/SP-022-evidence-log.md`](validation/SP-022-evidence-log.md).
+Phase 3 residual (Pixel 3a / Uusimaa device walks, rematch timing on large
+`.pix`) tracked in Phase 10.
 
-Detailed work items exist for Phases 1–3. Later phases are broken down after
-their entry criteria are met, and after any spike that phase depends on has a
-recorded outcome.
+Detailed work items exist for Phases 1–3. Phase 4 is broken down after its
+entry investigation. Later phases follow the same rule.
