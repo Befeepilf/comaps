@@ -1,8 +1,8 @@
 # SP-025 — Versioned country-config schema
 
 **Phase:** 4 — Administrative-area pipeline
-**Status:** Planned
-**Branch:** `street-pixels`
+**Status:** In review
+**Branch:** `cursor/sp-025-country-config-schema-191e`
 **Depends on:** SP-024 Accepted (SPD-023 locks location/versioning/keying/Finland seed)
 
 ---
@@ -74,12 +74,12 @@ Assignment determinism requires a policy version paired with map-data version
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commits | |
-| Schema path | |
-| Fixture country | |
+| Branch | `cursor/sp-025-country-config-schema-191e` |
+| Commits | (see git log on branch) |
+| Schema path | `data/street_pixels/country_policies.json` |
+| Fixture country | FI — subdivision [10,9,11], settlement [8], place_boundaries neighbourhood/quarter/suburb |
 | Decision ids (SP-024) | SPD-023 (primary); SPD-024 (no numeric floors) |
-| Test output | |
+| Test output | `./tools/unix/run_tests.sh -b … -f "CountryConfig_"` — 8/8 OK (FinlandFixturePriority, MwmLeafAndRootLookup, UnknownIsoAndMwmUnconfigured, InvalidJsonFails, DuplicateMwmRootFails, PolicyVersionReadable, IgnoreFloorKeysNeverApply, LoadShippedFinlandFixture) |
 | Accepted by | |
 | Accepted date | |
 
@@ -87,4 +87,7 @@ Assignment determinism requires a policy version paired with map-data version
 
 | Finding | Proposed disposition |
 | --- | --- |
+| Product §8.3 global prefer admin_11 then 10 vs SPD-023 FI 10→9→11 | Follow SPD-023 for Finland; document in `data/street_pixels/README.md`. No product-spec edit. |
+| Healpix upstream `byteswap` ambiguous with C++23 `std::byteswap`; libsharp needs OpenMP at link | Local build unblocker in `3party/healpix/` (override header + OpenMP link). Not Street Pixels scope; keep until upstream/submodule bump. |
+| Loader lives in `libs/street_pixels_config/` (not only `map`) so generator can link without map | Intentional; record for SP-026. |
 | | |
