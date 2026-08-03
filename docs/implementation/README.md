@@ -161,7 +161,7 @@ roadmap tracks.
 | --- | --- |
 | SP-001–014 | Accepted (Phases 1–2) |
 | SP-015–022 | Accepted (Phase 3; device walks → Phase 10) |
-| SP-023 | Planned — polygon size/coverage spike |
+| SP-023 | Accepted — Finland size/coverage spike |
 | SP-024 | Planned — architecture decisions |
 | SP-025–031 | Planned — config, generator, assignment, validation |
 
@@ -355,7 +355,7 @@ Phase 3 residual (Pixel 3a / Uusimaa device walks, rematch timing on large
 
 | Order | ID | Title | Phase | Why first |
 | --- | --- | --- | --- | --- |
-| 23 | [SP-023](work-items/SP-023-admin-polygon-size-spike.md) | Spike: admin polygon retention size and coverage | 4 | Planned — unblocks store/assignment/persistence decisions |
+| 23 | [SP-023](work-items/SP-023-admin-polygon-size-spike.md) | Spike: admin polygon retention size and coverage | 4 | **Accepted** 2026-08-03 — Finland measurements; SP-024 inputs agreed |
 | 24 | [SP-024](work-items/SP-024-area-pipeline-architecture-decisions.md) | Area-pipeline architecture decisions | 4 | Planned — after SP-023 numbers |
 | 25 | [SP-025](work-items/SP-025-country-config-schema.md) | Versioned country-config schema | 4 | Planned — data contract; depends on SP-024 |
 | 26 | [SP-026](work-items/SP-026-generator-true-polygons.md) | Generator: emit true closed exploration polygons | 4 | Planned — depends on SP-024/025 |

@@ -190,8 +190,7 @@ fallback / rural no-area on top. Do not invert that order.
 
 - Phase 3 exit criteria met. **Met 2026-08-03** (device-walk residual → Phase 10).
 - The area-pipeline investigation is complete with recorded measurements for at
-  least one full country. **SP-023 evidence recorded 2026-08-03 (Finland);
-  awaiting human acceptance.**
+  least one full country. **Met 2026-08-03** (SP-023 Finland accepted).
 - A decision exists on where polygons live and whether assignment is on-device
   or precomputed. **Pending SP-024.**
 
