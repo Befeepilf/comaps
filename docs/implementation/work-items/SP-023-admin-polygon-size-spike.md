@@ -115,8 +115,8 @@ the gap).
 | Test output | Scripts exit 0: `extract_admin_place_polygons.py`, `measure_sizes.py`, `coverage_and_assign.py` (logs under `/tmp/sp023/`). Tooling: `tools/python/street_pixels_spike/`. |
 | Manual validation | Exported Helsinki metro GeoJSON; 500/500 closed rings. Spot-checked real districts by OSM id (11/11 known relations resolved): Kamppi r/184714, Kallio r/184765, Punavuori r/184703, Ullanlinna r/184702, Etu-Töölö r/184727, Helsinki admin_8 r/34914 (admin_10 kaupunginosat). |
 | Implemented by | Cursor Agent (cloud) |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-03 |
 
 ## Discovered follow-up
 
