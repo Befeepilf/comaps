@@ -1,8 +1,8 @@
 # SP-026 — Generator: emit true closed exploration polygons
 
 **Phase:** 4 — Administrative-area pipeline
-**Status:** Planned
-**Branch:** `street-pixels`
+**Status:** In review
+**Branch:** `cursor/sp-026-generator-exploration-sidecar-191e`
 **Depends on:** SP-024 Accepted (SPD-020 store, SPD-021 precompute), SP-025
   (which levels/places to emit)
 
@@ -55,9 +55,11 @@ remains search-only (SPD-020, SPD-025).
 
 ## Relevant source files or symbols
 
-- `generator/collector_routing_city_boundaries.cpp`, `place_processor.cpp`,
-  `cities_boundaries_builder.cpp`
-- Sidecar writer path per SPD-020
+- `libs/street_pixels_areas/` — `.spa` format, filter, §8.8 assigner, writer/reader
+- `defines.hpp` — `SPA_FILE_EXTENSION`, section tags
+- Format notes: `docs/implementation/notes/SP-026-spa-format.md`
+- `generator/` links `street_pixels_areas` (full mapgen emission hook deferred)
+- Does **not** extend `place_processor` / three-box for exploration
 
 ## Acceptance criteria
 
@@ -85,12 +87,12 @@ remains search-only (SPD-020, SPD-025).
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commits | |
-| Store format | per-country sidecar (SPD-020) + dense assignment map (SPD-021/022) |
-| Size delta | |
-| Decision ids (SP-024) | SPD-020, SPD-021, SPD-022, SPD-025 |
-| Test output | |
+| Branch | `cursor/sp-026-generator-exploration-sidecar-191e` |
+| Commits | `5d0d0e79f` [generator][cmake] library+tests; `33c8dce03` [generator] DebugPrint/∞ fix; docs evidence |
+| Store format | per-MWM `.spa` FilesContainer (hdr/areas/assign); true rings via `SaveOuterPath`; dense uint16/uint32 compact index + sentinel (SPD-020/021/022) |
+| Size delta | Not re-measured with shipping encoder on full FI (follow-up / SP-031 exit #7); fixture path only in CI |
+| Decision ids (SP-024) | SPD-020, SPD-021, SPD-022, SPD-025 (plus SPD-004/006/023/024 constraints) |
+| Test output | `./tools/unix/run_tests.sh -b …/omim-build-debug -f "ExplorationFilter_\|SubdivisionAssigner_\|SpaSerdes_"` — 15/15 OK; `street_pixels_tests` links; `CountryConfig_` 11/11 OK |
 | Accepted by | |
 | Accepted date | |
 
@@ -98,4 +100,8 @@ remains search-only (SPD-020, SPD-025).
 
 | Finding | Proposed disposition |
 | --- | --- |
+| Full generator mapgen emission from OSM collectors into `.spa` not wired | SP-026 intermediate ships format+library+fixture tests; wire emission in a follow-up commit/item before SP-031 |
+| Shipping-encoder FI size not re-measured vs SP-023 coded_delta | Optional offline emit from `/tmp/sp023` JSONL + measure under SP-031 exit #7 |
+| Classificator / mapcss still lack admin 5/6/8 drawable types | Sidecar avoids drawable pressure; document if/when mapcss needed (SP-024 follow-up) |
+| Dense assign samples in writer are caller-supplied (HEALPix universe not generated here) | SP-028 / generator emit job supplies valid-universe sample centres |
 | | |
