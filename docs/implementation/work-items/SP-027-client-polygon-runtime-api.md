@@ -98,4 +98,5 @@ without network.
 | Header still lacks HEALPix `nside` / universe-ordering tag (SP-026 follow-up) | Freeze in generator emit + SP-028 before production blobs |
 | No `MapFileType::Spa` / Android download packaging yet | Intentional SP-027 out-of-scope; wire with country download later |
 | `map` links library but does not yet call the façade from `StreetPixelsManager` | SP-028/029 consume accessors |
+| VersionMismatch clears entire `SpaFile` (including header versions) | Intentional no-area-safe; rematch UX that needs found-vs-expected stamps can thread them via logs or a later result field |
 | | |
