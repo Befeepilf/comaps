@@ -8,6 +8,7 @@
 #define DIFF_FILE_EXTENSION ".mwmdiff"
 #define DIFF_APPLYING_FILE_EXTENSION ".diff.applying"
 #define PIX_FILE_EXTENSION ".pix"
+#define SPA_FILE_EXTENSION ".spa"
 #define FONT_FILE_EXTENSION ".ttf"
 #define OSM2FEATURE_FILE_EXTENSION ".osm2ft"
 #define EXTENSION_TMP ".tmp"
@@ -95,6 +96,10 @@ auto constexpr TMP_OFFSETS_EXT = OFFSET_EXT EXTENSION_TMP;
 
 #define PACKED_POLYGONS_INFO_TAG "info"
 #define PACKED_POLYGONS_FILE "packed_polygons.bin"
+
+#define SPA_HEADER_FILE_TAG "hdr"
+#define SPA_AREAS_FILE_TAG "areas"
+#define SPA_ASSIGN_FILE_TAG "assign"
 
 #define GPS_TRACK_FILENAME "gps_track.dat"
 #define RESTRICTIONS_FILENAME "restrictions.csv"
