@@ -84,10 +84,10 @@ polygons. Assignment must be reproducible and offline.
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-028-pixel-to-area-assignment-191e` |
-| Commits | `a92285768` API+tests; `e7ce3a8f4` docs/evidence |
+| Commits | `a92285768` API+tests; `e7ce3a8f4`/`7d23d0c3f` docs/evidence; `ab14095c7` review fail-closed fixes |
 | API symbols | `LookupSubdivisionBySlot`, `LookupSubdivisionByHealpix`, `VerifyDenseAssignments`, `SubdivisionAssignmentTable::TryLoad` / `LookupBySlot` / `LookupByHealpix` |
 | Decision ids (SP-024) | SPD-021 (primary); SPD-022 (feeds SP-030) |
-| Test output | `./tools/unix/build_omim.sh -d -p /workspace street_pixels_areas_tests`; `./tools/unix/run_tests.sh -b /workspace/omim-build-debug -f "Subdivision\|Lookup\|VerifyDense\|Assignment"` — assigner 7 + assignment 5 OK (plus SpaSerdes/ExplorationFilter matches); full `./street_pixels_areas_tests` **30/30 OK** (filter 6, sidecar 8, serdes 4, assigner 7, assignment 5). |
+| Test output | `./tools/unix/build_omim.sh -d -p /workspace street_pixels_areas_tests`; `./tools/unix/run_tests.sh -b /workspace/omim-build-debug -f "Subdivision\|Lookup\|VerifyDense\|Assignment"` — assigner 7 + assignment 6 OK; full `./street_pixels_areas_tests` **31/31 OK** (filter 6, sidecar 8, serdes 4, assigner 7, assignment 6). |
 | Accepted by | |
 | Accepted date | |
 
