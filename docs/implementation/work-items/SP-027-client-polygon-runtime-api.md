@@ -1,8 +1,8 @@
 # SP-027 — Client runtime polygon API
 
 **Phase:** 4 — Administrative-area pipeline
-**Status:** Planned
-**Branch:** `street-pixels`
+**Status:** In review
+**Branch:** `cursor/sp-027-client-polygon-runtime-api-191e`
 **Depends on:** SP-024 Accepted (SPD-020/021), SP-026 (sidecar + precompute
   artifacts available for fixture)
 
@@ -51,8 +51,11 @@ without network.
 
 ## Relevant source files or symbols
 
-- Likely near `libs/indexer/` / `libs/map/` street-pixels; exact symbols after
-  sidecar format lands in SP-026.
+- `libs/street_pixels_areas/exploration_sidecar.hpp` — path helper,
+  `TryLoadExplorationSidecar` / `TryLoadAndVerifyExplorationSidecar`,
+  named accessors (`StableOsmId`, `DisplayName`, `AreasByRole`,
+  `DenseAssignments`, `SettlementAreas`, `FindAreaByCompactIndex`)
+- `libs/map/CMakeLists.txt` — links `street_pixels_areas` (no download wiring)
 - Do not treat MWM country id as a neighbourhood name.
 - Do not treat World `CitiesBoundariesTable` as exploration assignment API.
 
@@ -79,11 +82,11 @@ without network.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commits | |
-| API symbols | |
+| Branch | `cursor/sp-027-client-polygon-runtime-api-191e` |
+| Commits | (see Git history on branch; implementation + docs) |
+| API symbols | `ExplorationSidecarPath`, `ExplorationSidecarPathBesideMwm`, `TryLoadExplorationSidecar`, `TryLoadAndVerifyExplorationSidecar`, `SpaLoadStatus`/`SpaLoadResult`, `StableOsmId`, `DisplayName`, `AreasByRole`, `DenseAssignments`, `SettlementAreas`, `FindAreaByCompactIndex` |
 | Decision ids (SP-024) | SPD-020, SPD-021, SPD-025 |
-| Test output | |
+| Test output | `./tools/unix/build_omim.sh -d -p /workspace street_pixels_areas_tests`; `./tools/unix/run_tests.sh -b /workspace/omim-build-debug -f "Spa\|ExplorationSidecar\|TryLoad"` — ExplorationSidecar 7 + SpaSerdes 4 OK; full `./street_pixels_areas_tests` **24/24 OK** (filter 6, sidecar 7, serdes 4, assigner 7). `map` links `street_pixels_areas`. |
 | Accepted by | |
 | Accepted date | |
 
@@ -91,4 +94,8 @@ without network.
 
 | Finding | Proposed disposition |
 | --- | --- |
+| Raw junk bytes (non-FilesContainer) can hit debug `ReaderSource` ASSERTs rather than a catchable exception | Corrupt fixture patches SPA magic inside a valid container; broader FilesContainer harden is out of SP-027 |
+| Header still lacks HEALPix `nside` / universe-ordering tag (SP-026 follow-up) | Freeze in generator emit + SP-028 before production blobs |
+| No `MapFileType::Spa` / Android download packaging yet | Intentional SP-027 out-of-scope; wire with country download later |
+| `map` links library but does not yet call the façade from `StreetPixelsManager` | SP-028/029 consume accessors |
 | | |
