@@ -88,11 +88,11 @@ remains search-only (SPD-020, SPD-025).
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-026-generator-exploration-sidecar-191e` |
-| Commits | `5d0d0e79f` [generator][cmake] library+tests; `33c8dce03` [generator] DebugPrint/∞ fix; docs evidence |
+| Commits | `5d0d0e79f` [generator][cmake] library+tests; `33c8dce03` [generator] DebugPrint/∞ fix; docs+notes+FI filter helper (`fb5a01e18`) |
 | Store format | per-MWM `.spa` FilesContainer (hdr/areas/assign); true rings via `SaveOuterPath`; dense uint16/uint32 compact index + sentinel (SPD-020/021/022) |
-| Size delta | Not re-measured with shipping encoder on full FI (follow-up / SP-031 exit #7); fixture path only in CI |
+| Size delta | Not re-measured with shipping encoder on full FI (follow-up / SP-031 exit #7); fixture path only in CI. Offline FI JSONL policy filter: 2618 admitted / 64 unnamed / 69 policy_mismatch |
 | Decision ids (SP-024) | SPD-020, SPD-021, SPD-022, SPD-025 (plus SPD-004/006/023/024 constraints) |
-| Test output | `./tools/unix/run_tests.sh -b …/omim-build-debug -f "ExplorationFilter_\|SubdivisionAssigner_\|SpaSerdes_"` — 15/15 OK; `street_pixels_tests` links; `CountryConfig_` 11/11 OK |
+| Test output | `./tools/unix/build_omim.sh -d -p /workspace street_pixels_areas_tests`; `./tools/unix/run_tests.sh -b /workspace/omim-build-debug -f "ExplorationFilter_\|SubdivisionAssigner_\|SpaSerdes_"` — 15/15 OK. `street_pixels_tests` builds. `CountryConfig_` 11/11 OK |
 | Accepted by | |
 | Accepted date | |
 
