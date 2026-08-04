@@ -31,5 +31,5 @@ struct FilterResult
 // Never invent place-node polygons or three-box geometry (SPD-020/025, §8.3).
 FilterResult FilterExplorationCandidate(AreaCandidateInput const & input, CountryPolicy const & policy);
 
-char const * DebugPrint(RejectReason reason);
+std::string DebugPrint(RejectReason reason);
 }  // namespace street_pixels
