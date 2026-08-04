@@ -16,12 +16,13 @@ namespace street_pixels
 // Universe-order contract (SPD-021 / SP-028):
 //   slot i ↔ ascending HEALPix NEST id U[i] ↔ assign[i]
 // See docs/implementation/notes/SP-028-universe-order.md.
-// Lookups never invent areas; sentinel / unknown / OOB → nullptr (none).
+// Lookups never invent areas; sentinel / unknown / OOB / non-assignable → nullptr.
 
 ExplorationArea const * LookupSubdivisionBySlot(SpaFile const & file, size_t slot);
 
-// `universeAscendingNest` must be strictly ascending NEST ids parallel to
-// `file.m_assignments`. Size mismatch or missing id → nullptr.
+// Free-function path: fails closed on size mismatch, non-ascending / duplicate U,
+// or missing id → nullptr. Prefer SubdivisionAssignmentTable for production
+// (validates U once at TryLoad; hot-path lookups skip the ascending re-scan).
 ExplorationArea const * LookupSubdivisionByHealpix(SpaFile const & file,
                                                    std::vector<int64_t> const & universeAscendingNest,
                                                    int64_t healpixNestId);

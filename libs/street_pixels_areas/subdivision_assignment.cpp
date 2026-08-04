@@ -20,13 +20,30 @@ bool IsStrictlyAscending(std::vector<int64_t> const & ids)
   }
   return true;
 }
+
+// Assumes `universeAscendingNest` is already strictly ascending and sized to
+// match `file.m_assignments` (validated by TryLoad or the public free function).
+ExplorationArea const * LookupByHealpixAscending(SpaFile const & file,
+                                                 std::vector<int64_t> const & universeAscendingNest,
+                                                 int64_t healpixNestId)
+{
+  auto const it =
+      std::lower_bound(universeAscendingNest.begin(), universeAscendingNest.end(), healpixNestId);
+  if (it == universeAscendingNest.end() || *it != healpixNestId)
+    return nullptr;
+  return LookupSubdivisionBySlot(file, static_cast<size_t>(it - universeAscendingNest.begin()));
+}
 }  // namespace
 
 ExplorationArea const * LookupSubdivisionBySlot(SpaFile const & file, size_t slot)
 {
   if (slot >= file.m_assignments.size())
     return nullptr;
-  return FindAreaByCompactIndex(file, file.m_assignments[slot]);
+  auto const * area = FindAreaByCompactIndex(file, file.m_assignments[slot]);
+  // Fail closed: never surface settlement / non-assignable targets as subdivision.
+  if (area == nullptr || !area->IsAssignable())
+    return nullptr;
+  return area;
 }
 
 ExplorationArea const * LookupSubdivisionByHealpix(SpaFile const & file,
@@ -35,11 +52,10 @@ ExplorationArea const * LookupSubdivisionByHealpix(SpaFile const & file,
 {
   if (universeAscendingNest.size() != file.m_assignments.size())
     return nullptr;
-  auto const it =
-      std::lower_bound(universeAscendingNest.begin(), universeAscendingNest.end(), healpixNestId);
-  if (it == universeAscendingNest.end() || *it != healpixNestId)
+  // Fail closed on unsorted / duplicate U — do not binary-search an invalid contract.
+  if (!IsStrictlyAscending(universeAscendingNest))
     return nullptr;
-  return LookupSubdivisionBySlot(file, static_cast<size_t>(it - universeAscendingNest.begin()));
+  return LookupByHealpixAscending(file, universeAscendingNest, healpixNestId);
 }
 
 bool VerifyDenseAssignments(SpaFile const & file, std::vector<m2::PointD> const & sampleCentresInSlotOrder,
@@ -91,6 +107,7 @@ ExplorationArea const * SubdivisionAssignmentTable::LookupBySlot(size_t slot) co
 
 ExplorationArea const * SubdivisionAssignmentTable::LookupByHealpix(int64_t healpixNestId) const
 {
-  return LookupSubdivisionByHealpix(m_file, m_universe, healpixNestId);
+  // Universe validated ascending + sized at TryLoad; skip re-scan on the hot path.
+  return LookupByHealpixAscending(m_file, m_universe, healpixNestId);
 }
 }  // namespace street_pixels
