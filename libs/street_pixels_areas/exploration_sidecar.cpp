@@ -30,6 +30,13 @@ SpaLoadResult TryLoadExplorationSidecar(std::string const & path)
     result.m_status = SpaLoadStatus::Missing;
     return result;
   }
+  // Directories also "exist"; never invent areas from a non-file path.
+  if (Platform::IsDirectory(path))
+  {
+    LOG(LWARNING, ("Exploration sidecar path is a directory", path));
+    result.m_status = SpaLoadStatus::Corrupt;
+    return result;
+  }
 
   try
   {
@@ -45,6 +52,12 @@ SpaLoadResult TryLoadExplorationSidecar(std::string const & path)
   catch (std::exception const & ex)
   {
     LOG(LWARNING, ("Corrupt exploration sidecar", path, ex.what()));
+    result.m_file = SpaFile{};
+    result.m_status = SpaLoadStatus::Corrupt;
+  }
+  catch (...)
+  {
+    LOG(LWARNING, ("Corrupt exploration sidecar", path, "unknown exception"));
     result.m_file = SpaFile{};
     result.m_status = SpaLoadStatus::Corrupt;
   }
@@ -102,7 +115,8 @@ std::vector<ExplorationArea const *> SettlementAreas(SpaFile const & file)
 
 ExplorationArea const * FindAreaByCompactIndex(SpaFile const & file, uint32_t compactIndex)
 {
-  if (compactIndex >= file.m_areas.size())
+  uint32_t const sentinel = NoSubdivisionSentinel(file.m_header.m_indexWidth);
+  if (compactIndex == sentinel || compactIndex >= file.m_areas.size())
     return nullptr;
   return &file.m_areas[compactIndex];
 }
