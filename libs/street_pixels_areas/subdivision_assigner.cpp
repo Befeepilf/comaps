@@ -27,7 +27,7 @@ int SubdivisionPriorityRank(ExplorationArea const & area, CountryPolicy const & 
 struct CandidateScore
 {
   int m_priorityRank = std::numeric_limits<int>::max();
-  double m_area = std::numeric_limits<double>::infinity();
+  double m_area = std::numeric_limits<double>::max();
   uint64_t m_osmId = std::numeric_limits<uint64_t>::max();
   uint32_t m_compactIndex = 0;
 

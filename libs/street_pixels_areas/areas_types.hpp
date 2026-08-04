@@ -95,4 +95,15 @@ struct AreaCandidateInput
   // Lon/lat closed rings (first point may equal last).
   std::vector<std::vector<m2::PointD>> m_lonLatRings;
 };
+
+inline std::string DebugPrint(AreaRole role)
+{
+  switch (role)
+  {
+  case AreaRole::Subdivision: return "Subdivision";
+  case AreaRole::Settlement: return "Settlement";
+  case AreaRole::PlaceBoundary: return "PlaceBoundary";
+  }
+  return "UnknownAreaRole";
+}
 }  // namespace street_pixels

@@ -143,7 +143,7 @@ FilterResult FilterExplorationCandidate(AreaCandidateInput const & input, Countr
   return result;
 }
 
-char const * DebugPrint(RejectReason reason)
+std::string DebugPrint(RejectReason reason)
 {
   switch (reason)
   {
