@@ -1,8 +1,8 @@
 # SP-025 — Versioned country-config schema
 
 **Phase:** 4 — Administrative-area pipeline
-**Status:** In review
-**Branch:** `cursor/sp-025-country-config-schema-191e`
+**Status:** Accepted
+**Branch:** `street-pixels` (merged from `cursor/sp-025-country-config-schema-191e`)
 **Depends on:** SP-024 Accepted (SPD-023 locks location/versioning/keying/Finland seed)
 
 ---
@@ -80,8 +80,8 @@ Assignment determinism requires a policy version paired with map-data version
 | Fixture country | FI — subdivision [10,9,11], settlement [8], place_boundaries neighbourhood/quarter/suburb |
 | Decision ids (SP-024) | SPD-023 (primary); SPD-024 (no numeric floors) |
 | Test output | `./tools/unix/run_tests.sh -b … -f "CountryConfig_"` — 11/11 OK (FinlandFixturePriority, MwmLeafAndRootLookup, UnknownIsoAndMwmUnconfigured, InvalidJsonFails, DuplicateMwmRootFails, PolicyVersionReadable, IgnoreFloorKeysNeverApply, UnsupportedSchemaVersionFails, InvalidIsoKeyFails, LongestMwmRootWins, LoadShippedFinlandFixture) |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-04 |
 
 ## Discovered follow-up
 
