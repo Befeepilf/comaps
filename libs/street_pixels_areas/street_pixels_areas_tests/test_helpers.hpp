@@ -1,11 +1,16 @@
 #pragma once
 
 #include "street_pixels_areas/areas_types.hpp"
+#include "street_pixels_areas/exploration_filter.hpp"
 
 #include "street_pixels_config/country_config.hpp"
 
 #include "geometry/mercator.hpp"
 #include "geometry/point2d.hpp"
+
+#include "platform/platform.hpp"
+
+#include "base/assert.hpp"
 
 #include <string>
 #include <vector>
@@ -95,5 +100,23 @@ inline AreaCandidateInput MakePlaceCandidate(uint64_t osmId, std::string const &
 inline m2::PointD MercatorFromLonLat(double lon, double lat)
 {
   return mercator::FromLatLon(lat, lon);
+}
+
+inline std::vector<ExplorationArea> AdmitAll(std::vector<AreaCandidateInput> const & inputs,
+                                             CountryPolicy const & policy)
+{
+  std::vector<ExplorationArea> areas;
+  for (auto const & input : inputs)
+  {
+    auto result = FilterExplorationCandidate(input, policy);
+    CHECK(result.m_reason == RejectReason::Accepted && result.m_area, (DebugPrint(result.m_reason)));
+    areas.push_back(*result.m_area);
+  }
+  return areas;
+}
+
+inline void RemoveIfExists(std::string const & path)
+{
+  Platform::RemoveFileIfExists(path);
 }
 }  // namespace street_pixels::test_helpers

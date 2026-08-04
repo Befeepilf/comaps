@@ -30,11 +30,6 @@ std::string SpaPath(std::string const & leaf)
   return base::JoinPath(GetPlatform().WritableDir(), leaf + SPA_FILE_EXTENSION);
 }
 
-void RemoveIfExists(std::string const & path)
-{
-  Platform::RemoveFileIfExists(path);
-}
-
 bool RingsAlmostEqual(std::vector<m2::PointD> const & a, std::vector<m2::PointD> const & b)
 {
   if (a.size() != b.size())
@@ -45,18 +40,6 @@ bool RingsAlmostEqual(std::vector<m2::PointD> const & a, std::vector<m2::PointD>
       return false;
   }
   return true;
-}
-
-std::vector<ExplorationArea> AdmitAll(std::vector<AreaCandidateInput> const & inputs, CountryPolicy const & policy)
-{
-  std::vector<ExplorationArea> areas;
-  for (auto const & input : inputs)
-  {
-    auto result = FilterExplorationCandidate(input, policy);
-    TEST_EQUAL(result.m_reason, RejectReason::Accepted, (DebugPrint(result.m_reason)));
-    areas.push_back(*result.m_area);
-  }
-  return areas;
 }
 }  // namespace
 

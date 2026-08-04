@@ -4,10 +4,10 @@
 
 #include "street_pixels_areas/areas_format.hpp"
 #include "street_pixels_areas/areas_writer.hpp"
-#include "street_pixels_areas/exploration_filter.hpp"
 #include "street_pixels_areas/exploration_sidecar.hpp"
 #include "street_pixels_areas/subdivision_assigner.hpp"
 
+#include "coding/file_reader.hpp"
 #include "coding/file_writer.hpp"
 
 #include "platform/platform.hpp"
@@ -23,23 +23,6 @@ namespace
 {
 using namespace street_pixels;
 using namespace street_pixels::test_helpers;
-
-std::vector<ExplorationArea> AdmitAll(std::vector<AreaCandidateInput> const & inputs, CountryPolicy const & policy)
-{
-  std::vector<ExplorationArea> areas;
-  for (auto const & input : inputs)
-  {
-    auto result = FilterExplorationCandidate(input, policy);
-    TEST_EQUAL(result.m_reason, RejectReason::Accepted, (DebugPrint(result.m_reason)));
-    areas.push_back(*result.m_area);
-  }
-  return areas;
-}
-
-void RemoveIfExists(std::string const & path)
-{
-  Platform::RemoveFileIfExists(path);
-}
 
 struct FixtureSpa
 {
@@ -131,20 +114,36 @@ UNIT_TEST(ExplorationSidecar_MissingIsEmptySafe)
 
 UNIT_TEST(ExplorationSidecar_CorruptIsEmptySafe)
 {
-  std::string const path = ExplorationSidecarPath(GetPlatform().WritableDir(), "corrupt_sidecar_leaf");
-  RemoveIfExists(path);
+  auto fx = MakeFixture();
+
+  // Keep a valid FilesContainer layout; corrupt only the SPA magic so
+  // ReadSpaHeader throws SpaFormatException (not a low-level reader CHECK).
   {
-    FileWriter writer(path);
-    std::string const junk = "not-a-valid-spa-container";
-    writer.Write(junk.data(), junk.size());
+    FileReader reader(fx.m_path);
+    uint64_t const size = reader.Size();
+    std::vector<char> buf(static_cast<size_t>(size));
+    reader.Read(0, buf.data(), size);
+    bool patched = false;
+    for (size_t i = 0; i + 4 <= buf.size(); ++i)
+    {
+      if (buf[i] == 'S' && buf[i + 1] == 'P' && buf[i + 2] == 'A' && buf[i + 3] == '1')
+      {
+        buf[i] = 'X';
+        patched = true;
+        break;
+      }
+    }
+    TEST(patched, ());
+    FileWriter writer(fx.m_path);
+    writer.Write(buf.data(), buf.size());
   }
 
-  auto const loaded = TryLoadExplorationSidecar(path);
+  auto const loaded = TryLoadExplorationSidecar(fx.m_path);
   TEST_EQUAL(loaded.m_status, SpaLoadStatus::Corrupt, (DebugPrint(loaded.m_status)));
   TEST(loaded.m_file.m_areas.empty(), ());
   TEST(loaded.m_file.m_assignments.empty(), ());
 
-  RemoveIfExists(path);
+  RemoveIfExists(fx.m_path);
 }
 
 UNIT_TEST(ExplorationSidecar_VersionMismatchIsEmptySafe)
