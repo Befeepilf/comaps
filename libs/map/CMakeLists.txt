@@ -132,6 +132,7 @@ target_link_libraries(${PROJECT_NAME}
     search
     sqlite
     storage
+    street_pixels_areas
     street_pixels_config
     traffic
     transit
