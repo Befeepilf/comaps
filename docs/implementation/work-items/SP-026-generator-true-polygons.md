@@ -1,8 +1,8 @@
 # SP-026 — Generator: emit true closed exploration polygons
 
 **Phase:** 4 — Administrative-area pipeline
-**Status:** Planned
-**Branch:** `street-pixels`
+**Status:** Accepted
+**Branch:** `street-pixels` (merged from `cursor/sp-026-generator-exploration-sidecar-191e`)
 **Depends on:** SP-024 Accepted (SPD-020 store, SPD-021 precompute), SP-025
   (which levels/places to emit)
 
@@ -55,9 +55,11 @@ remains search-only (SPD-020, SPD-025).
 
 ## Relevant source files or symbols
 
-- `generator/collector_routing_city_boundaries.cpp`, `place_processor.cpp`,
-  `cities_boundaries_builder.cpp`
-- Sidecar writer path per SPD-020
+- `libs/street_pixels_areas/` — `.spa` format, filter, §8.8 assigner, writer/reader
+- `defines.hpp` — `SPA_FILE_EXTENSION`, section tags
+- Format notes: `docs/implementation/notes/SP-026-spa-format.md`
+- `generator/` links `street_pixels_areas` (full mapgen emission hook deferred)
+- Does **not** extend `place_processor` / three-box for exploration
 
 ## Acceptance criteria
 
@@ -85,17 +87,24 @@ remains search-only (SPD-020, SPD-025).
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commits | |
-| Store format | per-country sidecar (SPD-020) + dense assignment map (SPD-021/022) |
-| Size delta | |
-| Decision ids (SP-024) | SPD-020, SPD-021, SPD-022, SPD-025 |
-| Test output | |
-| Accepted by | |
-| Accepted date | |
+| Branch | `cursor/sp-026-generator-exploration-sidecar-191e` |
+| Commits | `5d0d0e79f` library+tests; `33c8dce03` DebugPrint/∞ fix; `fb5a01e18`/`9dae6d4c6` docs; review fixes (map unlink, assigner place tests, format clarity, double serdes) |
+| Store format | per-MWM-leaf `.spa` FilesContainer (hdr/areas/assign) within country download (SPD-020); true rings via `SaveOuterPath`; dense uint16/uint32 compact index + sentinel (SPD-021/022) |
+| Size delta | Not re-measured with shipping encoder on full FI (follow-up / SP-031 exit #7); SP-023 baseline ~2.06 MiB zlib coded_delta national / ~0.52 MiB Helsinki. Offline FI JSONL policy filter: 2618 admitted / 64 unnamed / 69 policy_mismatch |
+| Decision ids (SP-024) | SPD-020, SPD-021, SPD-022, SPD-025 (plus SPD-004/006/023/024 constraints) |
+| Test output | `./tools/unix/build_omim.sh -d -p /workspace street_pixels_areas_tests`; `./omim-build-debug/street_pixels_areas_tests` — **17/17 OK** (filter 6, serdes 4, assigner 7). `CountryConfig_` **11/11 OK**. FI JSONL filter preview: 2618 admitted / 64 unnamed / 69 policy_mismatch |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-04 |
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
+| Full generator mapgen emission from OSM collectors into `.spa` not wired | SP-026 intermediate ships format+library+fixture tests; wire emission in a follow-up commit/item before SP-031 |
+| Shipping-encoder FI size not re-measured vs SP-023 coded_delta | Optional offline emit from `/tmp/sp023` JSONL + measure under SP-031 exit #7 (`SaveOuterPath` ≠ spike coded_delta) |
+| Classificator / mapcss still lack admin 5/6/8 drawable types | Sidecar avoids drawable pressure; document if/when mapcss needed (SP-024 follow-up) |
+| Dense assign samples in writer are caller-supplied (HEALPix universe not generated here) | SP-028 / generator emit job supplies valid-universe sample centres |
+| Header lacks HEALPix `nside` / explicit universe-ordering tag | Freeze contract in generator emit + SP-027 before production blobs; consider format_version bump if header field added |
+| Outer rings only (holes not stored) | Accept PIP over-accept in holes for V1 or revise format later |
+| Subdivision assigner does not require settlement containment (§8.3 step 1) | SP-029 / emit job ensure candidates are settlement-associated; optional PIP gate later |
 | | |
