@@ -79,7 +79,7 @@ V1 scope. Explorer Pro **purchasing** is not.
 | 1 | Baseline and guardrails | [`phases/phase-01-baseline-and-guardrails.md`](phases/phase-01-baseline-and-guardrails.md) | Not started |
 | 2 | Recording and collection correctness | [`phases/phase-02-recording-and-collection-correctness.md`](phases/phase-02-recording-and-collection-correctness.md) | Complete (OEM screen-off residual → Phase 10) |
 | 3 | Exploration storage and map-update reconciliation | [`phases/phase-03-exploration-storage-and-reconciliation.md`](phases/phase-03-exploration-storage-and-reconciliation.md) | Complete (device-walk residual → Phase 10) |
-| 4 | Administrative-area pipeline | [`phases/phase-04-administrative-area-pipeline.md`](phases/phase-04-administrative-area-pipeline.md) | In progress (SP-024 Accepted; SP-025 next) |
+| 4 | Administrative-area pipeline | [`phases/phase-04-administrative-area-pipeline.md`](phases/phase-04-administrative-area-pipeline.md) | In progress (SP-025 Accepted; SP-026 next) |
 | 5 | Area progress and map interaction | [`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md) | Not started |
 | 6 | Exploration-aware routing | [`phases/phase-06-exploration-aware-routing.md`](phases/phase-06-exploration-aware-routing.md) | Not started |
 | 7 | Milestones and share cards | [`phases/phase-07-milestones-and-share-cards.md`](phases/phase-07-milestones-and-share-cards.md) | Not started |
@@ -163,7 +163,8 @@ roadmap tracks.
 | SP-015–022 | Accepted (Phase 3; device walks → Phase 10) |
 | SP-023 | Accepted — Finland size/coverage spike |
 | SP-024 | Accepted — SPD-020–025; entry store/locus Met |
-| SP-025–031 | Planned — config, generator, assignment, validation |
+| SP-025 | Accepted — country-config schema + loader |
+| SP-026–031 | Planned — generator, assignment, validation |
 
 Phase 4 entry criteria for polygon store and assignment locus are **Met**
 (SPD-020, SPD-021). SP-024 Accepted 2026-08-03.
@@ -360,7 +361,7 @@ Phase 3 residual (Pixel 3a / Uusimaa device walks, rematch timing on large
 | --- | --- | --- | --- | --- |
 | 23 | [SP-023](work-items/SP-023-admin-polygon-size-spike.md) | Spike: admin polygon retention size and coverage | 4 | **Accepted** 2026-08-03 — Finland measurements; SP-024 inputs agreed |
 | 24 | [SP-024](work-items/SP-024-area-pipeline-architecture-decisions.md) | Area-pipeline architecture decisions | 4 | **Accepted** 2026-08-03 — SPD-020–025 |
-| 25 | [SP-025](work-items/SP-025-country-config-schema.md) | Versioned country-config schema | 4 | Planned — `data/street_pixels/` JSON (SPD-023) |
+| 25 | [SP-025](work-items/SP-025-country-config-schema.md) | Versioned country-config schema | 4 | **Accepted** 2026-08-04 — `data/street_pixels/` JSON + `street_pixels_config` loader |
 | 26 | [SP-026](work-items/SP-026-generator-true-polygons.md) | Generator: emit true closed exploration polygons | 4 | Planned — per-country sidecar + precompute blob (SPD-020/021) |
 | 27 | [SP-027](work-items/SP-027-client-polygon-runtime-api.md) | Client runtime polygon API | 4 | Planned — load sidecar / precomputed tables (not primary PIP) |
 | 28 | [SP-028](work-items/SP-028-pixel-to-area-assignment.md) | Deterministic pixel-to-area assignment | 4 | Planned — consume/verify precomputed subdivision map (SPD-021) |

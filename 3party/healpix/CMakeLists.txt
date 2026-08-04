@@ -133,6 +133,12 @@ target_link_libraries(sharp_libs INTERFACE
   # "${libsharp_ARTIFACT_DIR}/lib/libfftpack.a"
   # "${libsharp_ARTIFACT_DIR}/lib/libc_utils.a"
 )
+if(NOT APPLE AND NOT ANDROID)
+  find_package(OpenMP)
+  if(OpenMP_C_FOUND)
+    target_link_libraries(sharp_libs INTERFACE OpenMP::OpenMP_C)
+  endif()
+endif()
 
 add_dependencies(sharp_libs libsharp_build_step)
 
@@ -149,6 +155,24 @@ set_property(TARGET cfitsio PROPERTY C_STANDARD_REQUIRED OFF)
 set_property(TARGET cfitsio PROPERTY C_EXTENSIONS ON)
 
 add_library(${PROJECT_NAME} ${SRC})
+
+# Healpix upstream `byteswap` collides with C++23 std::byteswap. Keep the
+# patched header in-tree and copy it onto the submodule checkout. Quoted
+# `#include "bstream.h"` resolves the same-directory header first, so
+# include-path shadowing cannot work — we must overwrite the submodule file.
+# A custom target (not TARGET PRE_BUILD) re-applies before compile: under Ninja,
+# PRE_BUILD only runs at link time, which is too late if the checkout was reset.
+set(HEALPIX_BSTREAM_OVERRIDE ${CMAKE_CURRENT_SOURCE_DIR}/cxxsupport_overrides/bstream.h)
+set(HEALPIX_BSTREAM_TARGET ${CMAKE_CURRENT_SOURCE_DIR}/healpix/src/cxx/cxxsupport/bstream.h)
+configure_file(${HEALPIX_BSTREAM_OVERRIDE} ${HEALPIX_BSTREAM_TARGET} COPYONLY)
+add_custom_target(healpix_apply_bstream_override
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          ${HEALPIX_BSTREAM_OVERRIDE}
+          ${HEALPIX_BSTREAM_TARGET}
+  COMMENT "Applying Healpix bstream.h C++23 byteswap override"
+  VERBATIM
+)
+add_dependencies(${PROJECT_NAME} healpix_apply_bstream_override)
 
 target_include_directories(${PROJECT_NAME} PUBLIC healpix/src/common_libraries/libsharp healpix/src/common_libraries/libsharp/libsharp healpix/src/cxx/cxxsupport healpix/src/cxx/Healpix_cxx)
 
