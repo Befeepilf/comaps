@@ -48,6 +48,7 @@ std::vector<uint32_t> const & DenseAssignments(SpaFile const & file);
 // Settlement rows with true rings (SPD-025). Not CitiesBoundariesTable.
 std::vector<ExplorationArea const *> SettlementAreas(SpaFile const & file);
 
+// Sentinel / out-of-range → nullptr. Does not invent areas.
 ExplorationArea const * FindAreaByCompactIndex(SpaFile const & file, uint32_t compactIndex);
 
 std::string DebugPrint(SpaLoadStatus status);
