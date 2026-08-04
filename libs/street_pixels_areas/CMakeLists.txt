@@ -12,6 +12,8 @@ set(SRC
   areas_writer.hpp
   exploration_filter.cpp
   exploration_filter.hpp
+  exploration_sidecar.cpp
+  exploration_sidecar.hpp
   subdivision_assigner.cpp
   subdivision_assigner.hpp
 )
@@ -23,6 +25,7 @@ target_link_libraries(${PROJECT_NAME}
     base
     coding
     geometry
+    platform
     street_pixels_config
 )
 
