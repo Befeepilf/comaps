@@ -16,6 +16,8 @@ set(SRC
   exploration_sidecar.hpp
   subdivision_assigner.cpp
   subdivision_assigner.hpp
+  subdivision_assignment.cpp
+  subdivision_assignment.hpp
 )
 
 omim_add_library(${PROJECT_NAME} ${SRC})
