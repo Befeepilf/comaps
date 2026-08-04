@@ -133,7 +133,6 @@ target_link_libraries(${PROJECT_NAME}
     sqlite
     storage
     street_pixels_config
-    street_pixels_areas
     traffic
     transit
   PRIVATE

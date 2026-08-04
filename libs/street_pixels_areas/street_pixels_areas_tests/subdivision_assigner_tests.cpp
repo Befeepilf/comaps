@@ -93,6 +93,40 @@ UNIT_TEST(SubdivisionAssigner_SentinelWhenNoSubdivision)
   TEST(!areas[0].IsAssignable(), ());
 }
 
+UNIT_TEST(SubdivisionAssigner_PlaceAfterAllAdminLevels)
+{
+  auto const policy = FinlandPolicy();
+  // Point inside both admin_11 (lowest FI admin priority) and a place ring.
+  // §8.3: place only when no suitable admin subdivision exists — any configured
+  // admin containment wins over place.
+  auto areas = BuildAreas(
+      {
+          MakeAdminCandidate(11, 11, "FineAdmin", LonLatBox(24.0, 60.0, 25.0, 61.0)),
+          MakePlaceCandidate(90, "neighbourhood", "Hood", LonLatBox(24.2, 60.2, 24.8, 60.8)),
+      },
+      policy);
+
+  auto const pt = MercatorFromLonLat(24.5, 60.5);
+  uint32_t const sentinel = kNoSubdivisionUint16;
+  TEST_EQUAL(AssignSubdivision(pt, areas, policy, sentinel), areas[0].m_compactIndex, ());
+}
+
+UNIT_TEST(SubdivisionAssigner_PlaceWhenNoAdminContains)
+{
+  auto const policy = FinlandPolicy();
+  auto areas = BuildAreas(
+      {
+          MakeAdminCandidate(10, 10, "Elsewhere", LonLatBox(20.0, 60.0, 21.0, 61.0)),
+          MakePlaceCandidate(91, "suburb", "OnlyPlace", LonLatBox(24.0, 60.0, 25.0, 61.0)),
+          MakeAdminCandidate(8, 8, "Town", LonLatBox(24.0, 60.0, 25.0, 61.0)),
+      },
+      policy);
+
+  auto const pt = MercatorFromLonLat(24.5, 60.5);
+  uint32_t const sentinel = kNoSubdivisionUint16;
+  TEST_EQUAL(AssignSubdivision(pt, areas, policy, sentinel), areas[1].m_compactIndex, ());
+}
+
 UNIT_TEST(SubdivisionAssigner_DeterminismAndDenseBuild)
 {
   auto const policy = FinlandPolicy();

@@ -6,8 +6,6 @@
 #include "coding/read_write_utils.hpp"
 #include "coding/varint.hpp"
 
-#include <limits>
-
 namespace street_pixels
 {
 namespace detail
@@ -23,7 +21,8 @@ ExplorationArea ReadArea(Source & src, uint32_t compactIndex)
   area.m_adminLevel = ReadPrimitiveFromSource<int8_t>(src);
   rw::Read(src, area.m_placeType);
   rw::Read(src, area.m_name);
-  area.m_area = ReadPrimitiveFromSource<double>(src);
+  // Host-endian IEEE754; matches WriteArea (WriteToSink is integral-only).
+  src.Read(&area.m_area, sizeof(area.m_area));
 
   uint32_t const ringCount = ReadVarUint<uint32_t>(src);
   area.m_rings.resize(ringCount);
