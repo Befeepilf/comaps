@@ -88,11 +88,11 @@ remains search-only (SPD-020, SPD-025).
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-026-generator-exploration-sidecar-191e` |
-| Commits | `5d0d0e79f` [generator][cmake] library+tests; `33c8dce03` [generator] DebugPrint/∞ fix; docs+notes+FI filter helper (`fb5a01e18`) |
-| Store format | per-MWM `.spa` FilesContainer (hdr/areas/assign); true rings via `SaveOuterPath`; dense uint16/uint32 compact index + sentinel (SPD-020/021/022) |
-| Size delta | Not re-measured with shipping encoder on full FI (follow-up / SP-031 exit #7); fixture path only in CI. Offline FI JSONL policy filter: 2618 admitted / 64 unnamed / 69 policy_mismatch |
+| Commits | `5d0d0e79f` library+tests; `33c8dce03` DebugPrint/∞ fix; `fb5a01e18`/`9dae6d4c6` docs; review fixes (map unlink, assigner place tests, format clarity, double serdes) |
+| Store format | per-MWM-leaf `.spa` FilesContainer (hdr/areas/assign) within country download (SPD-020); true rings via `SaveOuterPath`; dense uint16/uint32 compact index + sentinel (SPD-021/022) |
+| Size delta | Not re-measured with shipping encoder on full FI (follow-up / SP-031 exit #7); SP-023 baseline ~2.06 MiB zlib coded_delta national / ~0.52 MiB Helsinki. Offline FI JSONL policy filter: 2618 admitted / 64 unnamed / 69 policy_mismatch |
 | Decision ids (SP-024) | SPD-020, SPD-021, SPD-022, SPD-025 (plus SPD-004/006/023/024 constraints) |
-| Test output | `./tools/unix/build_omim.sh -d -p /workspace street_pixels_areas_tests`; `./tools/unix/run_tests.sh -b /workspace/omim-build-debug -f "ExplorationFilter_\|SubdivisionAssigner_\|SpaSerdes_"` — 15/15 OK. `street_pixels_tests` builds. `CountryConfig_` 11/11 OK |
+| Test output | See latest review validation run on this branch |
 | Accepted by | |
 | Accepted date | |
 
@@ -101,7 +101,10 @@ remains search-only (SPD-020, SPD-025).
 | Finding | Proposed disposition |
 | --- | --- |
 | Full generator mapgen emission from OSM collectors into `.spa` not wired | SP-026 intermediate ships format+library+fixture tests; wire emission in a follow-up commit/item before SP-031 |
-| Shipping-encoder FI size not re-measured vs SP-023 coded_delta | Optional offline emit from `/tmp/sp023` JSONL + measure under SP-031 exit #7 |
+| Shipping-encoder FI size not re-measured vs SP-023 coded_delta | Optional offline emit from `/tmp/sp023` JSONL + measure under SP-031 exit #7 (`SaveOuterPath` ≠ spike coded_delta) |
 | Classificator / mapcss still lack admin 5/6/8 drawable types | Sidecar avoids drawable pressure; document if/when mapcss needed (SP-024 follow-up) |
 | Dense assign samples in writer are caller-supplied (HEALPix universe not generated here) | SP-028 / generator emit job supplies valid-universe sample centres |
+| Header lacks HEALPix `nside` / explicit universe-ordering tag | Freeze contract in generator emit + SP-027 before production blobs; consider format_version bump if header field added |
+| Outer rings only (holes not stored) | Accept PIP over-accept in holes for V1 or revise format later |
+| Subdivision assigner does not require settlement containment (§8.3 step 1) | SP-029 / emit job ensure candidates are settlement-associated; optional PIP gate later |
 | | |
