@@ -1,8 +1,8 @@
 # SP-027 — Client runtime polygon API
 
 **Phase:** 4 — Administrative-area pipeline
-**Status:** In review
-**Branch:** `cursor/sp-027-client-polygon-runtime-api-191e`
+**Status:** Accepted
+**Branch:** `street-pixels` (merged from `cursor/sp-027-client-polygon-runtime-api-191e`)
 **Depends on:** SP-024 Accepted (SPD-020/021), SP-026 (sidecar + precompute
   artifacts available for fixture)
 
@@ -87,8 +87,8 @@ without network.
 | API symbols | `ExplorationSidecarPath`, `ExplorationSidecarPathBesideMwm`, `TryLoadExplorationSidecar`, `TryLoadAndVerifyExplorationSidecar`, `SpaLoadStatus`/`SpaLoadResult`, `StableOsmId`, `DisplayName`, `AreasByRole`, `DenseAssignments`, `SettlementAreas`, `FindAreaByCompactIndex` |
 | Decision ids (SP-024) | SPD-020, SPD-021, SPD-025 |
 | Test output | `./tools/unix/build_omim.sh -d -p /workspace street_pixels_areas_tests`; filter `Spa\|ExplorationSidecar\|TryLoad` OK; full `./street_pixels_areas_tests` **25/25 OK** (filter 6, sidecar 8, serdes 4, assigner 7). `map` links `street_pixels_areas`. |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-04 |
 
 ## Discovered follow-up
 
