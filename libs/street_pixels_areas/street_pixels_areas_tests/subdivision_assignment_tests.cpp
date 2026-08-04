@@ -107,6 +107,10 @@ UNIT_TEST(LookupSubdivision_NestedSmallestAndOutside)
   TEST_EQUAL(LookupSubdivisionByHealpix(loaded.m_file, fx.m_universe, 999), nullptr, ());
   TEST_EQUAL(LookupSubdivisionBySlot(loaded.m_file, 99), nullptr, ());
 
+  // Free-function path fails closed on unsorted / duplicate U (no silent PIP-ish wrong slot).
+  TEST_EQUAL(LookupSubdivisionByHealpix(loaded.m_file, {300, 200, 100}, 100), nullptr, ());
+  TEST_EQUAL(LookupSubdivisionByHealpix(loaded.m_file, {100, 100, 300}, 100), nullptr, ());
+
   RemoveIfExists(fx.m_path);
 }
 
@@ -181,9 +185,13 @@ UNIT_TEST(SubdivisionAssignmentTable_VersionMismatchFailClosed)
   auto ok = SubdivisionAssignmentTable::TryLoad(fx.m_path, fx.m_universe, fx.m_params.m_mapDataVersion,
                                                 fx.m_params.m_policyVersion);
   TEST(ok.has_value(), ());
-  TEST_EQUAL(ok->LookupByHealpix(100)->m_name, "Inner", ());
+  auto const * nested = ok->LookupByHealpix(100);
+  TEST(nested != nullptr, ());
+  TEST_EQUAL(nested->m_name, "Inner", ());
   TEST_EQUAL(ok->LookupByHealpix(200), nullptr, ());
-  TEST_EQUAL(ok->LookupBySlot(2)->m_name, "Outer", ());
+  auto const * outer = ok->LookupBySlot(2);
+  TEST(outer != nullptr, ());
+  TEST_EQUAL(outer->m_name, "Outer", ());
 
   auto badMap = SubdivisionAssignmentTable::TryLoad(fx.m_path, fx.m_universe, fx.m_params.m_mapDataVersion + 1,
                                                     fx.m_params.m_policyVersion);
@@ -201,10 +209,33 @@ UNIT_TEST(SubdivisionAssignmentTable_VersionMismatchFailClosed)
                                                           fx.m_params.m_policyVersion);
   TEST(!notAscending.has_value(), ());
 
+  auto duplicateIds = SubdivisionAssignmentTable::TryLoad(fx.m_path, {100, 100, 300}, fx.m_params.m_mapDataVersion,
+                                                          fx.m_params.m_policyVersion);
+  TEST(!duplicateIds.has_value(), ());
+
   auto missing = SubdivisionAssignmentTable::TryLoad(ExplorationSidecarPath(GetPlatform().WritableDir(), "missing_sp028"),
                                                      fx.m_universe, fx.m_params.m_mapDataVersion,
                                                      fx.m_params.m_policyVersion);
   TEST(!missing.has_value(), ());
 
   RemoveIfExists(fx.m_path);
+}
+
+UNIT_TEST(LookupSubdivision_RejectsNonAssignableTarget)
+{
+  // In-memory corrupt column: points at a settlement row. Reader would reject this
+  // on disk; Lookup still fails closed so settlement is never productized here.
+  SpaFile file;
+  file.m_header.m_indexWidth = 2;
+  ExplorationArea settlement;
+  settlement.m_compactIndex = 0;
+  settlement.m_role = AreaRole::Settlement;
+  settlement.m_adminLevel = 8;
+  settlement.m_name = "Town";
+  settlement.m_osmId = 8;
+  file.m_areas.push_back(settlement);
+  file.m_assignments = {0};
+
+  TEST_EQUAL(LookupSubdivisionBySlot(file, 0), nullptr, ());
+  TEST_EQUAL(LookupSubdivisionByHealpix(file, {42}, 42), nullptr, ());
 }
