@@ -83,7 +83,7 @@ without network.
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-027-client-polygon-runtime-api-191e` |
-| Commits | (see Git history on branch; implementation + docs) |
+| Commits | `011a1e6d1` API+link; `95673d2e7` unity/corrupt fixture; `b57891274` docs |
 | API symbols | `ExplorationSidecarPath`, `ExplorationSidecarPathBesideMwm`, `TryLoadExplorationSidecar`, `TryLoadAndVerifyExplorationSidecar`, `SpaLoadStatus`/`SpaLoadResult`, `StableOsmId`, `DisplayName`, `AreasByRole`, `DenseAssignments`, `SettlementAreas`, `FindAreaByCompactIndex` |
 | Decision ids (SP-024) | SPD-020, SPD-021, SPD-025 |
 | Test output | `./tools/unix/build_omim.sh -d -p /workspace street_pixels_areas_tests`; `./tools/unix/run_tests.sh -b /workspace/omim-build-debug -f "Spa\|ExplorationSidecar\|TryLoad"` — ExplorationSidecar 7 + SpaSerdes 4 OK; full `./street_pixels_areas_tests` **24/24 OK** (filter 6, sidecar 7, serdes 4, assigner 7). `map` links `street_pixels_areas`. |
