@@ -5,6 +5,7 @@ set(SRC
   exploration_sidecar_tests.cpp
   spa_serdes_tests.cpp
   subdivision_assigner_tests.cpp
+  subdivision_assignment_tests.cpp
   test_helpers.hpp
 )
 
