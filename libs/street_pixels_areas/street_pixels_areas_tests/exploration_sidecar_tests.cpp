@@ -112,6 +112,17 @@ UNIT_TEST(ExplorationSidecar_MissingIsEmptySafe)
   TEST_EQUAL(loaded.m_file.m_header.m_areaCount, 0u, ());
 }
 
+UNIT_TEST(ExplorationSidecar_DirectoryPathIsCorruptSafe)
+{
+  std::string const path = GetPlatform().WritableDir();
+  TEST(Platform::IsDirectory(path), (path));
+
+  auto const loaded = TryLoadExplorationSidecar(path);
+  TEST_EQUAL(loaded.m_status, SpaLoadStatus::Corrupt, (DebugPrint(loaded.m_status)));
+  TEST(loaded.m_file.m_areas.empty(), ());
+  TEST(loaded.m_file.m_assignments.empty(), ());
+}
+
 UNIT_TEST(ExplorationSidecar_CorruptIsEmptySafe)
 {
   auto fx = MakeFixture();
@@ -180,6 +191,12 @@ UNIT_TEST(ExplorationSidecar_DisplayNameNeverFallsBackToMwmId)
   TEST_EQUAL(DisplayName(loaded.m_file.m_areas[0]), "District", ());
   TEST_EQUAL(StableOsmId(loaded.m_file.m_areas[0]), 10u, ());
 
+  // Empty stored name stays empty — never substituted with MWM leaf / country id.
+  ExplorationArea blank;
+  blank.m_name.clear();
+  TEST_EQUAL(DisplayName(blank), std::string{}, ());
+  TEST_NOT_EQUAL(DisplayName(blank), fx.m_leaf, ());
+
   RemoveIfExists(fx.m_path);
 }
 
@@ -209,6 +226,9 @@ UNIT_TEST(ExplorationSidecar_SettlementRingsFromSidecar)
 
   // Settlement compact indices are never assignment targets.
   uint32_t const sentinel = NoSubdivisionSentinel(loaded.m_file.m_header.m_indexWidth);
+  TEST_EQUAL(FindAreaByCompactIndex(loaded.m_file, sentinel), nullptr, ());
+  TEST_EQUAL(FindAreaByCompactIndex(loaded.m_file, loaded.m_file.m_areas.size()), nullptr, ());
+
   for (uint32_t value : DenseAssignments(loaded.m_file))
   {
     if (value == sentinel)
