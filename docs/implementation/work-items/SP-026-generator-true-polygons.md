@@ -1,8 +1,8 @@
 # SP-026 — Generator: emit true closed exploration polygons
 
 **Phase:** 4 — Administrative-area pipeline
-**Status:** In review
-**Branch:** `cursor/sp-026-generator-exploration-sidecar-191e`
+**Status:** Accepted
+**Branch:** `street-pixels` (merged from `cursor/sp-026-generator-exploration-sidecar-191e`)
 **Depends on:** SP-024 Accepted (SPD-020 store, SPD-021 precompute), SP-025
   (which levels/places to emit)
 
@@ -93,8 +93,8 @@ remains search-only (SPD-020, SPD-025).
 | Size delta | Not re-measured with shipping encoder on full FI (follow-up / SP-031 exit #7); SP-023 baseline ~2.06 MiB zlib coded_delta national / ~0.52 MiB Helsinki. Offline FI JSONL policy filter: 2618 admitted / 64 unnamed / 69 policy_mismatch |
 | Decision ids (SP-024) | SPD-020, SPD-021, SPD-022, SPD-025 (plus SPD-004/006/023/024 constraints) |
 | Test output | `./tools/unix/build_omim.sh -d -p /workspace street_pixels_areas_tests`; `./omim-build-debug/street_pixels_areas_tests` — **17/17 OK** (filter 6, serdes 4, assigner 7). `CountryConfig_` **11/11 OK**. FI JSONL filter preview: 2618 admitted / 64 unnamed / 69 policy_mismatch |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-04 |
 
 ## Discovered follow-up
 
