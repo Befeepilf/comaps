@@ -16,13 +16,16 @@ For a valid-street-pixel universe **U**:
 
 Client lookup:
 
-- `LookupSubdivisionBySlot(file, i)` → area for slot `i`, or none.
-- `LookupSubdivisionByHealpix(file, U, nestId)` → binary search on `U`, then
-  slot lookup; unknown id → none.
-
-`SubdivisionAssignmentTable::TryLoad` binds a version-verified `.spa` to a
-caller-supplied `U` and **fails closed** on map/policy mismatch, size mismatch,
-or non-ascending `U`.
+- `LookupSubdivisionBySlot(file, i)` → assignable area for slot `i`, or none
+  (sentinel / OOB / non-assignable target → none; never invents grids or
+  settlements).
+- `LookupSubdivisionByHealpix(file, U, nestId)` → fails closed if `U` size
+  mismatches `assign`, or `U` is not strictly ascending (including duplicates);
+  otherwise binary search on `U`, then slot lookup; unknown id → none.
+- `SubdivisionAssignmentTable::TryLoad` binds a version-verified `.spa` to a
+  caller-supplied `U` and **fails closed** on map/policy mismatch, size
+  mismatch, or non-ascending `U`. Table healpix lookup then assumes the bound
+  `U` (no per-call ascending re-scan).
 
 ## What this is not
 
