@@ -98,4 +98,5 @@ polygons. Assignment must be reproducible and offline.
 | `.spa` header still lacks HEALPix `nside` / ordering tag | Keep contract in SP-028 note; add header field + format_version bump with generator emit before production blobs |
 | Universe NEST id list is caller-supplied (not stored in `.spa`) | SP-030 / generator emit may bind U from `.pix` / emit artifact; table load already requires parallel U |
 | No `StreetPixelsManager` consumption yet | Intentional; SP-029/030 productize settlement + sparse rematch on top of this API |
+| SP-026 note still says assign slots follow "generator emit order" | Align SP-026 wording to SP-028 ascending-NEST contract when touching that note |
 | | |
