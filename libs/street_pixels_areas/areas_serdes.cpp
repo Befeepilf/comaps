@@ -21,6 +21,7 @@ void WriteArea(Writer & writer, ExplorationArea const & area)
   WriteToSink(writer, area.m_adminLevel);
   rw::Write(writer, area.m_placeType);
   rw::Write(writer, area.m_name);
+  // Host-endian IEEE754; WriteToSink is integral-only.
   writer.Write(&area.m_area, sizeof(area.m_area));
 
   WriteVarUint(writer, static_cast<uint32_t>(area.m_rings.size()));
