@@ -8,16 +8,6 @@ namespace street_pixels
 {
 namespace
 {
-bool IsStrictlyAscending(std::vector<int64_t> const & ids)
-{
-  for (size_t i = 1; i < ids.size(); ++i)
-  {
-    if (ids[i] <= ids[i - 1])
-      return false;
-  }
-  return true;
-}
-
 struct SettlementScore
 {
   double m_area = std::numeric_limits<double>::max();
@@ -33,6 +23,17 @@ struct SettlementScore
     return m_compactIndex < other.m_compactIndex;
   }
 };
+
+// Named distinctly from subdivision_assignment.cpp for unity builds.
+bool ExplorationUniverseIsStrictlyAscending(std::vector<int64_t> const & ids)
+{
+  for (size_t i = 1; i < ids.size(); ++i)
+  {
+    if (ids[i] <= ids[i - 1])
+      return false;
+  }
+  return true;
+}
 }  // namespace
 
 ExplorationArea const * SelectSettlementContaining(SpaFile const & file, m2::PointD const & point)
@@ -76,7 +77,7 @@ ExplorationArea const * LookupExplorationArea(SpaFile const & file,
 {
   if (universeAscendingNest.size() != file.m_assignments.size())
     return nullptr;
-  if (!IsStrictlyAscending(universeAscendingNest))
+  if (!ExplorationUniverseIsStrictlyAscending(universeAscendingNest))
     return nullptr;
 
   auto const it =
