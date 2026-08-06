@@ -1,8 +1,8 @@
 # SP-028 — Deterministic pixel-to-area assignment
 
 **Phase:** 4 — Administrative-area pipeline
-**Status:** Planned
-**Branch:** `street-pixels`
+**Status:** Accepted
+**Branch:** `street-pixels` (merged from `cursor/sp-028-pixel-to-area-assignment-191e`)
 **Depends on:** SP-024 Accepted (SPD-021 locus), SP-025 (priority), SP-027
   (load API)
 
@@ -50,6 +50,16 @@ polygons. Assignment must be reproducible and offline.
 
 - §8.8, §8.3; SPD-006, SPD-021.
 
+## Relevant source files or symbols
+
+- `libs/street_pixels_areas/subdivision_assignment.hpp` —
+  `LookupSubdivisionBySlot`, `LookupSubdivisionByHealpix`,
+  `VerifyDenseAssignments`, `SubdivisionAssignmentTable`
+- `docs/implementation/notes/SP-028-universe-order.md` — ascending NEST ↔
+  slot ↔ `assign[i]` contract
+- Existing §8.8 assigner (`subdivision_assigner.hpp`) remains the generator /
+  fixture recompute path; client primary path is table lookup (SPD-021)
+
 ## Acceptance criteria
 
 1. Determinism: same fixture twice → identical assignments.
@@ -73,15 +83,20 @@ polygons. Assignment must be reproducible and offline.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commits | |
+| Branch | `cursor/sp-028-pixel-to-area-assignment-191e` |
+| Commits | `a92285768` API+tests; `e7ce3a8f4`/`7d23d0c3f` docs/evidence; `ab14095c7` review fail-closed fixes |
+| API symbols | `LookupSubdivisionBySlot`, `LookupSubdivisionByHealpix`, `VerifyDenseAssignments`, `SubdivisionAssignmentTable::TryLoad` / `LookupBySlot` / `LookupByHealpix` |
 | Decision ids (SP-024) | SPD-021 (primary); SPD-022 (feeds SP-030) |
-| Test output | |
-| Accepted by | |
-| Accepted date | |
+| Test output | `./tools/unix/build_omim.sh -d -p /workspace street_pixels_areas_tests`; `./tools/unix/run_tests.sh -b /workspace/omim-build-debug -f "Subdivision\|Lookup\|VerifyDense\|Assignment"` — assigner 7 + assignment 6 OK; full `./street_pixels_areas_tests` **31/31 OK** (filter 6, sidecar 8, serdes 4, assigner 7, assignment 6). |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-06 |
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
+| `.spa` header still lacks HEALPix `nside` / ordering tag | Keep contract in SP-028 note; add header field + format_version bump with generator emit before production blobs |
+| Universe NEST id list is caller-supplied (not stored in `.spa`) | SP-030 / generator emit may bind U from `.pix` / emit artifact; table load already requires parallel U |
+| No `StreetPixelsManager` consumption yet | Intentional; SP-029/030 productize settlement + sparse rematch on top of this API |
+| SP-026 note still says assign slots follow "generator emit order" | Align SP-026 wording to SP-028 ascending-NEST contract when touching that note |
 | | |
