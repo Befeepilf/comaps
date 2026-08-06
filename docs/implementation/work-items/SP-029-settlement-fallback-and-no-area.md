@@ -1,8 +1,8 @@
 # SP-029 — Settlement fallback and no-area state
 
 **Phase:** 4 — Administrative-area pipeline
-**Status:** In review
-**Branch:** `cursor/sp-029-settlement-fallback-191e`
+**Status:** Accepted
+**Branch:** `street-pixels` (merged from `cursor/sp-029-settlement-fallback-191e`)
 **Depends on:** SP-024 Accepted (SPD-025 settlement geometry), SP-028
   (subdivision-or-none)
 
@@ -77,8 +77,8 @@ and no-area must be explicit product states, not accidental nulls.
 | Decision ids (SP-024) | SPD-025 (primary); SPD-007, SPD-020, SPD-023 |
 | API symbols | `SelectSettlementContaining`, `LookupExplorationArea` (slot / healpix + sample centre), `ExplorationAreaResolver::TryLoad` / `LookupBySlot` / `LookupByHealpix` |
 | Test output | Re-run after OOB fix: `./tools/unix/build_omim.sh -d -p /workspace street_pixels_areas_tests`; filter `ExplorationArea\|Settlement\|LookupExploration\|SelectSettlement` — 6 OK; full `./street_pixels_areas_tests` **36/36 OK**. |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-06 |
 
 ## Discovered follow-up
 
