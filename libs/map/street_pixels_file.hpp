@@ -8,6 +8,7 @@
 #include <set>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 class Writer;
 
@@ -84,4 +85,7 @@ bool SaveRematchedUniverse(std::string const & path, std::set<int64_t> const & n
 bool SaveExploredArchive(std::string const & path, ExploredEverLiveMap const & exploredEverLive,
                          int64_t mapDataVersion);
 std::optional<ExploredEverLiveMap> LoadExploredArchive(std::string const & path);
+
+// Ascending HEALPix NEST ids from a `.pix` body (explored bit ignored). nullopt on corrupt.
+std::optional<std::vector<int64_t>> ScanUniverseAscending(std::string const & path);
 }  // namespace street_pixels_file
