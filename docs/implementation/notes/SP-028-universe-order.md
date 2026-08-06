@@ -30,7 +30,8 @@ Client lookup:
 ## What this is not
 
 - Not a primary full-universe on-device PIP rematch (SPD-021).
-- Settlement fallback / no-area productization is **SP-029**.
+- Settlement fallback / no-area productization is **SP-029** (see
+  `SP-029-settlement-fallback.md`).
 - Sparse explored persistence + rematerialize is **SP-030** (SPD-022).
 - The `.spa` header still does **not** encode `nside` / an ordering tag
   (SP-026 follow-up). This note freezes the client/generator contract until a

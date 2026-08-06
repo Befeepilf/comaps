@@ -1,8 +1,8 @@
 # SP-029 — Settlement fallback and no-area state
 
 **Phase:** 4 — Administrative-area pipeline
-**Status:** Planned
-**Branch:** `street-pixels`
+**Status:** Accepted
+**Branch:** `street-pixels` (merged from `cursor/sp-029-settlement-fallback-191e`)
 **Depends on:** SP-024 Accepted (SPD-025 settlement geometry), SP-028
   (subdivision-or-none)
 
@@ -71,16 +71,21 @@ and no-area must be explicit product states, not accidental nulls.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commits | |
+| Branch | `cursor/sp-029-settlement-fallback-191e` |
+| Commits | `edd849e55` API+tests; `fbab454b3` test clarify; `4097f0bb3` unity-build fix; `c5da62748` docs; `7520a7e48` OOB fail-closed review fix |
 | Settlement geometry (SP-024) | True municipal rings from exploration sidecar (SPD-025); three-box not authority |
-| Decision ids (SP-024) | SPD-025 (primary); SPD-020, SPD-023 |
-| Test output | |
-| Accepted by | |
-| Accepted date | |
+| Decision ids (SP-024) | SPD-025 (primary); SPD-007, SPD-020, SPD-023 |
+| API symbols | `SelectSettlementContaining`, `LookupExplorationArea` (slot / healpix + sample centre), `ExplorationAreaResolver::TryLoad` / `LookupBySlot` / `LookupByHealpix` |
+| Test output | Re-run after OOB fix: `./tools/unix/build_omim.sh -d -p /workspace street_pixels_areas_tests`; filter `ExplorationArea\|Settlement\|LookupExploration\|SelectSettlement` — 6 OK; full `./street_pixels_areas_tests` **36/36 OK**. |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-06 |
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
+| No `StreetPixelsManager` / live collection consumption yet | Intentional; SP-030 sparse rematch + Phase 5 UI productize on this API |
+| Settlement PIP is O(M) linear over settlement rows per sample | Acceptable for small M (SPD-025); measure before any spatial index |
+| Equal-area multi-settlement ties break by OSM id then compact index | Documented in note; matches subdivision §8.8 spirit; fail closed only when no containing settlement |
+| OOB slot previously fell through to settlement PIP | Fixed in review: OOB → nullptr (same fail-closed class as unknown HEALPix) |
 | | |
