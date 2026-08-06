@@ -399,4 +399,86 @@ std::optional<ExploredEverLiveMap> LoadExploredArchive(std::string const & path)
 
   return explored;
 }
+
+std::optional<std::vector<int64_t>> ScanUniverseAscending(std::string const & path)
+{
+  std::vector<int64_t> universe;
+  uint64_t size = 0;
+  if (!Platform::GetFileSizeByFullPath(path, size) || size == 0)
+    return universe;
+
+  ProbeResult const probe = ProbeFile(path);
+  uint64_t offset = 0;
+  switch (probe.kind)
+  {
+  case FileKind::HeaderedV1:
+  case FileKind::HeaderedV2:
+    if (size < kHeaderSize || ((size - kHeaderSize) % sizeof(int64_t)) != 0)
+    {
+      LOG(LWARNING, ("Street pixels file size invalid for universe scan", path));
+      return std::nullopt;
+    }
+    offset = kHeaderSize;
+    break;
+  case FileKind::Legacy:
+    if ((size % sizeof(int64_t)) != 0)
+    {
+      LOG(LWARNING, ("Legacy street pixels file size invalid for universe scan", path));
+      return std::nullopt;
+    }
+    offset = 0;
+    break;
+  case FileKind::UnsupportedFormat:
+    LOG(LWARNING, ("Unsupported street pixels format; refusing universe scan", path));
+    return std::nullopt;
+  case FileKind::Corrupt:
+    LOG(LWARNING, ("Corrupt street pixels file; refusing universe scan", path));
+    return std::nullopt;
+  }
+
+  try
+  {
+    FileReader reader(path);
+    std::vector<uint8_t> buffer(static_cast<size_t>(std::min<uint64_t>(size - offset, kMigrateChunkBytes)));
+    if (buffer.empty())
+      return universe;
+
+    size_t const wordsPerChunk = buffer.size() / sizeof(int64_t);
+    buffer.resize(wordsPerChunk * sizeof(int64_t));
+    if (buffer.empty())
+      return universe;
+
+    while (offset < size)
+    {
+      size_t const chunk = static_cast<size_t>(std::min<uint64_t>(size - offset, buffer.size()));
+      if ((chunk % sizeof(int64_t)) != 0)
+      {
+        LOG(LWARNING, ("Street pixels universe scan hit misaligned trailing bytes", path));
+        return std::nullopt;
+      }
+      reader.Read(offset, buffer.data(), chunk);
+      size_t const wordCount = chunk / sizeof(int64_t);
+      for (size_t i = 0; i < wordCount; ++i)
+      {
+        int64_t word = 0;
+        std::memcpy(&word, buffer.data() + i * sizeof(int64_t), sizeof(word));
+        int64_t const pixelId = word & kPixelIdMask;
+        if (!universe.empty() && pixelId <= universe.back())
+        {
+          LOG(LWARNING, ("Street pixels universe not strictly ascending", path));
+          return std::nullopt;
+        }
+        universe.push_back(pixelId);
+      }
+      offset += chunk;
+    }
+  }
+  catch (Reader::Exception const & ex)
+  {
+    LOG(LWARNING, ("Failed to scan street pixels universe", path, ex.what()));
+    return std::nullopt;
+  }
+
+  return universe;
+}
 }  // namespace street_pixels_file

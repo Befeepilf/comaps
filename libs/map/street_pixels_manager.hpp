@@ -118,6 +118,23 @@ public:
   std::optional<RematchFractionChange> TakePendingRematchFractionChange(
       storage::CountryId const & forCountryId = {});
 
+  struct AssignmentRematchSignal
+  {
+    storage::CountryId countryId;
+    int64_t mapDataVersion = 0;
+    uint32_t policyVersion = 0;
+    bool policyOnly = false;
+  };
+
+  // Optional pending signal when sparse assignments were rematerialized (no UI).
+  std::optional<AssignmentRematchSignal> TakePendingAssignmentRematch(
+      storage::CountryId const & forCountryId = {});
+
+  // Policy-only rematerialize of `{countryId}.spx` from a versioned `.spa`.
+  // Does not wipe `.pix` exploration. Returns false if sidecar/universe unavailable.
+  bool RematerializeAssignmentsOnPolicyBump(storage::CountryId const & countryId, std::string const & spaPath,
+                                            int64_t mapDataVersion, uint32_t expectedPolicyVersion);
+
   void CleanupStreetPixels(storage::CountryId const & countryId);
   void CleanupStreetPixelsForTesting(storage::CountryId const & countryId);
 
@@ -212,9 +229,12 @@ private:
 
   bool RematchStreetPixelsWithNewUniverseUnlocked(storage::CountryId const & countryId,
                                                   std::set<std::int64_t> const & newIds,
-                                                  std::int64_t mapDataVersion);
+                                                  std::int64_t mapDataVersion,
+                                                  std::string const & spaPath = {});
   bool ReloadStreetPixelsAfterRematchUnlocked(storage::CountryId const & countryId, std::int64_t mapDataVersion);
   void CleanupStreetPixelsUnlocked(storage::CountryId const & countryId);
+  void RefreshSparseAssignmentsBestEffortUnlocked(storage::CountryId const & countryId, std::string const & spaPath,
+                                                  std::int64_t mapDataVersion, bool policyOnly);
 
   // Updates heuristic stats for each street in the explore radius. Needed for routing to prefer streets with more
   // unexplored pixels.
@@ -236,4 +256,7 @@ private:
 
   std::optional<RematchFractionChange> m_pendingRematchFractionChange;
   mutable std::mutex m_pendingRematchFractionMutex;
+
+  std::optional<AssignmentRematchSignal> m_pendingAssignmentRematch;
+  mutable std::mutex m_pendingAssignmentRematchMutex;
 };
