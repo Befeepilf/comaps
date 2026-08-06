@@ -72,11 +72,11 @@ and no-area must be explicit product states, not accidental nulls.
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-029-settlement-fallback-191e` |
-| Commits | `edd849e55` API+tests; `fbab454b3` test clarify; `4097f0bb3` unity-build fix; `c5da62748` docs |
+| Commits | `edd849e55` API+tests; `fbab454b3` test clarify; `4097f0bb3` unity-build fix; `c5da62748` docs; `7520a7e48` OOB fail-closed review fix |
 | Settlement geometry (SP-024) | True municipal rings from exploration sidecar (SPD-025); three-box not authority |
 | Decision ids (SP-024) | SPD-025 (primary); SPD-007, SPD-020, SPD-023 |
 | API symbols | `SelectSettlementContaining`, `LookupExplorationArea` (slot / healpix + sample centre), `ExplorationAreaResolver::TryLoad` / `LookupBySlot` / `LookupByHealpix` |
-| Test output | `./tools/unix/build_omim.sh -d -p /workspace street_pixels_areas_tests`; `./tools/unix/run_tests.sh -b /workspace/omim-build-debug -f "ExplorationArea\|Settlement\|LookupExploration\|SelectSettlement"` — filter 6 OK (5 resolver + SettlementRingsFromSidecar); full `./street_pixels_areas_tests` **36/36 OK** (filter 6, sidecar 8, serdes 4, assigner 7, assignment 6, resolver 5). |
+| Test output | Re-run after OOB fix: `./tools/unix/build_omim.sh -d -p /workspace street_pixels_areas_tests`; filter `ExplorationArea\|Settlement\|LookupExploration\|SelectSettlement` — 6 OK; full `./street_pixels_areas_tests` **36/36 OK**. |
 | Accepted by | |
 | Accepted date | |
 
