@@ -222,7 +222,10 @@ UNIT_TEST(SelectSettlement_MultiSettlementTieBreak)
   TEST(small != nullptr, ());
   TEST_EQUAL(small->m_name, "SmallInner", ());
   TEST_EQUAL(StableOsmId(*small), 700u, ());
-  TEST_LESS(small->m_area, loaded.m_file.m_areas[0].m_area, ());
+  auto const * large = FindAreaByCompactIndex(loaded.m_file, 0);
+  TEST(large != nullptr, ());
+  TEST_EQUAL(large->m_name, "LargeOuter", ());
+  TEST_LESS(small->m_area, large->m_area, ());
 
   // Equal area: lower OSM id wins.
   auto const * equal = SelectSettlementContaining(loaded.m_file, fx.m_samples[1]);
