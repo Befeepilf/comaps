@@ -14,8 +14,9 @@ Constraints frozen here:
   subdivision-only (SPD-021 / SP-028).
 - Containment uses sidecar true rings, **not** `CitiesBoundariesTable`
   three-box `HasPoint`.
-- Fail closed: version / universe mismatch or unknown HEALPix id → no area
-  (do not invent a settlement from a sample centre alone).
+- Fail closed: version / universe mismatch, unknown HEALPix id, or OOB slot →
+  no area (do not invent a settlement from a sample centre alone). Valid
+  sentinel slots still run settlement PIP.
 - No grids, no place-node invented polygons.
 
 API: `SelectSettlementContaining`, `LookupExplorationArea` (slot / healpix +
