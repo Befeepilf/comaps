@@ -1,8 +1,8 @@
 # SP-028 — Deterministic pixel-to-area assignment
 
 **Phase:** 4 — Administrative-area pipeline
-**Status:** In review
-**Branch:** `cursor/sp-028-pixel-to-area-assignment-191e`
+**Status:** Accepted
+**Branch:** `street-pixels` (merged from `cursor/sp-028-pixel-to-area-assignment-191e`)
 **Depends on:** SP-024 Accepted (SPD-021 locus), SP-025 (priority), SP-027
   (load API)
 
