@@ -76,7 +76,7 @@ prior completion dates locally when an area disappears.
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-030-assignment-persistence-191e` |
-| Commits | `666018c0e` sparse store+tests; `ea8019044` manager hooks+tests; `7d7f21816` docs |
+| Commits | `666018c0e` sparse store+tests; `ea8019044` manager hooks+tests; `f0abc0abf` docs |
 | Format | sparse explored + dense uint16/uint32 sidecar rematerialize (SPD-022); `.spx` magic SPX1 |
 | Decision ids (SP-024) | SPD-022 (primary); SPD-021 |
 | Size note | See `notes/SP-030-sparse-assignment.md` — sparse 1 % @ uint16 ≈ 0.65 MiB vs SP-023 ~0.78 MiB / full uint32 ~26 MiB |
