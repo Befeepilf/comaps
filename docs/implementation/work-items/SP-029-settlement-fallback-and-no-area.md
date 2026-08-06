@@ -72,7 +72,7 @@ and no-area must be explicit product states, not accidental nulls.
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-029-settlement-fallback-191e` |
-| Commits | `edd849e55` API+tests; `fbab454b3` test clarify; `4097f0bb3` unity-build fix; docs commit |
+| Commits | `edd849e55` API+tests; `fbab454b3` test clarify; `4097f0bb3` unity-build fix; `c5da62748` docs |
 | Settlement geometry (SP-024) | True municipal rings from exploration sidecar (SPD-025); three-box not authority |
 | Decision ids (SP-024) | SPD-025 (primary); SPD-007, SPD-020, SPD-023 |
 | API symbols | `SelectSettlementContaining`, `LookupExplorationArea` (slot / healpix + sample centre), `ExplorationAreaResolver::TryLoad` / `LookupBySlot` / `LookupByHealpix` |
