@@ -291,6 +291,34 @@ UNIT_TEST(SparseAssignment_MissingAreaIsNoneNoGrid)
   CleanupFixture(fx);
 }
 
+UNIT_TEST(SparseAssignment_EnsureRebuildsWhenExploredGrows)
+{
+  auto fx = MakeBaseFixture("sp030_explored_grow", 91, 1);
+  auto resolver = LoadResolver(fx);
+  TEST(resolver.has_value(), ());
+
+  // Persist sparse for a single explored cell.
+  auto partial = SparseAssignmentStore::Build(*resolver, std::vector<int64_t>{10},
+                                              std::vector<m2::PointD>{fx.m_exploredCentres[0]});
+  TEST_EQUAL(partial.Entries().size(), 1, ());
+  TEST(partial.Save(fx.m_spxPath), ());
+  TEST(partial.CoversExplored(std::vector<int64_t>{10}), ());
+  TEST(!partial.CoversExplored(fx.m_explored), ());
+
+  // Same (map, policy) versions but larger explored set → must rematerialize.
+  auto ensured = EnsureSparseAssignmentStore(fx.m_spxPath, *resolver, fx.m_explored, fx.m_exploredCentres);
+  TEST(ensured.has_value(), ());
+  TEST_EQUAL(ensured->Entries().size(), fx.m_explored.size(), ());
+  TEST(ensured->CoversExplored(fx.m_explored), ());
+  TEST(ensured->FindCompactIndex(30).has_value(), ());
+
+  auto reloaded = TryLoadAndVerifySparseAssignmentStore(fx.m_spxPath, 91, 1);
+  TEST_EQUAL(reloaded.m_status, SpxLoadStatus::Ok, ());
+  TEST_EQUAL(reloaded.m_store.Entries().size(), 2, ());
+
+  CleanupFixture(fx);
+}
+
 UNIT_TEST(SparseAssignment_PathBesidePixUsesSpxExtension)
 {
   std::string const pix = base::JoinPath(GetPlatform().WritableDir(), "Finland_Uusimaa.pix");

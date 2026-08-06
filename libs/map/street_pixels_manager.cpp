@@ -654,6 +654,10 @@ void StreetPixelsManager::RematchStreetPixelsOnMapUpdate(storage::CountryId cons
       {
         LOG(LINFO, ("Rematch skipped; map-data version already current", countryId, mapDataVersion));
         Platform::RemoveFileIfExists(archivePath);
+        // .pix is current; still best-effort refresh .spx (missing/corrupt/stale policy).
+        std::string const spaPath =
+            street_pixels::ExplorationSidecarPathBesideMwm(localFile->GetPath(MapFileType::Map));
+        RefreshSparseAssignmentsBestEffortUnlocked(countryId, spaPath, mapDataVersion, false /* policyOnly */);
         return;
       }
 
@@ -768,6 +772,8 @@ bool StreetPixelsManager::RematchStreetPixelsWithNewUniverseUnlocked(storage::Co
   {
     LOG(LINFO, ("Rematch skipped; map-data version already current", countryId, mapDataVersion));
     Platform::RemoveFileIfExists(archivePath);
+    if (!spaPath.empty())
+      RefreshSparseAssignmentsBestEffortUnlocked(countryId, spaPath, mapDataVersion, false /* policyOnly */);
     if (isActiveCountry)
       return ReloadStreetPixelsAfterRematchUnlocked(countryId, mapDataVersion);
     return true;
@@ -925,9 +931,9 @@ void StreetPixelsManager::RefreshSparseAssignmentsBestEffortUnlocked(storage::Co
   }
 
   auto prior = street_pixels::TryLoadSparseAssignmentStore(spxPath);
-  bool const hadPrior = prior.m_status == street_pixels::SpxLoadStatus::Ok ||
-                        prior.m_status == street_pixels::SpxLoadStatus::VersionMismatch ||
-                        prior.m_status == street_pixels::SpxLoadStatus::Corrupt;
+  // TryLoad never returns VersionMismatch; treat Ok with wrong versions as stale.
+  bool const hadDurablePrior = prior.m_status == street_pixels::SpxLoadStatus::Ok ||
+                               prior.m_status == street_pixels::SpxLoadStatus::Corrupt;
   bool const versionsMatch =
       prior.m_status == street_pixels::SpxLoadStatus::Ok &&
       prior.m_store.MatchesVersions(sidecar.m_file.m_header.m_mapDataVersion,
@@ -952,7 +958,10 @@ void StreetPixelsManager::RefreshSparseAssignmentsBestEffortUnlocked(storage::Co
     return;
   }
 
-  if (hadPrior && (!versionsMatch || prior.m_status == street_pixels::SpxLoadStatus::Corrupt || policyOnly))
+  // Signal version rematch / corrupt rebuild. Quiet exploration catch-up under the
+  // same (map, policy) pair does not set the pending signal. policyOnly only
+  // annotates the signal when a rematch was requested via the policy-bump API.
+  if (hadDurablePrior && (!versionsMatch || prior.m_status == street_pixels::SpxLoadStatus::Corrupt))
   {
     std::lock_guard<std::mutex> lock(m_pendingAssignmentRematchMutex);
     AssignmentRematchSignal signal;

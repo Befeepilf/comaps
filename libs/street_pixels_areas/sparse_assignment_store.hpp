@@ -58,6 +58,9 @@ public:
 
   bool MatchesVersions(int64_t mapDataVersion, uint32_t policyVersion) const;
 
+  // True when entries are exactly the explored set (both strictly ascending).
+  bool CoversExplored(std::vector<int64_t> const & exploredAscendingNest) const;
+
   // Binary search; nullopt if healpix is not in the sparse map.
   std::optional<uint32_t> FindCompactIndex(int64_t healpixNestId) const;
 
@@ -96,8 +99,9 @@ SpxLoadResult TryLoadSparseAssignmentStore(std::string const & path);
 SpxLoadResult TryLoadAndVerifySparseAssignmentStore(std::string const & path, int64_t expectedMapDataVersion,
                                                     uint32_t expectedPolicyVersion);
 
-// Load if versions match; else rematerialize + save. Corrupt → rebuild.
-// Never touches `.pix`. Returns the store when durable state is current; nullopt on failure.
+// Load if versions match and sparse rows cover explored; else rematerialize + save.
+// Corrupt / incomplete / version mismatch → rebuild. Never touches `.pix`.
+// Returns the store when durable state is current; nullopt on failure.
 std::optional<SparseAssignmentStore> EnsureSparseAssignmentStore(
     std::string const & spxPath, ExplorationAreaResolver const & resolver,
     std::vector<int64_t> const & exploredAscendingNest, std::vector<m2::PointD> const & sampleCentres);

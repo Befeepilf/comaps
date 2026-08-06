@@ -124,6 +124,18 @@ bool SparseAssignmentStore::MatchesVersions(int64_t mapDataVersion, uint32_t pol
   return m_header.m_mapDataVersion == mapDataVersion && m_header.m_policyVersion == policyVersion;
 }
 
+bool SparseAssignmentStore::CoversExplored(std::vector<int64_t> const & exploredAscendingNest) const
+{
+  if (m_entries.size() != exploredAscendingNest.size())
+    return false;
+  for (size_t i = 0; i < exploredAscendingNest.size(); ++i)
+  {
+    if (m_entries[i].m_healpixNestId != exploredAscendingNest[i])
+      return false;
+  }
+  return true;
+}
+
 std::optional<uint32_t> SparseAssignmentStore::FindCompactIndex(int64_t healpixNestId) const
 {
   auto const it = std::lower_bound(
@@ -303,7 +315,9 @@ std::optional<SparseAssignmentStore> EnsureSparseAssignmentStore(
   uint32_t const policyVersion = spa.m_header.m_policyVersion;
 
   auto loaded = TryLoadAndVerifySparseAssignmentStore(spxPath, mapDataVersion, policyVersion);
-  if (loaded.m_status == SpxLoadStatus::Ok)
+  // Version match alone is not enough: exploration may have grown since the last
+  // save. Rebuild when the sparse set is not exactly the current explored set.
+  if (loaded.m_status == SpxLoadStatus::Ok && loaded.m_store.CoversExplored(exploredAscendingNest))
     return std::move(loaded.m_store);
 
   try
