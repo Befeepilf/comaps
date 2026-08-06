@@ -1,8 +1,8 @@
 # SP-029 — Settlement fallback and no-area state
 
 **Phase:** 4 — Administrative-area pipeline
-**Status:** Planned
-**Branch:** `street-pixels`
+**Status:** In review
+**Branch:** `cursor/sp-029-settlement-fallback-191e`
 **Depends on:** SP-024 Accepted (SPD-025 settlement geometry), SP-028
   (subdivision-or-none)
 
@@ -71,11 +71,12 @@ and no-area must be explicit product states, not accidental nulls.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Commits | |
+| Branch | `cursor/sp-029-settlement-fallback-191e` |
+| Commits | `edd849e55` API+tests; `fbab454b3` test clarify; `4097f0bb3` unity-build fix; docs commit |
 | Settlement geometry (SP-024) | True municipal rings from exploration sidecar (SPD-025); three-box not authority |
-| Decision ids (SP-024) | SPD-025 (primary); SPD-020, SPD-023 |
-| Test output | |
+| Decision ids (SP-024) | SPD-025 (primary); SPD-007, SPD-020, SPD-023 |
+| API symbols | `SelectSettlementContaining`, `LookupExplorationArea` (slot / healpix + sample centre), `ExplorationAreaResolver::TryLoad` / `LookupBySlot` / `LookupByHealpix` |
+| Test output | `./tools/unix/build_omim.sh -d -p /workspace street_pixels_areas_tests`; `./tools/unix/run_tests.sh -b /workspace/omim-build-debug -f "ExplorationArea\|Settlement\|LookupExploration\|SelectSettlement"` — filter 6 OK (5 resolver + SettlementRingsFromSidecar); full `./street_pixels_areas_tests` **36/36 OK** (filter 6, sidecar 8, serdes 4, assigner 7, assignment 6, resolver 5). |
 | Accepted by | |
 | Accepted date | |
 
@@ -83,4 +84,7 @@ and no-area must be explicit product states, not accidental nulls.
 
 | Finding | Proposed disposition |
 | --- | --- |
+| No `StreetPixelsManager` / live collection consumption yet | Intentional; SP-030 sparse rematch + Phase 5 UI productize on this API |
+| Settlement PIP is O(M) linear over settlement rows per sample | Acceptable for small M (SPD-025); measure before any spatial index |
+| Equal-area multi-settlement ties break by OSM id then compact index | Documented in note; matches subdivision §8.8 spirit; fail closed only when no containing settlement |
 | | |
