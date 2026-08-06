@@ -9,6 +9,7 @@
 #define DIFF_APPLYING_FILE_EXTENSION ".diff.applying"
 #define PIX_FILE_EXTENSION ".pix"
 #define SPA_FILE_EXTENSION ".spa"
+#define SPX_FILE_EXTENSION ".spx"
 #define FONT_FILE_EXTENSION ".ttf"
 #define OSM2FEATURE_FILE_EXTENSION ".osm2ft"
 #define EXTENSION_TMP ".tmp"

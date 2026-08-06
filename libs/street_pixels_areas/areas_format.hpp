@@ -9,6 +9,10 @@ namespace street_pixels
 uint32_t constexpr kSpaMagic = 0x31415053u;
 uint32_t constexpr kSpaFormatVersion = 1;
 
+// Little-endian fourcc "SPX1" — sparse explored assignment store (SPD-022).
+uint32_t constexpr kSpxMagic = 0x31585053u;
+uint32_t constexpr kSpxFormatVersion = 1;
+
 uint32_t constexpr kNoSubdivisionUint16 = std::numeric_limits<uint16_t>::max();
 uint32_t constexpr kNoSubdivisionUint32 = std::numeric_limits<uint32_t>::max();
 
