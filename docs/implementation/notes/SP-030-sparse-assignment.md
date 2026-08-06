@@ -17,15 +17,18 @@ Path: `{writable}/{countryId}.spx` beside `.pix` (`SPX_FILE_EXTENSION`).
 | index_width | uint8 | 2 or 4 (same sentinel rules as `.spa`) |
 | body | sorted rows | `int64` NEST id + `uint16`/`uint32` compact index |
 
-No uint64 OSM id column. Writes use temp+rename. Corrupt or version-mismatched
-stores rebuild from the sidecar; `.pix` exploration is never wiped.
+No uint64 OSM id column. Writes use temp+rename. Corrupt, version-mismatched,
+or incomplete (explored grew) stores rebuild from the sidecar; `.pix`
+exploration is never wiped.
 
 ## API
 
 - `SparseAssignmentStore::Build` / `Rematerialize` — from
   `ExplorationAreaResolver` + ascending explored ids + sample centres
 - `TryLoadSparseAssignmentStore` / `TryLoadAndVerifySparseAssignmentStore`
-- `EnsureSparseAssignmentStore` — load if current, else rematerialize+save
+- `EnsureSparseAssignmentStore` — load if versions match **and** sparse rows
+  cover the current explored set; else rematerialize+save
+- `SparseAssignmentStore::CoversExplored` — exact explored-set coverage check
 - Path helpers: `SparseAssignmentPath`, `SparseAssignmentPathBesidePix`
 
 Universe **U** and explored sets are caller-supplied (no
