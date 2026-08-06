@@ -66,6 +66,11 @@ ExplorationArea const * SelectSettlementContaining(SpaFile const & file, m2::Poi
 ExplorationArea const * LookupExplorationArea(SpaFile const & file, size_t slot,
                                               m2::PointD const & sampleCentre)
 {
+  // Fail closed on OOB: do not invent a settlement from a sample centre alone
+  // when the slot is outside the dense assign universe (same class as unknown
+  // HEALPix id). Valid sentinel slots still fall through to settlement PIP.
+  if (slot >= file.m_assignments.size())
+    return nullptr;
   if (auto const * assignable = LookupSubdivisionBySlot(file, slot))
     return assignable;
   return SelectSettlementContaining(file, sampleCentre);
