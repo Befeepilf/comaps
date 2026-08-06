@@ -76,12 +76,12 @@ prior completion dates locally when an area disappears.
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-030-assignment-persistence-191e` |
-| Commits | `666018c0e` sparse store+tests; `ea8019044` manager hooks+tests; `f0abc0abf` docs |
+| Commits | `666018c0e` sparse store+tests; `ea8019044` manager hooks+tests; `f0abc0abf` docs; `90409379a` Ensure explored-coverage rematerialize + rematch early-skip refresh; `09e372fd4` docs |
 | Format | sparse explored + dense uint16/uint32 sidecar rematerialize (SPD-022); `.spx` magic SPX1 |
 | Decision ids (SP-024) | SPD-022 (primary); SPD-021 |
 | Size note | See `notes/SP-030-sparse-assignment.md` — sparse 1 % @ uint16 ≈ 0.65 MiB vs SP-023 ~0.78 MiB / full uint32 ~26 MiB |
-| API symbols | `SparseAssignmentStore`, `EnsureSparseAssignmentStore`, `TryLoadSparseAssignmentStore`, `ScanUniverseAscending`, `RematerializeAssignmentsOnPolicyBump`, `TakePendingAssignmentRematch` |
-| Test output | `./tools/unix/build_omim.sh -d -p /workspace street_pixels_areas_tests` OK; `./tools/unix/run_tests.sh -b /workspace/omim-build-debug -f "Sparse\|Spx\|AssignmentPersist\|Rematerialize"` → areas 7/7 OK + manager 3/3 OK. Full `./street_pixels_areas_tests` → **All tests passed** (43). `street_pixels_tests --filter=Rematch` → All tests passed. Full `./street_pixels_tests` → 184/185 OK; 1 pre-existing env fail `PauseResume_TrackBoundary_ImmediateResumeAdd_SplitsCorrectly` (missing `./data/sp010_gpstrack_test.bin`, unrelated). |
+| API symbols | `SparseAssignmentStore`, `CoversExplored`, `EnsureSparseAssignmentStore`, `TryLoadSparseAssignmentStore`, `ScanUniverseAscending`, `RematerializeAssignmentsOnPolicyBump`, `TakePendingAssignmentRematch` |
+| Test output | Review rebuild: `./tools/unix/build_omim.sh -d -p /workspace street_pixels_areas_tests street_pixels_tests` OK. `./tools/unix/run_tests.sh -b /workspace/omim-build-debug -f "Sparse\|Spx\|AssignmentPersist\|Rematerialize"` → areas 8/8 OK + manager 3/3 OK. Full `./street_pixels_areas_tests` → **All tests passed** (44). `street_pixels_tests --filter=Rematch` → All tests passed. `street_pixels_tests --filter=AssignmentPersist` → All tests passed. |
 | Accepted by | |
 | Accepted date | |
 
