@@ -92,4 +92,5 @@ prior completion dates locally when an area disappears.
 | Manager refresh uses HEALPix cell centres as settlement sample centres | Acceptable for rematch; live collection should pass true sample centres when productized |
 | Completion-date retention for disappeared areas (§27.4) | No completion-date store yet (Phase 5); missing compact index → none, no grid |
 | Percentage-change messaging for area rematch | Pending `AssignmentRematchSignal` only; UI reuse of SP-021 toast deferred |
+| Incremental `.spx` update on live explore (same versions) | Load/Ensure now rematerializes when explored set grows; per-mark append still optional for in-session freshness before next load |
 | | |
