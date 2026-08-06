@@ -16,6 +16,8 @@ set(SRC
   exploration_filter.hpp
   exploration_sidecar.cpp
   exploration_sidecar.hpp
+  sparse_assignment_store.cpp
+  sparse_assignment_store.hpp
   subdivision_assigner.cpp
   subdivision_assigner.hpp
   subdivision_assignment.cpp
