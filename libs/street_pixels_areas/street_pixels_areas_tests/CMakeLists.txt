@@ -1,6 +1,7 @@
 project(street_pixels_areas_tests)
 
 set(SRC
+  exploration_area_resolver_tests.cpp
   exploration_filter_tests.cpp
   exploration_sidecar_tests.cpp
   spa_serdes_tests.cpp
