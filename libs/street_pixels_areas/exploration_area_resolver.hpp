@@ -21,6 +21,7 @@ ExplorationArea const * SelectSettlementContaining(SpaFile const & file, m2::Poi
 
 // Layering: SP-028 assignable (subdivision / place) → keep; else settlement
 // PIP on sample centre; else no-area (nullptr). Never invents grids.
+// OOB slot → nullptr (fail closed; no settlement invent from centre alone).
 ExplorationArea const * LookupExplorationArea(SpaFile const & file, size_t slot,
                                               m2::PointD const & sampleCentre);
 

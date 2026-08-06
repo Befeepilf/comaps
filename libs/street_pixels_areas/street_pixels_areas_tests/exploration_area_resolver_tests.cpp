@@ -257,6 +257,9 @@ UNIT_TEST(ExplorationAreaResolver_FailClosedAndLayering)
   TEST_EQUAL(ok->LookupBySlot(0, fx.m_samples[0]), town, ());
   // Unknown healpix: fail closed — no settlement invent from a wrong centre.
   TEST_EQUAL(ok->LookupByHealpix(999, fx.m_samples[0]), nullptr, ());
+  // OOB slot: fail closed — same rule; do not PIP settlement on a bad index.
+  TEST_EQUAL(ok->LookupBySlot(99, fx.m_samples[0]), nullptr, ());
+  TEST_EQUAL(LookupExplorationArea(ok->GetFile(), 99, fx.m_samples[0]), nullptr, ());
 
   // Subdivision table remains subdivision-only.
   TEST_EQUAL(ok->SubdivisionTable().LookupByHealpix(100), nullptr, ());

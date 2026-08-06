@@ -87,4 +87,5 @@ and no-area must be explicit product states, not accidental nulls.
 | No `StreetPixelsManager` / live collection consumption yet | Intentional; SP-030 sparse rematch + Phase 5 UI productize on this API |
 | Settlement PIP is O(M) linear over settlement rows per sample | Acceptable for small M (SPD-025); measure before any spatial index |
 | Equal-area multi-settlement ties break by OSM id then compact index | Documented in note; matches subdivision §8.8 spirit; fail closed only when no containing settlement |
+| OOB slot previously fell through to settlement PIP | Fixed in review: OOB → nullptr (same fail-closed class as unknown HEALPix) |
 | | |
