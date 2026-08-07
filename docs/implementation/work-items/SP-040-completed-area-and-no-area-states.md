@@ -1,8 +1,8 @@
 # SP-040 — Completed-area visual state and no-area empty state
 
 **Phase:** 5 — Area progress and map interaction
-**Status:** Planned
-**Branch:** `street-pixels`
+**Status:** Implemented, awaiting acceptance
+**Branch:** `cursor/sp-040-completed-no-area-191e`
 **Depends on:** Phase 4 Accepted; SP-033 measurement recorded; SP-034
   completion; SP-037 shading/boundaries preferred; SP-035/038 for badge/detail
 **Notes:** Spec §18.6 and §31. SP-037+ note SP-033.
@@ -76,10 +76,10 @@ exploration area. Spec forbids inventing grid areas; empty state must not lie.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Test output | |
-| Manual validation | |
-| Completion-date persistence (yes/no) | |
+| Branch | `cursor/sp-040-completed-no-area-191e` |
+| Test output | `street_pixels_areas_tests` 67/67 (`AreaOverlay_StyleCompletedDistinctFromInProgress` + existing); `street_pixels_tests` 205/205 (`FocusedAreaBadge_NoAreaSignalNeverUsesMwmId`; 100% → `m_areaCompleted`; clear → `m_noExplorationArea`) |
+| Manual validation | Device completed chrome + leave-settlement empty walk → SP-041 / Phase 10 |
+| Completion-date persistence (yes/no) | No — deferred to Phase 7 |
 | Accepted by | |
 | Accepted date | |
 
@@ -87,4 +87,6 @@ exploration area. Spec forbids inventing grid areas; empty state must not lie.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| `m_showCheck` set for City/Neighbourhood completed styles; drape has no check glyph path yet | Residual — outline+restrained fill ships §18.6 core; check marker → polish / SP-041 |
+| Overlay push still bakes Neighbourhood band colors (SP-037 stub) | Completed style still distinct at 100%; zoom-band retune optional |
+| Device Helsinki completed / empty walk | SP-041 / Phase 10 |
