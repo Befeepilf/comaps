@@ -1,7 +1,9 @@
 package app.organicmaps.sdk.maplayer.streetpixels;
 
+import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 
+@Keep
 public class RematchFractionChange
 {
   @NonNull
@@ -14,6 +16,7 @@ public class RematchFractionChange
   public final double newFraction;
   public final boolean decreasedDueToUniverseGrowth;
 
+  @Keep
   public RematchFractionChange(@NonNull String countryId, long previousTotal, long previousExplored, long newTotal,
                                long newExplored, double previousFraction, double newFraction,
                                boolean decreasedDueToUniverseGrowth)

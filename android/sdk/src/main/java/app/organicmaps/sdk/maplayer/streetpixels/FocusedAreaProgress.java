@@ -1,7 +1,9 @@
 package app.organicmaps.sdk.maplayer.streetpixels;
 
+import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 
+@Keep
 public class FocusedAreaProgress
 {
   public final boolean hasFocus;
@@ -12,6 +14,7 @@ public class FocusedAreaProgress
   public final String displayName;
   public final double fraction;
 
+  @Keep
   public FocusedAreaProgress(boolean hasFocus, boolean fractionValid, int compactIndex, long osmId,
                              @NonNull String displayName, double fraction)
   {
