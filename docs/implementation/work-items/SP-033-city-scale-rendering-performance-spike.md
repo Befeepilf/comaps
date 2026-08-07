@@ -1,7 +1,7 @@
 # SP-033 — Spike: city-scale street-pixel rendering performance
 
 **Phase:** 5 — Area progress and map interaction
-**Status:** Implemented (partial — qualitative Pixel 3a OK; quantitative Spike 1 deferred)
+**Status:** Accepted 2026-08-07 (partial — qualitative Pixel 3a OK; quantitative Spike 1 deferred)
 **Branch:** `cursor/sp-033-034-area-completion-191e`
 **Depends on:** Phase 4 Accepted (exit criteria met 2026-08-07)
 **Unblocks:** SP-034+ coding; SP-037 LOD decisions (provisional: keep current renderer)
@@ -109,8 +109,8 @@ guesses.
 | SP-037 recommendation inputs | Provisional: **keep current one-circle-per-cell renderer**; revisit LOD only if Phase 10 quantitative fails or SP-037 shading needs it |
 | Desktop secondary (if any) | Not run |
 | Phase 10 residual (if device deferred) | Quantitative Spike 1 FPS/memory on mid-tier Android (Pixel 3a or peer) at zoom 14–16 |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer (accept 2026-08-07) |
+| Accepted date | 2026-08-07 |
 
 ## Discovered follow-up
 

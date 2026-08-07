@@ -1,7 +1,7 @@
 # SP-034 — Area-scoped completion computation and cache
 
 **Phase:** 5 — Area progress and map interaction
-**Status:** Implemented (awaiting review / acceptance)
+**Status:** Accepted 2026-08-07
 **Branch:** `cursor/sp-033-034-area-completion-191e`
 **Depends on:** Phase 4 Accepted; SP-033 measurement recorded (qualitative Pixel 3a
   OK; quantitative Spike 1 → Phase 10)
@@ -103,8 +103,8 @@ sufficient.
 | Formula disposition (provisional SPD id / deferral note) | **SPD-026** — personal explored/total; live+imported; zero-total → 0; OQ-1 ownership/contested remain open |
 | Cache location / API | `libs/street_pixels_areas/area_completion_cache.*`; `StreetPixelsManager::GetAreaCompletion` / `RebuildAreaCompletionCache` / invalidate on collect·import·rematch·policy |
 | Test output | `street_pixels_areas_tests` 50/50 (4 AreaCompletion_*); `street_pixels_tests` all green incl. 5 AreaCompletionManager_* |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer (accept 2026-08-07) |
+| Accepted date | 2026-08-07 |
 
 ## Discovered follow-up
 
