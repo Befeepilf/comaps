@@ -1,8 +1,8 @@
 # SP-030 — Persist area assignments and rematch hooks
 
 **Phase:** 4 — Administrative-area pipeline
-**Status:** In review
-**Branch:** `cursor/sp-030-assignment-persistence-191e`
+**Status:** Accepted
+**Branch:** `street-pixels` (merged from `cursor/sp-030-assignment-persistence-191e`)
 **Depends on:** SP-024 Accepted (SPD-022 persistence), SP-028/029 (assignment
   results), Phase 3 rematch hooks (map-data version)
 
@@ -82,8 +82,8 @@ prior completion dates locally when an area disappears.
 | Size note | See `notes/SP-030-sparse-assignment.md` — sparse 1 % @ uint16 ≈ 0.65 MiB vs SP-023 ~0.78 MiB / full uint32 ~26 MiB |
 | API symbols | `SparseAssignmentStore`, `CoversExplored`, `EnsureSparseAssignmentStore`, `TryLoadSparseAssignmentStore`, `ScanUniverseAscending`, `RematerializeAssignmentsOnPolicyBump`, `TakePendingAssignmentRematch` |
 | Test output | Review rebuild: `./tools/unix/build_omim.sh -d -p /workspace street_pixels_areas_tests street_pixels_tests` OK. `./tools/unix/run_tests.sh -b /workspace/omim-build-debug -f "Sparse\|Spx\|AssignmentPersist\|Rematerialize"` → areas 8/8 OK + manager 3/3 OK. Full `./street_pixels_areas_tests` → **All tests passed** (44). `street_pixels_tests --filter=Rematch` → All tests passed. `street_pixels_tests --filter=AssignmentPersist` → All tests passed. |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-07 |
 
 ## Discovered follow-up
 
