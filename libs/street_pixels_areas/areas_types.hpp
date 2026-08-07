@@ -72,6 +72,9 @@ struct SpaHeader
   uint32_t m_areaCount = 0;
   uint32_t m_assignCount = 0;
   uint8_t m_indexWidth = 2;
+  // Present in format_version >= 2 (SPD-034). Absent / unset on dual-read v1.
+  uint32_t m_nside = 0;
+  uint8_t m_universeOrder = 0;
 };
 
 struct SpaFile

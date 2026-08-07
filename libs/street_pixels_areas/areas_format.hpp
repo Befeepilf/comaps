@@ -7,7 +7,13 @@ namespace street_pixels
 {
 // Little-endian fourcc "SPA1".
 uint32_t constexpr kSpaMagic = 0x31415053u;
-uint32_t constexpr kSpaFormatVersion = 1;
+// Production format (SPD-034 / SP-043). Dual-read still accepts geometry-only v1.
+uint32_t constexpr kSpaFormatVersionV1 = 1;
+uint32_t constexpr kSpaFormatVersion = 2;
+
+// Frozen production HEALPix universe contract (SPD-017 / SPD-034).
+uint32_t constexpr kSpaNside = 1048576;
+uint8_t constexpr kSpaUniverseOrderAscendingNest = 1;
 
 // Little-endian fourcc "SPX1" — sparse explored assignment store (SPD-022).
 uint32_t constexpr kSpxMagic = 0x31585053u;

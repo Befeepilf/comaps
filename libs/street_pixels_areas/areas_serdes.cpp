@@ -42,6 +42,11 @@ void WriteSpaHeader(Writer & writer, SpaHeader const & header)
   WriteToSink(writer, header.m_areaCount);
   WriteToSink(writer, header.m_assignCount);
   WriteToSink(writer, header.m_indexWidth);
+  // format_version 2 trailing fields (SPD-034). reserved[3] must be zero on write.
+  WriteToSink(writer, header.m_nside);
+  WriteToSink(writer, header.m_universeOrder);
+  uint8_t const reserved[3] = {0, 0, 0};
+  writer.Write(reserved, sizeof(reserved));
 }
 
 void WriteAreasSection(Writer & writer, std::vector<ExplorationArea> const & areas)
