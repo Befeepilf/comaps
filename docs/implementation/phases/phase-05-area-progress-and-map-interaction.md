@@ -115,10 +115,8 @@ APIs the 2026-07-20 audit marked absent. Renderer shape matches the audit
 | 8 | [SP-040](../work-items/SP-040-completed-area-and-no-area-states.md) | Completed-area visual state and no-area empty state |
 | 9 | [SP-041](../work-items/SP-041-phase5-end-to-end-validation.md) | Phase 5 end-to-end validation (**exit gate**) |
 
-SP-033–SP-039 **Accepted** 2026-08-07. SP-040 implemented (awaiting acceptance)
-— §18.6 distinct completed overlay style + §31 no-area badge/detail empty
-state; completion-date persistence deferred to Phase 7. Next after accept:
-SP-041. SP-033 quantitative Spike 1 remains Phase 10.
+SP-033–SP-040 **Accepted** 2026-08-07. Next: SP-041 Phase 5 end-to-end
+validation (exit gate). SP-033 quantitative Spike 1 remains Phase 10.
 
 ### Open questions
 
