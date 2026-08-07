@@ -180,7 +180,7 @@ SP-043–048 — **not** Phase 5, **not** Phase 10 device work). Evidence:
 | SP-042 | **In review** — sidecar shipping decisions (SPD-027–033); Phase 4 R1 packaging track |
 | SP-043 | **In review** — blob contract freeze (**SPD-034**; `format_version` 2) |
 | SP-044 | **In review** — production leaf `.spa` emit (Option B offline batch; closes R1 emit) |
-| SP-045 | **Planned (draft)** — optional `spa` / `spa_sha1_base64` in `countries.txt` (**SPD-028**) |
+| SP-045 | **In review** — optional `spa` / `spa_sha1_base64` in `countries.txt` (**SPD-028**) |
 | SP-046–048 | Planned (stubs) — download, lifecycle, validation |
 | SP-033 | **Accepted** 2026-08-07 — qualitative Pixel 3a OK; quantitative Spike 1 → Phase 10 |
 | SP-034 | **Accepted** 2026-08-07 — area completion cache + SPD-026 |
@@ -421,7 +421,7 @@ Closes narrowed R1 (production mapgen emit + CDN leaf download / packaging).
 | 42 | [SP-042](work-items/SP-042-sidecar-shipping-decisions.md) | Sidecar shipping decisions | 4 residual | **In review** — SPD-027–033; product locks D1–D7 (2026-08-07) |
 | 43 | [SP-043](work-items/SP-043-spa-blob-contract-freeze.md) | Freeze production `.spa` blob contract (`nside` / universe-order / `format_version`) | 4 residual | **In review** — **SPD-034** (`format_version` 2) |
 | 44 | [SP-044](work-items/SP-044-production-spa-emit.md) | Production leaf `.spa` emit (Phase 4 R1; Option B offline batch) | 4 residual | **In review** — Option A mapgen collectors deferred |
-| 45 | [SP-045](work-items/SP-045-countries-spa-meta.md) | Add optional `spa` / `spa_sha1_base64` leaf fields to `countries.txt` publish | 4 residual | **Planned (draft)** — **SPD-028**; parse + publish inject; download = SP-046 |
+| 45 | [SP-045](work-items/SP-045-countries-spa-meta.md) | Add optional `spa` / `spa_sha1_base64` leaf fields to `countries.txt` publish | 4 residual | **In review** — **SPD-028**; parse + publish inject; download = SP-046 |
 | 46 | SP-046 | Client leaf download fetches advertised `.spa` beside MWM | 4 residual | Planned (stub) — **SPD-027**, **SPD-031** |
 | 47 | SP-047 | `.spa` full-refetch on map update and delete-with-map lifecycle | 4 residual | Planned (stub) — **SPD-029**, **SPD-030** |
 | 48 | SP-048 | Sidecar shipping validation and incomplete / retry signaling | 4 residual | Planned (stub) — **SPD-031** |
