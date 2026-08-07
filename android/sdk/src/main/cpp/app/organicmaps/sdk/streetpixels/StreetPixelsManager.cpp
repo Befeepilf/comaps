@@ -6,7 +6,10 @@
 #include "street_pixels_areas/exploration_sidecar.hpp"
 #include "street_pixels_areas/focused_area_progress.hpp"
 
+#include "platform/local_country_file.hpp"
 #include "platform/platform.hpp"
+
+#include "storage/storage_defines.hpp"
 
 #include "geometry/point2d.hpp"
 
