@@ -340,6 +340,12 @@ private:
 
   void OnMapDownloadFinished(CountryId const & countryId, downloader::DownloadStatus status, MapFileType type);
 
+  /// After a successful Map (or Diff→Map) register, enqueue advertised `.spa` if missing (SP-046).
+  void MaybeEnqueueRemoteSpa(CountryId const & countryId);
+
+  /// True when the downloader queue entry for |countryId| is a Spa-only fetch.
+  bool IsSpaOnlyDownload(CountryId const & countryId) const;
+
   /// Dummy ctor for private use only.
   explicit Storage(int);
 
@@ -639,6 +645,8 @@ public:
   void SetCurrentDataVersionForTesting(int64_t currentVersion);
   void SetDownloadingServersForTesting(std::vector<std::string> const & downloadingUrls);
   void SetLocaleForTesting(std::string const & jsonBuffer, std::string const & locale);
+  /// Moves pending Fake/real downloads into the active queue (skips countries-check wait).
+  void StartPendingDownloadsForTesting();
 
   /// Returns true if the diff scheme is available and all local outdated maps can be updated via diffs.
   // bool IsPossibleToAutoupdate() const;
