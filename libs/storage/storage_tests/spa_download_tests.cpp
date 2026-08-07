@@ -9,6 +9,7 @@
 #include "platform/mwm_version.hpp"
 #include "platform/platform.hpp"
 #include "platform/platform_tests_support/writable_dir_changer.hpp"
+#include "platform/settings.hpp"
 
 #include "base/string_utils.hpp"
 
@@ -167,6 +168,54 @@ UNIT_TEST(Storage_SpaDownload_FailKeepsMap)
   localFile->SyncWithDisk();
   TEST(localFile->OnDisk(MapFileType::Map), ());
   TEST(!localFile->OnDisk(MapFileType::Spa), ());
+  TEST_EQUAL(Status::OnDisk, storage.CountryStatusEx(id), ());
+  TEST(!storage.CheckFailedCountries({id}), ());
+}
+
+UNIT_TEST(Storage_SpaDownload_RestoreQueueEnqueuesSpaWhenMapOnDisk)
+{
+  WritableDirChanger const writableDirChanger(kMapTestDir);
+  Platform::ThreadRunner threadRunner;
+
+  auto const json = MakeSpaDownloadCountriesJson(R"(,
+        "s": 2048,
+        "sha1_base64": "mwmSha",
+        "spa": 512,
+        "spa_sha1_base64": "spaSha")");
+
+  TaskRunner runner;
+  Storage storage(json, std::make_unique<FakeMapFilesDownloader>(runner));
+  InitSpaStorage(storage, runner);
+
+  CountryId const id = "SpaLeaf";
+  storage.DeleteCountry(id, MapFileType::Map);
+
+  // Land Map (+Spa via advertise), then leave only Map on disk as after a Spa-pending restart.
+  DownloadAndPump(storage, runner, id, MapFileType::Map);
+
+  auto localFile = storage.GetLatestLocalFile(id);
+  TEST(localFile, ());
+  localFile->SyncWithDisk();
+  TEST(localFile->OnDisk(MapFileType::Map), ());
+  if (localFile->OnDisk(MapFileType::Spa))
+  {
+    localFile->DeleteFromDisk(MapFileType::Spa);
+    localFile->SyncWithDisk();
+  }
+  TEST(!localFile->OnDisk(MapFileType::Spa), ());
+  TEST_EQUAL(Status::OnDisk, storage.CountryStatusEx(id), ());
+
+  // Saved queue contained this leaf while only Spa was still pending.
+  settings::Set("DownloadQueue", id);
+  storage.RestoreDownloadQueue();
+  storage.StartPendingDownloadsForTesting();
+  runner.Run();
+
+  localFile = storage.GetLatestLocalFile(id);
+  TEST(localFile, ());
+  localFile->SyncWithDisk();
+  TEST(localFile->OnDisk(MapFileType::Map), ());
+  TEST(localFile->OnDisk(MapFileType::Spa), ());
   TEST_EQUAL(Status::OnDisk, storage.CountryStatusEx(id), ());
   TEST(!storage.CheckFailedCountries({id}), ());
 }
