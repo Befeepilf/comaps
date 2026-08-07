@@ -1,7 +1,7 @@
 # SP-036 — Focus-selection engine (§12.5)
 
 **Phase:** 5 — Area progress and map interaction
-**Status:** Implemented (awaiting review / acceptance)
+**Status:** Accepted 2026-08-07
 **Branch:** `cursor/sp-036-focus-selection-engine-191e`
 **Depends on:** Phase 4 Accepted; SP-033 measurement recorded; area membership
   from Phase 4; SP-034/035 for %/badge consumers preferred
@@ -80,8 +80,8 @@ percentage changes look like lost progress. Spec §12.5 is the contract.
 | Branch | `cursor/sp-036-focus-selection-engine-191e` |
 | Test output (§12.5 cases) | `street_pixels_areas_tests` 57/57 incl. FocusSelection_Rule1–5 + Rule1OverRule2 + NoArea; `street_pixels_tests` 199/199 incl. FocusEngine_Manager_* + FocusedAreaBadge_* |
 | Manual validation | Automated engine + manager coverage for all five rules. Device walk/pan/recentre residual → SP-041 / Phase 10 (same pattern as SP-035 Helsinki badge) |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer (accept 2026-08-07) |
+| Accepted date | 2026-08-07 |
 
 ## Discovered follow-up
 
