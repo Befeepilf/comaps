@@ -1,11 +1,11 @@
 # SP-036 — Focus-selection engine (§12.5)
 
 **Phase:** 5 — Area progress and map interaction
-**Status:** Planned
-**Branch:** `street-pixels`
+**Status:** Implemented (awaiting review / acceptance)
+**Branch:** `cursor/sp-036-focus-selection-engine-191e`
 **Depends on:** Phase 4 Accepted; SP-033 measurement recorded; area membership
   from Phase 4; SP-034/035 for %/badge consumers preferred
-**Notes:** Depends on SP-033 gate before coding (Phase 5 entry rule).
+**Notes:** SP-033 qualitative gate Met; quantitative Spike 1 → Phase 10.
 
 ---
 
@@ -77,7 +77,7 @@ percentage changes look like lost progress. Spec §12.5 is the contract.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
+| Branch | `cursor/sp-036-focus-selection-engine-191e` |
 | Test output (§12.5 cases) | |
 | Manual validation | |
 | Accepted by | |
@@ -87,4 +87,8 @@ percentage changes look like lost progress. Spec §12.5 is the contract.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Rules 1 vs 2 during recording + pan: user area wins | Recorded; escalate only if product wants otherwise |
+| `kCityScaleMaxDrawScale = 12` provisional | SP-039 polish city-zoom band + true city rollup |
+| City-summary fraction currently settlement-area counts | SP-039 aggregate completion |
+| Explicit tap API ready; polygon hit-test not wired | SP-038 |
+| Helsinki device walk across boundary / recentre | SP-041 / Phase 10 |

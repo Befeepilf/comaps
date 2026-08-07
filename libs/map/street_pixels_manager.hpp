@@ -28,6 +28,7 @@
 #include "storage/storage.hpp"
 
 #include "street_pixels_areas/area_completion_cache.hpp"
+#include "street_pixels_areas/focus_selection_engine.hpp"
 #include "street_pixels_areas/focused_area_progress.hpp"
 
 #include <healpix_base.h>
@@ -159,15 +160,24 @@ public:
   bool RebuildAreaCompletionCache(storage::CountryId const & countryId, std::string const & spaPath,
                                   int64_t mapDataVersion);
 
-  // Focused-area progress for the primary badge (SP-035). Focus engine is SP-036;
-  // SetFocusedArea / TryFocusAtPoint are the stub surface until then.
+  // Focused-area progress for the primary badge (SP-035 / SP-036 §12.5).
   street_pixels::FocusedAreaProgress GetFocusedAreaProgress() const;
   void ClearFocusedArea();
   // Loads display name from sidecar; never falls back to countryId. Blank name → clear.
-  bool SetFocusedArea(uint32_t compactIndex, std::string const & spaPath);
-  // Temporary map-centre / point focus stub (replace with §12.5 in SP-036).
+  bool SetFocusedArea(uint32_t compactIndex, std::string const & spaPath, bool citySummary = false);
+  // §12.5 engine: resolve areas from spa and apply SelectFocusedArea.
+  bool ApplyFocusSelection(street_pixels::FocusSelectionRequest const & request, std::string const & spaPath,
+                           int64_t mapDataVersion);
+  // Point → area lookup then SetFocusedArea (used by engine helpers / tests).
   bool TryFocusAtPoint(m2::PointD const & mercator, std::string const & spaPath, int64_t mapDataVersion);
-  void SetFocusedAreaForTesting(uint32_t compactIndex, std::string displayName, uint64_t osmId);
+  void SetFocusedAreaForTesting(uint32_t compactIndex, std::string displayName, uint64_t osmId,
+                                bool citySummary = false);
+  // Explicit tap selection (§12.5 rule 3). Hit-test wiring is SP-038.
+  bool SelectFocusedAreaExplicit(uint32_t compactIndex, std::string const & spaPath);
+  // Resolve §12.5 inputs from viewport/session and apply the engine.
+  bool RefreshFocusFromViewport(m2::PointD const & mapCentre, std::optional<m2::PointD> const & userPos,
+                                bool recordingActive, bool followingMyPosition, int drawScale,
+                                std::string const & spaPath, int64_t mapDataVersion);
 
   void OnUpdateCurrentCountry(storage::CountryId const & countryId, storage::LocalFilePtr const & localFile);
 

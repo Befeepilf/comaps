@@ -4,9 +4,11 @@
 #include "app/organicmaps/sdk/platform/AndroidPlatform.hpp"
 
 #include "street_pixels_areas/exploration_sidecar.hpp"
+#include "street_pixels_areas/focus_selection_engine.hpp"
 #include "street_pixels_areas/focused_area_progress.hpp"
 
 #include "platform/local_country_file.hpp"
+#include "platform/location.hpp"
 #include "platform/platform.hpp"
 
 #include "storage/storage_defines.hpp"
@@ -89,10 +91,11 @@ static jobject ToJavaFocusedAreaProgress(JNIEnv * env, street_pixels::FocusedAre
 {
   static jclass const progressClass =
       jni::GetGlobalClassRef(env, "app/organicmaps/sdk/maplayer/streetpixels/FocusedAreaProgress");
-  static jmethodID const ctor = jni::GetConstructorID(env, progressClass, "(ZZIJLjava/lang/String;D)V");
+  static jmethodID const ctor = jni::GetConstructorID(env, progressClass, "(ZZZIJLjava/lang/String;D)V");
   jni::TScopedLocalRef const jName(env, jni::ToJavaString(env, progress.m_displayName));
   return env->NewObject(progressClass, ctor, static_cast<jboolean>(progress.m_hasFocus),
                         static_cast<jboolean>(progress.m_fractionValid),
+                        static_cast<jboolean>(progress.m_citySummary),
                         static_cast<jint>(progress.m_compactIndex), static_cast<jlong>(progress.m_osmId),
                         jName.get(), static_cast<jdouble>(progress.m_fraction));
 }
@@ -132,7 +135,15 @@ Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeRefresh
     manager.RebuildAreaCompletionCache(country, spaPath, mapDataVersion);
 
   m2::PointD const centre = g_framework->GetViewportCenter();
-  manager.TryFocusAtPoint(centre, spaPath, mapDataVersion);
+  std::optional<m2::PointD> userPos = native.GetCurrentPosition();
+
+  bool const recordingActive = native.GetRecordingSession().IsRecording();
+  auto const mode = g_framework->GetMyPositionMode();
+  bool const following =
+      mode == location::EMyPositionMode::Follow || mode == location::EMyPositionMode::FollowAndRotate;
+  int const drawScale = native.GetDrawScale();
+
+  manager.RefreshFocusFromViewport(centre, userPos, recordingActive, following, drawScale, spaPath, mapDataVersion);
   return ToJavaFocusedAreaProgress(env, manager.GetFocusedAreaProgress());
 }
 }
