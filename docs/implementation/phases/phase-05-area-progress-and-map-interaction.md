@@ -1,6 +1,6 @@
 # Phase 5 — Area progress and map interaction
 
-**Status:** Not started
+**Status:** In progress (phase-entry planning 2026-08-07)
 **Depends on:** Phase 4
 **Blocks:** Phases 7, 8
 
@@ -39,20 +39,25 @@ stays acceptable at city scale.
 
 ## Current code locations
 
-Verified 2026-07-25 against the working tree.
+Re-verified 2026-08-07 against the working tree (Phase 5 entry).
 
 | Concern | Location | Observed state |
 | --- | --- | --- |
-| Overlay renderer | `libs/drape_frontend/street_pixel_renderer.cpp` | One GPU circle per HEALPix cell using `gpu::Program::CirclePoint`; `kMinVisibleZoomLevel = 9`; `kBucketZoomLevel = 15`; radius-per-zoom table `kRadiusInPixel` running from 0.6 px at zoom 1 to 5.5 px at zoom 20 |
+| Overlay renderer | `libs/drape_frontend/street_pixel_renderer.cpp` / `.hpp` | One GPU circle per HEALPix cell via `gpu::Program::CirclePoint`; `kMinVisibleZoomLevel = 9`; `kBucketZoomLevel = 15`; radius table `kRadiusInPixel` 0.6–5.5 px across zooms 1–20. **No city-scale FPS/memory measurement yet** (SP-033). |
 | Pixel colour | `libs/drape_frontend/street_pixel.cpp` | Derived from the explored bit |
 | Layer toggle | `android/sdk/.../maplayer/Mode.java` `STREET_PIXELS` | Present alongside `TRAFFIC`, `SUBWAY`, `ISOLINES`, `OUTDOORS` |
-| Progress surface | `android/app/.../MwmActivity.java` | Attaches `StreetPixelsManager` on start and stop; `onStreetPixelsStateChanged` updates map buttons; explore menu entries exist |
-| Completion figure | `libs/map/street_pixels_manager.cpp` | Explored count over total, scoped to the MWM country, not to an area |
-| Area-scoped progress | — | Not found |
-| Focused-area details screen | — | Not found |
-| Pixel hit testing | — | No dedicated street-pixel hit test. General tap and overlay picking exists. Area selection should use polygons, not pixel picking. |
+| Progress surface | `android/app/.../MwmActivity.java` | Attaches `StreetPixelsManager` on start/stop; `onStreetPixelsStateChanged` updates map buttons; explore menu entries exist |
+| Completion figure | `StreetPixelsManager::GetTotalExploredFraction` | Explored count over MWM-scoped `.pix` universe — **not** area-scoped |
+| ExploreStats | `ExploreStatsService` / `StreetPixelsManager` weekly aggregates | Still keyed by MWM `countryId` / region id — not neighbourhood progress |
+| Area assignment (Phase 4) | `ExplorationAreaResolver`, `SparseAssignmentStore` | Subdivision → settlement → no-area; sparse `.spx` rematerialize available offline |
+| Area display name | `street_pixels::DisplayName` (`exploration_sidecar`) | Name from sidecar; automated tests forbid MWM-id fallback |
+| Area-scoped progress | — | **Not found** |
+| Focused-area details screen | — | **Not found** |
+| Area / pixel hit testing | — | No dedicated street-pixel hit test. Area selection must use **polygon** hit-test, not pixel picking. |
 
-**Difference from the technical audit:** none material for this phase.
+**Difference from the technical audit:** Phase 4 delivered polygon + assignment
+APIs the 2026-07-20 audit marked absent. Renderer shape matches the audit
+(one circle per cell). Spike 1 performance measurement remains **undone**.
 
 ## Intended outcome
 
@@ -64,28 +69,62 @@ Verified 2026-07-25 against the working tree.
 - City-scale summary progress and shaded areas by completion.
 - A distinct completed-area visual state.
 - A designed and tested "no exploration area here" state.
-- Measured rendering performance at city scale on a mid-tier device.
+- Measured rendering performance at city scale on a mid-tier device (or
+  documented residual → Phase 10 if no device, with desktop secondary).
 
 ## Dependencies
 
-- Phase 4, for area identifiers, polygons, and per-pixel assignment.
+- Phase 4 exit criteria met (2026-08-07). Device-walk residual R3 → Phase 10;
+  narrowed R1 mapgen emit → pre-production — neither blocks Phase 5 entry.
+- SP-033 rendering measurement recorded before SP-034+ coding starts (mirror
+  Phase 4 SP-023/024 gate).
 
-## Proposed work-item breakdown
+## Phase-entry investigation (2026-08-07)
 
-Not yet decomposed. Likely shape, to be confirmed at phase entry:
+### Confirmed gaps
 
-1. Area-scoped completion computation and caching.
-2. Primary progress badge bound to the focused area.
-3. Focus-selection engine implementing spec §12.5.
-4. Area boundary rendering and completion shading by zoom.
-5. Area selection by tap and the focused-area detail surface.
-6. City-scale aggregation and summary badge.
-7. Completed-area visual state.
-8. Rendering performance measurement and, if needed, level-of-detail work.
+- Progress is MWM-scoped (`GetTotalExploredFraction`); no per-area explored /
+  total cache.
+- Spec §7 completion formula markup is **blank** (OQ-1). Surrounding text
+  intent is unambiguous: percentage of valid street pixels in the area that
+  the user has explored; live + imported both count. **Do not invent a
+  contested formula as Accepted SPD.** SP-034 locks a provisional formula or
+  defers formal SPD until the maintainer confirms (see Open questions).
+- Focus-selection engine (§12.5 five rules) — not found.
+- Area boundary / completion shading overlay — not found.
+- Area tap selection (polygon hit-test) and focused-area detail surface —
+  not found.
+- City aggregation badge — not found (settlement containment exists from
+  Phase 4 for grouping).
+- Completed-area visual (§18.6) and no-area empty state (§31) — not found.
+- Rendering Spike 1 measurement — **Pending SP-033**.
 
-**Marked for phase-specific Plan Mode investigation.** Whether item 8 is a
-measurement task or a substantial rendering rework cannot be determined from
-source inspection. Decompose after the measurement exists.
+### Work-item breakdown
+
+| Order | ID | Title |
+| --- | --- | --- |
+| 1 | [SP-033](../work-items/SP-033-city-scale-rendering-performance-spike.md) | Spike: city-scale street-pixel rendering performance (**entry gate**) |
+| 2 | [SP-034](../work-items/SP-034-area-scoped-completion-computation.md) | Area-scoped completion computation and cache |
+| 3 | [SP-035](../work-items/SP-035-primary-progress-badge-focused-area.md) | Primary progress badge bound to focused area |
+| 4 | [SP-036](../work-items/SP-036-focus-selection-engine.md) | Focus-selection engine (§12.5) |
+| 5 | [SP-037](../work-items/SP-037-area-boundary-rendering-and-shading.md) | Area boundary rendering and completion shading by zoom |
+| 6 | [SP-038](../work-items/SP-038-area-tap-selection-and-detail-surface.md) | Area tap selection and focused-area detail surface |
+| 7 | [SP-039](../work-items/SP-039-city-scale-aggregation-and-summary-badge.md) | City-scale aggregation and summary badge |
+| 8 | [SP-040](../work-items/SP-040-completed-area-and-no-area-states.md) | Completed-area visual state and no-area empty state |
+| 9 | [SP-041](../work-items/SP-041-phase5-end-to-end-validation.md) | Phase 5 end-to-end validation (**exit gate**) |
+
+**Do not start SP-034+ coding until SP-033 measurement is recorded** (desktop
+secondary OK if mid-tier Android device is deferred; device residual honesty
+same pattern as Phase 4 R3 → Phase 10). SP-037+ additionally depend on the
+SP-033 LOD outcome.
+
+### Open questions
+
+| Ref | Question | Disposition for Phase 5 |
+| --- | --- | --- |
+| OQ-1 (completion slice) | Spec §7 formula markup is blank. Intent from surrounding text: explored / total **valid street pixels in the area** (live + imported). Ownership/contested pieces of OQ-1 stay Phase 8. | **Open for SP-034.** Recommend provisional SPD in SP-034 **or** defer formal SPD until maintainer confirms. Do **not** invent a contested formula as Accepted SPD in planning docs. |
+| Spike 1 / SP-033 | Does one-circle-per-cell meet ≥30 FPS p95 at zoom 14–16 and &lt;150 MB memory uplift on mid-tier Android? | **Pending SP-033.** If no device, record desktop secondary + residual → Phase 10; do not fake device numbers. |
+| Badge vs recording focus | Spec §12.5 rules 1 and 2 can both apply when map centre ≠ user during recording. | Resolve in SP-036 with separate test cases per rule; escalate product conflict if observed. |
 
 ## Data and migration concerns
 
@@ -93,9 +132,9 @@ source inspection. Decompose after the measurement exists.
   cached or recomputed; a full recount over a large country per frame is not
   viable, and a stale cache produces wrong percentages.
 - Cached aggregates must be invalidated by: pixel collection, GPX import, map
-  update rematch, and country configuration change.
+  update rematch, and country configuration / policy change.
 - City-level aggregation needs a city identifier per area, which comes from
-  Phase 4's containment relationship.
+  Phase 4's settlement containment relationship.
 - Spec §18.5 allows storing the original 100% completion date locally. If that
   is introduced here rather than in Phase 7, it is new persisted state.
 
@@ -105,7 +144,7 @@ source inspection. Decompose after the measurement exists.
   this phase uploads.
 - The focused-area name is displayed prominently. Any screenshot or share
   surface built later inherits that. Keep the badge free of anything more
-  precise than the area name.
+  precise than the area name. Never show MWM country id as the area name.
 - Completion caches are location-derived data at rest; they live in the
   existing on-device stores and are removed with them.
 
@@ -133,14 +172,17 @@ source inspection. Decompose after the measurement exists.
 - Zoom from street to city scale and confirm the badge and rendering transition
   as specified.
 - Load a large city, pan and zoom at zoom 14–16 on a mid-tier Android device,
-  and record frame times and memory against the spike 1 pass criteria.
+  and record frame times and memory against the spike 1 pass criteria (SP-033 /
+  SP-041).
 - Complete a small area and confirm the completed visual state at every zoom.
 
 ## Entry criteria
 
-- Phase 4 exit criteria met.
+- Phase 4 exit criteria met. **Met 2026-08-07** (device residual R3 → Phase 10;
+  narrowed R1 mapgen emit → pre-production).
 - A rendering performance measurement exists for at least one large city on a
-  mid-tier device.
+  mid-tier device. **Pending SP-033** (desktop secondary + Phase 10 residual
+  allowed if device unavailable — same honesty as Phase 4 R3).
 
 ## Exit criteria
 
@@ -151,7 +193,8 @@ source inspection. Decompose after the measurement exists.
 5. Completed areas have a distinct visual state that survives zoom changes.
 6. The no-area state is implemented and tested.
 7. Rendering performance meets the recorded pass criteria on a mid-tier device,
-   or a level-of-detail strategy is implemented and re-measured.
+   or a level-of-detail strategy is implemented and re-measured (device
+   residual → Phase 10 if measurement deferred).
 8. No country or world percentage is calculated or displayed.
 
 ## Explicit non-goals
@@ -164,18 +207,22 @@ source inspection. Decompose after the measurement exists.
 - Achievement or milestone history screens. Spec §18.5 excludes them.
 - Custom map themes and advanced heatmaps. Post-V1.
 - Street-pixel hit testing. Area selection uses polygons.
+- Inventing a contested completion formula as Accepted SPD without maintainer
+  confirmation (OQ-1 → SP-034).
 
 ## Known uncertainties
 
 - Whether the current one-circle-per-cell renderer meets the performance target
-  at large-city density. This is the main open question in the phase.
+  at large-city density. **Addressed by SP-033 measurement.**
 - Whether area boundary rendering can reuse existing map overlay machinery or
-  needs a new layer.
+  needs a new layer (SP-037; LOD informed by SP-033).
 - How the badge should behave when the map centre sits in a different area from
   the user during an active recording session; spec §12.5 rules 1 and 2 can
-  both apply.
+  both apply (SP-036).
 - What "may fade or aggregate to preserve readability" (spec §12.3) should
-  concretely mean at city zoom.
-- Whether completion caches belong in `street_stats.db` or in a new store.
+  concretely mean at city zoom (SP-037/039).
+- Whether completion caches belong in `street_stats.db` or in a new store
+  (SP-034).
 - How area-name transitions should be animated so the numeric change reads as a
-  context switch rather than as lost progress.
+  context switch rather than as lost progress (SP-035).
+- Exact completion formula lock for OQ-1 (SP-034; provisional SPD or defer).
