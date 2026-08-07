@@ -1,4 +1,5 @@
 #include "base/assert.hpp"
+#include "base/file_name_utils.hpp"
 #include "base/logging.hpp"
 #include "base/math.hpp"
 #include "base/src_point.hpp"
@@ -36,6 +37,8 @@
 #include "street_pixels_areas/exploration_area_resolver.hpp"
 #include "street_pixels_areas/exploration_sidecar.hpp"
 #include "street_pixels_areas/sparse_assignment_store.hpp"
+
+#include "street_pixels_config/country_config.hpp"
 
 #include "base/timer.hpp"
 #include "map/track.hpp"
@@ -972,6 +975,7 @@ void StreetPixelsManager::RefreshSparseAssignmentsBestEffortUnlocked(storage::Co
   }
 
   RebuildAreaCompletionCacheUnlocked(countryId, spaPath, mapDataVersion);
+  RefreshFocusedAreaFractionUnlocked();
 
   // Signal version rematch / corrupt rebuild. Quiet exploration catch-up under the
   // same (map, policy) pair does not set the pending signal. policyOnly only
@@ -1681,8 +1685,11 @@ bool StreetPixelsManager::IsAreaCompletionCacheValid() const
 
 void StreetPixelsManager::InvalidateAreaCompletionCache()
 {
-  std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
-  InvalidateAreaCompletionCacheUnlocked();
+  {
+    std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+    InvalidateAreaCompletionCacheUnlocked();
+  }
+  RefreshFocusedAreaFractionUnlocked();
 }
 
 void StreetPixelsManager::InvalidateAreaCompletionCacheUnlocked()
@@ -1690,11 +1697,140 @@ void StreetPixelsManager::InvalidateAreaCompletionCacheUnlocked()
   m_areaCompletionCache.Invalidate();
 }
 
+void StreetPixelsManager::RefreshFocusedAreaFractionUnlocked()
+{
+  std::lock_guard<std::mutex> focusLock(m_focusedAreaMutex);
+  if (!m_focusedAreaProgress.m_hasFocus)
+    return;
+
+  std::lock_guard<std::mutex> cacheLock(m_areaCompletionMutex);
+  if (!m_areaCompletionCache.IsValid())
+  {
+    m_focusedAreaProgress.m_fractionValid = false;
+    m_focusedAreaProgress.m_fraction = 0.0;
+    return;
+  }
+  auto const counts = m_areaCompletionCache.Get(m_focusedAreaProgress.m_compactIndex);
+  if (!counts)
+  {
+    m_focusedAreaProgress.m_fractionValid = false;
+    m_focusedAreaProgress.m_fraction = 0.0;
+    return;
+  }
+  m_focusedAreaProgress.m_fraction = street_pixels::AreaCompletionFraction(*counts);
+  m_focusedAreaProgress.m_fractionValid = true;
+}
+
+void StreetPixelsManager::ClearFocusedAreaUnlocked()
+{
+  m_focusedAreaProgress = street_pixels::FocusedAreaProgress{};
+}
+
+street_pixels::FocusedAreaProgress StreetPixelsManager::GetFocusedAreaProgress() const
+{
+  std::lock_guard<std::mutex> lock(m_focusedAreaMutex);
+  return m_focusedAreaProgress;
+}
+
+void StreetPixelsManager::ClearFocusedArea()
+{
+  std::lock_guard<std::mutex> lock(m_focusedAreaMutex);
+  ClearFocusedAreaUnlocked();
+}
+
+bool StreetPixelsManager::SetFocusedArea(uint32_t compactIndex, std::string const & spaPath)
+{
+  auto sidecar = street_pixels::TryLoadExplorationSidecar(spaPath);
+  if (sidecar.m_status != street_pixels::SpaLoadStatus::Ok)
+  {
+    ClearFocusedArea();
+    return false;
+  }
+  auto const * area = street_pixels::FindAreaByCompactIndex(sidecar.m_file, compactIndex);
+  if (area == nullptr)
+  {
+    ClearFocusedArea();
+    return false;
+  }
+  std::string const name = street_pixels::DisplayName(*area);
+  if (name.empty())
+  {
+    ClearFocusedArea();
+    return false;
+  }
+
+  {
+    std::lock_guard<std::mutex> lock(m_focusedAreaMutex);
+    m_focusedAreaProgress = street_pixels::FocusedAreaProgress{};
+    m_focusedAreaProgress.m_hasFocus = true;
+    m_focusedAreaProgress.m_compactIndex = area->m_compactIndex;
+    m_focusedAreaProgress.m_osmId = street_pixels::StableOsmId(*area);
+    m_focusedAreaProgress.m_displayName = name;
+  }
+  RefreshFocusedAreaFractionUnlocked();
+  return true;
+}
+
+void StreetPixelsManager::SetFocusedAreaForTesting(uint32_t compactIndex, std::string displayName, uint64_t osmId)
+{
+  if (displayName.empty())
+  {
+    ClearFocusedArea();
+    return;
+  }
+  {
+    std::lock_guard<std::mutex> lock(m_focusedAreaMutex);
+    m_focusedAreaProgress = street_pixels::FocusedAreaProgress{};
+    m_focusedAreaProgress.m_hasFocus = true;
+    m_focusedAreaProgress.m_compactIndex = compactIndex;
+    m_focusedAreaProgress.m_osmId = osmId;
+    m_focusedAreaProgress.m_displayName = std::move(displayName);
+  }
+  RefreshFocusedAreaFractionUnlocked();
+}
+
+bool StreetPixelsManager::TryFocusAtPoint(m2::PointD const & mercator, std::string const & spaPath,
+                                          int64_t mapDataVersion)
+{
+  auto sidecar = street_pixels::TryLoadExplorationSidecar(spaPath);
+  if (sidecar.m_status != street_pixels::SpaLoadStatus::Ok ||
+      sidecar.m_file.m_header.m_mapDataVersion != mapDataVersion)
+  {
+    ClearFocusedArea();
+    return false;
+  }
+
+  street_pixels::CountryPolicy policy;
+  try
+  {
+    std::string const policyPath =
+        base::JoinPath(GetPlatform().ResourcesDir(), street_pixels::kCountryPoliciesRelativePath);
+    auto const config = street_pixels::CountryConfig::LoadFromFile(policyPath);
+    policy = config.GetByIso(sidecar.m_file.m_header.m_isoCode);
+  }
+  catch (RootException const &)
+  {
+    ClearFocusedArea();
+    return false;
+  }
+
+  auto const * area = street_pixels::LookupExplorationAreaAtPoint(sidecar.m_file, policy, mercator);
+  if (area == nullptr)
+  {
+    ClearFocusedArea();
+    return false;
+  }
+  return SetFocusedArea(area->m_compactIndex, spaPath);
+}
+
 bool StreetPixelsManager::RebuildAreaCompletionCache(storage::CountryId const & countryId,
                                                     std::string const & spaPath, int64_t mapDataVersion)
 {
   std::lock_guard<std::mutex> pixLock(m_pixFileMutex);
-  return RebuildAreaCompletionCacheUnlocked(countryId, spaPath, mapDataVersion);
+  bool const ok = RebuildAreaCompletionCacheUnlocked(countryId, spaPath, mapDataVersion);
+  if (ok)
+    RefreshFocusedAreaFractionUnlocked();
+  return ok;
 }
 
 bool StreetPixelsManager::RebuildAreaCompletionCacheUnlocked(storage::CountryId const & countryId,
@@ -1768,6 +1904,7 @@ void StreetPixelsManager::ClearPixels()
   m_accountedBits.clear();
   m_accountedDirty = false;
   InvalidateAreaCompletionCache();
+  ClearFocusedArea();
 
   {
     std::lock_guard<std::mutex> lock(m_stateMutex);

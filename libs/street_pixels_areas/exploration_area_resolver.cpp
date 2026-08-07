@@ -1,5 +1,9 @@
 #include "street_pixels_areas/exploration_area_resolver.hpp"
 
+#include "street_pixels_areas/areas_format.hpp"
+#include "street_pixels_areas/exploration_sidecar.hpp"
+#include "street_pixels_areas/subdivision_assigner.hpp"
+
 #include <algorithm>
 #include <limits>
 #include <utility>
@@ -61,6 +65,19 @@ ExplorationArea const * SelectSettlementContaining(SpaFile const & file, m2::Poi
     }
   }
   return bestArea;
+}
+
+ExplorationArea const * LookupExplorationAreaAtPoint(SpaFile const & file, CountryPolicy const & policy,
+                                                     m2::PointD const & point)
+{
+  uint32_t const sentinel = NoSubdivisionSentinel(file.m_header.m_indexWidth);
+  uint32_t const compact = AssignSubdivision(point, file.m_areas, policy, sentinel);
+  if (compact != sentinel)
+  {
+    if (auto const * area = FindAreaByCompactIndex(file, compact))
+      return area;
+  }
+  return SelectSettlementContaining(file, point);
 }
 
 ExplorationArea const * LookupExplorationArea(SpaFile const & file, size_t slot,
