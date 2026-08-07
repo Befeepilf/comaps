@@ -49,7 +49,7 @@ assignment, fallback, and size budget hold.
 
 | # | Criterion | Result |
 | --- | --- | --- |
-| 1 | True closed polygons available for fixture country | Pass (fixtures/library) + Residual (mapgen emit / no shipping FI `.spa`) |
+| 1 | True closed polygons available for fixture country | Residual (fixtures/library green; mapgen emit / no shipping FI `.spa` — full-country bar unmet) |
 | 2 | Versioned country config applied by priority | Pass |
 | 3 | Every valid street pixel ≤1 area; deterministic | Pass |
 | 4 | Smallest-polygon + stable-id tie-break tested | Pass |
@@ -85,7 +85,7 @@ assignment, fallback, and size budget hold.
 | Evidence log | [SP-031-evidence-log.md](../validation/SP-031-evidence-log.md) |
 | Decision ids (SP-024) | SPD-020–025 |
 | Test output | Rebuild SHA `e10111c537`: `street_pixels_areas_tests` **44/44**; `street_pixels_tests --filter=Rematch` **18/18**; `--filter=AssignmentPersist` **3/3**; `--filter=CountryConfig` **11/11**; full `street_pixels_tests` **185/185** (PauseResume flake absent). |
-| Exit criteria table | See evidence log — 2–5 Pass; 1/6/8 Pass+Residual; 7 Residual |
+| Exit criteria table | See evidence log — 1 Residual; 2–5 Pass; 6/8 Pass+Residual; 7 Residual |
 | Residuals | R1 mapgen emit; R2 shipping size; R3 device walks; R4 `/tmp/sp023` Helsinki spot-check absent |
 | Implemented by | Agent |
 | Accepted by | |
@@ -95,7 +95,7 @@ assignment, fallback, and size budget hold.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| Production mapgen emit (collectors → `.spa`) still not wired | Owning follow-up from SP-026; required before claiming exit #1 Met for shipping FI |
+| Production mapgen emit (collectors → `.spa`) still not wired | Owning follow-up from SP-026; required before claiming exit #1 Pass for shipping FI |
 | Shipping-encoder FI size not measured this run (`/tmp/sp023` absent) | Exit #7 residual; re-measure under emit/offline harness; no SPD-024 floor |
 | Device / Helsinki UI walks not executed | Phase 10 residual (SP-014/022 pattern) |
-| | |
+| Phase 4 “Current code locations” table still says area id / assignment Not found (dated 2026-08-03) | Docs hygiene; refresh after Phase 4 exit decision — not required to record SP-031 suite evidence |
