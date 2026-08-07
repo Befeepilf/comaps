@@ -105,7 +105,7 @@ public class StreetPixelsManager
     return nativeGetFocusedAreaProgress();
   }
 
-  // Temporary until SP-036: resolve focus from map centre, rebuild completion if needed.
+  // Refresh focus via §12.5 engine (recording / follow / pan / city zoom).
   @NonNull
   public FocusedAreaProgress refreshFocusedAreaAtMapCenter(@NonNull String countryId)
   {

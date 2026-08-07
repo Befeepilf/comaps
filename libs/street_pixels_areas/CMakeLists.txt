@@ -18,6 +18,8 @@ set(SRC
   exploration_filter.hpp
   exploration_sidecar.cpp
   exploration_sidecar.hpp
+  focus_selection_engine.cpp
+  focus_selection_engine.hpp
   sparse_assignment_store.cpp
   sparse_assignment_store.hpp
   spa_jsonl.cpp

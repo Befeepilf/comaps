@@ -36,6 +36,7 @@
 #include "street_pixels_areas/area_completion_cache.hpp"
 #include "street_pixels_areas/exploration_area_resolver.hpp"
 #include "street_pixels_areas/exploration_sidecar.hpp"
+#include "street_pixels_areas/focus_selection_engine.hpp"
 #include "street_pixels_areas/sparse_assignment_store.hpp"
 
 #include "street_pixels_config/country_config.hpp"
@@ -1738,7 +1739,7 @@ void StreetPixelsManager::ClearFocusedArea()
   ClearFocusedAreaUnlocked();
 }
 
-bool StreetPixelsManager::SetFocusedArea(uint32_t compactIndex, std::string const & spaPath)
+bool StreetPixelsManager::SetFocusedArea(uint32_t compactIndex, std::string const & spaPath, bool citySummary)
 {
   auto sidecar = street_pixels::TryLoadExplorationSidecar(spaPath);
   if (sidecar.m_status != street_pixels::SpaLoadStatus::Ok)
@@ -1763,6 +1764,7 @@ bool StreetPixelsManager::SetFocusedArea(uint32_t compactIndex, std::string cons
     std::lock_guard<std::mutex> lock(m_focusedAreaMutex);
     m_focusedAreaProgress = street_pixels::FocusedAreaProgress{};
     m_focusedAreaProgress.m_hasFocus = true;
+    m_focusedAreaProgress.m_citySummary = citySummary;
     m_focusedAreaProgress.m_compactIndex = area->m_compactIndex;
     m_focusedAreaProgress.m_osmId = street_pixels::StableOsmId(*area);
     m_focusedAreaProgress.m_displayName = name;
@@ -1771,7 +1773,8 @@ bool StreetPixelsManager::SetFocusedArea(uint32_t compactIndex, std::string cons
   return true;
 }
 
-void StreetPixelsManager::SetFocusedAreaForTesting(uint32_t compactIndex, std::string displayName, uint64_t osmId)
+void StreetPixelsManager::SetFocusedAreaForTesting(uint32_t compactIndex, std::string displayName, uint64_t osmId,
+                                                   bool citySummary)
 {
   if (displayName.empty())
   {
@@ -1782,6 +1785,7 @@ void StreetPixelsManager::SetFocusedAreaForTesting(uint32_t compactIndex, std::s
     std::lock_guard<std::mutex> lock(m_focusedAreaMutex);
     m_focusedAreaProgress = street_pixels::FocusedAreaProgress{};
     m_focusedAreaProgress.m_hasFocus = true;
+    m_focusedAreaProgress.m_citySummary = citySummary;
     m_focusedAreaProgress.m_compactIndex = compactIndex;
     m_focusedAreaProgress.m_osmId = osmId;
     m_focusedAreaProgress.m_displayName = std::move(displayName);
@@ -1789,9 +1793,111 @@ void StreetPixelsManager::SetFocusedAreaForTesting(uint32_t compactIndex, std::s
   RefreshFocusedAreaFractionUnlocked();
 }
 
+bool StreetPixelsManager::SelectFocusedAreaExplicit(uint32_t compactIndex, std::string const & spaPath)
+{
+  return SetFocusedArea(compactIndex, spaPath, false);
+}
+
+bool StreetPixelsManager::ApplyFocusSelection(street_pixels::FocusSelectionRequest const & request,
+                                              std::string const & spaPath, int64_t mapDataVersion)
+{
+  auto const decision = street_pixels::SelectFocusedArea(request);
+  if (decision.m_kind == street_pixels::FocusTargetKind::None || !decision.m_compactIndex.has_value())
+  {
+    ClearFocusedArea();
+    return false;
+  }
+
+  if (mapDataVersion != 0)
+  {
+    auto sidecar = street_pixels::TryLoadExplorationSidecar(spaPath);
+    if (sidecar.m_status != street_pixels::SpaLoadStatus::Ok ||
+        sidecar.m_file.m_header.m_mapDataVersion != mapDataVersion)
+    {
+      ClearFocusedArea();
+      return false;
+    }
+  }
+
+  bool const citySummary = decision.m_kind == street_pixels::FocusTargetKind::CitySummary;
+  return SetFocusedArea(*decision.m_compactIndex, spaPath, citySummary);
+}
+
+bool StreetPixelsManager::RefreshFocusFromViewport(m2::PointD const & mapCentre,
+                                                   std::optional<m2::PointD> const & userPos, bool recordingActive,
+                                                   bool followingMyPosition, int drawScale,
+                                                   std::string const & spaPath, int64_t mapDataVersion)
+{
+  auto sidecar = street_pixels::TryLoadExplorationSidecar(spaPath);
+  if (sidecar.m_status != street_pixels::SpaLoadStatus::Ok ||
+      sidecar.m_file.m_header.m_mapDataVersion != mapDataVersion)
+  {
+    ClearFocusedArea();
+    return false;
+  }
+
+  street_pixels::CountryPolicy policy;
+  try
+  {
+    std::string const policyPath =
+        base::JoinPath(GetPlatform().ResourcesDir(), street_pixels::kCountryPoliciesRelativePath);
+    auto const config = street_pixels::CountryConfig::LoadFromFile(policyPath);
+    policy = config.GetByIso(sidecar.m_file.m_header.m_isoCode);
+  }
+  catch (RootException const &)
+  {
+    ClearFocusedArea();
+    return false;
+  }
+
+  auto resolve = [&](m2::PointD const & pt) -> std::optional<uint32_t>
+  {
+    auto const * area = street_pixels::LookupExplorationAreaAtPoint(sidecar.m_file, policy, pt);
+    if (area == nullptr)
+      return std::nullopt;
+    return area->m_compactIndex;
+  };
+
+  auto resolveCity = [&](m2::PointD const & pt) -> std::optional<uint32_t>
+  {
+    auto const * city = street_pixels::SelectSettlementContaining(sidecar.m_file, pt);
+    if (city == nullptr)
+      return std::nullopt;
+    return city->m_compactIndex;
+  };
+
+  street_pixels::FocusSelectionRequest req;
+  req.m_recordingActive = recordingActive;
+  req.m_atCityScale = street_pixels::IsCityScaleDrawScale(drawScale);
+  req.m_mapCentreAreaCompactIndex = resolve(mapCentre);
+  if (userPos.has_value())
+  {
+    req.m_userAreaCompactIndex = resolve(*userPos);
+    req.m_cityCompactIndex = resolveCity(*userPos);
+  }
+  if (!req.m_cityCompactIndex.has_value())
+    req.m_cityCompactIndex = resolveCity(mapCentre);
+
+  if (req.m_atCityScale)
+    req.m_event = street_pixels::FocusEvent::ZoomChanged;
+  else if (recordingActive)
+    req.m_event = street_pixels::FocusEvent::RecordingOrUserLocation;
+  else if (followingMyPosition)
+    req.m_event = street_pixels::FocusEvent::Recentre;
+  else
+    req.m_event = street_pixels::FocusEvent::MapPan;
+
+  return ApplyFocusSelection(req, spaPath, mapDataVersion);
+}
+
 bool StreetPixelsManager::TryFocusAtPoint(m2::PointD const & mercator, std::string const & spaPath,
                                           int64_t mapDataVersion)
 {
+  street_pixels::FocusSelectionRequest req;
+  req.m_event = street_pixels::FocusEvent::MapPan;
+  req.m_recordingActive = false;
+  req.m_atCityScale = false;
+
   auto sidecar = street_pixels::TryLoadExplorationSidecar(spaPath);
   if (sidecar.m_status != street_pixels::SpaLoadStatus::Ok ||
       sidecar.m_file.m_header.m_mapDataVersion != mapDataVersion)
@@ -1820,7 +1926,8 @@ bool StreetPixelsManager::TryFocusAtPoint(m2::PointD const & mercator, std::stri
     ClearFocusedArea();
     return false;
   }
-  return SetFocusedArea(area->m_compactIndex, spaPath);
+  req.m_mapCentreAreaCompactIndex = area->m_compactIndex;
+  return ApplyFocusSelection(req, spaPath, mapDataVersion);
 }
 
 bool StreetPixelsManager::RebuildAreaCompletionCache(storage::CountryId const & countryId,
