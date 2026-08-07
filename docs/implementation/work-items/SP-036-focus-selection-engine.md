@@ -78,8 +78,8 @@ percentage changes look like lost progress. Spec §12.5 is the contract.
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-036-focus-selection-engine-191e` |
-| Test output (§12.5 cases) | |
-| Manual validation | |
+| Test output (§12.5 cases) | `street_pixels_areas_tests` 57/57 incl. FocusSelection_Rule1–5 + Rule1OverRule2 + NoArea; `street_pixels_tests` 199/199 incl. FocusEngine_Manager_* + FocusedAreaBadge_* |
+| Manual validation | Automated engine + manager coverage for all five rules. Device walk/pan/recentre residual → SP-041 / Phase 10 (same pattern as SP-035 Helsinki badge) |
 | Accepted by | |
 | Accepted date | |
 
