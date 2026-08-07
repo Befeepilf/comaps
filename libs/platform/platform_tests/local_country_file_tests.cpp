@@ -63,17 +63,20 @@ UNIT_TEST(LocalCountryFile_Smoke)
   LocalCountryFile localFile("/test-dir", countryFile, 150309);
 
   TEST_EQUAL("/test-dir/TestCountry" DATA_FILE_EXTENSION, localFile.GetPath(MapFileType::Map), ());
+  TEST_EQUAL("/test-dir/TestCountry" SPA_FILE_EXTENSION, localFile.GetPath(MapFileType::Spa), ());
 
   // Not synced with disk yet.
   TEST(!localFile.HasFiles(), ());
 
   TEST(!localFile.OnDisk(MapFileType::Map), ());
   TEST(!localFile.OnDisk(MapFileType::Diff), ());
+  TEST(!localFile.OnDisk(MapFileType::Spa), ());
 
   TEST_EQUAL("/test-dir", localFile.GetDirectory(), ());
 
   TEST_EQUAL(0, localFile.GetSize(MapFileType::Map), ());
   TEST_EQUAL(0, localFile.GetSize(MapFileType::Diff), ());
+  TEST_EQUAL(0, localFile.GetSize(MapFileType::Spa), ());
 
   TEST_EQUAL(150309, localFile.GetVersion(), ());
 }
@@ -87,6 +90,9 @@ UNIT_TEST(LocalCountryFile_DiskFiles)
 
   for (int64_t version : {1, 150312})
   {
+    // Defensive cleanup from prior interrupted runs in WritableDir.
+    Platform::RemoveFileIfExists(base::JoinPath(platform.WritableDir(), countryFile.GetFileName(MapFileType::Spa)));
+
     LocalCountryFile localFile(platform.WritableDir(), countryFile, version);
     TEST(!localFile.OnDisk(MapFileType::Map), ());
     TEST(!localFile.OnDisk(MapFileType::Diff), ());
@@ -98,15 +104,33 @@ UNIT_TEST(LocalCountryFile_DiskFiles)
     localFile.SyncWithDisk();
     TEST(localFile.OnDisk(MapFileType::Map), ());
     TEST(!localFile.OnDisk(MapFileType::Diff), ());
+    TEST(!localFile.OnDisk(MapFileType::Spa), ());
     TEST_EQUAL(mapFileContents.size(), localFile.GetSize(MapFileType::Map), ());
 
     localFile.SyncWithDisk();
     TEST(localFile.OnDisk(MapFileType::Map), ());
     TEST_EQUAL(mapFileContents.size(), localFile.GetSize(MapFileType::Map), ());
 
+    std::string const spaFileName = countryFile.GetFileName(MapFileType::Spa);
+    std::string const spaFileContents("spa-bytes");
+    ScopedFile testSpaFile(spaFileName, spaFileContents);
+
+    localFile.SyncWithDisk();
+    TEST(localFile.OnDisk(MapFileType::Map), ());
+    TEST(localFile.OnDisk(MapFileType::Spa), ());
+    TEST_EQUAL(spaFileContents.size(), localFile.GetSize(MapFileType::Spa), ());
+
     localFile.DeleteFromDisk(MapFileType::Map);
     TEST(!testMapFile.Exists(), (testMapFile, "wasn't deleted by LocalCountryFile."));
     testMapFile.Reset();
+
+    // Spa remains detectable independently of Map deletion from LocalCountryFile state
+    // until the next SyncWithDisk; DeleteCountry Spa lifecycle is SP-047.
+    localFile.SyncWithDisk();
+    TEST(!localFile.OnDisk(MapFileType::Map), ());
+    TEST(localFile.OnDisk(MapFileType::Spa), ());
+    TEST_EQUAL(spaFileContents.size(), localFile.GetSize(MapFileType::Spa), ());
+    testSpaFile.Reset();
   }
 }
 

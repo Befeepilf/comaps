@@ -34,7 +34,8 @@ public:
   std::string const & GetSha1() const { return m_sha1; }
 
   /// Optional Street Pixels area sidecar (`.spa`) size from countries.txt `"spa"`.
-  /// Not included in GetRemoteSize() / subtree MWM size sums (SP-045; fold-in is SP-046).
+  /// Not included in GetRemoteSize() (MWM/`"s"` only). Leaf subtree / download
+  /// progress may add this when advertised (SP-046).
   MwmSize GetRemoteSpaSize() const { return m_spaSize; }
   /// SHA-1 of the leaf `.spa`, base64-encoded (`"spa_sha1_base64"`).
   std::string const & GetSpaSha1() const { return m_spaSha1; }

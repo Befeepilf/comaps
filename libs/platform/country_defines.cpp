@@ -9,6 +9,7 @@ std::string DebugPrint(MapFileType type)
   case MapFileType::Map: return "Map";
   case MapFileType::Diff: return "Diff";
   case MapFileType::Pix: return "Pix";
+  case MapFileType::Spa: return "Spa";
   case MapFileType::Count: return "Count";
   }
   UNREACHABLE();
