@@ -27,17 +27,17 @@
 
 namespace
 {
-std::string FabPath(std::string const & name) { return base::JoinPath(GetPlatform().WritableDir(), name); }
+std::string Sp036Path(std::string const & name) { return base::JoinPath(GetPlatform().WritableDir(), name); }
 
-void FabRemove(std::string const & path) { Platform::RemoveFileIfExists(path); }
+void Sp036Remove(std::string const & path) { Platform::RemoveFileIfExists(path); }
 
-std::vector<m2::PointD> FabLonLatBox(double west, double south, double east, double north)
+std::vector<m2::PointD> Sp036LonLatBox(double west, double south, double east, double north)
 {
   return {{west, south}, {east, south}, {east, north}, {west, north}, {west, south}};
 }
 
-street_pixels::AreaCandidateInput FabMakeAdmin(uint64_t osmId, int adminLevel, std::string const & name,
-                                               std::vector<m2::PointD> const & ring)
+street_pixels::AreaCandidateInput Sp036MakeAdmin(uint64_t osmId, int adminLevel, std::string const & name,
+                                                 std::vector<m2::PointD> const & ring)
 {
   street_pixels::AreaCandidateInput input;
   input.m_osmId = osmId;
@@ -64,9 +64,9 @@ FocusFx MakeFocusFx(std::string const & leaf)
   FocusFx fx;
   fx.leaf = leaf;
   fx.spaPath = street_pixels::ExplorationSidecarPath(GetPlatform().WritableDir(), leaf);
-  FabRemove(fx.spaPath);
-  FabRemove(FabPath(leaf + ".pix"));
-  FabRemove(street_pixels::SparseAssignmentPath(GetPlatform().WritableDir(), leaf));
+  Sp036Remove(fx.spaPath);
+  Sp036Remove(Sp036Path(leaf + ".pix"));
+  Sp036Remove(street_pixels::SparseAssignmentPath(GetPlatform().WritableDir(), leaf));
 
   auto const config = street_pixels::CountryConfig::LoadFromString(R"({
   "policy_version": 1,
@@ -83,8 +83,8 @@ FocusFx MakeFocusFx(std::string const & leaf)
   auto const policy = config.GetByIso("FI");
 
   std::vector<street_pixels::ExplorationArea> areas;
-  for (auto const & input : {FabMakeAdmin(10, 10, "District", FabLonLatBox(24.2, 60.2, 24.8, 60.8)),
-                             FabMakeAdmin(8, 8, "City", FabLonLatBox(24.0, 60.0, 25.0, 61.0))})
+  for (auto const & input : {Sp036MakeAdmin(10, 10, "District", Sp036LonLatBox(24.2, 60.2, 24.8, 60.8)),
+                             Sp036MakeAdmin(8, 8, "City", Sp036LonLatBox(24.0, 60.0, 25.0, 61.0))})
   {
     auto result = street_pixels::FilterExplorationCandidate(input, policy);
     TEST(result.m_area.has_value(), ());
@@ -106,9 +106,9 @@ FocusFx MakeFocusFx(std::string const & leaf)
 
 void CleanupFocusFx(FocusFx const & fx)
 {
-  FabRemove(fx.spaPath);
-  FabRemove(FabPath(fx.leaf + ".pix"));
-  FabRemove(street_pixels::SparseAssignmentPath(GetPlatform().WritableDir(), fx.leaf));
+  Sp036Remove(fx.spaPath);
+  Sp036Remove(Sp036Path(fx.leaf + ".pix"));
+  Sp036Remove(street_pixels::SparseAssignmentPath(GetPlatform().WritableDir(), fx.leaf));
 }
 
 UNIT_TEST(FocusEngine_Manager_Rule3_ExplicitSelect)
