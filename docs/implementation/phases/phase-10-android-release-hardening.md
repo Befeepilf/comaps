@@ -80,7 +80,9 @@ device evidence (or an explicit accepted waiver).
 | Phase 3 | Maintainer device walks (Pixel 3a / Uusimaa-scale reconciliation UX) | Phase 3 exit |
 | Phase 4 | R3 device walks: Helsinki UX, rural/coastal, no MWM-id as neighbourhood name in UI | SP-031 |
 | Phase 4 | R1 (narrowed): production mapgen collectors → `.spa` still unwired | Pre-production follow-up; not a Phase 10 device item |
-| Phase 5 | Quantitative Spike 1 FPS/memory (Pixel 3a qualitative OK; numbers deferred) | SP-033 |
+| Phase 5 | Quantitative Spike 1 FPS/memory (Pixel 3a qualitative OK; numbers deferred) | SP-033 / SP-041 R2 |
+| Phase 5 | Device Helsinki walks: badge/focus/tap/city zoom/completed chrome/§31 empty/no country-world UI | SP-041 R1 |
+| Phase 5 | Completed check glyph not drawn (`m_showCheck` reserved; outline+fill shipped) | SP-040 / SP-041 R3 |
 
 ## Proposed work-item breakdown
 
