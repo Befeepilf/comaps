@@ -50,7 +50,7 @@ Re-verified 2026-08-07 at Phase 4 exit (supersedes 2026-08-03 entry snapshot).
 | Admin level retention | `data/mapcss-mapping.csv`, `data/classificator.txt` | Unchanged for drawable MWM types: 2–4 active; 7/9–11 deprecated; 5/6/8 unmapped. Exploration polygons do **not** depend on these typed entries (SPD-020 sidecar). |
 | Place types | `data/mapcss-mapping.csv` | Search/label place types unchanged; exploration place rings come from `.spa` when policy admits closed rings |
 | City boundary storage | `libs/indexer/city_boundary.hpp` | Still three-box for World search; **not** assignment authority (SPD-025) |
-| Boundary build | `generator/collector_routing_city_boundaries.cpp`, `place_processor.cpp`, `cities_boundaries_builder.cpp` | World three-box path unchanged; exploration emit is offline `tools/spa_emit_tool/` (SP-032); production collectors→`.spa` still unwired (narrowed R1) |
+| Boundary build | `generator/collector_routing_city_boundaries.cpp`, `place_processor.cpp`, `cities_boundaries_builder.cpp` | World three-box path unchanged; exploration emit is offline `tools/spa_emit_tool/` (SP-032 geometry-only; **SP-044** production dense leaf emit planned as Option B); in-pipeline collectors→`.spa` still unwired (Option A residual) |
 | Exploration sidecar | `libs/street_pixels_areas/` (`.spa`, `DisplayName`, serdes) | Shipped format + library; FI fixture emit via SP-032 |
 | Country config | `data/street_pixels/`, `street_pixels_config` | Versioned FI policy (SPD-023); SP-025 Accepted |
 | Runtime assignment | `ExplorationAreaResolver`, `SubdivisionAssignmentTable`, `SparseAssignmentStore` | Deterministic subdiv → settlement → no-area; sparse `.spx` + rematerialize (SPD-021/022) |
@@ -112,6 +112,7 @@ Area id / assignment APIs exist under `libs/street_pixels_areas/` (SP-026–030)
 | 10 | [SP-032](../work-items/SP-032-phase4-residual-spa-emit.md) | Offline `.spa` emit harness (SP-031 R1/R2/R4) |
 | — | [SP-042](../work-items/SP-042-sidecar-shipping-decisions.md) | Sidecar shipping decisions (SPD-027–033); follow-ons SP-043–048 (pre-production packaging, not Phase 5) |
 | — | [SP-043](../work-items/SP-043-spa-blob-contract-freeze.md) | Freeze production `.spa` blob contract (**SPD-034**; `format_version` 2) |
+| — | [SP-044](../work-items/SP-044-production-spa-emit.md) | Production leaf `.spa` emit (R1; **Option B** offline batch; Option A residual) |
 
 **SP-025+ unblocked** — SP-024 Accepted 2026-08-03 (SPD-020–025).
 
@@ -247,7 +248,7 @@ Pass (automated) + Residual (device); **7 Pass** (no SPD-024 floor).
 | ID | Summary | Disposition |
 | --- | --- | --- |
 | R3 | Device walks (Helsinki UX, rural/coastal, no MWM-id neighbourhood in UI) | Phase 10 |
-| R1 (narrowed) | Production mapgen collectors → `.spa` still unwired; CDN leaf download / packaging not wired | **Phase 4 residual / pre-production packaging** — shipping decisions owned by [SP-042](../work-items/SP-042-sidecar-shipping-decisions.md) (**SPD-027–033**); follow-ons SP-043–048. Still pre-production packaging, **not** Phase 5 and **not** a Phase 10 device item. Offline harness (SP-032) satisfies fixture-country exit #1 |
+| R1 (narrowed) | Production leaf `.spa` emit + CDN leaf download / packaging not wired | **Phase 4 residual / pre-production packaging** — shipping decisions owned by [SP-042](../work-items/SP-042-sidecar-shipping-decisions.md) (**SPD-027–033**); emit planned as [SP-044](../work-items/SP-044-production-spa-emit.md) (**Option B** offline batch; full mapgen collectors = Option A follow-up); meta/download SP-045–048. Still pre-production packaging, **not** Phase 5 and **not** a Phase 10 device item. Offline harness (SP-032) satisfies fixture-country exit #1 |
 
 ## Explicit non-goals
 

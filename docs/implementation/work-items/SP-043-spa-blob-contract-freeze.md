@@ -103,5 +103,5 @@ freeze risks irreversible mismatched assignment.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| Production mapgen collectors → `.spa` still unwired | SP-044 |
+| Production leaf `.spa` emit (Option B offline batch; Option A residual) | [SP-044](SP-044-production-spa-emit.md) |
 | Geometry-only v1 dual-read retained for fixtures / SP-032 harness | Retire when harness/emit always writes v2 (no blocker) |
