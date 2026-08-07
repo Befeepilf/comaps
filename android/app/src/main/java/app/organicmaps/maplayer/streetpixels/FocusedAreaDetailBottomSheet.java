@@ -12,6 +12,7 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.FragmentManager;
 import app.organicmaps.R;
+import app.organicmaps.util.UiUtils;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.textview.MaterialTextView;
@@ -24,15 +25,28 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
   private static final String ARG_NAME = "name";
   private static final String ARG_FRACTION = "fraction";
   private static final String ARG_FRACTION_VALID = "fraction_valid";
+  private static final String ARG_AREA_COMPLETED = "area_completed";
+  private static final String ARG_EMPTY = "empty";
 
   public static void show(@NonNull FragmentManager fm, @NonNull String displayName, boolean fractionValid,
-                          double fraction)
+                          double fraction, boolean areaCompleted)
   {
     FocusedAreaDetailBottomSheet sheet = new FocusedAreaDetailBottomSheet();
     Bundle args = new Bundle();
     args.putString(ARG_NAME, displayName);
     args.putBoolean(ARG_FRACTION_VALID, fractionValid);
     args.putDouble(ARG_FRACTION, fraction);
+    args.putBoolean(ARG_AREA_COMPLETED, areaCompleted);
+    args.putBoolean(ARG_EMPTY, false);
+    sheet.setArguments(args);
+    sheet.show(fm, TAG);
+  }
+
+  public static void showEmpty(@NonNull FragmentManager fm)
+  {
+    FocusedAreaDetailBottomSheet sheet = new FocusedAreaDetailBottomSheet();
+    Bundle args = new Bundle();
+    args.putBoolean(ARG_EMPTY, true);
     sheet.setArguments(args);
     sheet.show(fm, TAG);
   }
@@ -68,11 +82,26 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
     Bundle args = requireArguments();
     MaterialTextView nameView = view.findViewById(R.id.focused_area_detail_name);
     MaterialTextView percentView = view.findViewById(R.id.focused_area_detail_percent);
+    MaterialTextView bodyView = view.findViewById(R.id.focused_area_detail_body);
+
+    if (args.getBoolean(ARG_EMPTY, false))
+    {
+      nameView.setText(R.string.street_pixels_no_exploration_area_title);
+      percentView.setText("");
+      bodyView.setText(R.string.street_pixels_no_exploration_area_message);
+      UiUtils.show(bodyView);
+      return;
+    }
+
+    UiUtils.hide(bodyView);
     nameView.setText(args.getString(ARG_NAME, ""));
     if (args.getBoolean(ARG_FRACTION_VALID, false))
     {
       double percent = args.getDouble(ARG_FRACTION, 0.0) * 100.0;
-      percentView.setText(String.format(Locale.US, "%.4f%%", percent));
+      if (args.getBoolean(ARG_AREA_COMPLETED, false))
+        percentView.setText(R.string.street_pixels_area_completed);
+      else
+        percentView.setText(String.format(Locale.US, "%.4f%%", percent));
     }
     else
       percentView.setText("");
