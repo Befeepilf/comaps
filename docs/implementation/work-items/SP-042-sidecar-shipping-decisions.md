@@ -101,7 +101,7 @@ land as SPD-027–033 before coding download, meta, or CDN packaging.
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-042-sidecar-shipping-fe62` |
-| Commits | `55f88ce1e` |
+| Commits | `904920824` |
 | Decision ids | SPD-027, SPD-028, SPD-029, SPD-030, SPD-031, SPD-032, SPD-033 |
 | Product locks | D1–D7 = A (2026-08-07); D3–D6 recommended locks accepted for implementation |
 | Docs touched | `DECISIONS.md`; `README.md`; `phases/phase-04-…`; `phases/phase-10-…`; this file |
