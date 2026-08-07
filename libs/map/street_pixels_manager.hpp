@@ -28,6 +28,7 @@
 #include "storage/storage.hpp"
 
 #include "street_pixels_areas/area_completion_cache.hpp"
+#include "street_pixels_areas/focused_area_progress.hpp"
 
 #include <healpix_base.h>
 
@@ -158,6 +159,16 @@ public:
   bool RebuildAreaCompletionCache(storage::CountryId const & countryId, std::string const & spaPath,
                                   int64_t mapDataVersion);
 
+  // Focused-area progress for the primary badge (SP-035). Focus engine is SP-036;
+  // SetFocusedArea / TryFocusAtPoint are the stub surface until then.
+  street_pixels::FocusedAreaProgress GetFocusedAreaProgress() const;
+  void ClearFocusedArea();
+  // Loads display name from sidecar; never falls back to countryId. Blank name → clear.
+  bool SetFocusedArea(uint32_t compactIndex, std::string const & spaPath);
+  // Temporary map-centre / point focus stub (replace with §12.5 in SP-036).
+  bool TryFocusAtPoint(m2::PointD const & mercator, std::string const & spaPath, int64_t mapDataVersion);
+  void SetFocusedAreaForTesting(uint32_t compactIndex, std::string displayName, uint64_t osmId);
+
   void OnUpdateCurrentCountry(storage::CountryId const & countryId, storage::LocalFilePtr const & localFile);
 
   void OnLocationUpdate(location::GpsInfo const & info);
@@ -250,6 +261,8 @@ private:
   void InvalidateAreaCompletionCacheUnlocked();
   bool RebuildAreaCompletionCacheUnlocked(storage::CountryId const & countryId, std::string const & spaPath,
                                           int64_t mapDataVersion);
+  void RefreshFocusedAreaFractionUnlocked();
+  void ClearFocusedAreaUnlocked();
 
   // Updates heuristic stats for each street in the explore radius. Needed for routing to prefer streets with more
   // unexplored pixels.
@@ -277,4 +290,7 @@ private:
 
   street_pixels::AreaCompletionCache m_areaCompletionCache;
   mutable std::mutex m_areaCompletionMutex;
+
+  street_pixels::FocusedAreaProgress m_focusedAreaProgress;
+  mutable std::mutex m_focusedAreaMutex;
 };
