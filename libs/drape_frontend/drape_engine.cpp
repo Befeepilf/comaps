@@ -684,6 +684,27 @@ void DrapeEngine::ClearStreetPixels()
   }
 }
 
+void DrapeEngine::EnableExplorationAreaOverlay(bool enable)
+{
+  m_threadCommutator->PostMessage(ThreadsCommutator::RenderThread,
+                                  make_unique_dp<EnableExplorationAreaOverlayMessage>(enable), MessagePriority::Normal);
+}
+
+void DrapeEngine::UpdateExplorationAreaOverlay(std::vector<df::ExplorationAreaOverlayItem> && items)
+{
+  m_threadCommutator->PostMessage(ThreadsCommutator::ResourceUploadThread,
+                                  make_unique_dp<UpdateExplorationAreaOverlayMessage>(std::move(items)),
+                                  MessagePriority::Normal);
+}
+
+void DrapeEngine::ClearExplorationAreaOverlay()
+{
+  m_threadCommutator->PostMessage(ThreadsCommutator::RenderThread, make_unique_dp<ClearExplorationAreaOverlayMessage>(),
+                                  MessagePriority::Normal);
+  m_threadCommutator->PostMessage(ThreadsCommutator::ResourceUploadThread,
+                                  make_unique_dp<ClearExplorationAreaOverlayMessage>(), MessagePriority::Normal);
+}
+
 void DrapeEngine::EnableChoosePositionMode(bool enable, std::vector<m2::TriangleD> && boundAreaTriangles,
                                            m2::PointD const * optionalPosition)
 {

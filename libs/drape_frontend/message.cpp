@@ -65,6 +65,10 @@ std::string DebugPrint(Message::Type msgType)
   case Message::Type::EnableStreetPixels: return "EnableStreetPixels";
   case Message::Type::UpdateStreetPixels: return "UpdateStreetPixels";
   case Message::Type::ClearStreetPixels: return "ClearStreetPixels";
+  case Message::Type::EnableExplorationAreaOverlay: return "EnableExplorationAreaOverlay";
+  case Message::Type::UpdateExplorationAreaOverlay: return "UpdateExplorationAreaOverlay";
+  case Message::Type::ClearExplorationAreaOverlay: return "ClearExplorationAreaOverlay";
+  case Message::Type::FlushExplorationAreaOverlay: return "FlushExplorationAreaOverlay";
   case Message::Type::ShowChoosePositionMark: return "ShowChoosePositionMark";
   case Message::Type::SetKineticScrollEnabled: return "SetKineticScrollEnabled";
   case Message::Type::BlockTapEvents: return "BlockTapEvents";

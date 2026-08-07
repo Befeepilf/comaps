@@ -5,6 +5,7 @@
 #include "drape_frontend/drape_api.hpp"
 #include "drape_frontend/drape_api_builder.hpp"
 #include "drape_frontend/drape_engine_params.hpp"
+#include "drape_frontend/exploration_area_overlay.hpp"
 #include "drape_frontend/gps_track_point.hpp"
 #include "drape_frontend/gui/layer_render.hpp"
 #include "drape_frontend/gui/skin.hpp"
@@ -997,6 +998,57 @@ public:
   {}
 
   Type GetType() const override { return Type::ClearStreetPixels; }
+};
+
+class EnableExplorationAreaOverlayMessage : public Message
+{
+public:
+  explicit EnableExplorationAreaOverlayMessage(bool enabled) : m_enabled(enabled) {}
+
+  Type GetType() const override { return Type::EnableExplorationAreaOverlay; }
+  bool IsEnabled() const { return m_enabled; }
+
+private:
+  bool m_enabled;
+};
+
+class UpdateExplorationAreaOverlayMessage : public Message
+{
+public:
+  explicit UpdateExplorationAreaOverlayMessage(std::vector<ExplorationAreaOverlayItem> && items)
+    : m_items(std::move(items))
+  {}
+
+  Type GetType() const override { return Type::UpdateExplorationAreaOverlay; }
+  std::vector<ExplorationAreaOverlayItem> & AcceptItems() { return m_items; }
+
+private:
+  std::vector<ExplorationAreaOverlayItem> m_items;
+};
+
+class ClearExplorationAreaOverlayMessage : public Message
+{
+public:
+  Type GetType() const override { return Type::ClearExplorationAreaOverlay; }
+};
+
+class FlushExplorationAreaOverlayMessage : public Message
+{
+public:
+  FlushExplorationAreaOverlayMessage(std::vector<drape_ptr<DrapeApiRenderProperty>> && outlines,
+                                     std::vector<drape_ptr<DrapeApiRenderProperty>> && fills)
+    : m_outlines(std::move(outlines))
+    , m_fills(std::move(fills))
+  {}
+
+  Type GetType() const override { return Type::FlushExplorationAreaOverlay; }
+
+  std::vector<drape_ptr<DrapeApiRenderProperty>> && AcceptOutlines() { return std::move(m_outlines); }
+  std::vector<drape_ptr<DrapeApiRenderProperty>> && AcceptFills() { return std::move(m_fills); }
+
+private:
+  std::vector<drape_ptr<DrapeApiRenderProperty>> m_outlines;
+  std::vector<drape_ptr<DrapeApiRenderProperty>> m_fills;
 };
 
 class OnEnterForegroundMessage : public Message
