@@ -1,6 +1,6 @@
 # Phase 4 — Administrative-area pipeline
 
-**Status:** In progress (SP-023–030 Accepted; SP-031 next)
+**Status:** In progress (SP-023–030 Accepted; SP-031 In review — evidence recorded; exit criteria not unilaterally Met)
 **Depends on:** Phase 3
 **Blocks:** Phases 5, 7, 8
 
@@ -228,6 +228,20 @@ fallback / rural no-area on top. Do not invert that order.
 7. Sidecar (+ assignment blob) size impact is measured and accepted
    (SPD-020; no client numeric floor — SPD-024).
 8. No MWM country identifier is presented anywhere as a neighbourhood.
+
+### SP-031 validation status (2026-08-07)
+
+Evidence recorded under
+[`validation/SP-031-validation-plan.md`](../validation/SP-031-validation-plan.md)
+and
+[`validation/SP-031-evidence-log.md`](../validation/SP-031-evidence-log.md).
+Automated suites green (`street_pixels_areas_tests` 44/44; full
+`street_pixels_tests` 185/185; Rematch 18; AssignmentPersist 3; CountryConfig
+11). Exit checklist in the evidence log: **2–5 Pass**; **1 / 6 / 8**
+Pass+Residual; **7 Residual**. Known residuals: mapgen emit gap (SP-026),
+shipping-encoder FI size unmeasured, device/Helsinki walks → Phase 10,
+`/tmp/sp023` absent this run. **Exit criteria are not marked Met** — maintainer
+decides Phase 4 exit after reviewing SP-031.
 
 ## Explicit non-goals
 
