@@ -47,12 +47,13 @@ collectors→`.spa` remains a follow-up (narrowed R1).
 
 | Field | Value |
 | --- | --- |
-| Branch / tip | `cursor/sp-032-phase4-residual-emit-191e` @ `7355e4ab82221165bd43d9383e3f28cb7cebda61` |
+| Branch / tip | `cursor/sp-032-phase4-residual-emit-191e` @ `961e538c5` (independent review harden + re-verify) |
 | Build | `./tools/unix/build_omim.sh -d -p /workspace spa_emit_tool street_pixels_areas_tests` — OK |
 | `street_pixels_areas_tests` | **46/46** All tests passed (`SpaJsonlEmit_*` + prior 44) |
 | `/tmp/sp023` | Rebuilt: Geofabrik `finland-latest.osm.pbf` (737 679 925 B) → `extract_admin_place_polygons.py` → **2751** JSONL rings |
 | Emit | `./omim-build-debug/spa_emit_tool --rings=/tmp/sp023/finland_admin_place_rings.jsonl --policy=data/street_pixels/country_policies.json --iso=FI --out_dir=/tmp/sp032 --helsinki_poly=data/borders/Finland_Southern\ Finland_Helsinki.poly` |
 | Outputs | `/tmp/sp032/Finland.spa`, `/tmp/sp032/Finland_Southern Finland_Helsinki.spa` (**not committed**) |
+| Spot-check | **11/11** found + **11/11** name_match; tool exits non-zero on miss (review harden) |
 
 ### Suite command transcripts (counts)
 
@@ -106,7 +107,7 @@ All tests passed.
 | S3 | Dense assignment blob size | **N/A this run** | Geometry-only emit; assign section **0 B**; measure when HEALPix samples available from mapgen emit |
 | S4 | Sparse `.spx` size | Formula in SP-030 note only | No device explored-fraction measurement |
 | S5 | Policy filter admit counts | **2618** admitted / **64** unnamed / **69** policy_mismatch | Re-confirmed SP-032 emit + `filter_rings_for_spa.py` |
-| S6 | Helsinki name spot-check | **Pass — 11/11** known OSM ids | Kamppi, Kallio, Punavuori, Ullanlinna, Etu-Töölö, Taka-Töölö, Lauttasaari, Eira, Katajanokka, Kruununhaka, Helsinki (admin_8 settlement) |
+| S6 | Helsinki name spot-check | **Pass — 11/11** known OSM ids (+ name_match 11/11) | Kamppi, Kallio, Punavuori, Ullanlinna, Etu-Töölö, Taka-Töölö, Lauttasaari, Eira, Katajanokka, Kruununhaka, Helsinki (admin_8 settlement) |
 | S7 | Mapgen emit status | Offline harness **wired** (SP-032); production collectors→`.spa` **not wired** | Narrowed residual — does not block exit #1 fixture-country availability |
 
 ### Shipping vs SP-023 size table (SP-032)
@@ -142,7 +143,7 @@ No client numeric floor applied (SPD-024). Sizes are below the SP-023 zlib coded
 | D4 Sparse rematerialize | agent | **Pass** | Sparse store 8/8 + AssignmentPersist 3/3 |
 | E1 DisplayName never MWM id | agent | **Pass** | `ExplorationSidecar_DisplayNameNeverFallsBackToMwmId` |
 | E2 UI no MWM neighbourhood | D1 | **Residual** | Device walks deferred Phase 10 |
-| F1 Helsinki names | agent | **Pass** | SP-032 known-id spot-check **11/11** |
+| F1 Helsinki names | agent | **Pass** | SP-032 known-id spot-check **11/11** found + name_match |
 | F2 Settlement/rural/coastal visual | D1 | **Residual** | Phase 10 |
 | F3 Device area walks | D1 | **Residual** | Phase 10 |
 | G1 `street_pixels_areas_tests` | agent | **Pass** | **44/44** (SP-031); **46/46** after SP-032 |
