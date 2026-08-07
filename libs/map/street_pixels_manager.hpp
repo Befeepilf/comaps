@@ -175,6 +175,8 @@ public:
                                 bool citySummary = false);
   // Explicit tap selection (§12.5 rule 3). Hit-test wiring is SP-038.
   bool SelectFocusedAreaExplicit(uint32_t compactIndex, std::string const & spaPath);
+  // Polygon hit-test at point → ExplicitSelect (not MapPan). Outside → clear focus.
+  bool SelectFocusedAreaAtPoint(m2::PointD const & mercator, std::string const & spaPath, int64_t mapDataVersion);
   // Resolve §12.5 inputs from viewport/session and apply the engine.
   bool RefreshFocusFromViewport(m2::PointD const & mapCentre, std::optional<m2::PointD> const & userPos,
                                 bool recordingActive, bool followingMyPosition, int drawScale,
@@ -304,5 +306,7 @@ private:
   mutable std::mutex m_areaCompletionMutex;
 
   street_pixels::FocusedAreaProgress m_focusedAreaProgress;
+  // Sticky until recording / recentre / city zoom / intentional pan refresh displaces it.
+  bool m_explicitFocusSticky = false;
   mutable std::mutex m_focusedAreaMutex;
 };

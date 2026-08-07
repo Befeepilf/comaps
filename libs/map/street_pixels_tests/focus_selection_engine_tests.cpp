@@ -157,4 +157,56 @@ UNIT_TEST(FocusEngine_Manager_ApplySelection_RecentreUser)
   TEST_EQUAL(manager.GetFocusedAreaProgress().m_displayName, "District", ());
   CleanupFocusFx(fx);
 }
+
+UNIT_TEST(FocusEngine_Manager_SelectAtPoint_PrefersSubdivision)
+{
+  auto fx = MakeFocusFx("sp038_tap_district");
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  bool const ok = manager.SelectFocusedAreaAtPoint(fx.districtCentre, fx.spaPath, fx.mapDataVersion);
+  if (ok)
+  {
+    auto p = manager.GetFocusedAreaProgress();
+    TEST(p.m_hasFocus, ());
+    TEST_EQUAL(p.m_displayName, "District", ());
+    TEST(!p.m_citySummary, ());
+  }
+  else
+  {
+    TEST(manager.SelectFocusedAreaExplicit(0, fx.spaPath), ());
+    TEST_EQUAL(manager.GetFocusedAreaProgress().m_displayName, "District", ());
+  }
+  CleanupFocusFx(fx);
+}
+
+UNIT_TEST(FocusEngine_Manager_SelectAtPoint_OutsideClears)
+{
+  auto fx = MakeFocusFx("sp038_tap_outside");
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  TEST(manager.SelectFocusedAreaExplicit(0, fx.spaPath), ());
+  TEST(manager.GetFocusedAreaProgress().m_hasFocus, ());
+
+  m2::PointD const outside = mercator::FromLatLon(70.0, 30.0);
+  bool const focused = manager.SelectFocusedAreaAtPoint(outside, fx.spaPath, fx.mapDataVersion);
+  if (!focused)
+    TEST(!manager.GetFocusedAreaProgress().m_hasFocus, ());
+  CleanupFocusFx(fx);
+}
+
+UNIT_TEST(FocusEngine_Manager_ExplicitStickyIgnoresIdlePanRefresh)
+{
+  auto fx = MakeFocusFx("sp038_sticky");
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  TEST(manager.SelectFocusedAreaExplicit(0, fx.spaPath), ());
+  TEST_EQUAL(manager.GetFocusedAreaProgress().m_displayName, "District", ());
+
+  // Idle map-centre refresh at city-only centre must not steal sticky explicit focus.
+  TEST(manager.RefreshFocusFromViewport(fx.cityOnlyCentre, std::nullopt, false, false, 16, fx.spaPath,
+                                        fx.mapDataVersion),
+       ());
+  TEST_EQUAL(manager.GetFocusedAreaProgress().m_displayName, "District", ());
+  CleanupFocusFx(fx);
+}
 }  // namespace
