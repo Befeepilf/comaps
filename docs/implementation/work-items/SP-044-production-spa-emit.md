@@ -1,8 +1,8 @@
 # SP-044 — Production leaf `.spa` emit (Phase 4 R1)
 
 **Phase:** 4 residual / pre-production packaging (not Phase 5; not Phase 10 device)
-**Status:** Planned
-**Branch:** —
+**Status:** In review
+**Branch:** `cursor/sp-042-sidecar-shipping-fe62`
 **Depends on:** SP-043 In review / Accepted (**SPD-034** frozen v2 contract);
   SP-032 Accepted (`spa_emit_tool` / `spa_jsonl`); SPD-020–025; SPD-032/034
 **Unblocks:** SP-045 (countries meta can advertise real leaf blobs); SP-048
@@ -295,16 +295,26 @@ Honest assessment:
 
 | Field | Value |
 | --- | --- |
-| Branch | — |
-| Commits | — |
-| Tool | — |
-| Emit outputs | local publish tree only (not committed) |
-| Size table | — |
-| Test output | — |
+| Branch | `cursor/sp-042-sidecar-shipping-fe62` |
+| Commits | `1cbf20acf` `[map] Add spatial acceleration for dense .spa assignment`; `1c571cf6e` `[tools] Extend spa_emit_tool for dense production leaf emit`; `[docs] Record SP-044 production .spa emit evidence` (this commit) |
+| Tool | `tools/spa_emit_tool` — default `--mode=production` (dense); `--mode=geometry_only` fixtures |
+| Emit outputs | local `/tmp/sp044/` only (not committed) |
+| Size table | Helsinki leaf (full rings + **tiny** \|U\|=4 smoke): file **456 516 B**, areas **456 386**, assign **8**, area_count **694**, assign_count **4**; known-id **11/11**. Full eight-leaf dense with real leaf `.pix` \|U\| — **residual** (no leaf `.pix` / offline derive in this env) |
+| Test output | `street_pixels_areas_tests` **78/78** OK (includes 5 new `spa_dense_emit_tests` / sample-centres cases). `spa_emit_tool --help` smoke OK |
 | Decision ids | SPD-020–025, SPD-032, SPD-034; SPD-033 track |
-| Implemented by | — |
+| Implemented by | Cloud agent (SP-044 Option B) |
 | Accepted by | — |
 | Accepted date | — |
+
+### Offline FI batch notes (this run)
+
+| Step | Result |
+| --- | --- |
+| Geofabrik FI PBF | Fetched to `/tmp/sp044/finland-latest.osm.pbf` (~704 MiB) |
+| Rings JSONL | Extracted: 2751 kept (`finland_admin_place_rings.jsonl`) |
+| Leaf `.pix` | **Absent** — on-device derive / leaf MWM→`.pix` not available here; highway proxy **not** used |
+| Production tool smoke | Helsinki leaf with full rings + synthetic \|U\|=4: v2 header, dense verify, **11/11** spot-check |
+| Eight-leaf full-\|U\| emit | **Residual** for human/offline once leaf `.pix` exist |
 
 ---
 
@@ -314,10 +324,12 @@ Honest assessment:
 | --- | --- |
 | Full OSM collectors + `maps_generator` StageMwm emit beside `.mwm` (Option A) | **Follow-up WI** after B proves FI CDN blobs; do not block SP-045/046 on A |
 | `generator/` links `street_pixels_areas` with zero call sites | Remains until Option A; harmless |
-| `BuildDenseAssignments` lacks spatial index | In-scope for SP-044 if FI wall time requires it; else residual perf |
-| Offline derive helper vs linking `libs/map` into emit tool | Decide in impl; prefer `.pix` input to keep tool light |
+| `BuildDenseAssignments` lacks spatial index | **Done in SP-044** — cached `RegionD` + boost STRtree bbox prefilter |
+| Offline derive helper vs linking `libs/map` into emit tool | **Done** — light `sample_centres` + chealpix + thin `.pix` scan (no map link) |
 | Leaf attribution: centroid vs full affiliation for cross-border rings | Centroid = SP-023/032; revisit if spot-checks show systematic mis-leaf |
-| Dense assign size for all eight FI leaves (device budget) | Measure under this WI; no SPD-024 floor |
+| Dense assign size for all eight FI leaves (device budget) | Measure under full-\|U\| batch once leaf `.pix` available; no SPD-024 floor |
+| Eight FI leaf production `.spa` with real leaf `.pix` \|U\| | **Residual** — human/offline batch; tool ready |
+| Offline leaf MWM → `.pix` derive helper for packaging | **Residual** — preferred input remains client-matching `.pix` |
 | `countries.txt` spa advertisement | **SP-045** |
 | Client download / lifecycle / retry | **SP-046–048** |
 | Worldwide countries beyond FI | Incremental config + same Option B job; not this WI |

@@ -86,16 +86,30 @@ subdivision assigner, writer/reader.
 this library until SP-027.
 
 CI path: synthetic fixtures in `street_pixels_areas_tests` (no Finland
-mapgen). Offline FI emit harness (**SP-032** — `tools/spa_emit_tool/`):
+mapgen). Offline emit tool (`tools/spa_emit_tool/`):
+
+- **Production (SP-044 Option B, default `--mode=production`):** rings JSONL +
+  country policy + leaf `.poly` borders + leaf `.pix` (ascending NEST **U**) →
+  dense `{mwmLeafId}.spa` with `format_version` 2, `assign_count == |U|`.
+  Sample centres via chealpix (`sample_centres`); settlements admitted but never
+  assign targets. Full in-pipeline mapgen collectors remain **Option A**
+  residual.
+- **Geometry-only (fixtures / SP-032 debug):** `--mode=geometry_only` writes
+  `assign_count=0` (not the production default).
 
 ```bash
-# Optional admit-count preview:
-python3 tools/python/street_pixels_spike/filter_rings_for_spa.py \
-  --rings /tmp/sp023/finland_admin_place_rings.jsonl \
-  --policy data/street_pixels/country_policies.json --iso FI
-
-# Shipping-encoder emit (geometry-only assign_count=0; outputs under /tmp — not committed):
+# Production dense leaf emit (outputs under /tmp — not committed):
 ./omim-build-debug/spa_emit_tool \
+  --mode=production \
+  --rings=/tmp/sp044/finland_admin_place_rings.jsonl \
+  --policy=data/street_pixels/country_policies.json --iso=FI \
+  --borders_dir=data/borders \
+  --pix_dir=/tmp/sp044/fi_pix \
+  --out_dir=/tmp/sp044/publish
+
+# Geometry-only fixtures/debug (SP-032 path):
+./omim-build-debug/spa_emit_tool \
+  --mode=geometry_only \
   --rings=/tmp/sp023/finland_admin_place_rings.jsonl \
   --policy=data/street_pixels/country_policies.json --iso=FI \
   --out_dir=/tmp/sp032 \
@@ -103,8 +117,9 @@ python3 tools/python/street_pixels_spike/filter_rings_for_spa.py \
 ```
 
 `FilterExplorationCandidate` → `WriteExplorationSidecar` (not PlaceProcessor /
-three-box). Full generator mapgen hook remains a follow-up; SP-026 shipped the
-format + library + tests; SP-032 ships the offline emit CLI + size evidence.
+three-box). Full generator mapgen hook remains Option A follow-up; SP-026 shipped
+the format + library + tests; SP-032 shipped geometry-only offline emit; SP-044
+ships production dense Option B.
 
 ## Size vs SP-023
 
