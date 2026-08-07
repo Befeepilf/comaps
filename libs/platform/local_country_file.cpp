@@ -33,7 +33,7 @@ void LocalCountryFile::SyncWithDisk()
   m_files = {};
   uint64_t size = 0;
 
-  // Now we are not working with several files at the same time and diffs have greater priority.
+  // Diff and Map are exclusive: diffs have greater priority when both exist.
   Platform & platform = GetPlatform();
   for (MapFileType type : {MapFileType::Diff, MapFileType::Map})
   {
@@ -45,6 +45,14 @@ void LocalCountryFile::SyncWithDisk()
       m_files[ut] = size;
       break;
     }
+  }
+
+  // Leaf `.spa` is independent of Diff/Map exclusivity (SP-046).
+  {
+    auto const ut = base::Underlying(MapFileType::Spa);
+    ASSERT_LESS(ut, m_files.size(), ());
+    if (platform.GetFileSizeByFullPath(GetPath(MapFileType::Spa), size))
+      m_files[ut] = size;
   }
 }
 
