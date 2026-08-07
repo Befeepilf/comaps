@@ -4,11 +4,18 @@
 
 #include "street_pixels_areas/areas_format.hpp"
 #include "street_pixels_areas/areas_reader.hpp"
+#include "street_pixels_areas/areas_serdes.hpp"
 #include "street_pixels_areas/areas_writer.hpp"
 #include "street_pixels_areas/exploration_filter.hpp"
+#include "street_pixels_areas/exploration_sidecar.hpp"
 #include "street_pixels_areas/subdivision_assigner.hpp"
 
+#include "coding/files_container.hpp"
 #include "coding/point_coding.hpp"
+#include "coding/reader.hpp"
+#include "coding/read_write_utils.hpp"
+#include "coding/writer.hpp"
+#include "coding/write_to_sink.hpp"
 
 #include "platform/platform.hpp"
 
@@ -17,6 +24,7 @@
 
 #include "defines.hpp"
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -40,6 +48,79 @@ bool RingsAlmostEqual(std::vector<m2::PointD> const & a, std::vector<m2::PointD>
       return false;
   }
   return true;
+}
+
+// Legacy v1 header layout (ends at index_width; no nside / universe_order).
+void WriteSpaHeaderV1(Writer & writer, SpaHeader const & header)
+{
+  WriteToSink(writer, header.m_magic);
+  WriteToSink(writer, header.m_formatVersion);
+  WriteToSink(writer, header.m_mapDataVersion);
+  WriteToSink(writer, header.m_policyVersion);
+  rw::Write(writer, header.m_isoCode);
+  rw::Write(writer, header.m_mwmId);
+  WriteToSink(writer, header.m_areaCount);
+  WriteToSink(writer, header.m_assignCount);
+  WriteToSink(writer, header.m_indexWidth);
+}
+
+void WriteSpaHeaderV2Raw(Writer & writer, SpaHeader const & header, uint8_t reserved0, uint8_t reserved1,
+                         uint8_t reserved2)
+{
+  WriteToSink(writer, header.m_magic);
+  WriteToSink(writer, header.m_formatVersion);
+  WriteToSink(writer, header.m_mapDataVersion);
+  WriteToSink(writer, header.m_policyVersion);
+  rw::Write(writer, header.m_isoCode);
+  rw::Write(writer, header.m_mwmId);
+  WriteToSink(writer, header.m_areaCount);
+  WriteToSink(writer, header.m_assignCount);
+  WriteToSink(writer, header.m_indexWidth);
+  WriteToSink(writer, header.m_nside);
+  WriteToSink(writer, header.m_universeOrder);
+  WriteToSink(writer, reserved0);
+  WriteToSink(writer, reserved1);
+  WriteToSink(writer, reserved2);
+}
+
+SpaHeader MakeMinimalHeader(uint32_t formatVersion, uint32_t assignCount)
+{
+  SpaHeader header;
+  header.m_magic = kSpaMagic;
+  header.m_formatVersion = formatVersion;
+  header.m_mapDataVersion = 1;
+  header.m_policyVersion = 1;
+  header.m_isoCode = "FI";
+  header.m_mwmId = "hdr";
+  header.m_areaCount = 0;
+  header.m_assignCount = assignCount;
+  header.m_indexWidth = 2;
+  header.m_nside = kSpaNside;
+  header.m_universeOrder = kSpaUniverseOrderAscendingNest;
+  return header;
+}
+
+void WriteEmptySpaWithHeader(std::string const & path, SpaHeader const & header, bool v1Layout,
+                             uint8_t reserved0 = 0, uint8_t reserved1 = 0, uint8_t reserved2 = 0)
+{
+  FilesContainerW container(path, FileWriter::OP_WRITE_TRUNCATE);
+  {
+    auto w = container.GetWriter(SPA_HEADER_FILE_TAG);
+    if (v1Layout)
+      WriteSpaHeaderV1(*w, header);
+    else
+      WriteSpaHeaderV2Raw(*w, header, reserved0, reserved1, reserved2);
+  }
+  {
+    auto w = container.GetWriter(SPA_AREAS_FILE_TAG);
+    WriteAreasSection(*w, {});
+  }
+  {
+    auto w = container.GetWriter(SPA_ASSIGN_FILE_TAG);
+    std::vector<uint32_t> assignments(header.m_assignCount, NoSubdivisionSentinel(header.m_indexWidth));
+    WriteAssignSection(*w, assignments, header.m_indexWidth);
+  }
+  container.Finish();
 }
 }  // namespace
 
@@ -76,6 +157,7 @@ UNIT_TEST(SpaSerdes_RoundTripRingsAndAssignments)
 
   TEST_EQUAL(loaded.m_header.m_magic, kSpaMagic, ());
   TEST_EQUAL(loaded.m_header.m_formatVersion, kSpaFormatVersion, ());
+  TEST_EQUAL(loaded.m_header.m_formatVersion, 2u, ());
   TEST_EQUAL(loaded.m_header.m_mapDataVersion, params.m_mapDataVersion, ());
   TEST_EQUAL(loaded.m_header.m_policyVersion, params.m_policyVersion, ());
   TEST_EQUAL(loaded.m_header.m_isoCode, "FI", ());
@@ -83,6 +165,10 @@ UNIT_TEST(SpaSerdes_RoundTripRingsAndAssignments)
   TEST_EQUAL(loaded.m_header.m_areaCount, 4u, ());
   TEST_EQUAL(loaded.m_header.m_assignCount, 3u, ());
   TEST_EQUAL(loaded.m_header.m_indexWidth, 2u, ());
+  TEST_EQUAL(loaded.m_header.m_nside, kSpaNside, ());
+  TEST_EQUAL(loaded.m_header.m_nside, 1048576u, ());
+  TEST_EQUAL(loaded.m_header.m_universeOrder, kSpaUniverseOrderAscendingNest, ());
+  TEST_EQUAL(loaded.m_header.m_universeOrder, 1u, ());
 
   TEST_EQUAL(loaded.m_areas.size(), areas.size(), ());
   for (size_t i = 0; i < areas.size(); ++i)
@@ -193,6 +279,101 @@ UNIT_TEST(SpaSerdes_CompactIndexWidthUint16)
   WriteExplorationSidecar(path, areas, {MercatorFromLonLat(24.5, 60.5)}, policy, params);
   auto const loaded = ReadExplorationSidecar(path);
   TEST_EQUAL(loaded.m_header.m_indexWidth, 2u, ());
+  TEST_EQUAL(loaded.m_header.m_nside, kSpaNside, ());
+  TEST_EQUAL(loaded.m_header.m_universeOrder, kSpaUniverseOrderAscendingNest, ());
   TEST(loaded.m_assignments[0] < kNoSubdivisionUint16, ());
+  RemoveIfExists(path);
+}
+
+UNIT_TEST(SpaSerdes_V2HeaderFieldsRoundTrip)
+{
+  std::vector<uint8_t> buffer;
+  {
+    MemWriter<std::vector<uint8_t>> writer(buffer);
+    WriteSpaHeader(writer, MakeMinimalHeader(kSpaFormatVersion, 0));
+  }
+  MemReader reader(buffer.data(), buffer.size());
+  ReaderSource src(reader);
+  auto const loaded = ReadSpaHeader(src);
+  TEST_EQUAL(loaded.m_formatVersion, 2u, ());
+  TEST_EQUAL(loaded.m_nside, kSpaNside, ());
+  TEST_EQUAL(loaded.m_universeOrder, kSpaUniverseOrderAscendingNest, ());
+  TEST_EQUAL(src.Size(), 0u, ());
+}
+
+UNIT_TEST(SpaSerdes_RejectBadNside)
+{
+  auto header = MakeMinimalHeader(kSpaFormatVersion, 0);
+  header.m_nside = 512;
+  std::vector<uint8_t> buffer;
+  {
+    MemWriter<std::vector<uint8_t>> writer(buffer);
+    WriteSpaHeaderV2Raw(writer, header, 0, 0, 0);
+  }
+  MemReader reader(buffer.data(), buffer.size());
+  ReaderSource src(reader);
+  TEST_ANY_THROW(ReadSpaHeader(src), ());
+}
+
+UNIT_TEST(SpaSerdes_RejectBadUniverseOrder)
+{
+  auto header = MakeMinimalHeader(kSpaFormatVersion, 0);
+  header.m_universeOrder = 0;
+  std::vector<uint8_t> buffer;
+  {
+    MemWriter<std::vector<uint8_t>> writer(buffer);
+    WriteSpaHeaderV2Raw(writer, header, 0, 0, 0);
+  }
+  MemReader reader(buffer.data(), buffer.size());
+  ReaderSource src(reader);
+  TEST_ANY_THROW(ReadSpaHeader(src), ());
+}
+
+UNIT_TEST(SpaSerdes_RejectNonZeroReserved)
+{
+  auto const header = MakeMinimalHeader(kSpaFormatVersion, 0);
+  std::vector<uint8_t> buffer;
+  {
+    MemWriter<std::vector<uint8_t>> writer(buffer);
+    WriteSpaHeaderV2Raw(writer, header, 0, 1, 0);
+  }
+  MemReader reader(buffer.data(), buffer.size());
+  ReaderSource src(reader);
+  TEST_ANY_THROW(ReadSpaHeader(src), ());
+}
+
+UNIT_TEST(SpaSerdes_AcceptV1GeometryOnly)
+{
+  std::string const path = SpaPath("v1_geometry_only");
+  RemoveIfExists(path);
+  WriteEmptySpaWithHeader(path, MakeMinimalHeader(kSpaFormatVersionV1, 0), /*v1Layout=*/true);
+
+  auto const loaded = ReadExplorationSidecar(path);
+  TEST_EQUAL(loaded.m_header.m_formatVersion, kSpaFormatVersionV1, ());
+  TEST_EQUAL(loaded.m_header.m_assignCount, 0u, ());
+  TEST_EQUAL(loaded.m_header.m_nside, 0u, ());
+  TEST_EQUAL(loaded.m_header.m_universeOrder, 0u, ());
+  TEST(loaded.m_areas.empty(), ());
+  TEST(loaded.m_assignments.empty(), ());
+
+  auto const viaFacade = TryLoadExplorationSidecar(path);
+  TEST_EQUAL(viaFacade.m_status, SpaLoadStatus::Ok, (DebugPrint(viaFacade.m_status)));
+
+  RemoveIfExists(path);
+}
+
+UNIT_TEST(SpaSerdes_RejectV1WithAssignCount)
+{
+  std::string const path = SpaPath("v1_with_assign");
+  RemoveIfExists(path);
+  WriteEmptySpaWithHeader(path, MakeMinimalHeader(kSpaFormatVersionV1, 3), /*v1Layout=*/true);
+
+  TEST_ANY_THROW(ReadExplorationSidecar(path), ());
+
+  auto const viaFacade = TryLoadExplorationSidecar(path);
+  TEST_EQUAL(viaFacade.m_status, SpaLoadStatus::Corrupt, (DebugPrint(viaFacade.m_status)));
+  TEST(viaFacade.m_file.m_areas.empty(), ());
+  TEST(viaFacade.m_file.m_assignments.empty(), ());
+
   RemoveIfExists(path);
 }

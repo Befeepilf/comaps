@@ -29,6 +29,8 @@ void WriteExplorationSidecar(std::string const & path, std::vector<ExplorationAr
   header.m_mwmId = params.m_mwmId;
   header.m_areaCount = static_cast<uint32_t>(areas.size());
   header.m_indexWidth = ChooseIndexWidth(header.m_areaCount);
+  header.m_nside = kSpaNside;
+  header.m_universeOrder = kSpaUniverseOrderAscendingNest;
   uint32_t const sentinel = NoSubdivisionSentinel(header.m_indexWidth);
 
   auto assignments = BuildDenseAssignments(samplePoints, areas, policy, sentinel);
