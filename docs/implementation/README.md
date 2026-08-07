@@ -181,7 +181,8 @@ SP-043–048 — **not** Phase 5, **not** Phase 10 device work). Evidence:
 | SP-043 | **In review** — blob contract freeze (**SPD-034**; `format_version` 2) |
 | SP-044 | **In review** — production leaf `.spa` emit (Option B offline batch; closes R1 emit) |
 | SP-045 | **In review** — optional `spa` / `spa_sha1_base64` in `countries.txt` (**SPD-028**) |
-| SP-046–048 | Planned (stubs) — download, lifecycle, validation |
+| SP-046 | **In review** — client leaf download fetches advertised `.spa` beside MWM (**SPD-027**, **SPD-031**) |
+| SP-047–048 | Planned (stubs) — lifecycle, validation |
 | SP-033 | **Accepted** 2026-08-07 — qualitative Pixel 3a OK; quantitative Spike 1 → Phase 10 |
 | SP-034 | **Accepted** 2026-08-07 — area completion cache + SPD-026 |
 | SP-035 | **Accepted** 2026-08-07 — focused-area badge binding (map-centre stub → SP-036) |
@@ -422,7 +423,7 @@ Closes narrowed R1 (production mapgen emit + CDN leaf download / packaging).
 | 43 | [SP-043](work-items/SP-043-spa-blob-contract-freeze.md) | Freeze production `.spa` blob contract (`nside` / universe-order / `format_version`) | 4 residual | **In review** — **SPD-034** (`format_version` 2) |
 | 44 | [SP-044](work-items/SP-044-production-spa-emit.md) | Production leaf `.spa` emit (Phase 4 R1; Option B offline batch) | 4 residual | **In review** — Option A mapgen collectors deferred |
 | 45 | [SP-045](work-items/SP-045-countries-spa-meta.md) | Add optional `spa` / `spa_sha1_base64` leaf fields to `countries.txt` publish | 4 residual | **In review** — **SPD-028**; parse + publish inject; download = SP-046 |
-| 46 | SP-046 | Client leaf download fetches advertised `.spa` beside MWM | 4 residual | Planned (stub) — **SPD-027**, **SPD-031** |
+| 46 | [SP-046](work-items/SP-046-spa-download-beside-mwm.md) | Client leaf download fetches advertised `.spa` beside MWM | 4 residual | **In review** — **SPD-027**, **SPD-031**; delete lifecycle = SP-047 |
 | 47 | SP-047 | `.spa` full-refetch on map update and delete-with-map lifecycle | 4 residual | Planned (stub) — **SPD-029**, **SPD-030** |
 | 48 | SP-048 | Sidecar shipping validation and incomplete / retry signaling | 4 residual | Planned (stub) — **SPD-031** |
 
