@@ -1,8 +1,9 @@
-# SP-045 — Add optional `spa` / `spa_sha1_base64` leaf fields to `countries.txt` publish
+# (this commit)SP-045 — Add optional `spa` / `spa_sha1_base64` leaf fields to `countries.txt` publish
 
 **Phase:** 4 residual / pre-production packaging (not Phase 5; not Phase 10 device)
-**Status:** Planned (draft)
-**Branch:** `cursor/sp-045-countries-spa-meta-cf0b` (planning); implement on follow-on commit(s)
+**Status:** In review
+**Branch:** `cursor/sp-042-sidecar-shipping-fe62` (implementation); planning draft was
+  `cursor/sp-045-countries-spa-meta-cf0b`
 **Depends on:** SP-042 In review (**SPD-028** Accepted); SP-044 In review (real leaf
   `.spa` blobs to advertise); `data/countries.txt` / storage country tree
 **Unblocks:** SP-046 (advertisement signal + size/hash for download); SP-048
@@ -314,16 +315,31 @@ Do not weaken existing storage size assertions that sum `"s"` only.
 | `MapFileType::Spa` + path / URL + SHA verify on spa file | **SP-046** |
 | CDN packaging validation that every advertised leaf has a matching blob | **SP-048** |
 | Option A: emit spa size/hash inside mapgen beside `.mwm` | post-SP-044 Option A residual |
+| Optional `StageCountriesTxt` inject hook when mapgen gains an spa publish-dir setting | follow-up (CLI is sufficient for SP-044 offline publish) |
 
 ## Completion evidence
 
 | Field | Value |
 | --- | --- |
-| Branch | `cursor/sp-045-countries-spa-meta-cf0b` |
-| Commits | planning draft only (this file + index) |
+| Branch | `cursor/sp-042-sidecar-shipping-fe62` |
+| Commits | `e88658b2e` `[platform][storage] Parse optional spa size and sha1 in CountryFile`; `641b31f41` `[tools] Add inject_spa_meta for countries.txt publish`; this docs commit `[docs] Record SP-045 countries spa meta evidence` |
 | Decision ids | SPD-028 (implements); SPD-027 (advertisement contract) |
-| Test output | — (implementation not started) |
+| Test output | `./tools/unix/run_tests.sh -b /workspace/omim-build-debug -f "CountryFile_Smoke\|CountryTree_SpaMeta"` — `CountryFile_Smoke` OK; six `CountryTree_SpaMeta_*` OK (partial meta logs `Inconsistent spa meta … - ignoring`); `python3 tools/python/post_generation/tests/test_inject_spa_meta.py` — 3/3 OK. Note: full `platform_tests` unity build currently fails on pre-existing `glaze_test.cpp` / `glz::expected`; `CountryFile_Smoke` was validated by temporarily excluding `glaze_test.cpp` from that target’s CMakeLists (restored; not committed). |
 | Docs touched | this file; README; phase-04 index |
-| Implemented by | — |
+| Implemented by | Cursor Agent |
 | Accepted by | — |
 | Accepted date | — |
+
+### Implementation notes (2026-08-07)
+
+- `platform::CountryFile` stores `m_spaSize` / `m_spaSha1` with `GetRemoteSpaSize()`,
+  `GetSpaSha1()`, `HasRemoteSpa()`; extended ctor when both map and spa meta are set.
+- `LoadGroupImpl` parses optional `"spa"` / `"spa_sha1_base64"`; inconsistent pairs
+  clear both and log once per leaf (load continues).
+- **Spa bytes are not folded into `GetSubtreeMwmSizeBytes` / Android `totalSize`**
+  in this WI — deferred to SP-046 (documented in code comment + discovered-follow-ups).
+- Publish: `tools/python/post_generation/inject_spa_meta.py` +
+  `post_generation inject_spa_meta` CLI; `CountryDict.order` includes spa keys.
+- **Maps_generator `StageCountriesTxt` hook not added** — no existing env spa
+  publish-dir setting; CLI covers SP-044 offline publish without inventing new
+  mapgen config (low-risk criterion not met).
