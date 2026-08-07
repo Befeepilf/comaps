@@ -28,6 +28,7 @@
 #include "storage/storage.hpp"
 
 #include "street_pixels_areas/area_completion_cache.hpp"
+#include "street_pixels_areas/areas_types.hpp"
 #include "street_pixels_areas/focus_selection_engine.hpp"
 #include "street_pixels_areas/focused_area_progress.hpp"
 
@@ -271,6 +272,7 @@ private:
   void InvalidateAreaCompletionCacheUnlocked();
   bool RebuildAreaCompletionCacheUnlocked(storage::CountryId const & countryId, std::string const & spaPath,
                                           int64_t mapDataVersion);
+  void PushExplorationAreaOverlayUnlocked(street_pixels::SpaFile const & file);
   void RefreshFocusedAreaFractionUnlocked();
   void ClearFocusedAreaUnlocked();
 
