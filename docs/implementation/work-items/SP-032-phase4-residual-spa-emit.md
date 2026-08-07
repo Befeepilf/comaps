@@ -90,8 +90,8 @@ enough to demonstrate true closed rings + `SaveOuterPath` sizes for Finland.
 | Library | `libs/street_pixels_areas/spa_jsonl.*` |
 | Emit outputs | `/tmp/sp032/Finland.spa`, `/tmp/sp032/Finland_Southern Finland_Helsinki.spa` (local only) |
 | Size table | FI **2 019 268 B (~1.93 MiB)**; Helsinki **456 484 B (~0.44 MiB)**; assign 0; vs SP-023 ~2.06 / ~0.52 MiB zlib coded |
-| Spot-check | Helsinki known OSM ids **11/11** |
-| Test output | `./tools/unix/build_omim.sh -d -p /workspace spa_emit_tool street_pixels_areas_tests`; `./omim-build-debug/street_pixels_areas_tests` — **46/46 OK** (`SpaJsonlEmit_*` 2/2) |
+| Spot-check | Helsinki known OSM ids **11/11** found + name_match |
+| Test output | `./tools/unix/build_omim.sh -d -p /workspace spa_emit_tool street_pixels_areas_tests`; `./omim-build-debug/street_pixels_areas_tests` — **46/46 OK** (`SpaJsonlEmit_*` 2/2); emit re-verify sizes unchanged |
 | Decision ids | SPD-020, SPD-021, SPD-023, SPD-024 |
 | Implemented by | Agent |
 | Accepted by | |
