@@ -5,6 +5,7 @@ set(SRC
   exploration_filter_tests.cpp
   exploration_sidecar_tests.cpp
   sparse_assignment_store_tests.cpp
+  spa_jsonl_emit_tests.cpp
   spa_serdes_tests.cpp
   subdivision_assigner_tests.cpp
   subdivision_assignment_tests.cpp
