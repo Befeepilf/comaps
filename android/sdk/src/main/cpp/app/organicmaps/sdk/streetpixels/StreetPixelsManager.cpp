@@ -117,8 +117,13 @@ Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeRefresh
     return ToJavaFocusedAreaProgress(env, manager.GetFocusedAreaProgress());
   }
 
-  std::string const spaPath =
-      street_pixels::ExplorationSidecarPath(GetPlatform().WritableDir(), country);
+  std::string spaPath;
+  auto localFile = g_framework->GetStorage().GetLatestLocalFile(country);
+  if (localFile && localFile->OnDisk(MapFileType::Map))
+    spaPath = street_pixels::ExplorationSidecarPathBesideMwm(localFile->GetPath(MapFileType::Map));
+  else
+    spaPath = street_pixels::ExplorationSidecarPath(GetPlatform().WritableDir(), country);
+
   int64_t const mapDataVersion = manager.GetPixMapDataVersion();
   if (!manager.IsAreaCompletionCacheValid())
     manager.RebuildAreaCompletionCache(country, spaPath, mapDataVersion);
