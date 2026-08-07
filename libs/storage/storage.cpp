@@ -46,6 +46,7 @@ using namespace std;
 namespace
 {
 string const kDownloadQueueKey = "DownloadQueue";
+string const kIncompleteSpaKey = "IncompleteSpa";
 
 // Editing maps older than approximately three months old is disabled, since the data
 // is most likely already fixed on OSM. Not limited to the latest one or two versions,
@@ -861,7 +862,11 @@ void Storage::RestoreDownloadQueue()
   string download;
   settings::TryGet(kDownloadQueueKey, download);
   if (download.empty())
+  {
+    // Still retry incomplete advertised spa after cold start (SP-048).
+    RetryIncompleteSpaDownloads();
     return;
+  }
 
   strings::Tokenize(download, ";", [this](string_view v)
   {
@@ -883,6 +888,8 @@ void Storage::RestoreDownloadQueue()
       }
     }
   });
+
+  RetryIncompleteSpaDownloads();
 }
 
 void Storage::DownloadCountry(CountryId const & countryId, MapFileType type)
@@ -940,6 +947,8 @@ void Storage::DeleteCountry(CountryId const & countryId, MapFileType type)
   m_diffsDataSource->RemoveDiffForCountry(countryId);
 
   m_downloadingCountries.erase(countryId);
+  if (type == MapFileType::Map)
+    ClearSpaIncomplete(countryId);
 
   NotifyStatusChangedForHierarchy(countryId);
 }
@@ -1219,9 +1228,10 @@ void Storage::RegisterDownloadedFiles(CountryId const & countryId, MapFileType t
           localFile && (localFile->OnDisk(MapFileType::Map) || localFile->IsInBundle());
       if (mapOnDisk)
       {
-        // SPD-031: keep MWM usable; incomplete/retry signaling is SP-048.
+        // SPD-031: keep MWM usable; mark incomplete for retry (SP-048).
         LOG(LWARNING, ("Advertised spa register failed for", countryId,
-                       "- keeping MWM; incomplete stub for SP-048"));
+                       "- keeping MWM; marking spa incomplete"));
+        MarkSpaIncomplete(countryId);
         SaveDownloadQueue();
         NotifyStatusChangedForHierarchy(countryId);
         return;
@@ -1253,6 +1263,9 @@ void Storage::RegisterDownloadedFiles(CountryId const & countryId, MapFileType t
     }
 
     Platform::DisableBackupForFile(localFile->GetPath(MapFileType::Spa));
+
+    // Successful Spa register clears incomplete signaling (SP-048).
+    ClearSpaIncomplete(countryId);
 
     // Re-fire didDownload so clients can rematch / reload exploration beside the MWM.
     m_didDownload(countryId, localFile);
@@ -1308,7 +1321,8 @@ void Storage::OnMapDownloadFinished(CountryId const & countryId, DownloadStatus 
       {
         // SPD-031 fail-soft: do not mark the leaf map as download-failed.
         LOG(LWARNING, ("Advertised spa download failed for", countryId, status,
-                       "- keeping MWM; incomplete stub for SP-048"));
+                       "- keeping MWM; marking spa incomplete"));
+        MarkSpaIncomplete(countryId);
         NotifyStatusChangedForHierarchy(countryId);
         return;
       }
@@ -1351,6 +1365,133 @@ void Storage::MaybeEnqueueRemoteSpa(CountryId const & countryId)
   // Sequential Spa after Map: start immediately. DownloadCountry may elect a countries
   // update check when idle; do not leave Spa stranded in pending until that finishes.
   m_downloader->StartPendingMapDownloads();
+}
+
+void Storage::EnsureIncompleteSpaLoaded() const
+{
+  if (m_incompleteSpaLoaded)
+    return;
+
+  m_incompleteSpaLoaded = true;
+  m_incompleteSpaCountries.clear();
+
+  string raw;
+  settings::TryGet(kIncompleteSpaKey, raw);
+  if (raw.empty())
+    return;
+
+  strings::Tokenize(raw, ";", [this](string_view v)
+  {
+    if (!v.empty())
+      m_incompleteSpaCountries.insert(CountryId(v));
+  });
+}
+
+void Storage::SaveIncompleteSpaCountries() const
+{
+  ostringstream ss;
+  bool first = true;
+  for (auto const & id : m_incompleteSpaCountries)
+  {
+    if (!first)
+      ss << ';';
+    first = false;
+    ss << id;
+  }
+  settings::Set(kIncompleteSpaKey, ss.str());
+}
+
+void Storage::MarkSpaIncomplete(CountryId const & countryId)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+
+  // Omitted meta must never become incomplete (SPD-027 / SPD-031).
+  if (!GetCountryFile(countryId).HasRemoteSpa())
+    return;
+
+  EnsureIncompleteSpaLoaded();
+  if (m_incompleteSpaCountries.insert(countryId).second)
+  {
+    SaveIncompleteSpaCountries();
+    LOG(LINFO, ("Marked advertised spa incomplete for", countryId));
+  }
+}
+
+void Storage::ClearSpaIncomplete(CountryId const & countryId)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+
+  EnsureIncompleteSpaLoaded();
+  if (m_incompleteSpaCountries.erase(countryId) != 0)
+  {
+    SaveIncompleteSpaCountries();
+    LOG(LINFO, ("Cleared incomplete spa flag for", countryId));
+  }
+}
+
+bool Storage::IsSpaIncomplete(CountryId const & countryId) const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  EnsureIncompleteSpaLoaded();
+  return m_incompleteSpaCountries.count(countryId) > 0;
+}
+
+void Storage::GetIncompleteSpaCountries(CountriesVec & out) const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  EnsureIncompleteSpaLoaded();
+  out.assign(m_incompleteSpaCountries.begin(), m_incompleteSpaCountries.end());
+}
+
+void Storage::RetryIncompleteSpaDownloads()
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+
+  EnsureIncompleteSpaLoaded();
+
+  // Reconcile: OnDisk Map at current version with advertised spa missing on disk.
+  for (auto const & entry : m_localFiles)
+  {
+    CountryId const & id = entry.first;
+    if (!IsLeaf(id))
+      continue;
+    if (!GetCountryFile(id).HasRemoteSpa())
+      continue;
+
+    LocalFilePtr localFile = GetLocalFile(id, m_currentVersion);
+    if (!localFile)
+      continue;
+    localFile->SyncWithDisk();
+    if (!(localFile->OnDisk(MapFileType::Map) || localFile->IsInBundle()))
+      continue;
+    if (localFile->OnDisk(MapFileType::Spa))
+    {
+      ClearSpaIncomplete(id);
+      continue;
+    }
+    MarkSpaIncomplete(id);
+  }
+
+  // Drop stale incomplete entries (no advertise, or map gone).
+  CountriesVec stale;
+  for (auto const & id : m_incompleteSpaCountries)
+  {
+    if (!IsLeaf(id) || !GetCountryFile(id).HasRemoteSpa())
+    {
+      stale.push_back(id);
+      continue;
+    }
+    LocalFilePtr localFile = GetLatestLocalFile(id);
+    if (!localFile || !(localFile->OnDisk(MapFileType::Map) || localFile->IsInBundle()))
+      stale.push_back(id);
+  }
+  for (auto const & id : stale)
+    ClearSpaIncomplete(id);
+
+  CountriesVec incomplete;
+  GetIncompleteSpaCountries(incomplete);
+  for (auto const & id : incomplete)
+    MaybeEnqueueRemoteSpa(id);
 }
 
 bool Storage::IsSpaOnlyDownload(CountryId const & countryId) const
