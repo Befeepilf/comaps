@@ -5,6 +5,7 @@ set(SRC
   exploration_area_resolver_tests.cpp
   exploration_filter_tests.cpp
   exploration_sidecar_tests.cpp
+  focus_selection_engine_tests.cpp
   sparse_assignment_store_tests.cpp
   spa_jsonl_emit_tests.cpp
   spa_serdes_tests.cpp

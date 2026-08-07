@@ -13,6 +13,7 @@ set(SRC
   explorer_pro_tests.cpp
   exploration_multiplier_tests.cpp
   focused_area_badge_tests.cpp
+  focus_selection_engine_tests.cpp
   interrupted_session_tests.cpp
   live_sample_acceptance_filter_tests.cpp
   pause_resume_semantics_tests.cpp

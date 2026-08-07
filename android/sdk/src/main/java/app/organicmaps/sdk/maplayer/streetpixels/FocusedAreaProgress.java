@@ -8,6 +8,7 @@ public class FocusedAreaProgress
 {
   public final boolean hasFocus;
   public final boolean fractionValid;
+  public final boolean citySummary;
   public final int compactIndex;
   public final long osmId;
   @NonNull
@@ -15,11 +16,12 @@ public class FocusedAreaProgress
   public final double fraction;
 
   @Keep
-  public FocusedAreaProgress(boolean hasFocus, boolean fractionValid, int compactIndex, long osmId,
-                             @NonNull String displayName, double fraction)
+  public FocusedAreaProgress(boolean hasFocus, boolean fractionValid, boolean citySummary, int compactIndex,
+                             long osmId, @NonNull String displayName, double fraction)
   {
     this.hasFocus = hasFocus;
     this.fractionValid = fractionValid;
+    this.citySummary = citySummary;
     this.compactIndex = compactIndex;
     this.osmId = osmId;
     this.displayName = displayName;
