@@ -56,7 +56,7 @@ land as SPD-027–033 before coding download, meta, or CDN packaging.
 | ID | Title |
 | --- | --- |
 | SP-043 | Freeze production `.spa` blob contract (`nside` / universe-order / `format_version`) |
-| SP-044 | Wire production mapgen collectors → `.spa` emit (Phase 4 R1) |
+| SP-044 | Production leaf `.spa` emit (Phase 4 R1; Option B offline batch — see work item) |
 | SP-045 | Add optional `spa` / `spa_sha1_base64` leaf fields to `countries.txt` publish |
 | SP-046 | Client leaf download fetches advertised `.spa` beside MWM |
 | SP-047 | `.spa` full-refetch on map update and delete-with-map lifecycle |
@@ -114,7 +114,7 @@ land as SPD-027–033 before coding download, meta, or CDN packaging.
 | Finding | Proposed disposition |
 | --- | --- |
 | Field-level `.spa` header / `nside` / universe-order freeze | SP-043 |
-| Production mapgen collectors → `.spa` | SP-044 (closes narrowed R1 emit) |
+| Production leaf `.spa` emit (Option B; Option A residual) | SP-044 (closes narrowed R1 emit for FI packaging) |
 | `countries.txt` optional spa fields | SP-045 |
 | Client advertised `.spa` download beside MWM | SP-046 |
 | Full refetch on update + delete-with-map | SP-047 |
