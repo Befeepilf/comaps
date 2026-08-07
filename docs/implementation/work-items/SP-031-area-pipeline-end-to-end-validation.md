@@ -84,7 +84,7 @@ assignment, fallback, and size budget hold.
 | Validation plan | [SP-031-validation-plan.md](../validation/SP-031-validation-plan.md) |
 | Evidence log | [SP-031-evidence-log.md](../validation/SP-031-evidence-log.md) |
 | Decision ids (SP-024) | SPD-020–025 |
-| Test output | Rebuild SHA `e10111c537`: `street_pixels_areas_tests` **44/44**; `street_pixels_tests --filter=Rematch` **18/18**; `--filter=AssignmentPersist` **3/3**; `--filter=CountryConfig` **11/11**; full `street_pixels_tests` **185/185** (PauseResume flake absent). |
+| Test output | Rebuild SHA `e10111c537`: `street_pixels_areas_tests` **44/44**; `street_pixels_tests --filter=Rematch` **18/18**; `--filter=AssignmentPersist` **3/3**; `--filter=CountryConfig` **11/11**; full `street_pixels_tests` **185/185** (PauseResume flake absent). Independent review re-verify same counts on docs tip. |
 | Exit criteria table | See evidence log — 1 Residual; 2–5 Pass; 6/8 Pass+Residual; 7 Residual |
 | Residuals | R1 mapgen emit; R2 shipping size; R3 device walks; R4 `/tmp/sp023` Helsinki spot-check absent |
 | Implemented by | Agent |
