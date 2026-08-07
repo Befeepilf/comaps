@@ -29,6 +29,7 @@
 
 #include "street_pixels_areas/area_completion_cache.hpp"
 #include "street_pixels_areas/areas_types.hpp"
+#include "street_pixels_areas/city_completion_cache.hpp"
 #include "street_pixels_areas/focus_selection_engine.hpp"
 #include "street_pixels_areas/focused_area_progress.hpp"
 
@@ -155,6 +156,9 @@ public:
   // Fail-closed: nullopt / 0 when cache is invalid or the area is unknown.
   std::optional<street_pixels::AreaCompletionCounts> GetAreaCompletion(uint32_t compactIndex) const;
   double GetAreaCompletionFraction(uint32_t compactIndex) const;
+  // City rollup when focus is city-summary mode (SP-039). Fail-closed if cache invalid.
+  std::optional<street_pixels::AreaCompletionCounts> GetCityCompletion(uint32_t settlementCompactIndex) const;
+  double GetCityCompletionFraction(uint32_t settlementCompactIndex) const;
   bool IsAreaCompletionCacheValid() const;
   void InvalidateAreaCompletionCache();
   // Rebuild from `{countryId}.pix` + sidecar. Returns false if universe/sidecar unavailable.
@@ -303,6 +307,7 @@ private:
   mutable std::mutex m_pendingAssignmentRematchMutex;
 
   street_pixels::AreaCompletionCache m_areaCompletionCache;
+  street_pixels::CityCompletionCache m_cityCompletionCache;
   mutable std::mutex m_areaCompletionMutex;
 
   street_pixels::FocusedAreaProgress m_focusedAreaProgress;
