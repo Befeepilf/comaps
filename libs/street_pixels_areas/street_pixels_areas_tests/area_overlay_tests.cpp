@@ -31,11 +31,40 @@ UNIT_TEST(AreaOverlay_StyleStreetOutlineOnly)
   auto const street = StyleForCompletion(0.5, AreaOverlayZoomBand::Street);
   TEST(street.m_showOutline, ());
   TEST(!street.m_showFill, ());
+  TEST(!street.m_completed, ());
 
-  auto const city = StyleForCompletion(1.0, AreaOverlayZoomBand::City);
+  auto const city = StyleForCompletion(0.99, AreaOverlayZoomBand::City);
   TEST(city.m_showFill, ());
   TEST(city.m_showOutline, ());
+  TEST(!city.m_completed, ());
   TEST_GREATER(city.m_fill.m_g, city.m_fill.m_r, ());
+}
+
+UNIT_TEST(AreaOverlay_StyleCompletedDistinctFromInProgress)
+{
+  auto const inProgress = StyleForCompletion(0.99, AreaOverlayZoomBand::Neighbourhood);
+  auto const completed = StyleForCompletion(1.0, AreaOverlayZoomBand::Neighbourhood);
+  TEST(!inProgress.m_completed, ());
+  TEST(completed.m_completed, ());
+  TEST(completed.m_showOutline, ());
+  TEST(completed.m_showFill, ());
+  TEST(completed.m_showCheck, ());
+  TEST_GREATER(completed.m_outlineWidthPx, inProgress.m_outlineWidthPx, ());
+  TEST(!(completed.m_outline == inProgress.m_outline), ());
+
+  auto const streetDone = StyleForCompletion(1.0, AreaOverlayZoomBand::Street);
+  TEST(streetDone.m_completed, ());
+  TEST(streetDone.m_showOutline, ());
+  TEST(!streetDone.m_showFill, ());
+  TEST(!streetDone.m_showCheck, ());
+
+  auto const cityDone = StyleForCompletion(1.0, AreaOverlayZoomBand::City);
+  TEST(cityDone.m_completed, ());
+  TEST(cityDone.m_showFill, ());
+  TEST(cityDone.m_showCheck, ());
+
+  TEST(IsAreaCompleted(1.0), ());
+  TEST(!IsAreaCompleted(0.999), ());
 }
 
 UNIT_TEST(AreaOverlay_TriangulateBox)
