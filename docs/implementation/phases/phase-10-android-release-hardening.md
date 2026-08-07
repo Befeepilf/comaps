@@ -80,7 +80,7 @@ device evidence (or an explicit accepted waiver).
 | Phase 3 | Maintainer device walks (Pixel 3a / Uusimaa-scale reconciliation UX) | Phase 3 exit |
 | Phase 4 | R3 device walks: Helsinki UX, rural/coastal, no MWM-id as neighbourhood name in UI | SP-031 |
 | Phase 4 | R1 (narrowed): production mapgen collectors → `.spa` still unwired | Pre-production follow-up; not a Phase 10 device item |
-| Phase 5 | Possible mid-tier Android Spike 1 / rendering device residual if SP-033 uses desktop secondary | SP-033 (when recorded) |
+| Phase 5 | Quantitative Spike 1 FPS/memory (Pixel 3a qualitative OK; numbers deferred) | SP-033 |
 
 ## Proposed work-item breakdown
 

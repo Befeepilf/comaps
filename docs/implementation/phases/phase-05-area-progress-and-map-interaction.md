@@ -97,7 +97,9 @@ APIs the 2026-07-20 audit marked absent. Renderer shape matches the audit
 - City aggregation badge — not found (settlement containment exists from
   Phase 4 for grouping).
 - Completed-area visual (§18.6) and no-area empty state (§31) — not found.
-- Rendering Spike 1 measurement — **Pending SP-033**.
+- Rendering Spike 1 measurement — **Partial SP-033**: qualitative OK on Pixel
+  3a; quantitative ≥30 FPS p95 / &lt;150 MB → Phase 10. Provisional SP-037
+  input: keep one-circle-per-cell renderer.
 
 ### Work-item breakdown
 
@@ -181,8 +183,8 @@ SP-033 LOD outcome.
 - Phase 4 exit criteria met. **Met 2026-08-07** (device residual R3 → Phase 10;
   narrowed R1 mapgen emit → pre-production).
 - A rendering performance measurement exists for at least one large city on a
-  mid-tier device. **Pending SP-033** (desktop secondary + Phase 10 residual
-  allowed if device unavailable — same honesty as Phase 4 R3).
+  mid-tier device. **Partial (SP-033)** — qualitative OK on Pixel 3a
+  (maintainer); quantitative Spike 1 FPS/memory → Phase 10. Unblocks SP-034.
 
 ## Exit criteria
 
