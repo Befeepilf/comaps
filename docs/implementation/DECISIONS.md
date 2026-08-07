@@ -783,10 +783,12 @@ SPD-021, SPD-022; SP-034; `phases/phase-05-area-progress-and-map-interaction.md`
 
 **Decision.** When downloading or updating a map leaf, the client **always
 fetches the leaf `.spa`** if `countries.txt` meta advertises one for that leaf.
-If meta omits spa fields, or the advertised `.spa` is absent on the CDN
-(including HTTP 404), the **MWM still installs and remains usable**; exploration
-**areas stay empty** (fail-closed — no invented grids or pretend areas). Personal
+If meta **omits** spa fields, there is **no advertisement and no spa fetch**;
+the **MWM still installs and remains usable**, and exploration **areas stay
+empty** (fail-closed — no invented grids or pretend areas). Personal
 street-pixel collection and map viewing are not blocked by a missing sidecar.
+Advertised-but-unavailable downloads (HTTP 404, network error, checksum
+mismatch, incomplete file) are owned by **SPD-031**, not this decision.
 
 **Status.** Accepted.
 
@@ -802,9 +804,10 @@ mandatory for map install.
 - Absent meta is a valid worldwide state (incremental sidecar coverage);
   settlement / no-area / empty-area UX already apply (SPD-007, SPD-020, §31).
 - Does not require in-MWM exploration geometry.
+- Cross-ref **SPD-031** for advertised download failure / incomplete signaling.
 
-**Related documents.** Product spec §3.5, §8.6, §31; SPD-007, SPD-020;
-SP-026 notes; SP-042; SP-046; SP-048;
+**Related documents.** Product spec §3.5, §8.6, §31; SPD-007, SPD-020,
+SPD-031; SP-026 notes; SP-042; SP-046; SP-048;
 `phases/phase-04-administrative-area-pipeline.md`.
 
 ---
@@ -853,10 +856,13 @@ emit exists. Recommended lock D3 = A (no contradiction with Accepted SPDs).
 **Consequences.**
 
 - SP-047 implements full `.spa` refetch beside full/leaf MWM update paths.
-- CDN packaging publishes whole `.spa` objects per leaf version (SP-045/048).
+- CDN packaging publishes whole `.spa` objects per leaf version (**SP-044**
+  emit / publish tree; SP-047 refetch). `countries.txt` spa size/hash fields
+  remain **SP-045** (SPD-028); validation / incomplete signaling remain
+  **SP-048** (SPD-031).
 - MWM diff mechanisms (if any) must not be silently reused for `.spa`.
 
-**Related documents.** SPD-021, SPD-022, SPD-027; SP-042; SP-047; SP-048;
+**Related documents.** SPD-021, SPD-022, SPD-027; SP-042; SP-044; SP-047;
 `phases/phase-04-administrative-area-pipeline.md`.
 
 ---
@@ -893,19 +899,21 @@ SP-030 (sparse store); SP-042; SP-047;
 
 ## SPD-031 — Advertised `.spa` download failure keeps MWM; areas fail-closed
 
-**Decision.** If meta advertises a `.spa` but the download **fails** (network
-error, checksum mismatch, incomplete file, etc.), the client **keeps the MWM
-usable**. Exploration **areas fail-closed**: do not invent rings, assignment,
-or completion percentages from missing / corrupt sidecar data. Prefer **retry
-and incomplete / unavailable signaling** that does not block map viewing,
-routing that does not need areas, or personal pixel collection.
+**Decision.** If meta advertises a `.spa` but the download **fails** (HTTP 404
+or other missing object, network error, checksum mismatch, incomplete file,
+etc.), the client **keeps the MWM usable**. Exploration **areas fail-closed**:
+do not invent rings, assignment, or completion percentages from missing /
+corrupt sidecar data. Prefer **retry and incomplete / unavailable signaling**
+that does not block map viewing, routing that does not need areas, or personal
+pixel collection. Omitted meta (no advertisement) remains **SPD-027** only.
 
 **Status.** Accepted.
 
 **Context.** Aligns with SPD-020 (“missing sidecar → no exploration areas”)
 and spec §31 (no selected exploration area: personal pixels still work).
 Product-recommended lock D5 = A: never make a sidecar failure a map-install
-hard failure.
+hard failure. Separates D1 soft path (no advertisement) from D5 (advertised
+but unavailable).
 
 **Consequences.**
 
