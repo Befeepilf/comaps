@@ -3,6 +3,8 @@
 #include "street_pixels_areas/areas_types.hpp"
 #include "street_pixels_areas/subdivision_assignment.hpp"
 
+#include "street_pixels_config/country_config.hpp"
+
 #include "geometry/point2d.hpp"
 
 #include <cstdint>
@@ -18,6 +20,11 @@ namespace street_pixels
 // Among Settlement-role areas whose true rings contain `point`, pick smallest
 // m_area then lower OSM id (then compact index). Empty / none → nullptr.
 ExplorationArea const * SelectSettlementContaining(SpaFile const & file, m2::PointD const & point);
+
+// Point-based layering for focus stub / SP-036: AssignSubdivision (policy) →
+// settlement PIP → nullptr. Never invents grids. Never uses MWM id as a name.
+ExplorationArea const * LookupExplorationAreaAtPoint(SpaFile const & file, CountryPolicy const & policy,
+                                                     m2::PointD const & point);
 
 // Layering: SP-028 assignable (subdivision / place) → keep; else settlement
 // PIP on sample centre; else no-area (nullptr). Never invents grids.

@@ -31,12 +31,12 @@ import app.organicmaps.leftbutton.LeftButton;
 import app.organicmaps.leftbutton.LeftToggleButton;
 import app.organicmaps.MwmApplication;
 import app.organicmaps.sdk.Framework;
-import app.organicmaps.sdk.downloader.CountryItem;
 import app.organicmaps.sdk.downloader.MapManager;
 import app.organicmaps.sdk.downloader.UpdateInfo;
 import app.organicmaps.sdk.location.RecordingSession;
 import app.organicmaps.location.RecordingSessionUiModel;
 import app.organicmaps.sdk.maplayer.isolines.IsolinesManager;
+import app.organicmaps.sdk.maplayer.streetpixels.FocusedAreaProgress;
 import app.organicmaps.sdk.maplayer.streetpixels.StreetPixelsManager;
 import app.organicmaps.sdk.maplayer.streetpixels.StreetPixelsState;
 import app.organicmaps.sdk.maplayer.subway.SubwayManager;
@@ -409,13 +409,25 @@ public class MapButtonsController extends Fragment
       Context ctx = getContext();
       if (ctx != null)
       {
-        double frac = MwmApplication.from(ctx).getStreetPixelsManager().getTotalExploredFraction();
-        double percent = Math.round(frac * 100 * 10) / 10.0;
         String countryId = state.getCountryId();
-        CountryItem country = (TextUtils.isEmpty(countryId) ? null : CountryItem.fill(countryId));
-        String countryName = country != null ? country.name : "Unknown";
-        mExplorationBadge.setText(countryName + " • " + percent + "%");
-        showButton(true, MapButtons.explorationBanner);
+        FocusedAreaProgress progress =
+            MwmApplication.from(ctx).getStreetPixelsManager().refreshFocusedAreaAtMapCenter(
+                countryId != null ? countryId : "");
+        if (!progress.hasFocus || TextUtils.isEmpty(progress.displayName))
+        {
+          showButton(false, MapButtons.explorationBanner);
+        }
+        else if (progress.fractionValid)
+        {
+          double percent = Math.round(progress.fraction * 100 * 10) / 10.0;
+          mExplorationBadge.setText(progress.displayName + " • " + percent + "%");
+          showButton(true, MapButtons.explorationBanner);
+        }
+        else
+        {
+          mExplorationBadge.setText(progress.displayName);
+          showButton(true, MapButtons.explorationBanner);
+        }
       } else {
         Log.i("MapButtonsController", "updateExplorationBadge: CONTEXT IS NULL");
       }
