@@ -56,4 +56,28 @@ struct FocusSelectionDecision
 // Resolves the next focus target from a single §12.5 event.
 // Recording vs pan (rules 1 vs 2): during active recording, user area wins.
 FocusSelectionDecision SelectFocusedArea(FocusSelectionRequest const & request);
+
+inline std::string DebugPrint(FocusTargetKind kind)
+{
+  switch (kind)
+  {
+  case FocusTargetKind::None: return "None";
+  case FocusTargetKind::ExplorationArea: return "ExplorationArea";
+  case FocusTargetKind::CitySummary: return "CitySummary";
+  }
+  return "UnknownFocusTargetKind";
+}
+
+inline std::string DebugPrint(FocusEvent event)
+{
+  switch (event)
+  {
+  case FocusEvent::RecordingOrUserLocation: return "RecordingOrUserLocation";
+  case FocusEvent::MapPan: return "MapPan";
+  case FocusEvent::ExplicitSelect: return "ExplicitSelect";
+  case FocusEvent::Recentre: return "Recentre";
+  case FocusEvent::ZoomChanged: return "ZoomChanged";
+  }
+  return "UnknownFocusEvent";
+}
 }  // namespace street_pixels
