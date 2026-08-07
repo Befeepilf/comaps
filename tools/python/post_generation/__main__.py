@@ -10,6 +10,7 @@ from post_generation.hierarchy_to_countries import (
     hierarchy_to_countries as hierarchy_to_countries_,
 )
 from post_generation.inject_promo_ids import inject_promo_ids
+from post_generation.inject_spa_meta import inject_spa_meta
 
 
 class PostGeneration:
@@ -20,6 +21,7 @@ class PostGeneration:
 The post_generation commands are:
     hierarchy_to_countries Produces countries.txt from hierarchy.txt.
     inject_promo_ids       Injects promo osm ids into countries.txt
+    inject_spa_meta        Injects spa size/sha1 into countries.txt from .spa files
     """,
         )
         parser.add_argument("command", help="Subcommand to run")
@@ -132,6 +134,28 @@ The post_generation commands are:
             args.types,
             args.osm2ft,
         )
+
+        with open(args.output, "w") as f:
+            json.dump(countries, f, ensure_ascii=False, indent=1)
+
+    @staticmethod
+    def inject_spa_meta():
+        parser = argparse.ArgumentParser(
+            description="Injects spa / spa_sha1_base64 into countries.txt from a .spa publish dir"
+        )
+        parser.add_argument("--countries", required=True, help="path to countries.txt / countries.json")
+        parser.add_argument(
+            "--spa-dir",
+            required=True,
+            help="directory of {mwmLeafId}.spa files",
+        )
+        parser.add_argument("--output", required=True, help="Output countries.txt file")
+        args = parser.parse_args(sys.argv[2:])
+
+        with open(args.countries) as f:
+            countries = json.load(f)
+
+        inject_spa_meta(countries, args.spa_dir)
 
         with open(args.output, "w") as f:
             json.dump(countries, f, ensure_ascii=False, indent=1)

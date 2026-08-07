@@ -23,7 +23,19 @@ import re
 class CountryDict(dict):
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
-        self.order = ["id", "n", "v", "map_series", "c", "s", "sha1_base64", "rs", "g"]
+        self.order = [
+            "id",
+            "n",
+            "v",
+            "map_series",
+            "c",
+            "s",
+            "sha1_base64",
+            "spa",
+            "spa_sha1_base64",
+            "rs",
+            "g",
+        ]
 
     def __iter__(self):
         for key in self.order:
