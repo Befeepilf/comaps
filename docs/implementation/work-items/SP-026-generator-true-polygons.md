@@ -100,8 +100,8 @@ remains search-only (SPD-020, SPD-025).
 
 | Finding | Proposed disposition |
 | --- | --- |
-| Full generator mapgen emission from OSM collectors into `.spa` not wired | SP-026 intermediate ships format+library+fixture tests; wire emission in a follow-up commit/item before SP-031 |
-| Shipping-encoder FI size not re-measured vs SP-023 coded_delta | Optional offline emit from `/tmp/sp023` JSONL + measure under SP-031 exit #7 (`SaveOuterPath` ≠ spike coded_delta) |
+| Full generator mapgen emission from OSM collectors into `.spa` not wired | SP-026 intermediate ships format+library+fixture tests; offline emit harness in **SP-032**; wire production emission in a follow-up before shipping mapgen |
+| Shipping-encoder FI size not re-measured vs SP-023 coded_delta | **Done in SP-032** — FI ~1.93 MiB / Helsinki ~0.44 MiB `SaveOuterPath`; see SP-031 evidence |
 | Classificator / mapcss still lack admin 5/6/8 drawable types | Sidecar avoids drawable pressure; document if/when mapcss needed (SP-024 follow-up) |
 | Dense assign samples in writer are caller-supplied (HEALPix universe not generated here) | SP-028 / generator emit job supplies valid-universe sample centres |
 | Header lacks HEALPix `nside` / explicit universe-ordering tag | Freeze contract in generator emit + SP-027 before production blobs; consider format_version bump if header field added |
