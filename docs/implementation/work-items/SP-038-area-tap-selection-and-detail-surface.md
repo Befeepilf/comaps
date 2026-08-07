@@ -81,8 +81,8 @@ geometrically and would miss unexplored cells.
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-038-area-tap-detail-191e` |
-| Test output | |
-| Manual validation | |
+| Test output | `street_pixels_tests` 202/202 (SelectAtPoint nested/outside + sticky; LookupExplorationAreaAtPoint_*); `street_pixels_areas_tests` 62/62 |
+| Manual validation | Device tap walk residual → SP-041 / Phase 10 |
 | Accepted by | |
 | Accepted date | |
 
