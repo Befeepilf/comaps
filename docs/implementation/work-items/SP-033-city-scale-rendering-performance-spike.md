@@ -1,10 +1,10 @@
 # SP-033 — Spike: city-scale street-pixel rendering performance
 
 **Phase:** 5 — Area progress and map interaction
-**Status:** Planned
-**Branch:** `street-pixels`
+**Status:** Implemented (qualitative device OK; quantitative Spike 1 deferred)
+**Branch:** `cursor/sp-033-034-area-completion-191e`
 **Depends on:** Phase 4 Accepted (exit criteria met 2026-08-07)
-**Unblocks:** SP-034+ coding; SP-037 LOD decisions
+**Unblocks:** SP-034+ coding; SP-037 LOD decisions (provisional: keep current renderer)
 
 ---
 
@@ -100,15 +100,15 @@ guesses.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Device / OS / build | |
-| City / MWM | |
-| FPS / frame-time (p95, zoom 14–16) | |
-| Memory uplift | |
-| Pass / fail / residual vs Spike 1 | |
-| SP-037 recommendation inputs | |
-| Desktop secondary (if any) | |
-| Phase 10 residual (if device deferred) | |
+| Branch | `cursor/sp-033-034-area-completion-191e` |
+| Device / OS / build | Pixel 3a (maintainer); qualitative pan/zoom with street-pixel overlay |
+| City / MWM | Helsinki / Uusimaa-class (maintainer device walk) |
+| FPS / frame-time (p95, zoom 14–16) | **Not measured** — quantitative Spike 1 deferred |
+| Memory uplift | **Not measured** — quantitative Spike 1 deferred |
+| Pass / fail / residual vs Spike 1 | **Residual** — qualitative OK (maintainer: rendering fine on Pixel 3a); quantitative ≥30 FPS p95 / &lt;150 MB → Phase 10 |
+| SP-037 recommendation inputs | Provisional: **keep current one-circle-per-cell renderer**; revisit LOD only if Phase 10 quantitative fails or SP-037 shading needs it |
+| Desktop secondary (if any) | Not run |
+| Phase 10 residual (if device deferred) | Quantitative Spike 1 FPS/memory on mid-tier Android (Pixel 3a or peer) at zoom 14–16 |
 | Accepted by | |
 | Accepted date | |
 
@@ -116,4 +116,5 @@ guesses.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Quantitative Spike 1 not run; qualitative OK unblocks SP-034 | Phase 10 residual; SP-041 exit #7 must re-check |
+| SP-037 may still need LOD for boundary shading load | Decide in SP-037 with this provisional input |
