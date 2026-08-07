@@ -115,17 +115,15 @@ APIs the 2026-07-20 audit marked absent. Renderer shape matches the audit
 | 8 | [SP-040](../work-items/SP-040-completed-area-and-no-area-states.md) | Completed-area visual state and no-area empty state |
 | 9 | [SP-041](../work-items/SP-041-phase5-end-to-end-validation.md) | Phase 5 end-to-end validation (**exit gate**) |
 
-**Do not start SP-034+ coding until SP-033 measurement is recorded** (desktop
-secondary OK if mid-tier Android device is deferred; device residual honesty
-same pattern as Phase 4 R3 → Phase 10). SP-037+ additionally depend on the
-SP-033 LOD outcome.
+**Do not start SP-035+ until SP-034 is Accepted.** SP-033 quantitative Spike 1
+remains Phase 10 (qualitative Pixel 3a OK recorded; unlocks SP-034).
 
 ### Open questions
 
 | Ref | Question | Disposition for Phase 5 |
 | --- | --- | --- |
-| OQ-1 (completion slice) | Spec §7 formula markup is blank. Intent from surrounding text: explored / total **valid street pixels in the area** (live + imported). Ownership/contested pieces of OQ-1 stay Phase 8. | **Open for SP-034.** Recommend provisional SPD in SP-034 **or** defer formal SPD until maintainer confirms. Do **not** invent a contested formula as Accepted SPD in planning docs. |
-| Spike 1 / SP-033 | Does one-circle-per-cell meet ≥30 FPS p95 at zoom 14–16 and &lt;150 MB memory uplift on mid-tier Android? | **Pending SP-033.** If no device, record desktop secondary + residual → Phase 10; do not fake device numbers. |
+| OQ-1 (completion slice) | Spec §7 formula markup is blank. Intent from surrounding text: explored / total **valid street pixels in the area** (live + imported). Ownership/contested pieces of OQ-1 stay Phase 8. | **Closed for personal completion by SPD-026** (SP-034). Ownership / contested remain Phase 8. |
+| Spike 1 / SP-033 | Does one-circle-per-cell meet ≥30 FPS p95 at zoom 14–16 and &lt;150 MB memory uplift on mid-tier Android? | **Partial SP-033** — qualitative OK on Pixel 3a; quantitative → Phase 10. Provisional SP-037: keep one-circle-per-cell. |
 | Badge vs recording focus | Spec §12.5 rules 1 and 2 can both apply when map centre ≠ user during recording. | Resolve in SP-036 with separate test cases per rule; escalate product conflict if observed. |
 
 ## Data and migration concerns
@@ -227,4 +225,5 @@ SP-033 LOD outcome.
   (SP-034).
 - How area-name transitions should be animated so the numeric change reads as a
   context switch rather than as lost progress (SP-035).
-- Exact completion formula lock for OQ-1 (SP-034; provisional SPD or defer).
+- Exact completion formula lock for OQ-1 personal slice (SPD-026 / SP-034).
+  Ownership / contested remain Phase 8.
