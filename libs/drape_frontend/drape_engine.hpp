@@ -5,6 +5,7 @@
 #include "drape_frontend/custom_features_context.hpp"
 #include "drape_frontend/drape_engine_params.hpp"
 #include "drape_frontend/drape_hints.hpp"
+#include "drape_frontend/exploration_area_overlay.hpp"
 #include "drape_frontend/frontend_renderer.hpp"
 #include "drape_frontend/gui/skin.hpp"
 #include "drape_frontend/map_data_provider.hpp"
@@ -214,6 +215,10 @@ public:
   void EnableStreetPixels(bool enable);
   void UpdateStreetPixels(std::span<df::StreetPixel> & toAdd);
   void ClearStreetPixels();
+
+  void EnableExplorationAreaOverlay(bool enable);
+  void UpdateExplorationAreaOverlay(std::vector<df::ExplorationAreaOverlayItem> && items);
+  void ClearExplorationAreaOverlay();
 
   void EnableChoosePositionMode(bool enable, std::vector<m2::TriangleD> && boundAreaTriangles,
                                 m2::PointD const * optionalPosition);

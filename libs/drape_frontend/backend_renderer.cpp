@@ -4,6 +4,7 @@
 #include "drape_frontend/batchers_pool.hpp"
 #include "drape_frontend/circles_pack_shape.hpp"
 #include "drape_frontend/drape_api_builder.hpp"
+#include "drape_frontend/exploration_area_overlay_builder.hpp"
 #include "drape_frontend/map_shape.hpp"
 #include "drape_frontend/message.hpp"
 #include "drape_frontend/message_subclasses.hpp"
@@ -64,6 +65,8 @@ BackendRenderer::BackendRenderer(Params && params)
   , m_trafficGenerator(make_unique_dp<TrafficGenerator>(std::bind(&BackendRenderer::FlushTrafficRenderData, this, _1)))
   , m_userMarkGenerator(
         make_unique_dp<UserMarkGenerator>(std::bind(&BackendRenderer::FlushUserMarksRenderData, this, _1)))
+  , m_drapeApiBuilder(make_unique_dp<DrapeApiBuilder>())
+  , m_explorationAreaOverlayBuilder(make_unique_dp<ExplorationAreaOverlayBuilder>())
   , m_requestedTiles(params.m_requestedTiles)
   , m_updateCurrentCountryFn(params.m_updateCurrentCountryFn)
   , m_metalineManager(make_unique_dp<MetalineManager>(params.m_commutator, m_model))
@@ -571,6 +574,26 @@ void BackendRenderer::AcceptMessage(ref_ptr<Message> message)
     m_drapeApiBuilder->BuildLines(m_context, msg->GetLines(), m_texMng, properties);
     m_commutator->PostMessage(ThreadsCommutator::RenderThread,
                               make_unique_dp<DrapeApiFlushMessage>(std::move(properties)), MessagePriority::Normal);
+    break;
+  }
+
+  case Message::Type::UpdateExplorationAreaOverlay:
+  {
+    ref_ptr<UpdateExplorationAreaOverlayMessage> msg = message;
+    CHECK(m_context != nullptr, ());
+    std::vector<drape_ptr<DrapeApiRenderProperty>> outlines;
+    std::vector<drape_ptr<DrapeApiRenderProperty>> fills;
+    m_explorationAreaOverlayBuilder->Build(m_context, msg->AcceptItems(), m_texMng, outlines, fills);
+    m_commutator->PostMessage(ThreadsCommutator::RenderThread,
+                              make_unique_dp<FlushExplorationAreaOverlayMessage>(std::move(outlines), std::move(fills)),
+                              MessagePriority::Normal);
+    break;
+  }
+
+  case Message::Type::ClearExplorationAreaOverlay:
+  {
+    m_commutator->PostMessage(ThreadsCommutator::RenderThread, make_unique_dp<ClearExplorationAreaOverlayMessage>(),
+                              MessagePriority::Normal);
     break;
   }
 

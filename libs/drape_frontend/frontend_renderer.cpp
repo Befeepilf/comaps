@@ -234,6 +234,8 @@ FrontendRenderer::FrontendRenderer(Params && params)
       MessagePriority::Normal);
   });
 
+  m_explorationAreaOverlayRenderer = make_unique_dp<ExplorationAreaOverlayRenderer>();
+
   m_myPositionController =
       make_unique_dp<MyPositionController>(std::move(params.m_myPositionParams), make_ref(m_notifier));
 
@@ -792,6 +794,28 @@ void FrontendRenderer::AcceptMessage(ref_ptr<Message> message)
   case Message::Type::ClearStreetPixels:
   {
     m_streetPixelRenderer->Clear();
+    break;
+  }
+
+  case Message::Type::EnableExplorationAreaOverlay:
+  {
+    ref_ptr<EnableExplorationAreaOverlayMessage> msg = message;
+    m_explorationAreaOverlayRenderer->SetEnabled(msg->IsEnabled());
+    break;
+  }
+
+  case Message::Type::FlushExplorationAreaOverlay:
+  {
+    ref_ptr<FlushExplorationAreaOverlayMessage> msg = message;
+    m_explorationAreaOverlayRenderer->Clear();
+    m_explorationAreaOverlayRenderer->SetOutlineProperties(msg->AcceptOutlines());
+    m_explorationAreaOverlayRenderer->SetFillProperties(msg->AcceptFills());
+    break;
+  }
+
+  case Message::Type::ClearExplorationAreaOverlay:
+  {
+    m_explorationAreaOverlayRenderer->Clear();
     break;
   }
 
@@ -1507,6 +1531,9 @@ void FrontendRenderer::RenderScene(ScreenBase const & modelView, bool activeFram
       
       m_streetPixelRenderer->Render(m_context, make_ref(m_gpuProgramManager), modelView, GetCurrentZoom(),
                                     m_frameValues);
+
+      m_explorationAreaOverlayRenderer->Render(m_context, make_ref(m_gpuProgramManager), modelView, GetCurrentZoom(),
+                                                m_frameValues);
 
       if (m_selectionShape && (m_selectionShape->GetSelectedObject() == SelectionShape::OBJECT_USER_MARK ||
                                m_selectionShape->GetSelectedObject() == SelectionShape::OBJECT_TRACK))
@@ -2362,6 +2389,7 @@ void FrontendRenderer::OnContextDestroy()
   m_routeRenderer->ClearContextDependentResources();
   m_gpsTrackRenderer->ClearRenderData();
   m_streetPixelRenderer->ClearRenderData();
+  m_explorationAreaOverlayRenderer->Clear();
   m_trafficRenderer->ClearContextDependentResources();
   m_drapeApiRenderer->Clear();
   m_postprocessRenderer->ClearContextDependentResources();

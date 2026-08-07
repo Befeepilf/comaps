@@ -2,6 +2,7 @@ project(street_pixels_areas_tests)
 
 set(SRC
   area_completion_cache_tests.cpp
+  area_overlay_tests.cpp
   exploration_area_resolver_tests.cpp
   exploration_filter_tests.cpp
   exploration_sidecar_tests.cpp
