@@ -2,6 +2,7 @@ project(street_pixels_tests)
 
 set(SRC
   archive_tests.cpp
+  area_completion_manager_tests.cpp
   assignment_persist_tests.cpp
   backend_config_tests.cpp
   collection_gate_tests.cpp

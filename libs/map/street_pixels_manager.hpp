@@ -27,6 +27,8 @@
 
 #include "storage/storage.hpp"
 
+#include "street_pixels_areas/area_completion_cache.hpp"
+
 #include <healpix_base.h>
 
 #include <cstdint>
@@ -146,6 +148,16 @@ public:
 
   double GetTotalExploredFraction() const;
 
+  // Area-scoped personal completion (SPD-026). Keyed by compact area index, never MWM id.
+  // Fail-closed: nullopt / 0 when cache is invalid or the area is unknown.
+  std::optional<street_pixels::AreaCompletionCounts> GetAreaCompletion(uint32_t compactIndex) const;
+  double GetAreaCompletionFraction(uint32_t compactIndex) const;
+  bool IsAreaCompletionCacheValid() const;
+  void InvalidateAreaCompletionCache();
+  // Rebuild from `{countryId}.pix` + sidecar. Returns false if universe/sidecar unavailable.
+  bool RebuildAreaCompletionCache(storage::CountryId const & countryId, std::string const & spaPath,
+                                  int64_t mapDataVersion);
+
   void OnUpdateCurrentCountry(storage::CountryId const & countryId, storage::LocalFilePtr const & localFile);
 
   void OnLocationUpdate(location::GpsInfo const & info);
@@ -235,6 +247,9 @@ private:
   void CleanupStreetPixelsUnlocked(storage::CountryId const & countryId);
   void RefreshSparseAssignmentsBestEffortUnlocked(storage::CountryId const & countryId, std::string const & spaPath,
                                                   std::int64_t mapDataVersion, bool policyOnly);
+  void InvalidateAreaCompletionCacheUnlocked();
+  bool RebuildAreaCompletionCacheUnlocked(storage::CountryId const & countryId, std::string const & spaPath,
+                                          int64_t mapDataVersion);
 
   // Updates heuristic stats for each street in the explore radius. Needed for routing to prefer streets with more
   // unexplored pixels.
@@ -259,4 +274,7 @@ private:
 
   std::optional<AssignmentRematchSignal> m_pendingAssignmentRematch;
   mutable std::mutex m_pendingAssignmentRematchMutex;
+
+  street_pixels::AreaCompletionCache m_areaCompletionCache;
+  mutable std::mutex m_areaCompletionMutex;
 };

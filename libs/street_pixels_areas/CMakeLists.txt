@@ -1,6 +1,8 @@
 project(street_pixels_areas)
 
 set(SRC
+  area_completion_cache.cpp
+  area_completion_cache.hpp
   areas_format.hpp
   areas_reader.cpp
   areas_reader.hpp

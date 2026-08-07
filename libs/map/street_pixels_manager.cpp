@@ -32,6 +32,7 @@
 #include "map/live_sample_acceptance_filter.hpp"
 #include "map/live_segment_interpolation.hpp"
 
+#include "street_pixels_areas/area_completion_cache.hpp"
 #include "street_pixels_areas/exploration_area_resolver.hpp"
 #include "street_pixels_areas/exploration_sidecar.hpp"
 #include "street_pixels_areas/sparse_assignment_store.hpp"
@@ -303,6 +304,8 @@ size_t StreetPixelsManager::MarkExploredPixelIds(std::set<std::int64_t> const & 
       }
     }
   }
+
+  InvalidateAreaCompletionCache();
 
   if (statsNew > 0 && m_explorationListener)
   {
@@ -878,6 +881,7 @@ bool StreetPixelsManager::RematchStreetPixelsWithNewUniverseUnlocked(storage::Co
   Platform::RemoveFileIfExists(archivePath);
   street_stats::StreetStatsDB::Instance().ReconcileStatsAfterRematch(countryId);
 
+  InvalidateAreaCompletionCache();
   if (!spaPath.empty())
     RefreshSparseAssignmentsBestEffortUnlocked(countryId, spaPath, mapDataVersion, false /* policyOnly */);
 
@@ -903,7 +907,10 @@ void StreetPixelsManager::RefreshSparseAssignmentsBestEffortUnlocked(storage::Co
                                                                      bool policyOnly)
 {
   if (spaPath.empty())
+  {
+    InvalidateAreaCompletionCache();
     return;
+  }
 
   std::string const pixPath = GetPlatform().WritablePathForFile(countryId + ".pix");
   std::string const spxPath = street_pixels::SparseAssignmentPath(GetPlatform().WritableDir(), countryId);
@@ -913,6 +920,7 @@ void StreetPixelsManager::RefreshSparseAssignmentsBestEffortUnlocked(storage::Co
   if (!universe || !exploredMap)
   {
     LOG(LWARNING, ("Sparse assignment refresh skipped; .pix unreadable", countryId));
+    InvalidateAreaCompletionCache();
     return;
   }
 
@@ -921,12 +929,14 @@ void StreetPixelsManager::RefreshSparseAssignmentsBestEffortUnlocked(storage::Co
   {
     LOG(LINFO, ("Sparse assignment refresh skipped; no sidecar", countryId,
                 street_pixels::DebugPrint(sidecar.m_status)));
+    InvalidateAreaCompletionCache();
     return;
   }
   if (sidecar.m_file.m_header.m_mapDataVersion != mapDataVersion)
   {
     LOG(LINFO, ("Sparse assignment refresh deferred; sidecar map-data mismatch", countryId,
                 sidecar.m_file.m_header.m_mapDataVersion, mapDataVersion));
+    InvalidateAreaCompletionCache();
     return;
   }
 
@@ -944,6 +954,7 @@ void StreetPixelsManager::RefreshSparseAssignmentsBestEffortUnlocked(storage::Co
   if (!resolver)
   {
     LOG(LWARNING, ("Sparse assignment refresh skipped; resolver load failed", countryId));
+    InvalidateAreaCompletionCache();
     return;
   }
 
@@ -955,8 +966,11 @@ void StreetPixelsManager::RefreshSparseAssignmentsBestEffortUnlocked(storage::Co
   if (!ensured)
   {
     LOG(LWARNING, ("Sparse assignment refresh failed", countryId));
+    InvalidateAreaCompletionCache();
     return;
   }
+
+  RebuildAreaCompletionCacheUnlocked(countryId, spaPath, mapDataVersion);
 
   // Signal version rematch / corrupt rebuild. Quiet exploration catch-up under the
   // same (map, policy) pair does not set the pending signal. policyOnly only
@@ -1490,6 +1504,9 @@ void StreetPixelsManager::OnLocationUpdate(location::GpsInfo const & info)
 
   UpdateStreetStats(info.m_latitude, info.m_longitude, numNewlyExploredPixels);
 
+  if (numNewlyExploredPixels > 0)
+    InvalidateAreaCompletionCache();
+
   if (numNewlyExploredPixels > 0 && m_explorationListener)
   {
     ExplorationDelta d;
@@ -1642,6 +1659,100 @@ double StreetPixelsManager::GetTotalExploredFraction() const
   return static_cast<double>(m_exploredPixelCount) / static_cast<double>(total);
 }
 
+std::optional<street_pixels::AreaCompletionCounts> StreetPixelsManager::GetAreaCompletion(
+    uint32_t compactIndex) const
+{
+  std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+  return m_areaCompletionCache.Get(compactIndex);
+}
+
+double StreetPixelsManager::GetAreaCompletionFraction(uint32_t compactIndex) const
+{
+  std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+  return m_areaCompletionCache.GetFraction(compactIndex);
+}
+
+bool StreetPixelsManager::IsAreaCompletionCacheValid() const
+{
+  std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+  return m_areaCompletionCache.IsValid();
+}
+
+void StreetPixelsManager::InvalidateAreaCompletionCache()
+{
+  std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+  InvalidateAreaCompletionCacheUnlocked();
+}
+
+void StreetPixelsManager::InvalidateAreaCompletionCacheUnlocked()
+{
+  m_areaCompletionCache.Invalidate();
+}
+
+bool StreetPixelsManager::RebuildAreaCompletionCache(storage::CountryId const & countryId,
+                                                    std::string const & spaPath, int64_t mapDataVersion)
+{
+  std::lock_guard<std::mutex> pixLock(m_pixFileMutex);
+  return RebuildAreaCompletionCacheUnlocked(countryId, spaPath, mapDataVersion);
+}
+
+bool StreetPixelsManager::RebuildAreaCompletionCacheUnlocked(storage::CountryId const & countryId,
+                                                             std::string const & spaPath, int64_t mapDataVersion)
+{
+  auto failClosed = [this]()
+  {
+    std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+    InvalidateAreaCompletionCacheUnlocked();
+  };
+
+  if (spaPath.empty() || countryId.empty())
+  {
+    failClosed();
+    return false;
+  }
+
+  std::string const pixPath = GetPlatform().WritablePathForFile(countryId + ".pix");
+  auto const universe = street_pixels_file::ScanUniverseAscending(pixPath);
+  auto const exploredMap = street_pixels_file::ScanExploredEverLive(pixPath);
+  if (!universe || !exploredMap)
+  {
+    failClosed();
+    return false;
+  }
+
+  auto sidecar = street_pixels::TryLoadExplorationSidecar(spaPath);
+  if (sidecar.m_status != street_pixels::SpaLoadStatus::Ok ||
+      sidecar.m_file.m_header.m_mapDataVersion != mapDataVersion)
+  {
+    failClosed();
+    return false;
+  }
+
+  auto resolver = street_pixels::ExplorationAreaResolver::TryLoad(
+      spaPath, *universe, mapDataVersion, sidecar.m_file.m_header.m_policyVersion);
+  if (!resolver)
+  {
+    failClosed();
+    return false;
+  }
+
+  std::vector<std::int64_t> exploredAscending;
+  std::vector<m2::PointD> ignoredCentres;
+  CollectExploredAscendingWithCentres(*exploredMap, exploredAscending, ignoredCentres);
+
+  std::vector<m2::PointD> universeCentres;
+  universeCentres.reserve(universe->size());
+  for (std::int64_t id : *universe)
+    universeCentres.push_back(MercatorCentreForHealpixNest(id));
+
+  auto built = street_pixels::AreaCompletionCache::Build(*resolver, *universe, universeCentres, exploredAscending);
+  {
+    std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+    m_areaCompletionCache = std::move(built);
+  }
+  return true;
+}
+
 void StreetPixelsManager::ClearPixels()
 {
   LOG(LINFO, ("Clearing pixels and unmapping pix file"));
@@ -1655,6 +1766,7 @@ void StreetPixelsManager::ClearPixels()
   }
   m_accountedBits.clear();
   m_accountedDirty = false;
+  InvalidateAreaCompletionCache();
 
   {
     std::lock_guard<std::mutex> lock(m_stateMutex);
