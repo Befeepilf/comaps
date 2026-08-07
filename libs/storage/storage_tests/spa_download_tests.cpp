@@ -8,9 +8,15 @@
 #include "platform/local_country_file_utils.hpp"
 #include "platform/mwm_version.hpp"
 #include "platform/platform.hpp"
+#include "platform/platform_tests_support/scoped_dir.hpp"
+#include "platform/platform_tests_support/scoped_file.hpp"
 #include "platform/platform_tests_support/writable_dir_changer.hpp"
 #include "platform/settings.hpp"
 
+#include "coding/file_reader.hpp"
+#include "coding/file_writer.hpp"
+
+#include "base/file_name_utils.hpp"
 #include "base/string_utils.hpp"
 
 #include "defines.hpp"
@@ -24,6 +30,8 @@ namespace
 {
 using platform::CountryFile;
 using platform::LocalCountryFile;
+using platform::tests_support::ScopedDir;
+using platform::tests_support::ScopedFile;
 
 std::string const kMapTestDir = "spa-download-tests";
 
@@ -218,6 +226,163 @@ UNIT_TEST(Storage_SpaDownload_RestoreQueueEnqueuesSpaWhenMapOnDisk)
   TEST(localFile->OnDisk(MapFileType::Spa), ());
   TEST_EQUAL(Status::OnDisk, storage.CountryStatusEx(id), ());
   TEST(!storage.CheckFailedCountries({id}), ());
+}
+
+UNIT_TEST(Storage_SpaLifecycle_DeleteCountryRemovesSpaKeepsPersonal)
+{
+  WritableDirChanger const writableDirChanger(kMapTestDir);
+  Platform::ThreadRunner threadRunner;
+
+  auto const json = MakeSpaDownloadCountriesJson(R"(,
+        "s": 2048,
+        "sha1_base64": "mwmSha",
+        "spa": 512,
+        "spa_sha1_base64": "spaSha")");
+
+  TaskRunner runner;
+  Storage storage(json, std::make_unique<FakeMapFilesDownloader>(runner));
+  InitSpaStorage(storage, runner);
+
+  CountryId const id = "SpaLeaf";
+  storage.DeleteCountry(id, MapFileType::Map);
+  DownloadAndPump(storage, runner, id, MapFileType::Map);
+
+  auto localFile = storage.GetLatestLocalFile(id);
+  TEST(localFile, ());
+  localFile->SyncWithDisk();
+  TEST(localFile->OnDisk(MapFileType::Map), ());
+  TEST(localFile->OnDisk(MapFileType::Spa), ());
+
+  std::string const spaPath = localFile->GetPath(MapFileType::Spa);
+  std::string const mapPath = localFile->GetPath(MapFileType::Map);
+
+  // Personal exploration / assignment artifacts live in WritableDir (SPD-016 / SP-030).
+  Platform & platform = GetPlatform();
+  std::string const pixPath = base::JoinPath(platform.WritableDir(), id + PIX_FILE_EXTENSION);
+  std::string const pixrPath = base::JoinPath(platform.WritableDir(), id + ".pixr");
+  std::string const spxPath = base::JoinPath(platform.WritableDir(), id + SPX_FILE_EXTENSION);
+  {
+    FileWriter w(pixPath);
+    std::string const bits = "pix-keep";
+    w.Write(bits.data(), bits.size());
+  }
+  {
+    FileWriter w(pixrPath);
+    std::string const bits = "pixr-keep";
+    w.Write(bits.data(), bits.size());
+  }
+  {
+    FileWriter w(spxPath);
+    std::string const bits = "spx-keep";
+    w.Write(bits.data(), bits.size());
+  }
+
+  storage.DeleteCountry(id, MapFileType::Map);
+
+  TEST(!Platform::IsFileExistsByFullPath(mapPath), ());
+  TEST(!Platform::IsFileExistsByFullPath(spaPath), ());
+  TEST(Platform::IsFileExistsByFullPath(pixPath), ());
+  TEST(Platform::IsFileExistsByFullPath(pixrPath), ());
+  TEST(Platform::IsFileExistsByFullPath(spxPath), ());
+  TEST_EQUAL(Status::NotDownloaded, storage.CountryStatusEx(id), ());
+
+  Platform::RemoveFileIfExists(pixPath);
+  Platform::RemoveFileIfExists(pixrPath);
+  Platform::RemoveFileIfExists(spxPath);
+}
+
+UNIT_TEST(Storage_SpaLifecycle_MapRedownloadRefetchesSpa)
+{
+  WritableDirChanger const writableDirChanger(kMapTestDir);
+  Platform::ThreadRunner threadRunner;
+
+  auto const json = MakeSpaDownloadCountriesJson(R"(,
+        "s": 2048,
+        "sha1_base64": "mwmSha",
+        "spa": 512,
+        "spa_sha1_base64": "spaSha")");
+
+  TaskRunner runner;
+  Storage storage(json, std::make_unique<FakeMapFilesDownloader>(runner));
+  InitSpaStorage(storage, runner);
+
+  CountryId const id = "SpaLeaf";
+  storage.DeleteCountry(id, MapFileType::Map);
+  DownloadAndPump(storage, runner, id, MapFileType::Map);
+
+  auto localFile = storage.GetLatestLocalFile(id);
+  TEST(localFile, ());
+  localFile->SyncWithDisk();
+  TEST(localFile->OnDisk(MapFileType::Spa), ());
+
+  std::string const spaPath = localFile->GetPath(MapFileType::Spa);
+  {
+    FileWriter w(spaPath);
+    std::string const stale = "STALE-SPA-MARKER!!!!!!!!!!!";
+    w.Write(stale.data(), stale.size());
+  }
+  TEST(Platform::IsFileExistsByFullPath(spaPath), ());
+
+  // Same-version Map replace must drop stale spa and full-refetch (SPD-029).
+  DownloadAndPump(storage, runner, id, MapFileType::Map);
+
+  localFile = storage.GetLatestLocalFile(id);
+  TEST(localFile, ());
+  localFile->SyncWithDisk();
+  TEST(localFile->OnDisk(MapFileType::Map), ());
+  TEST(localFile->OnDisk(MapFileType::Spa), ());
+  TEST_EQUAL(512, localFile->GetSize(MapFileType::Spa), ());
+
+  {
+    FileReader reader(spaPath);
+    std::string body;
+    reader.ReadAsString(body);
+    TEST_EQUAL(512, body.size(), ());
+    TEST(body.find("STALE-SPA-MARKER") == std::string::npos, ());
+  }
+}
+
+UNIT_TEST(Storage_SpaLifecycle_ObsoleteVersionRemovesSpa)
+{
+  WritableDirChanger const writableDirChanger(kMapTestDir);
+  Platform::ThreadRunner threadRunner;
+
+  CountryFile country("SpaLeaf");
+  ScopedDir dir1(strings::to_string(version::FOR_TESTING_MWM1));
+  ScopedFile map1(dir1, country, MapFileType::Map);
+  ScopedFile spa1(dir1, country, MapFileType::Spa);
+  LocalCountryFile file1(dir1.GetFullPath(), country, version::FOR_TESTING_MWM1);
+  file1.SyncWithDisk();
+  TEST(file1.OnDisk(MapFileType::Map), ());
+  TEST(file1.OnDisk(MapFileType::Spa), ());
+
+  ScopedDir dir2(strings::to_string(version::FOR_TESTING_MWM2));
+  ScopedFile map2(dir2, country, MapFileType::Map);
+  ScopedFile spa2(dir2, country, MapFileType::Spa);
+
+  auto const json = MakeSpaDownloadCountriesJson(R"(,
+        "s": 2048,
+        "sha1_base64": "mwmSha",
+        "spa": 512,
+        "spa_sha1_base64": "spaSha")");
+
+  TaskRunner runner;
+  Storage storage(json, std::make_unique<FakeMapFilesDownloader>(runner));
+  InitSpaStorage(storage, runner);
+  storage.SetCurrentDataVersionForTesting(version::FOR_TESTING_MWM2);
+
+  std::string const oldSpaPath = file1.GetPath(MapFileType::Spa);
+  TEST(Platform::IsFileExistsByFullPath(oldSpaPath), ());
+
+  storage.RegisterAllLocalMaps();
+
+  TEST(!map1.Exists(), ());
+  TEST(!Platform::IsFileExistsByFullPath(oldSpaPath), ());
+  map1.Reset();
+  spa1.Reset();
+
+  TEST(map2.Exists(), ());
+  TEST(spa2.Exists(), ());
 }
 }  // namespace
 }  // namespace storage

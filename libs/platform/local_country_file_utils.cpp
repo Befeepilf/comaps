@@ -51,6 +51,11 @@ bool IsDiffFile(string const & name)
   return name.ends_with(DIFF_FILE_EXTENSION) || name.ends_with(DIFF_APPLYING_FILE_EXTENSION);
 }
 
+bool IsSpaFile(string const & name)
+{
+  return name.ends_with(SPA_FILE_EXTENSION);
+}
+
 /*
 bool DirectoryHasIndexesOnly(string const & directory)
 {
@@ -154,8 +159,8 @@ size_t FindAllLocalMapsInDirectoryAndCleanup(string const & directory, int64_t v
 
     string name = fwt.first;
 
-    // Remove downloader and diff files for old version directories.
-    if (version < latestVersion && (IsDownloaderFile(name) || IsDiffFile(name)))
+    // Remove downloader, diff, and orphan `.spa` for old version directories (SPD-029/030).
+    if (version < latestVersion && (IsDownloaderFile(name) || IsDiffFile(name) || IsSpaFile(name)))
     {
       base::DeleteFileX(base::JoinPath(directory, name));
       continue;
@@ -169,7 +174,20 @@ size_t FindAllLocalMapsInDirectoryAndCleanup(string const & directory, int64_t v
     localFiles.emplace_back(directory, CountryFile(std::move(name)), version);
   }
 
-  return localFiles.size() - szBefore;
+  size_t const found = localFiles.size() - szBefore;
+  // Orphan `.spa` with no leaf MWM would block RmDir of empty version dirs (SPD-030).
+  if (found == 0)
+  {
+    for (auto const & fwt : fwts)
+    {
+      if (fwt.second != Platform::EFileType::Regular)
+        continue;
+      if (IsSpaFile(fwt.first))
+        base::DeleteFileX(base::JoinPath(directory, fwt.first));
+    }
+  }
+
+  return found;
 
   // Probably, indices will appear in future.
   /*
