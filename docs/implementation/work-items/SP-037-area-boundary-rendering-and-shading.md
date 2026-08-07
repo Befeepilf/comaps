@@ -1,7 +1,7 @@
 # SP-037 — Area boundary rendering and completion shading by zoom
 
 **Phase:** 5 — Area progress and map interaction
-**Status:** Implemented (awaiting review / acceptance)
+**Status:** Accepted 2026-08-07
 **Branch:** `cursor/sp-037-area-boundary-shading-191e`
 **Depends on:** Phase 4 Accepted; **SP-033 outcome** (LOD / renderer strategy);
   SP-034 completion data for shading
@@ -87,8 +87,8 @@ every circle may fail Spike 1; SP-033 decides.
 | LOD / strategy summary | Pixel circles unchanged. Additive `ExplorationAreaOverlayRenderer`: outlines all visible zooms ≥9; fills at neighbourhood/city (≤15); street outline-only. Ring simplify for city/neighbourhood vertex caps. |
 | Test output | `street_pixels_areas_tests` 62/62 (5 AreaOverlay_*); `street_pixels_tests` 199/199 |
 | Manual validation | Device zoom walk / FPS spot-check residual → SP-041 / Phase 10 |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer (accept 2026-08-07) |
+| Accepted date | 2026-08-07 |
 
 ## Discovered follow-up
 
