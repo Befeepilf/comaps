@@ -865,8 +865,15 @@ void Storage::RestoreDownloadQueue()
     {
       string const s(v);
       auto localFile = GetLatestLocalFile(s);
-      auto isUpdate = localFile && localFile->OnDisk(MapFileType::Map);
-      DownloadNode(s, isUpdate);
+      // Map already current: DownloadNode early-returns OnDisk and would strand an
+      // advertised Spa that was the only pending queue entry (SPD-027 / SP-046).
+      if (localFile && localFile->GetVersion() == m_currentVersion && localFile->OnDisk(MapFileType::Map))
+        MaybeEnqueueRemoteSpa(s);
+      else
+      {
+        auto isUpdate = localFile && localFile->OnDisk(MapFileType::Map);
+        DownloadNode(s, isUpdate);
+      }
     }
   });
 }
@@ -1823,7 +1830,15 @@ void Storage::DownloadNode(CountryId const & countryId, bool isUpdate /* = false
     return;
 
   if (GetNodeStatus(*node).status == NodeStatus::OnDisk)
+  {
+    // Resume advertised Spa for OnDisk leaves so callers cannot strand SPD-027 sidecar.
+    node->ForEachInSubtree([this](CountryTree::Node const & descendantNode)
+    {
+      if (descendantNode.ChildrenCount() == 0)
+        MaybeEnqueueRemoteSpa(descendantNode.Value().Name());
+    });
     return;
+  }
 
   auto downloadAction = [this, isUpdate](CountryTree::Node const & descendantNode)
   {
