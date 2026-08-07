@@ -35,6 +35,7 @@
 
 #include "street_pixels_areas/area_completion_cache.hpp"
 #include "street_pixels_areas/area_overlay.hpp"
+#include "street_pixels_areas/city_completion_cache.hpp"
 #include "street_pixels_areas/exploration_area_resolver.hpp"
 #include "street_pixels_areas/exploration_sidecar.hpp"
 #include "street_pixels_areas/focus_selection_engine.hpp"
@@ -1683,6 +1684,19 @@ double StreetPixelsManager::GetAreaCompletionFraction(uint32_t compactIndex) con
   return m_areaCompletionCache.GetFraction(compactIndex);
 }
 
+std::optional<street_pixels::AreaCompletionCounts> StreetPixelsManager::GetCityCompletion(
+    uint32_t settlementCompactIndex) const
+{
+  std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+  return m_cityCompletionCache.Get(settlementCompactIndex);
+}
+
+double StreetPixelsManager::GetCityCompletionFraction(uint32_t settlementCompactIndex) const
+{
+  std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+  return m_cityCompletionCache.GetFraction(settlementCompactIndex);
+}
+
 bool StreetPixelsManager::IsAreaCompletionCacheValid() const
 {
   std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
@@ -1701,6 +1715,7 @@ void StreetPixelsManager::InvalidateAreaCompletionCache()
 void StreetPixelsManager::InvalidateAreaCompletionCacheUnlocked()
 {
   m_areaCompletionCache.Invalidate();
+  m_cityCompletionCache.Invalidate();
 }
 
 void StreetPixelsManager::RefreshFocusedAreaFractionUnlocked()
@@ -1716,7 +1731,23 @@ void StreetPixelsManager::RefreshFocusedAreaFractionUnlocked()
     m_focusedAreaProgress.m_fraction = 0.0;
     return;
   }
-  auto const counts = m_areaCompletionCache.Get(m_focusedAreaProgress.m_compactIndex);
+
+  std::optional<street_pixels::AreaCompletionCounts> counts;
+  if (m_focusedAreaProgress.m_citySummary)
+  {
+    if (!m_cityCompletionCache.IsValid())
+    {
+      m_focusedAreaProgress.m_fractionValid = false;
+      m_focusedAreaProgress.m_fraction = 0.0;
+      return;
+    }
+    counts = m_cityCompletionCache.Get(m_focusedAreaProgress.m_compactIndex);
+  }
+  else
+  {
+    counts = m_areaCompletionCache.Get(m_focusedAreaProgress.m_compactIndex);
+  }
+
   if (!counts)
   {
     m_focusedAreaProgress.m_fractionValid = false;
@@ -2045,9 +2076,11 @@ bool StreetPixelsManager::RebuildAreaCompletionCacheUnlocked(storage::CountryId 
     universeCentres.push_back(MercatorCentreForHealpixNest(id));
 
   auto built = street_pixels::AreaCompletionCache::Build(*resolver, *universe, universeCentres, exploredAscending);
+  auto cityBuilt = street_pixels::CityCompletionCache::Build(sidecar.m_file, built);
   {
     std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
     m_areaCompletionCache = std::move(built);
+    m_cityCompletionCache = std::move(cityBuilt);
   }
   PushExplorationAreaOverlayUnlocked(sidecar.m_file);
   return true;

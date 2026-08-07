@@ -1,5 +1,6 @@
 #include "testing/testing.hpp"
 
+#include "map/street_pixels_file.hpp"
 #include "map/street_pixels_manager.hpp"
 
 #include "map/street_pixels_tests/street_pixels_test_helpers.hpp"
@@ -20,9 +21,12 @@
 
 #include "geometry/mercator.hpp"
 
+#include <algorithm>
 #include <cstdint>
 #include <optional>
+#include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace
@@ -207,6 +211,116 @@ UNIT_TEST(FocusEngine_Manager_ExplicitStickyIgnoresIdlePanRefresh)
                                         fx.mapDataVersion),
        ());
   TEST_EQUAL(manager.GetFocusedAreaProgress().m_displayName, "District", ());
+  CleanupFocusFx(fx);
+}
+
+UNIT_TEST(FocusEngine_Manager_CitySummaryFailClosedWithoutPix)
+{
+  auto fx = MakeFocusFx("sp039_city_failclosed");
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  street_pixels::FocusSelectionRequest req;
+  req.m_event = street_pixels::FocusEvent::ZoomChanged;
+  req.m_atCityScale = true;
+  req.m_cityCompactIndex = 1;
+  TEST(manager.ApplyFocusSelection(req, fx.spaPath, fx.mapDataVersion), ());
+  auto p = manager.GetFocusedAreaProgress();
+  TEST(p.m_hasFocus, ());
+  TEST(p.m_citySummary, ());
+  TEST_EQUAL(p.m_displayName, "City", ());
+  TEST(!p.m_fractionValid, ());
+  CleanupFocusFx(fx);
+}
+
+UNIT_TEST(FocusEngine_Manager_CitySummaryUsesRollupFraction)
+{
+  // City-summary badge fraction = sum(explored)/sum(total) over settlement + contained
+  // assignables — not settlement-alone and not an average of area percentages.
+  auto fx = MakeFocusFx("sp039_city_rollup");
+  int64_t const districtId = street_pixels_tests::PixelIdForLatLon(60.5, 24.5);
+  int64_t const cityOnlyId = street_pixels_tests::PixelIdForLatLon(60.1, 24.1);
+  int64_t const outsideId = street_pixels_tests::PixelIdForLatLon(70.0, 30.0);
+  TEST(districtId != cityOnlyId, ());
+  TEST(districtId != outsideId, ());
+
+  std::vector<std::pair<int64_t, m2::PointD>> universeRows = {
+      {districtId, mercator::FromLatLon(60.5, 24.5)},
+      {cityOnlyId, mercator::FromLatLon(60.1, 24.1)},
+      {outsideId, mercator::FromLatLon(70.0, 30.0)},
+  };
+  std::sort(universeRows.begin(), universeRows.end(),
+            [](auto const & a, auto const & b) { return a.first < b.first; });
+  std::vector<int64_t> universeIds;
+  std::vector<m2::PointD> samples;
+  for (auto const & row : universeRows)
+  {
+    universeIds.push_back(row.first);
+    samples.push_back(row.second);
+  }
+
+  auto const config = street_pixels::CountryConfig::LoadFromString(R"({
+  "policy_version": 1,
+  "schema_version": 1,
+  "countries": {
+    "FI": {
+      "mwm_root_ids": ["Finland"],
+      "subdivision_admin_levels": [10, 9, 11],
+      "settlement_admin_levels": [8],
+      "place_boundaries": { "enabled": true, "place_types": ["neighbourhood"] }
+    }
+  }
+})");
+  auto const policy = config.GetByIso("FI");
+  std::vector<street_pixels::ExplorationArea> areas;
+  for (auto const & input : {Sp036MakeAdmin(10, 10, "District", Sp036LonLatBox(24.2, 60.2, 24.8, 60.8)),
+                             Sp036MakeAdmin(8, 8, "City", Sp036LonLatBox(24.0, 60.0, 25.0, 61.0))})
+  {
+    auto result = street_pixels::FilterExplorationCandidate(input, policy);
+    TEST(result.m_area.has_value(), ());
+    areas.push_back(*result.m_area);
+  }
+  street_pixels::SpaWriteParams params;
+  params.m_mapDataVersion = fx.mapDataVersion;
+  params.m_policyVersion = config.GetPolicyVersion();
+  params.m_isoCode = "FI";
+  params.m_mwmId = fx.leaf;
+  street_pixels::WriteExplorationSidecar(fx.spaPath, areas, samples, policy, params);
+
+  street_pixels_file::ExploredEverLiveMap seed{{districtId, true}};
+  TEST(street_pixels_file::SaveRematchedUniverse(
+           Sp036Path(fx.leaf + ".pix"), std::set<int64_t>(universeIds.begin(), universeIds.end()), seed,
+           fx.mapDataVersion),
+       ());
+
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  TEST(manager.RebuildAreaCompletionCache(fx.leaf, fx.spaPath, fx.mapDataVersion), ());
+
+  auto const city = manager.GetCityCompletion(1);
+  TEST(city.has_value(), ());
+  TEST_EQUAL(city->m_explored, 1u, ());
+  TEST_EQUAL(city->m_total, 2u, ());
+  TEST_EQUAL(manager.GetCityCompletionFraction(1), 0.5, ());
+
+  auto const settlementOnly = manager.GetAreaCompletion(1);
+  TEST(settlementOnly.has_value(), ());
+  TEST_EQUAL(settlementOnly->m_explored, 0u, ());
+  TEST_EQUAL(settlementOnly->m_total, 1u, ());
+
+  street_pixels::FocusSelectionRequest req;
+  req.m_event = street_pixels::FocusEvent::ZoomChanged;
+  req.m_atCityScale = true;
+  req.m_cityCompactIndex = 1;
+  TEST(manager.ApplyFocusSelection(req, fx.spaPath, fx.mapDataVersion), ());
+  auto p = manager.GetFocusedAreaProgress();
+  TEST(p.m_hasFocus, ());
+  TEST(p.m_citySummary, ());
+  TEST_EQUAL(p.m_displayName, "City", ());
+  TEST(p.m_fractionValid, ());
+  TEST_EQUAL(p.m_fraction, 0.5, ());
+  TEST_NOT_EQUAL(p.m_fraction, manager.GetAreaCompletionFraction(1),
+                  ("City badge must not use settlement-only fraction"));
+
   CleanupFocusFx(fx);
 }
 }  // namespace
