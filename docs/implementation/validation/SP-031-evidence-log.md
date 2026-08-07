@@ -47,7 +47,7 @@ collectors→`.spa` remains a follow-up (narrowed R1).
 
 | Field | Value |
 | --- | --- |
-| Branch / tip | `cursor/sp-032-phase4-residual-emit-191e` @ `ae7fff5f7` (independent review harden + re-verify) |
+| Branch / tip | `cursor/sp-032-phase4-residual-emit-191e` @ `961e538c5` (spot-check harden); review docs on tip of branch |
 | Build | `./tools/unix/build_omim.sh -d -p /workspace spa_emit_tool street_pixels_areas_tests` — OK |
 | `street_pixels_areas_tests` | **46/46** All tests passed (`SpaJsonlEmit_*` + prior 44) |
 | `/tmp/sp023` | Rebuilt: Geofabrik `finland-latest.osm.pbf` (737 679 925 B) → `extract_admin_place_polygons.py` → **2751** JSONL rings |
