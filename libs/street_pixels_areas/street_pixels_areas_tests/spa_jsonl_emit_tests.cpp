@@ -101,12 +101,21 @@ UNIT_TEST(SpaJsonlEmit_TinyRoundTrip)
 
   auto const checks = SpotCheckKnownIds(loaded.m_areas, HelsinkiKnownOsmIds());
   uint32_t found = 0;
+  uint32_t nameOk = 0;
   for (auto const & row : checks)
   {
     if (row.m_found)
       ++found;
+    if (row.m_nameMatches)
+      ++nameOk;
+    if (row.m_osmId == 184714 || row.m_osmId == 34914)
+    {
+      TEST(row.m_found, (row.m_osmId));
+      TEST(row.m_nameMatches, (row.m_expectedNameHint, row.m_actualName));
+    }
   }
   TEST_EQUAL(found, 2u, ());  // Kamppi + Helsinki in the tiny fixture
+  TEST_EQUAL(nameOk, 2u, ());
 
   RemoveIfExists(spaPath);
   RemoveIfExists(jsonl);

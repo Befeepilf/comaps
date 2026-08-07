@@ -44,7 +44,9 @@ void PrintSizes(std::string const & label, SpaSectionSizes const & sizes, uint32
             << " assign=" << sizes.m_assignBytes << " area_count=" << areaCount << "\n";
 }
 
-void EmitOne(std::string const & outPath, std::vector<ExplorationArea> areas, CountryPolicy const & policy,
+// Returns false when a requested Helsinki known-id spot-check fails (missing id
+// or name mismatch). Geometry emit still completes before the check.
+bool EmitOne(std::string const & outPath, std::vector<ExplorationArea> areas, CountryPolicy const & policy,
              SpaWriteParams const & params, JsonlFilterStats const & stats, bool doSpotCheck)
 {
   WriteGeometryOnlyExplorationSidecar(outPath, areas, policy, params);
@@ -63,24 +65,33 @@ void EmitOne(std::string const & outPath, std::vector<ExplorationArea> areas, Co
             << " mwm_id=" << loaded.m_header.m_mwmId << "\n";
   PrintSizes("  sections", sizes, loaded.m_header.m_areaCount);
 
-  if (doSpotCheck)
+  if (!doSpotCheck)
+    return true;
+
+  auto const checks = SpotCheckKnownIds(loaded.m_areas, HelsinkiKnownOsmIds());
+  uint32_t found = 0;
+  uint32_t nameOk = 0;
+  std::cout << "  helsinki_known_id_spot_check:\n";
+  for (auto const & row : checks)
   {
-    auto const checks = SpotCheckKnownIds(loaded.m_areas, HelsinkiKnownOsmIds());
-    uint32_t found = 0;
-    std::cout << "  helsinki_known_id_spot_check:\n";
-    for (auto const & row : checks)
+    if (row.m_found)
+      ++found;
+    if (row.m_nameMatches)
+      ++nameOk;
+    std::cout << "    osm_id=" << row.m_osmId << " hint=" << row.m_expectedNameHint
+              << " found=" << (row.m_found ? "yes" : "no");
+    if (row.m_found)
     {
-      if (row.m_found)
-        ++found;
-      std::cout << "    osm_id=" << row.m_osmId << " hint=" << row.m_expectedNameHint
-                << " found=" << (row.m_found ? "yes" : "no");
-      if (row.m_found)
-        std::cout << " name=" << row.m_actualName << " role=" << DebugPrint(row.m_role)
-                  << " admin_level=" << static_cast<int>(row.m_adminLevel);
-      std::cout << "\n";
+      std::cout << " name=" << row.m_actualName
+                << " name_match=" << (row.m_nameMatches ? "yes" : "no")
+                << " role=" << DebugPrint(row.m_role)
+                << " admin_level=" << static_cast<int>(row.m_adminLevel);
     }
-    std::cout << "  known_ids_found=" << found << "/" << checks.size() << "\n";
+    std::cout << "\n";
   }
+  std::cout << "  known_ids_found=" << found << "/" << checks.size()
+            << " name_match=" << nameOk << "/" << checks.size() << "\n";
+  return found == checks.size() && nameOk == checks.size();
 }
 }  // namespace
 
@@ -127,6 +138,7 @@ int main(int argc, char ** argv)
   }
 
   base::Timer timer;
+  bool spotCheckOk = true;
 
   // Country-concat: all admitted FI rings (size vs SP-023 national baseline).
   {
@@ -152,7 +164,7 @@ int main(int argc, char ** argv)
     params.m_isoCode = FLAGS_iso;
     params.m_mwmId = FLAGS_helsinki_leaf;
     std::string const outPath = base::JoinPath(FLAGS_out_dir, FLAGS_helsinki_leaf + SPA_FILE_EXTENSION);
-    EmitOne(outPath, std::move(areas), policy, params, stats, /*doSpotCheck=*/true);
+    spotCheckOk = EmitOne(outPath, std::move(areas), policy, params, stats, /*doSpotCheck=*/true);
   }
   else
   {
@@ -160,5 +172,10 @@ int main(int argc, char ** argv)
   }
 
   std::cout << "elapsed_s=" << timer.ElapsedSeconds() << "\n";
+  if (!spotCheckOk)
+  {
+    LOG(LERROR, ("Helsinki known-id spot-check failed (missing id or name mismatch)"));
+    return 5;
+  }
   return 0;
 }

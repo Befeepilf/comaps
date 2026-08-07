@@ -14,8 +14,8 @@
 | Aggressive OEM | Deferred to Phase 10. |
 | SPD-024 floors | Exit #7 is sidecar / assignment-blob **size acceptance** only. There is **no** V1 numeric client pixel/area floor to validate. Do **not** invent floors in the evidence log. |
 | Mapgen emit | Full generator mapgen emission into `.spa` remains a known SP-026 residual. Do not claim exit #1 Pass for a shipping full-country blob until emit (or an equivalent offline FI `.spa`) is evidenced. |
-| Shipping size | Exit #7 may stay **residual** until `SaveOuterPath` shipping encoder is re-measured vs SP-023 zlib `coded_delta` baseline (~2.06 MiB national / ~0.52 MiB Helsinki). |
-| Helsinki names | Programmatic name spot-check only if `/tmp/sp023` (or equivalent FI rings) is present; otherwise residual. |
+| Shipping size | Exit #7 requires `SaveOuterPath` measurement vs SP-023 zlib `coded_delta` baseline (~2.06 MiB national / ~0.52 MiB Helsinki). **Closed under SP-032** (see evidence size table); do not invent SPD-024 floors. |
+| Helsinki names | Programmatic known-id spot-check when `/tmp/sp023` (or equivalent FI rings) is present; otherwise residual. **Closed under SP-032** (11/11). |
 | Flake note | `PauseResume_TrackBoundary_ImmediateResumeAdd_SplitsCorrectly` is a known intermittent pre-existing flake. Do **not** fail Phase 4 on a single flake of that test; re-run once and record. |
 
 ## Scope
@@ -152,13 +152,14 @@ Explicit candidates (add rows only when observed):
 
 | Residual class | Example | Disposition |
 | --- | --- | --- |
-| Mapgen emit gap | Collectors not wired to write production `.spa` | Owning follow-up from SP-026; blocks claiming exit #1 Pass for shipping FI |
-| Shipping size unmeasured | No FI `.spa` byte size with `SaveOuterPath` | Exit #7 residual; re-measure when emit/offline harness available |
-| Device / Helsinki walks | Pixel 3a area UX, coastal/rural visual | Phase 10 (SP-014/022 pattern) |
-| `/tmp/sp023` absent | Cannot run programmatic Helsinki name check | Residual until spike data or shipping FI `.spa` restored |
+| Mapgen emit gap | Collectors not wired to write production `.spa` | **Narrowed (SP-032)** — pre-production / SP-026 follow-up; offline FI `.spa` satisfies fixture-country exit #1 bar |
+| Shipping size unmeasured | No FI `.spa` byte size with `SaveOuterPath` | **Closed (SP-032)** — measured under `/tmp/sp032/`; see evidence size table |
+| Device / Helsinki walks | Pixel 3a area UX, coastal/rural visual | Phase 10 (SP-014/022 pattern) — R3 |
+| `/tmp/sp023` absent | Cannot run programmatic Helsinki name check | **Closed (SP-032)** — JSONL rebuilt; 11/11 known-id spot-check |
 | Pause-resume flake | `ImmediateResumeAdd_SplitsCorrectly` | Pre-existing; not Phase 4 |
 | Dense-admin second country | Worldwide size expectations | Optional; Finland grounds V1 |
 | Client numeric floors | Privacy / suitability pixel counts | Forbidden by SPD-024 until new SPD |
+| Dense assign blob size | Geometry-only emit (`assign_count=0`) | Optional when HEALPix samples available from mapgen emit |
 
 ## Automated baseline (agent)
 
@@ -178,13 +179,13 @@ from this branch SHA.
 
 | Exit # | Criterion | Status | Evidence |
 | --- | --- | --- | --- |
-| 1 | True closed polygons available for fixture country | **Residual** | A1–A2 / G1 fixtures+library green; A3 mapgen emit not wired; no shipping FI `.spa` — full-country bar not claimed Pass |
+| 1 | True closed polygons available for fixture country | **Pass** | A5 offline FI `.spa` (SP-032); F1 11/11; A1–A2 / G1. Production mapgen emit still follow-up (A3 / narrowed R1) |
 | 2 | Versioned country config applied by priority | **Pass** | B1–B3, G4 |
 | 3 | Every valid street pixel ≤1 area; deterministic | **Pass** | C1, C4–C5, D4, G1/G3 |
 | 4 | Smallest-polygon + stable-id tie-break tested | **Pass** | C2–C3 |
 | 5 | Settlement fallback | **Pass** | D1, D3 |
 | 6 | Outside settlements: exploration works, no area | **Pass (automated) + Residual (device)** | D2; F2/F3 → Phase 10 |
-| 7 | Sidecar/assignment-blob size measured and accepted (no client numeric floor — SPD-024) | **Residual** | A4, S1–S3; shipping encoder unmeasured; no floor invented |
+| 7 | Sidecar/assignment-blob size measured and accepted (no client numeric floor — SPD-024) | **Pass** | S2 shipping `SaveOuterPath` sizes vs S1; no floor invented; assign=0 documented (S3 deferred) |
 | 8 | No MWM country id as neighbourhood | **Pass (automated) + Residual (device UI)** | E1; E2 → Phase 10 |
 
 **Do not** mark “Exit criteria met” in phase docs unilaterally. Maintainer

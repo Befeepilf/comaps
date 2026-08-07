@@ -287,6 +287,7 @@ std::vector<KnownIdSpotCheck> SpotCheckKnownIds(std::vector<ExplorationArea> con
     {
       row.m_found = true;
       row.m_actualName = it->second->m_name;
+      row.m_nameMatches = (row.m_actualName == row.m_expectedNameHint);
       row.m_role = it->second->m_role;
       row.m_adminLevel = it->second->m_adminLevel;
     }

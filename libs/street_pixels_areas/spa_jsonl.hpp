@@ -46,6 +46,7 @@ struct KnownIdSpotCheck
   uint64_t m_osmId = 0;
   std::string m_expectedNameHint;
   bool m_found = false;
+  bool m_nameMatches = false;
   std::string m_actualName;
   AreaRole m_role = AreaRole::Subdivision;
   int8_t m_adminLevel = -1;
