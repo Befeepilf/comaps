@@ -1,4 +1,4 @@
-# (this commit)SP-045 — Add optional `spa` / `spa_sha1_base64` leaf fields to `countries.txt` publish
+# SP-045 — Add optional `spa` / `spa_sha1_base64` leaf fields to `countries.txt` publish
 
 **Phase:** 4 residual / pre-production packaging (not Phase 5; not Phase 10 device)
 **Status:** In review
