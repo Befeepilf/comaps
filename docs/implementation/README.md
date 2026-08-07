@@ -183,7 +183,7 @@ SP-043–048 — **not** Phase 5, **not** Phase 10 device work). Evidence:
 | SP-045 | **In review** — optional `spa` / `spa_sha1_base64` in `countries.txt` (**SPD-028**) |
 | SP-046 | **In review** — client leaf download fetches advertised `.spa` beside MWM (**SPD-027**, **SPD-031**) |
 | SP-047 | **In review** — `.spa` full-refetch on update + delete-with-map (**SPD-029**, **SPD-030**) |
-| SP-048 | Planned (stub) — incomplete / retry signaling (**SPD-031**) |
+| SP-048 | **In review** — incomplete / retry signaling (**SPD-031**) |
 | SP-033 | **Accepted** 2026-08-07 — qualitative Pixel 3a OK; quantitative Spike 1 → Phase 10 |
 | SP-034 | **Accepted** 2026-08-07 — area completion cache + SPD-026 |
 | SP-035 | **Accepted** 2026-08-07 — focused-area badge binding (map-centre stub → SP-036) |
@@ -426,7 +426,7 @@ Closes narrowed R1 (production mapgen emit + CDN leaf download / packaging).
 | 45 | [SP-045](work-items/SP-045-countries-spa-meta.md) | Add optional `spa` / `spa_sha1_base64` leaf fields to `countries.txt` publish | 4 residual | **In review** — **SPD-028**; parse + publish inject; download = SP-046 |
 | 46 | [SP-046](work-items/SP-046-spa-download-beside-mwm.md) | Client leaf download fetches advertised `.spa` beside MWM | 4 residual | **In review** — **SPD-027**, **SPD-031**; delete lifecycle = SP-047 |
 | 47 | [SP-047](work-items/SP-047-spa-lifecycle-update-delete.md) | `.spa` full-refetch on map update and delete-with-map lifecycle | 4 residual | **In review** — **SPD-029**, **SPD-030** |
-| 48 | SP-048 | Sidecar shipping validation and incomplete / retry signaling | 4 residual | Planned (stub) — **SPD-031** |
+| 48 | [SP-048](work-items/SP-048-sidecar-shipping-validation.md) | Sidecar shipping validation and incomplete / retry signaling | 4 residual | **In review** — **SPD-031**; packaging track SP-042–048 pending maintainer |
 
 | Order | ID | Title | Phase | Why first |
 | --- | --- | --- | --- | --- |
