@@ -73,6 +73,7 @@ import app.organicmaps.location.TrackRecordingService;
 import app.organicmaps.maplayer.MapButtonsController;
 import app.organicmaps.maplayer.MapButtonsViewModel;
 import app.organicmaps.maplayer.ToggleMapLayerFragment;
+import app.organicmaps.maplayer.streetpixels.FocusedAreaDetailBottomSheet;
 import app.organicmaps.routing.DirectionsPreviewBottomSheet;
 import app.organicmaps.routing.ManageRouteBottomSheet;
 import app.organicmaps.routing.NavigationController;
@@ -103,6 +104,7 @@ import app.organicmaps.sdk.location.RecordingSession;
 import app.organicmaps.sdk.location.SensorListener;
 import app.organicmaps.sdk.location.TrackRecorder;
 import app.organicmaps.sdk.maplayer.isolines.IsolinesState;
+import app.organicmaps.sdk.maplayer.streetpixels.FocusedAreaProgress;
 import app.organicmaps.sdk.maplayer.streetpixels.RematchFractionChange;
 import app.organicmaps.sdk.maplayer.streetpixels.StreetPixelsManager;
 import app.organicmaps.sdk.maplayer.streetpixels.StreetPixelsState;
@@ -1437,6 +1439,24 @@ public class MwmActivity extends BaseMwmFragmentActivity
   {
     // This will open the place page
     mPlacePageViewModel.setMapObject((MapObject) data);
+
+    if (StreetPixelsManager.isEnabled() && data instanceof MapObject)
+    {
+      MapObject mapObject = (MapObject) data;
+      StreetPixelsState spState = mMapButtonsViewModel.getStreetPixelsState().getValue();
+      String countryId = spState != null ? spState.getCountryId() : "";
+      if (!TextUtils.isEmpty(countryId))
+      {
+        FocusedAreaProgress progress =
+            MwmApplication.from(this).getStreetPixelsManager().selectFocusedAreaAtLatLon(
+                mapObject.getLat(), mapObject.getLon(), countryId);
+        if (progress.hasFocus && !TextUtils.isEmpty(progress.displayName))
+        {
+          FocusedAreaDetailBottomSheet.show(getSupportFragmentManager(), progress.displayName,
+                                            progress.fractionValid, progress.fraction);
+        }
+      }
+    }
   }
 
   @Override
