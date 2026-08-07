@@ -111,6 +111,7 @@ Area id / assignment APIs exist under `libs/street_pixels_areas/` (SP-026–030)
 | 9 | [SP-031](../work-items/SP-031-area-pipeline-end-to-end-validation.md) | Area-pipeline end-to-end validation |
 | 10 | [SP-032](../work-items/SP-032-phase4-residual-spa-emit.md) | Offline `.spa` emit harness (SP-031 R1/R2/R4) |
 | — | [SP-042](../work-items/SP-042-sidecar-shipping-decisions.md) | Sidecar shipping decisions (SPD-027–033); follow-ons SP-043–048 (pre-production packaging, not Phase 5) |
+| — | [SP-043](../work-items/SP-043-spa-blob-contract-freeze.md) | Freeze production `.spa` blob contract (**SPD-034**; `format_version` 2) |
 
 **SP-025+ unblocked** — SP-024 Accepted 2026-08-03 (SPD-020–025).
 
