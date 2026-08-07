@@ -69,6 +69,19 @@ instrumentation is added.
 All other phases at their exit criteria. This phase cannot start early, and
 partial entry produces false confidence.
 
+## Carried residuals from earlier phases
+
+These do not block earlier phase exits. Phase 10 must close them with recorded
+device evidence (or an explicit accepted waiver).
+
+| From | Residual | Source |
+| --- | --- | --- |
+| Phase 2 | Aggressive-OEM screen-off / background sample continuity (exit #7 partial; Pixel 3a done) | SP-014 |
+| Phase 3 | Maintainer device walks (Pixel 3a / Uusimaa-scale reconciliation UX) | Phase 3 exit |
+| Phase 4 | R3 device walks: Helsinki UX, rural/coastal, no MWM-id as neighbourhood name in UI | SP-031 |
+| Phase 4 | R1 (narrowed): production mapgen collectors → `.spa` still unwired | Pre-production follow-up; not a Phase 10 device item |
+| Phase 5 | Possible mid-tier Android Spike 1 / rendering device residual if SP-033 uses desktop secondary | SP-033 (when recorded) |
+
 ## Proposed work-item breakdown
 
 Not yet decomposed. Likely shape:
