@@ -115,10 +115,8 @@ APIs the 2026-07-20 audit marked absent. Renderer shape matches the audit
 | 8 | [SP-040](../work-items/SP-040-completed-area-and-no-area-states.md) | Completed-area visual state and no-area empty state |
 | 9 | [SP-041](../work-items/SP-041-phase5-end-to-end-validation.md) | Phase 5 end-to-end validation (**exit gate**) |
 
-SP-033–SP-038 **Accepted** 2026-08-07. SP-039 implemented (awaiting acceptance)
-— city rollup via `CityCompletionCache` (sum explored/total; no avg %; no
-country/world). Next after accept: SP-040. SP-033 quantitative Spike 1 remains
-Phase 10.
+SP-033–SP-039 **Accepted** 2026-08-07. Next: SP-040 completed-area visual and
+no-area empty state. SP-033 quantitative Spike 1 remains Phase 10.
 
 ### Open questions
 
