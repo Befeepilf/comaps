@@ -113,7 +113,7 @@ Area id / assignment APIs exist under `libs/street_pixels_areas/` (SP-026–030)
 | — | [SP-042](../work-items/SP-042-sidecar-shipping-decisions.md) | Sidecar shipping decisions (SPD-027–033); follow-ons SP-043–048 (pre-production packaging, not Phase 5) |
 | — | [SP-043](../work-items/SP-043-spa-blob-contract-freeze.md) | Freeze production `.spa` blob contract (**SPD-034**; `format_version` 2) |
 | — | [SP-044](../work-items/SP-044-production-spa-emit.md) | Production leaf `.spa` emit (R1; **Option B** offline batch; Option A residual) |
-| — | [SP-045](../work-items/SP-045-countries-spa-meta.md) | Optional `spa` / `spa_sha1_base64` leaf fields in `countries.txt` (**SPD-028**; Planned draft) |
+| — | [SP-045](../work-items/SP-045-countries-spa-meta.md) | Optional `spa` / `spa_sha1_base64` leaf fields in `countries.txt` (**SPD-028**; In review) |
 
 **SP-025+ unblocked** — SP-024 Accepted 2026-08-03 (SPD-020–025).
 
@@ -249,7 +249,7 @@ Pass (automated) + Residual (device); **7 Pass** (no SPD-024 floor).
 | ID | Summary | Disposition |
 | --- | --- | --- |
 | R3 | Device walks (Helsinki UX, rural/coastal, no MWM-id neighbourhood in UI) | Phase 10 |
-| R1 (narrowed) | Production leaf `.spa` emit + CDN leaf download / packaging not wired | **Phase 4 residual / pre-production packaging** — shipping decisions owned by [SP-042](../work-items/SP-042-sidecar-shipping-decisions.md) (**SPD-027–033**); emit **SP-044** Option B In review (dense tool+tests; full eight-leaf FI `.pix` batch residual); full mapgen collectors = Option A follow-up; countries meta **[SP-045](../work-items/SP-045-countries-spa-meta.md)** Planned (draft); download/lifecycle SP-046–048. Still pre-production packaging, **not** Phase 5 and **not** a Phase 10 device item. Offline harness (SP-032) satisfies fixture-country exit #1 |
+| R1 (narrowed) | Production leaf `.spa` emit + CDN leaf download / packaging not wired | **Phase 4 residual / pre-production packaging** — shipping decisions owned by [SP-042](../work-items/SP-042-sidecar-shipping-decisions.md) (**SPD-027–033**); emit **SP-044** Option B In review (dense tool+tests; full eight-leaf FI `.pix` batch residual); full mapgen collectors = Option A follow-up; countries meta **[SP-045](../work-items/SP-045-countries-spa-meta.md)** In review; download/lifecycle SP-046–048. Still pre-production packaging, **not** Phase 5 and **not** a Phase 10 device item. Offline harness (SP-032) satisfies fixture-country exit #1 |
 
 ## Explicit non-goals
 
