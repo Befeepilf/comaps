@@ -18,6 +18,8 @@ set(SRC
   exploration_sidecar.hpp
   sparse_assignment_store.cpp
   sparse_assignment_store.hpp
+  spa_jsonl.cpp
+  spa_jsonl.hpp
   subdivision_assigner.cpp
   subdivision_assigner.hpp
   subdivision_assignment.cpp
@@ -33,6 +35,8 @@ target_link_libraries(${PROJECT_NAME}
     geometry
     platform
     street_pixels_config
+  PRIVATE
+    cppjansson
 )
 
 omim_add_test_subdirectory(street_pixels_areas_tests)

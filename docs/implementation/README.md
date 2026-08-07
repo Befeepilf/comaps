@@ -2,7 +2,7 @@
 
 **Document status:** Living project index
 **Scope of this document:** Android public V1
-**Last structural update:** 2026-07-25
+**Last structural update:** 2026-08-07
 
 This file is the index for Street Pixels implementation work. It intentionally
 contains no implementation detail. Detail belongs in `phases/` and
@@ -79,8 +79,8 @@ V1 scope. Explorer Pro **purchasing** is not.
 | 1 | Baseline and guardrails | [`phases/phase-01-baseline-and-guardrails.md`](phases/phase-01-baseline-and-guardrails.md) | Not started |
 | 2 | Recording and collection correctness | [`phases/phase-02-recording-and-collection-correctness.md`](phases/phase-02-recording-and-collection-correctness.md) | Complete (OEM screen-off residual → Phase 10) |
 | 3 | Exploration storage and map-update reconciliation | [`phases/phase-03-exploration-storage-and-reconciliation.md`](phases/phase-03-exploration-storage-and-reconciliation.md) | Complete (device-walk residual → Phase 10) |
-| 4 | Administrative-area pipeline | [`phases/phase-04-administrative-area-pipeline.md`](phases/phase-04-administrative-area-pipeline.md) | In progress (SP-030 Accepted; SP-031 next) |
-| 5 | Area progress and map interaction | [`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md) | Not started |
+| 4 | Administrative-area pipeline | [`phases/phase-04-administrative-area-pipeline.md`](phases/phase-04-administrative-area-pipeline.md) | Exit criteria met (device residual → Phase 10) |
+| 5 | Area progress and map interaction | [`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md) | In progress (phase-entry planning 2026-08-07) |
 | 6 | Exploration-aware routing | [`phases/phase-06-exploration-aware-routing.md`](phases/phase-06-exploration-aware-routing.md) | Not started |
 | 7 | Milestones and share cards | [`phases/phase-07-milestones-and-share-cards.md`](phases/phase-07-milestones-and-share-cards.md) | Not started |
 | 8 | Competition | [`phases/phase-08-competition.md`](phases/phase-08-competition.md) | Not started |
@@ -155,7 +155,12 @@ roadmap tracks.
 
 ### 4.3 Current phase status
 
-**Active phase: Phase 4 — Administrative-area pipeline.**
+**Active phase: Phase 5 — Area progress and map interaction.**
+
+Phase 4 is **complete** (Exit criteria met 2026-08-07) with residuals: R3
+device walks → Phase 10; narrowed R1 production mapgen emit → pre-production
+follow-up. Evidence:
+[`validation/SP-031-evidence-log.md`](validation/SP-031-evidence-log.md).
 
 | Work item | Status |
 | --- | --- |
@@ -169,10 +174,22 @@ roadmap tracks.
 | SP-028 | Accepted — consume/verify precomputed subdivision map |
 | SP-029 | Accepted — settlement fallback / no-area (SPD-007/025) |
 | SP-030 | Accepted — sparse `.spx` + rematerialize (SPD-022) |
-| SP-031 | Planned — end-to-end validation |
+| SP-031 | Accepted — Phase 4 exit validation (R3 → Phase 10) |
+| SP-032 | Accepted — offline `spa_emit_tool` + shipping-encoder FI sizes |
+| SP-033 | Planned — Spike: city-scale rendering performance (**entry gate**) |
+| SP-034 | Planned — Area-scoped completion computation and cache |
+| SP-035 | Planned — Primary progress badge bound to focused area |
+| SP-036 | Planned — Focus-selection engine (§12.5) |
+| SP-037 | Planned — Area boundary rendering and completion shading |
+| SP-038 | Planned — Area tap selection and focused-area detail surface |
+| SP-039 | Planned — City-scale aggregation and summary badge |
+| SP-040 | Planned — Completed-area visual + no-area empty state |
+| SP-041 | Planned — Phase 5 end-to-end validation (**exit gate**) |
 
-Phase 4 entry criteria for polygon store and assignment locus are **Met**
-(SPD-020, SPD-021). SP-024 Accepted 2026-08-03.
+**Do not start SP-034+ coding until SP-033 measurement is recorded** (mirror
+Phase 4 SP-023/024 gate). Desktop secondary OK if mid-tier Android is deferred;
+device residual → Phase 10. Phase 5 entry investigation:
+[`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md).
 
 ## 5. Release slices
 
@@ -372,13 +389,35 @@ Phase 3 residual (Pixel 3a / Uusimaa device walks, rematch timing on large
 | 28 | [SP-028](work-items/SP-028-pixel-to-area-assignment.md) | Deterministic pixel-to-area assignment | 4 | **Accepted** 2026-08-06 — consume/verify precomputed subdivision map |
 | 29 | [SP-029](work-items/SP-029-settlement-fallback-and-no-area.md) | Settlement fallback and no-area state | 4 | **Accepted** 2026-08-06 — true municipal rings; SPD-007; client settlement PIP |
 | 30 | [SP-030](work-items/SP-030-assignment-persistence-and-rematch.md) | Persist assignments and rematch hooks | 4 | **Accepted** 2026-08-07 — sparse `.spx` + rematerialize |
-| 31 | [SP-031](work-items/SP-031-area-pipeline-end-to-end-validation.md) | Area-pipeline end-to-end validation | 4 | Planned — Phase 4 exit gate; no numeric floor yet (SPD-024) |
+| 31 | [SP-031](work-items/SP-031-area-pipeline-end-to-end-validation.md) | Area-pipeline end-to-end validation | 4 | **Accepted** 2026-08-07 — Phase 4 exit; R3 device walks → Phase 10; narrowed R1 mapgen → pre-production |
+| 32 | [SP-032](work-items/SP-032-phase4-residual-spa-emit.md) | Phase 4 residual: offline `.spa` emit | 4 | **Accepted** 2026-08-07 — `spa_emit_tool`; FI ~1.93 MiB / Helsinki ~0.44 MiB; 11/11 spot-check |
 
-Phase 4 entry investigation (2026-08-03) recorded in
-[`phases/phase-04-administrative-area-pipeline.md`](phases/phase-04-administrative-area-pipeline.md).
-Architecture decisions SPD-020–025 Accepted under SP-024 (2026-08-03).
-SP-028 = subdivision assignment; SP-029 = settlement fallback / no-area.
+Phase 4 **Exit criteria met** 2026-08-07. Residuals: R3 device walks → Phase
+10; narrowed R1 production mapgen emit → pre-production. Investigation and
+architecture: [`phases/phase-04-administrative-area-pipeline.md`](phases/phase-04-administrative-area-pipeline.md);
+SPD-020–025 Accepted under SP-024. Validation:
+[`validation/SP-031-validation-plan.md`](validation/SP-031-validation-plan.md),
+[`validation/SP-031-evidence-log.md`](validation/SP-031-evidence-log.md).
 
-Detailed work items exist for Phases 1–4. Later phases are broken down after
+| Order | ID | Title | Phase | Why first |
+| --- | --- | --- | --- | --- |
+| 33 | [SP-033](work-items/SP-033-city-scale-rendering-performance-spike.md) | Spike: city-scale street-pixel rendering performance | 5 | **Planned** — Phase 5 entry gate (Spike 1 ≥30 FPS p95 zoom 14–16; &lt;150 MB uplift) |
+| 34 | [SP-034](work-items/SP-034-area-scoped-completion-computation.md) | Area-scoped completion computation and cache | 5 | **Planned** — formula lock (OQ-1); invalidate on collect/import/rematch/policy |
+| 35 | [SP-035](work-items/SP-035-primary-progress-badge-focused-area.md) | Primary progress badge bound to focused area | 5 | **Planned** — name + %; no MWM country id as name |
+| 36 | [SP-036](work-items/SP-036-focus-selection-engine.md) | Focus-selection engine (§12.5) | 5 | **Planned** — all five rules as separate cases |
+| 37 | [SP-037](work-items/SP-037-area-boundary-rendering-and-shading.md) | Area boundary rendering and completion shading by zoom | 5 | **Planned** — depends on SP-033 LOD outcome |
+| 38 | [SP-038](work-items/SP-038-area-tap-selection-and-detail-surface.md) | Area tap selection and focused-area detail surface | 5 | **Planned** — polygon hit-test, not pixel picking |
+| 39 | [SP-039](work-items/SP-039-city-scale-aggregation-and-summary-badge.md) | City-scale aggregation and summary badge | 5 | **Planned** — settlement containment from Phase 4 |
+| 40 | [SP-040](work-items/SP-040-completed-area-and-no-area-states.md) | Completed-area visual state and no-area empty state | 5 | **Planned** — §18.6, §31 |
+| 41 | [SP-041](work-items/SP-041-phase5-end-to-end-validation.md) | Phase 5 end-to-end validation | 5 | **Planned** — exit gate; device residual → Phase 10 pattern |
+
+Phase 5 entry investigation (2026-08-07) recorded in
+[`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md).
+**Do not start SP-034+ until SP-033 measurement is recorded** (desktop
+secondary OK if device deferred; residual → Phase 10). OQ-1 completion formula
+blank in spec §7 — provisional intent explored/total valid street pixels in
+area (live+imported); SP-034 locks provisional SPD or defers formal SPD.
+
+Detailed work items exist for Phases 1–5. Later phases are broken down after
 their entry criteria are met, and after any spike that phase depends on has a
 recorded outcome.

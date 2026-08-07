@@ -1,6 +1,6 @@
 # Phase 4 — Administrative-area pipeline
 
-**Status:** In progress (SP-023–030 Accepted; SP-031 next)
+**Status:** Exit criteria met 2026-08-07 (device-walk residual R3 → Phase 10; narrowed R1 mapgen emit → pre-production)
 **Depends on:** Phase 3
 **Blocks:** Phases 5, 7, 8
 
@@ -43,26 +43,23 @@ and map-data work, not only client work.
 
 ## Current code locations
 
-Re-verified 2026-08-03 against the working tree (supersedes 2026-07-25 notes
-where they differ — none material).
+Re-verified 2026-08-07 at Phase 4 exit (supersedes 2026-08-03 entry snapshot).
 
 | Concern | Location | Observed state |
 | --- | --- | --- |
-| Admin level retention | `data/mapcss-mapping.csv`, `data/classificator.txt` | Only `boundary\|administrative\|2`, `\|3`, `\|4` plus generic `boundary\|administrative` are active. `\|7`, `\|9`, `\|10`, `\|11` deprecated. Levels **5, 6, and 8 have no typed entry**. Classificator `administrative` children = 2,3,4 only. |
-| Place types | `data/mapcss-mapping.csv` | `place\|suburb`, `place\|quarter`, `place\|neighbourhood` active for search/labels (`IsSuburbChecker`); **not** exploration polygons |
-| City boundary storage | `libs/indexer/city_boundary.hpp` | Still bbox ∩ calipers ∩ diamond; point inside only if inside all three |
-| Boundary build | `generator/collector_routing_city_boundaries.cpp`, `place_processor.cpp`, `cities_boundaries_builder.cpp` | Collector keeps **true rings** in `PlaceBoundariesHolder`; `PlaceProcessor` boxifies via `CityBoundary(poly)`, may drop oversized non-honest-city boundaries (`exactArea > 20×` population circle); serialises World MWM `CITIES_BOUNDARIES_FILE_TAG` |
-| Runtime lookup | `libs/search/cities_boundaries_table.hpp` | World-MWM only; `Has`/`Get`/`HasPoint` — no admin_level, stable OSM area id, or assignment API |
-| Area identifier | — | **Not found** |
-| Pixel-to-area assignment | — | **Not found** |
-| ExploreStats “region” | `StreetPixelsManager` → `ExploreStats` | Still MWM `countryId`, not neighbourhood |
+| Admin level retention | `data/mapcss-mapping.csv`, `data/classificator.txt` | Unchanged for drawable MWM types: 2–4 active; 7/9–11 deprecated; 5/6/8 unmapped. Exploration polygons do **not** depend on these typed entries (SPD-020 sidecar). |
+| Place types | `data/mapcss-mapping.csv` | Search/label place types unchanged; exploration place rings come from `.spa` when policy admits closed rings |
+| City boundary storage | `libs/indexer/city_boundary.hpp` | Still three-box for World search; **not** assignment authority (SPD-025) |
+| Boundary build | `generator/collector_routing_city_boundaries.cpp`, `place_processor.cpp`, `cities_boundaries_builder.cpp` | World three-box path unchanged; exploration emit is offline `tools/spa_emit_tool/` (SP-032); production collectors→`.spa` still unwired (narrowed R1) |
+| Exploration sidecar | `libs/street_pixels_areas/` (`.spa`, `DisplayName`, serdes) | Shipped format + library; FI fixture emit via SP-032 |
+| Country config | `data/street_pixels/`, `street_pixels_config` | Versioned FI policy (SPD-023); SP-025 Accepted |
+| Runtime assignment | `ExplorationAreaResolver`, `SubdivisionAssignmentTable`, `SparseAssignmentStore` | Deterministic subdiv → settlement → no-area; sparse `.spx` + rematerialize (SPD-021/022) |
+| Area display name | `street_pixels::DisplayName` | Never falls back to MWM id (automated); device UI residual → Phase 10 |
+| ExploreStats “region” | `StreetPixelsManager` / `ExploreStatsService` | Still MWM `countryId` for weekly aggregates — not neighbourhood progress (Phase 5) |
 
-**Difference from the technical audit:** audit’s 2–4 kept / 7,9–11 deprecated
-claim remains correct but incomplete — 5, 6, 8 were never mapped (phase doc
-already noted). Spike 6 size measurement: **SP-023 accepted** 2026-08-03
-(Finland; see
-[SP-023](../work-items/SP-023-admin-polygon-size-spike.md) and
-[spike note](../spikes/SP-023-finland-admin-polygons.md)).
+**Difference from the technical audit:** audit Spike 6 size measurement is
+**done** (SP-023). Store/assignment architecture **closed** (SPD-020–025).
+Area id / assignment APIs exist under `libs/street_pixels_areas/` (SP-026–030).
 
 ## Intended outcome
 
@@ -112,6 +109,7 @@ already noted). Spike 6 size measurement: **SP-023 accepted** 2026-08-03
 | 7 | [SP-029](../work-items/SP-029-settlement-fallback-and-no-area.md) | Settlement fallback and no-area state |
 | 8 | [SP-030](../work-items/SP-030-assignment-persistence-and-rematch.md) | Persist assignments and rematch hooks |
 | 9 | [SP-031](../work-items/SP-031-area-pipeline-end-to-end-validation.md) | Area-pipeline end-to-end validation |
+| 10 | [SP-032](../work-items/SP-032-phase4-residual-spa-emit.md) | Offline `.spa` emit harness (SP-031 R1/R2/R4) |
 
 **SP-025+ unblocked** — SP-024 Accepted 2026-08-03 (SPD-020–025).
 
@@ -228,6 +226,26 @@ fallback / rural no-area on top. Do not invert that order.
 7. Sidecar (+ assignment blob) size impact is measured and accepted
    (SPD-020; no client numeric floor — SPD-024).
 8. No MWM country identifier is presented anywhere as a neighbourhood.
+
+### Phase 4 exit (2026-08-07)
+
+**Status: Exit criteria met** 2026-08-07.
+
+Evidence:
+[`validation/SP-031-validation-plan.md`](../validation/SP-031-validation-plan.md),
+[`validation/SP-031-evidence-log.md`](../validation/SP-031-evidence-log.md).
+SP-031 / SP-032 **Accepted** 2026-08-07. Suites: `street_pixels_areas_tests`
+46/46; full `street_pixels_tests` 185/185; Rematch 18; AssignmentPersist 3;
+CountryConfig 11. SP-032 offline emit: FI ~1.93 MiB / Helsinki ~0.44 MiB;
+Helsinki known ids **11/11**. Checklist: **1 Pass**; **2–5 Pass**; **6 / 8**
+Pass (automated) + Residual (device); **7 Pass** (no SPD-024 floor).
+
+**Residuals (do not block exit):**
+
+| ID | Summary | Disposition |
+| --- | --- | --- |
+| R3 | Device walks (Helsinki UX, rural/coastal, no MWM-id neighbourhood in UI) | Phase 10 |
+| R1 (narrowed) | Production mapgen collectors → `.spa` still unwired | Pre-production follow-up; offline harness satisfies fixture-country exit #1 |
 
 ## Explicit non-goals
 

@@ -74,24 +74,32 @@ subdivision assigner, writer/reader.
 this library until SP-027.
 
 CI path: synthetic fixtures in `street_pixels_areas_tests` (no Finland
-mapgen). Optional offline FI preview when
-`/tmp/sp023/finland_admin_place_rings.jsonl` is present:
+mapgen). Offline FI emit harness (**SP-032** — `tools/spa_emit_tool/`):
 
 ```bash
+# Optional admit-count preview:
 python3 tools/python/street_pixels_spike/filter_rings_for_spa.py \
   --rings /tmp/sp023/finland_admin_place_rings.jsonl \
   --policy data/street_pixels/country_policies.json --iso FI
+
+# Shipping-encoder emit (geometry-only assign_count=0; outputs under /tmp — not committed):
+./omim-build-debug/spa_emit_tool \
+  --rings=/tmp/sp023/finland_admin_place_rings.jsonl \
+  --policy=data/street_pixels/country_policies.json --iso=FI \
+  --out_dir=/tmp/sp032 \
+  --helsinki_poly="data/borders/Finland_Southern Finland_Helsinki.poly"
 ```
 
-Admitted candidates are then passed to `WriteExplorationSidecar` from a local
-C++ harness (not PlaceProcessor / three-box). Full generator mapgen hook
-remains a follow-up; this work item ships the format + library + tests.
+`FilterExplorationCandidate` → `WriteExplorationSidecar` (not PlaceProcessor /
+three-box). Full generator mapgen hook remains a follow-up; SP-026 shipped the
+format + library + tests; SP-032 ships the offline emit CLI + size evidence.
 
 ## Size vs SP-023
 
 SP-023 Finland budget baseline: country-concat zlib(coded_delta) ≈ **2.06 MiB**;
 Helsinki MWM slice zlib_coded ≈ **0.52 MiB**. Shipping rings use
-`SaveOuterPath` (MWM geometry codec), not the spike `coded_delta` encoder, so
-byte sizes are expected to differ and must be re-measured under SP-031 exit #7
-before treating AC size as Met. Policy filter on the SP-023 JSONL (FI): 2618
-admitted / 64 unnamed / 69 policy_mismatch.
+`SaveOuterPath` (MWM geometry codec). **Re-measured under SP-032** (exit #7):
+FI country-concat `.spa` **2 019 268 B (~1.93 MiB)**; Helsinki leaf **456 484 B
+(~0.44 MiB)**; assign section 0 (geometry-only). Policy filter on the SP-023
+JSONL (FI): 2618 admitted / 64 unnamed / 69 policy_mismatch. See
+[`validation/SP-031-evidence-log.md`](../validation/SP-031-evidence-log.md).

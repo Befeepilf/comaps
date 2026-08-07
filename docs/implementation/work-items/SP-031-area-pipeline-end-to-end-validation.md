@@ -1,8 +1,8 @@
 # SP-031 — Area-pipeline end-to-end validation
 
 **Phase:** 4 — Administrative-area pipeline
-**Status:** Planned
-**Branch:** `street-pixels`
+**Status:** Accepted
+**Branch:** `street-pixels` (merged from `cursor/sp-031-area-pipeline-validation-191e` via SP-032)
 **Depends on:** SP-025–030 implemented (or explicitly residualled)
 
 ---
@@ -49,14 +49,14 @@ assignment, fallback, and size budget hold.
 
 | # | Criterion | Result |
 | --- | --- | --- |
-| 1 | True closed polygons available for fixture country | |
-| 2 | Versioned country config applied by priority | |
-| 3 | Every valid street pixel ≤1 area; deterministic | |
-| 4 | Smallest-polygon + stable-id tie-break tested | |
-| 5 | Settlement fallback | |
-| 6 | Outside settlements: exploration works, no area | |
-| 7 | Sidecar/assignment-blob size measured and accepted (no client numeric floor yet — SPD-024) | |
-| 8 | No MWM country id as neighbourhood | |
+| 1 | True closed polygons available for fixture country | Pass (SP-032 offline FI `.spa`; production mapgen still follow-up) |
+| 2 | Versioned country config applied by priority | Pass |
+| 3 | Every valid street pixel ≤1 area; deterministic | Pass |
+| 4 | Smallest-polygon + stable-id tie-break tested | Pass |
+| 5 | Settlement fallback | Pass |
+| 6 | Outside settlements: exploration works, no area | Pass (automated) + Residual (device) |
+| 7 | Sidecar/assignment-blob size measured and accepted (no client numeric floor yet — SPD-024) | Pass (SP-032 shipping-encoder sizes; no floor invented) |
+| 8 | No MWM country id as neighbourhood | Pass (automated) + Residual (device UI) |
 
 ## Acceptance criteria
 
@@ -81,17 +81,20 @@ assignment, fallback, and size budget hold.
 
 | Field | Value |
 | --- | --- |
-| Validation plan | |
-| Evidence log | |
+| Validation plan | [SP-031-validation-plan.md](../validation/SP-031-validation-plan.md) |
+| Evidence log | [SP-031-evidence-log.md](../validation/SP-031-evidence-log.md) |
 | Decision ids (SP-024) | SPD-020–025 |
-| Test output | |
-| Exit criteria table | |
-| Residuals | |
-| Accepted by | |
-| Accepted date | |
+| Test output | Rebuild SHA `e10111c537`: `street_pixels_areas_tests` **44/44**; `street_pixels_tests --filter=Rematch` **18/18**; `--filter=AssignmentPersist` **3/3**; `--filter=CountryConfig` **11/11**; full `street_pixels_tests` **185/185** (PauseResume flake absent). Independent review re-verify same counts on docs tip. SP-032: areas **46/46**; FI `.spa` emit under `/tmp/sp032/` |
+| Exit criteria table | See evidence log — **1 Pass**; **2–5 Pass**; **6/8 Pass+Residual**; **7 Pass** (after SP-032) |
+| Residuals | Narrowed R1 mapgen emit (pre-production); R2/R4 **closed** (SP-032); R3 device walks → Phase 10 |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-07 |
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Production mapgen emit (collectors → `.spa`) still not wired | Narrowed R1 — pre-production; offline harness (SP-032) satisfies exit #1 fixture-country bar |
+| Shipping-encoder FI size measured under SP-032 | R2 closed — see evidence size table; no SPD-024 floor |
+| Device / Helsinki UI walks not executed | Phase 10 residual (SP-014/022 pattern) |
+| Phase 4 “Current code locations” table still said area id / assignment Not found (dated 2026-08-03) | Closed — refreshed at Phase 4 exit / Phase 5 entry docs (2026-08-07) |
