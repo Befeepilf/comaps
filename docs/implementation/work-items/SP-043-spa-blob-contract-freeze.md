@@ -90,7 +90,7 @@ freeze risks irreversible mismatched assignment.
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-042-sidecar-shipping-fe62` |
-| Commits | `9fadc1be9` (code+tests); `9a6d390b7` (docs) |
+| Commits | `9fadc1be9` (code+tests); `da2c84209` (docs) |
 | Decision ids | SPD-034 (implements SPD-032 freeze) |
 | Format | `kSpaFormatVersion=2`; `nside=1048576`; `universe_order=AscendingNest(1)` |
 | Test output | `./tools/unix/build_omim.sh -d -p /workspace street_pixels_areas_tests`; `./omim-build-debug/street_pixels_areas_tests` — **73/73 OK** (All tests passed.) |
