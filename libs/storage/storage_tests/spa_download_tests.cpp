@@ -384,5 +384,196 @@ UNIT_TEST(Storage_SpaLifecycle_ObsoleteVersionRemovesSpa)
   TEST(map2.Exists(), ());
   TEST(spa2.Exists(), ());
 }
+
+UNIT_TEST(Storage_SpaIncomplete_FailSoftMarksIncomplete)
+{
+  WritableDirChanger const writableDirChanger(kMapTestDir);
+  Platform::ThreadRunner threadRunner;
+
+  auto const json = MakeSpaDownloadCountriesJson(R"(,
+        "s": 2048,
+        "sha1_base64": "mwmSha",
+        "spa": 512,
+        "spa_sha1_base64": "spaSha")");
+
+  TaskRunner runner;
+  Storage storage(json, std::make_unique<FakeMapFilesDownloader>(runner));
+  InitSpaStorage(storage, runner);
+
+  CountryId const id = "SpaLeaf";
+  storage.DeleteCountry(id, MapFileType::Map);
+  DownloadAndPump(storage, runner, id, MapFileType::Map);
+
+  auto localFile = storage.GetLatestLocalFile(id);
+  TEST(localFile, ());
+  localFile->SyncWithDisk();
+  TEST(localFile->OnDisk(MapFileType::Map), ());
+  if (localFile->OnDisk(MapFileType::Spa))
+  {
+    localFile->DeleteFromDisk(MapFileType::Spa);
+    localFile->SyncWithDisk();
+  }
+  TEST(!localFile->OnDisk(MapFileType::Spa), ());
+  TEST(!storage.IsSpaIncomplete(id), ());
+
+  SpaDownloadDenyPolicy deny;
+  storage.SetDownloadingPolicy(&deny);
+  DownloadAndPump(storage, runner, id, MapFileType::Spa);
+
+  TEST_EQUAL(Status::OnDisk, storage.CountryStatusEx(id), ());
+  TEST(!storage.CheckFailedCountries({id}), ());
+  TEST(storage.IsSpaIncomplete(id), ());
+
+  CountriesVec incomplete;
+  storage.GetIncompleteSpaCountries(incomplete);
+  TEST_EQUAL(1, incomplete.size(), ());
+  TEST_EQUAL(id, incomplete.front(), ());
+
+  // Fail-closed precondition: no spa bytes on disk for TryLoad to invent areas from.
+  localFile = storage.GetLatestLocalFile(id);
+  TEST(localFile, ());
+  localFile->SyncWithDisk();
+  TEST(!localFile->OnDisk(MapFileType::Spa), ());
+  TEST(!Platform::IsFileExistsByFullPath(localFile->GetPath(MapFileType::Spa)), ());
+}
+
+UNIT_TEST(Storage_SpaIncomplete_RetryClearsAfterSpaDownload)
+{
+  WritableDirChanger const writableDirChanger(kMapTestDir);
+  Platform::ThreadRunner threadRunner;
+
+  auto const json = MakeSpaDownloadCountriesJson(R"(,
+        "s": 2048,
+        "sha1_base64": "mwmSha",
+        "spa": 512,
+        "spa_sha1_base64": "spaSha")");
+
+  TaskRunner runner;
+  Storage storage(json, std::make_unique<FakeMapFilesDownloader>(runner));
+  InitSpaStorage(storage, runner);
+
+  CountryId const id = "SpaLeaf";
+  storage.DeleteCountry(id, MapFileType::Map);
+  DownloadAndPump(storage, runner, id, MapFileType::Map);
+
+  auto localFile = storage.GetLatestLocalFile(id);
+  TEST(localFile, ());
+  localFile->SyncWithDisk();
+  if (localFile->OnDisk(MapFileType::Spa))
+  {
+    localFile->DeleteFromDisk(MapFileType::Spa);
+    localFile->SyncWithDisk();
+  }
+
+  SpaDownloadDenyPolicy deny;
+  storage.SetDownloadingPolicy(&deny);
+  DownloadAndPump(storage, runner, id, MapFileType::Spa);
+  TEST(storage.IsSpaIncomplete(id), ());
+  TEST(!localFile->OnDisk(MapFileType::Spa), ());
+
+  // Allow download again and retry without re-fetching the MWM.
+  DownloadingPolicy allow;
+  storage.SetDownloadingPolicy(&allow);
+  storage.RetryIncompleteSpaDownloads();
+  storage.StartPendingDownloadsForTesting();
+  runner.Run();
+
+  localFile = storage.GetLatestLocalFile(id);
+  TEST(localFile, ());
+  localFile->SyncWithDisk();
+  TEST(localFile->OnDisk(MapFileType::Map), ());
+  TEST(localFile->OnDisk(MapFileType::Spa), ());
+  TEST(!storage.IsSpaIncomplete(id), ());
+  TEST_EQUAL(Status::OnDisk, storage.CountryStatusEx(id), ());
+}
+
+UNIT_TEST(Storage_SpaIncomplete_MissingMetaNeverIncomplete)
+{
+  WritableDirChanger const writableDirChanger(kMapTestDir);
+  Platform::ThreadRunner threadRunner;
+
+  auto const json = MakeSpaDownloadCountriesJson(R"(,
+        "s": 1024,
+        "sha1_base64": "mwmSha")");
+
+  TaskRunner runner;
+  Storage storage(json, std::make_unique<FakeMapFilesDownloader>(runner));
+  InitSpaStorage(storage, runner);
+
+  CountryId const id = "SpaLeaf";
+  TEST(!storage.GetCountryFile(id).HasRemoteSpa(), ());
+
+  storage.DeleteCountry(id, MapFileType::Map);
+  DownloadAndPump(storage, runner, id, MapFileType::Map);
+
+  auto localFile = storage.GetLatestLocalFile(id);
+  TEST(localFile, ());
+  localFile->SyncWithDisk();
+  TEST(localFile->OnDisk(MapFileType::Map), ());
+  TEST(!localFile->OnDisk(MapFileType::Spa), ());
+  TEST(!storage.IsSpaIncomplete(id), ());
+
+  // Retry must not invent advertisement or mark incomplete.
+  storage.RetryIncompleteSpaDownloads();
+  storage.StartPendingDownloadsForTesting();
+  runner.Run();
+
+  TEST(!storage.IsSpaIncomplete(id), ());
+  CountriesVec incomplete;
+  storage.GetIncompleteSpaCountries(incomplete);
+  TEST(incomplete.empty(), ());
+  localFile = storage.GetLatestLocalFile(id);
+  TEST(localFile, ());
+  localFile->SyncWithDisk();
+  TEST(!localFile->OnDisk(MapFileType::Spa), ());
+}
+
+UNIT_TEST(Storage_SpaIncomplete_RestoreQueueAutoRetries)
+{
+  WritableDirChanger const writableDirChanger(kMapTestDir);
+  Platform::ThreadRunner threadRunner;
+
+  auto const json = MakeSpaDownloadCountriesJson(R"(,
+        "s": 2048,
+        "sha1_base64": "mwmSha",
+        "spa": 512,
+        "spa_sha1_base64": "spaSha")");
+
+  TaskRunner runner;
+  Storage storage(json, std::make_unique<FakeMapFilesDownloader>(runner));
+  InitSpaStorage(storage, runner);
+
+  CountryId const id = "SpaLeaf";
+  storage.DeleteCountry(id, MapFileType::Map);
+  DownloadAndPump(storage, runner, id, MapFileType::Map);
+
+  auto localFile = storage.GetLatestLocalFile(id);
+  TEST(localFile, ());
+  localFile->SyncWithDisk();
+  if (localFile->OnDisk(MapFileType::Spa))
+  {
+    localFile->DeleteFromDisk(MapFileType::Spa);
+    localFile->SyncWithDisk();
+  }
+
+  SpaDownloadDenyPolicy deny;
+  storage.SetDownloadingPolicy(&deny);
+  DownloadAndPump(storage, runner, id, MapFileType::Spa);
+  TEST(storage.IsSpaIncomplete(id), ());
+
+  // Persist incomplete flag, then simulate cold restore with downloads allowed.
+  DownloadingPolicy allow;
+  storage.SetDownloadingPolicy(&allow);
+  settings::Set("DownloadQueue", std::string());
+  storage.RestoreDownloadQueue();
+  storage.StartPendingDownloadsForTesting();
+  runner.Run();
+
+  localFile = storage.GetLatestLocalFile(id);
+  TEST(localFile, ());
+  localFile->SyncWithDisk();
+  TEST(localFile->OnDisk(MapFileType::Spa), ());
+  TEST(!storage.IsSpaIncomplete(id), ());
+}
 }  // namespace
 }  // namespace storage
