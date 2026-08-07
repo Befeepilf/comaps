@@ -25,20 +25,32 @@ API is SP-027.
 
 ## Header fields
 
-magic (`SPA1` / `kSpaMagic`), `format_version`, `map_data_version`,
-`policy_version`, ISO 3166-1 alpha-2, MWM leaf id, `area_count`,
-`assign_count`, `index_width` (2 or 4).
+magic (`SPA1` / `kSpaMagic`), `format_version` (**2** production; **1**
+geometry-only dual-read), `map_data_version`, `policy_version`, ISO 3166-1
+alpha-2, MWM leaf id, `area_count`, `assign_count`, `index_width` (2 or 4),
+then (format_version **2** only, little-endian after `index_width`):
+
+| Field | Type | Production value |
+| --- | --- | --- |
+| `nside` | `uint32` | `1048576` (`kSpaNside`) |
+| `universe_order` | `uint8` | `1` = AscendingNest (`kSpaUniverseOrderAscendingNest`) |
+| `reserved` | `uint8[3]` | must be `0` on write; non-zero → fail-closed on read |
+
+Frozen by **SPD-034** / **SP-043**. Writers always emit format_version 2 with
+those values. Readers accept v2 only when `nside` / `universe_order` /
+`reserved` match; accept v1 only when `assign_count == 0` (geometry-only
+fixtures / offline harness); reject v1 with `assign_count > 0`.
 
 Assignment determinism is keyed by `(map_data_version, policy_version)`.
 
 ### Assign column semantics (universe order)
 
-`assign[i]` is the compact area index for **sample slot `i`** supplied to
-`WriteExplorationSidecar` (typically valid-street-pixel HEALPix cell centres in
-generator emit order). The header does **not** yet encode HEALPix `nside` or an
-explicit universe-ordering tag; that contract is owned by the generator emit job
-and must be fixed before SP-027/028 consume production blobs (see SP-026
-follow-ups). `assign_count == 0` is valid for geometry-only fixtures.
+`assign[i]` is the compact area index for **slot `i`** of the HEALPix NEST
+exploration universe **U** for that MWM leaf: **U is strictly ascending** by
+NEST id at `nside = 1048576`, matching `ScanUniverseAscending` / the SP-028
+contract (`docs/implementation/notes/SP-028-universe-order.md`). Slot `i` ↔
+`U[i]` ↔ `assign[i]`. `assign_count == 0` remains valid for geometry-only
+fixtures.
 
 ## Areas
 
