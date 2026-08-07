@@ -1,6 +1,6 @@
 # Phase 4 — Administrative-area pipeline
 
-**Status:** In progress (SP-023–030 Accepted; SP-031 In review — evidence recorded; exit criteria not unilaterally Met)
+**Status:** In progress (SP-023–030 Accepted; SP-031/032 In review — exit #1/#7 Pass via offline emit; exit criteria not unilaterally Met)
 **Depends on:** Phase 3
 **Blocks:** Phases 5, 7, 8
 
@@ -112,6 +112,7 @@ already noted). Spike 6 size measurement: **SP-023 accepted** 2026-08-03
 | 7 | [SP-029](../work-items/SP-029-settlement-fallback-and-no-area.md) | Settlement fallback and no-area state |
 | 8 | [SP-030](../work-items/SP-030-assignment-persistence-and-rematch.md) | Persist assignments and rematch hooks |
 | 9 | [SP-031](../work-items/SP-031-area-pipeline-end-to-end-validation.md) | Area-pipeline end-to-end validation |
+| 10 | [SP-032](../work-items/SP-032-phase4-residual-spa-emit.md) | Offline `.spa` emit harness (SP-031 R1/R2/R4) |
 
 **SP-025+ unblocked** — SP-024 Accepted 2026-08-03 (SPD-020–025).
 
@@ -229,19 +230,21 @@ fallback / rural no-area on top. Do not invert that order.
    (SPD-020; no client numeric floor — SPD-024).
 8. No MWM country identifier is presented anywhere as a neighbourhood.
 
-### SP-031 validation status (2026-08-07)
+### SP-031 / SP-032 validation status (2026-08-07)
 
 Evidence recorded under
 [`validation/SP-031-validation-plan.md`](../validation/SP-031-validation-plan.md)
 and
 [`validation/SP-031-evidence-log.md`](../validation/SP-031-evidence-log.md).
-Automated suites green (`street_pixels_areas_tests` 44/44; full
+Automated suites green (`street_pixels_areas_tests` 46/46 after SP-032; full
 `street_pixels_tests` 185/185; Rematch 18; AssignmentPersist 3; CountryConfig
-11). Exit checklist in the evidence log: **1 Residual**; **2–5 Pass**; **6 / 8**
-Pass+Residual; **7 Residual**. Known residuals: mapgen emit gap (SP-026),
-shipping-encoder FI size unmeasured, device/Helsinki walks → Phase 10,
-`/tmp/sp023` absent this run. **Exit criteria are not marked Met** — maintainer
-decides Phase 4 exit after reviewing SP-031.
+11). SP-032 offline emit (`tools/spa_emit_tool/`): FI country-concat
+`.spa` ~1.93 MiB / Helsinki leaf ~0.44 MiB (`SaveOuterPath`); Helsinki known
+ids **11/11**; policy admit 2618/64/69. Exit checklist: **1 Pass**; **2–5
+Pass**; **6 / 8** Pass+Residual (device); **7 Pass** (no SPD-024 floor).
+Remaining residuals: narrowed R1 production mapgen emit; R3 device walks →
+Phase 10. **Exit criteria are not marked Met** — maintainer decides Phase 4
+exit after reviewing SP-031/032.
 
 ## Explicit non-goals
 
