@@ -421,7 +421,7 @@ Closes narrowed R1 (production mapgen emit + CDN leaf download / packaging).
 | 45 | SP-045 | Add optional `spa` / `spa_sha1_base64` leaf fields to `countries.txt` publish | 4 residual | Planned (stub) — **SPD-028** |
 | 46 | SP-046 | Client leaf download fetches advertised `.spa` beside MWM | 4 residual | Planned (stub) — **SPD-027**, **SPD-031** |
 | 47 | SP-047 | `.spa` full-refetch on map update and delete-with-map lifecycle | 4 residual | Planned (stub) — **SPD-029**, **SPD-030** |
-| 48 | SP-048 | Sidecar shipping validation and incomplete / retry signaling | 4 residual | Planned (stub) |
+| 48 | SP-048 | Sidecar shipping validation and incomplete / retry signaling | 4 residual | Planned (stub) — **SPD-031** |
 
 | Order | ID | Title | Phase | Why first |
 | --- | --- | --- | --- | --- |
