@@ -11,6 +11,7 @@ set(SRC
   helpers.cpp
   helpers.hpp
   simple_tree_test.cpp
+  spa_download_tests.cpp
   storage_tests.cpp
   task_runner.cpp
   task_runner.hpp
