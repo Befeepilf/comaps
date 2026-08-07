@@ -49,13 +49,13 @@ assignment, fallback, and size budget hold.
 
 | # | Criterion | Result |
 | --- | --- | --- |
-| 1 | True closed polygons available for fixture country | Residual (fixtures/library green; mapgen emit / no shipping FI `.spa` — full-country bar unmet) |
+| 1 | True closed polygons available for fixture country | Pass (SP-032 offline FI `.spa`; production mapgen still follow-up) |
 | 2 | Versioned country config applied by priority | Pass |
 | 3 | Every valid street pixel ≤1 area; deterministic | Pass |
 | 4 | Smallest-polygon + stable-id tie-break tested | Pass |
 | 5 | Settlement fallback | Pass |
 | 6 | Outside settlements: exploration works, no area | Pass (automated) + Residual (device) |
-| 7 | Sidecar/assignment-blob size measured and accepted (no client numeric floor yet — SPD-024) | Residual (shipping encoder unmeasured; SPD-024 — no floor invented) |
+| 7 | Sidecar/assignment-blob size measured and accepted (no client numeric floor yet — SPD-024) | Pass (SP-032 shipping-encoder sizes; no floor invented) |
 | 8 | No MWM country id as neighbourhood | Pass (automated) + Residual (device UI) |
 
 ## Acceptance criteria
@@ -84,9 +84,9 @@ assignment, fallback, and size budget hold.
 | Validation plan | [SP-031-validation-plan.md](../validation/SP-031-validation-plan.md) |
 | Evidence log | [SP-031-evidence-log.md](../validation/SP-031-evidence-log.md) |
 | Decision ids (SP-024) | SPD-020–025 |
-| Test output | Rebuild SHA `e10111c537`: `street_pixels_areas_tests` **44/44**; `street_pixels_tests --filter=Rematch` **18/18**; `--filter=AssignmentPersist` **3/3**; `--filter=CountryConfig` **11/11**; full `street_pixels_tests` **185/185** (PauseResume flake absent). Independent review re-verify same counts on docs tip. |
-| Exit criteria table | See evidence log — 1 Residual; 2–5 Pass; 6/8 Pass+Residual; 7 Residual |
-| Residuals | R1 mapgen emit; R2 shipping size; R3 device walks; R4 `/tmp/sp023` Helsinki spot-check absent |
+| Test output | Rebuild SHA `e10111c537`: `street_pixels_areas_tests` **44/44**; `street_pixels_tests --filter=Rematch` **18/18**; `--filter=AssignmentPersist` **3/3**; `--filter=CountryConfig` **11/11**; full `street_pixels_tests` **185/185** (PauseResume flake absent). Independent review re-verify same counts on docs tip. SP-032: areas **46/46**; FI `.spa` emit under `/tmp/sp032/` |
+| Exit criteria table | See evidence log — **1 Pass**; **2–5 Pass**; **6/8 Pass+Residual**; **7 Pass** (after SP-032) |
+| Residuals | Narrowed R1 mapgen emit (pre-production); R2/R4 **closed** (SP-032); R3 device walks → Phase 10 |
 | Implemented by | Agent |
 | Accepted by | |
 | Accepted date | |
@@ -95,7 +95,7 @@ assignment, fallback, and size budget hold.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| Production mapgen emit (collectors → `.spa`) still not wired | Owning follow-up from SP-026; required before claiming exit #1 Pass for shipping FI |
-| Shipping-encoder FI size not measured this run (`/tmp/sp023` absent) | Exit #7 residual; re-measure under emit/offline harness; no SPD-024 floor |
+| Production mapgen emit (collectors → `.spa`) still not wired | Narrowed R1 — pre-production; offline harness (SP-032) satisfies exit #1 fixture-country bar |
+| Shipping-encoder FI size measured under SP-032 | R2 closed — see evidence size table; no SPD-024 floor |
 | Device / Helsinki UI walks not executed | Phase 10 residual (SP-014/022 pattern) |
 | Phase 4 “Current code locations” table still says area id / assignment Not found (dated 2026-08-03) | Docs hygiene; refresh after Phase 4 exit decision — not required to record SP-031 suite evidence |
