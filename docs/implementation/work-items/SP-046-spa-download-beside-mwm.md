@@ -105,6 +105,7 @@ map install (**SPD-027** / **SPD-031**).
 | Fake downloader + advertise | Map then Spa both OnDisk |
 | No advertise | Spa never OnDisk |
 | Spa download denied after Map | Map OnDisk; not failed country |
+| Restore queue with Map OnDisk, Spa missing | Advertised Spa enqueued/downloaded; Map stays OnDisk |
 | `CountrySizeInBytes` / subtree | map + spa when advertised |
 
 Build: `./tools/unix/build_omim.sh -d storage_tests platform_tests` (or filtered
@@ -128,9 +129,9 @@ targets). Run: `./tools/unix/run_tests.sh -b … -f "CountryFile_Smoke|LocalCoun
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-042-sidecar-shipping-fe62` |
-| Commits | `f7b637a25` `[platform] Add MapFileType::Spa and path sync`; `837954e2f` `[storage] Download advertised .spa beside leaf MWM`; `2a58646d4` `[docs] Record SP-046 spa download work item evidence` |
+| Commits | `f7b637a25` `[platform] Add MapFileType::Spa and path sync`; `837954e2f` `[storage] Download advertised .spa beside leaf MWM`; `3af50a455` `[docs] Record SP-046 spa download work item evidence`; `7e4384355` `[storage] Resume advertised .spa enqueue after Map OnDisk` |
 | Decision ids | SPD-027, SPD-031 (implements); SPD-028 size fold-in |
-| Test output | `./tools/unix/build_omim.sh -d -p /workspace storage_tests` OK; `platform_tests` built after temporarily excluding pre-existing `glaze_test.cpp` (restored, not committed). `./tools/unix/run_tests.sh -b /workspace/omim-build-debug -f "CountryFile_Smoke\|LocalCountryFile_Smoke\|LocalCountryFile_DiskFiles\|Downloader_GetFilePathByUrl\|CountryTree_SpaMeta\|Storage_SpaDownload"` — all matched tests OK (`CountryTree_SpaMeta_*` ×6, `Storage_SpaDownload_*` ×3, `CountryFile_Smoke`, `Downloader_GetFilePathByUrl`, `LocalCountryFile_Smoke`, `LocalCountryFile_DiskFiles`); `3 / 3 passed`. |
+| Test output | Re-run after restore-queue fix: `./tools/unix/build_omim.sh -d -p /workspace storage_tests` OK; `./tools/unix/run_tests.sh -b /workspace/omim-build-debug -f "Storage_SpaDownload"` — `Storage_SpaDownload_AdvertisedMapThenSpa`, `Storage_SpaDownload_NoAdvertiseNeverQueuesSpa`, `Storage_SpaDownload_FailKeepsMap`, `Storage_SpaDownload_RestoreQueueEnqueuesSpaWhenMapOnDisk` all OK; `3 / 3 passed`. |
 | Docs touched | this file; README |
 | Implemented by | Cursor Agent |
 | Accepted by | — |
@@ -147,3 +148,7 @@ targets). Run: `./tools/unix/run_tests.sh -b … -f "CountryFile_Smoke|LocalCoun
 - `GetSubtreeMwmSizeBytes` folds advertised spa bytes (Android `totalSize`).
 - `CountryStatusEx` reports OnDisk while only Spa is queued/downloading after Map.
 - `DeleteCountry` Spa cleanup remains **SP-047**.
+- **Review fix:** `RestoreDownloadQueue` calls `MaybeEnqueueRemoteSpa` when the leaf
+  Map is already OnDisk at `m_currentVersion` (Spa-only pending queue was stranded
+  by `DownloadNode`'s OnDisk early-return). `DownloadNode` OnDisk path also resumes
+  advertised Spa for leaves so other callers cannot strand (**SPD-027**).
