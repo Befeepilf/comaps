@@ -735,7 +735,7 @@ LocalAndRemoteSize Storage::CountrySizeInBytes(CountryId const & countryId) cons
 {
   LocalFilePtr localFile = GetLatestLocalFile(countryId);
   CountryFile const & countryFile = GetCountryFile(countryId);
-  LocalAndRemoteSize sizes(0, GetRemoteSize(countryFile));
+  LocalAndRemoteSize sizes(0, storage::GetRemoteDownloadSize(*m_diffsDataSource, countryFile));
 
   if (!IsCountryInQueue(countryId) && !IsDiffApplyingInProgressToCountry(countryId))
     sizes.first = localFile ? localFile->GetSize(MapFileType::Map) : 0;
@@ -814,7 +814,16 @@ Status Storage::CountryStatusEx(CountryId const & countryId) const
 {
   auto const status = CountryStatus(countryId);
   if (status != Status::UnknownError)
+  {
+    // Do not demote a usable map while only an advertised `.spa` is queued/downloading (SP-046 / SPD-031).
+    if ((status == Status::InQueue || status == Status::Downloading) && IsSpaOnlyDownload(countryId))
+    {
+      auto localFile = GetLatestLocalFile(countryId);
+      if (localFile && localFile->OnDisk(MapFileType::Map) && localFile->GetVersion() == m_currentVersion)
+        return Status::OnDisk;
+    }
     return status;
+  }
 
   auto localFile = GetLatestLocalFile(countryId);
   if (!localFile || !(localFile->OnDisk(MapFileType::Map) || localFile->IsInBundle()))
@@ -1060,9 +1069,27 @@ void Storage::OnDownloadProgress(QueuedCountry const & queuedCountry, Progress c
   if (m_observers.empty())
     return;
 
-  m_downloadingCountries[queuedCountry.GetCountryId()] = progress;
+  Progress adjusted = progress;
+  auto const & countryFile = GetCountryFile(queuedCountry.GetCountryId());
+  if (countryFile.HasRemoteSpa())
+  {
+    MwmSize const mapSz = GetRemoteSize(countryFile);
+    MwmSize const spaSz = countryFile.GetRemoteSpaSize();
+    if (queuedCountry.GetFileType() == MapFileType::Spa)
+    {
+      // Spa follows Map: keep cumulative progress across the sequential pair.
+      adjusted.m_bytesDownloaded += mapSz;
+      adjusted.m_bytesTotal = mapSz + spaSz;
+    }
+    else if (queuedCountry.GetFileType() == MapFileType::Map)
+    {
+      adjusted.m_bytesTotal = mapSz + spaSz;
+    }
+  }
 
-  ReportProgressForHierarchy(queuedCountry.GetCountryId(), progress);
+  m_downloadingCountries[queuedCountry.GetCountryId()] = adjusted;
+
+  ReportProgressForHierarchy(queuedCountry.GetCountryId(), adjusted);
 }
 
 void Storage::OnDownloadFinished(QueuedCountry const & queuedCountry, DownloadStatus status)
@@ -1086,13 +1113,16 @@ void Storage::OnDownloadFinished(QueuedCountry const & queuedCountry, DownloadSt
     /// should make this kind of checks (taking expecting SHA as input). But now it's
     /// not so simple as it may seem ..
 
+    auto const & countryFile = GetCountryFile(countryId);
+    std::string const sha1 =
+        fileType == MapFileType::Spa ? countryFile.GetSpaSha1() : countryFile.GetSha1();
+
     GetPlatform().RunTask(Platform::Thread::File,
-                          [path = GetFileDownloadPath(countryId, fileType), sha1 = GetCountryFile(countryId).GetSha1(),
-                           fn = std::move(finishFn)]()
+                          [path = GetFileDownloadPath(countryId, fileType), sha1, fn = std::move(finishFn)]()
     {
       DownloadStatus status = DownloadStatus::Completed;
 
-      // Verify map checksum.
+      // Verify downloaded file checksum (MWM or advertised `.spa`).
       if (coding::SHA1::CalculateBase64(path) != sha1)
       {
         LOG(LERROR, ("SHA check error for", path));
@@ -1143,6 +1173,10 @@ void Storage::RegisterDownloadedFiles(CountryId const & countryId, MapFileType t
     SaveDownloadQueue();
 
     NotifyStatusChangedForHierarchy(countryId);
+
+    // Sequential `.spa` after Map (queue is per CountryId). Diff Ok → Map also lands here.
+    if (type == MapFileType::Map || type == MapFileType::Diff)
+      MaybeEnqueueRemoteSpa(countryId);
   };
 
   if (type == MapFileType::Diff)
@@ -1150,6 +1184,63 @@ void Storage::RegisterDownloadedFiles(CountryId const & countryId, MapFileType t
     ApplyDiff(countryId, fn);
     return;
   }
+
+  if (type == MapFileType::Spa)
+  {
+    CountryFile const countryFile = GetCountryFile(countryId);
+    LocalFilePtr localFile = GetLocalFile(countryId, m_currentVersion);
+    if (!localFile || localFile->IsInBundle())
+      localFile = PreparePlaceForCountryFiles(m_currentVersion, m_dataDir, countryFile);
+
+    auto const failSoftSpa = [this, countryId, localFile]()
+    {
+      m_justDownloaded.erase(countryId);
+      bool const mapOnDisk =
+          localFile && (localFile->OnDisk(MapFileType::Map) || localFile->IsInBundle());
+      if (mapOnDisk)
+      {
+        // SPD-031: keep MWM usable; incomplete/retry signaling is SP-048.
+        LOG(LWARNING, ("Advertised spa register failed for", countryId,
+                       "- keeping MWM; incomplete stub for SP-048"));
+        SaveDownloadQueue();
+        NotifyStatusChangedForHierarchy(countryId);
+        return;
+      }
+      OnMapDownloadFailed(countryId);
+    };
+
+    if (!localFile)
+    {
+      LOG(LERROR, ("Can't prepare LocalCountryFile for spa", countryFile, "in folder", m_dataDir));
+      failSoftSpa();
+      return;
+    }
+
+    string const path = GetFileDownloadPath(countryId, type);
+    if (!base::RenameFileX(path, localFile->GetPath(type)))
+    {
+      LOG(LWARNING, ("Failed to rename downloaded spa into place for", countryId));
+      failSoftSpa();
+      return;
+    }
+
+    localFile->SyncWithDisk();
+    if (!localFile->OnDisk(MapFileType::Spa))
+    {
+      LOG(LWARNING, ("Spa missing on disk after rename for", countryId));
+      failSoftSpa();
+      return;
+    }
+
+    Platform::DisableBackupForFile(localFile->GetPath(MapFileType::Spa));
+
+    // Re-fire didDownload so clients can rematch / reload exploration beside the MWM.
+    m_didDownload(countryId, localFile);
+    SaveDownloadQueue();
+    NotifyStatusChangedForHierarchy(countryId);
+    return;
+  }
+
   ASSERT_EQUAL(type, MapFileType::Map, ());
 
   CountryFile const countryFile = GetCountryFile(countryId);
@@ -1190,6 +1281,19 @@ void Storage::OnMapDownloadFinished(CountryId const & countryId, DownloadStatus 
 
   if (status != DownloadStatus::Completed)
   {
+    if (type == MapFileType::Spa)
+    {
+      auto localFile = GetLatestLocalFile(countryId);
+      if (localFile && (localFile->OnDisk(MapFileType::Map) || localFile->IsInBundle()))
+      {
+        // SPD-031 fail-soft: do not mark the leaf map as download-failed.
+        LOG(LWARNING, ("Advertised spa download failed for", countryId, status,
+                       "- keeping MWM; incomplete stub for SP-048"));
+        NotifyStatusChangedForHierarchy(countryId);
+        return;
+      }
+    }
+
     if (status == DownloadStatus::FileNotFound && type == MapFileType::Diff)
     {
       AbortDiffScheme();
@@ -1202,6 +1306,45 @@ void Storage::OnMapDownloadFinished(CountryId const & countryId, DownloadStatus 
 
   m_justDownloaded.insert(countryId);
   RegisterDownloadedFiles(countryId, type);
+}
+
+void Storage::MaybeEnqueueRemoteSpa(CountryId const & countryId)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+
+  CountryFile const & countryFile = GetCountryFile(countryId);
+  if (!countryFile.HasRemoteSpa())
+    return;
+
+  LocalFilePtr localFile = GetLocalFile(countryId, m_currentVersion);
+  if (localFile)
+  {
+    localFile->SyncWithDisk();
+    if (localFile->OnDisk(MapFileType::Spa))
+      return;
+  }
+
+  if (IsCountryInQueue(countryId) || IsDiffApplyingInProgressToCountry(countryId))
+    return;
+
+  DownloadCountry(countryId, MapFileType::Spa);
+  // Sequential Spa after Map: start immediately. DownloadCountry may elect a countries
+  // update check when idle; do not leave Spa stranded in pending until that finishes.
+  m_downloader->StartPendingMapDownloads();
+}
+
+bool Storage::IsSpaOnlyDownload(CountryId const & countryId) const
+{
+  bool spaOnly = false;
+  bool found = false;
+  m_downloader->GetQueue().ForEachCountry([&](QueuedCountry const & queuedCountry)
+  {
+    if (queuedCountry.GetCountryId() != countryId)
+      return;
+    found = true;
+    spaOnly = queuedCountry.GetFileType() == MapFileType::Spa;
+  });
+  return found && spaOnly;
 }
 
 /*
@@ -1259,6 +1402,12 @@ void Storage::SetDownloadingServersForTesting(vector<string> const & downloading
 void Storage::SetLocaleForTesting(string const & jsonBuffer, string const & locale)
 {
   m_countryNameGetter.SetLocaleForTesting(jsonBuffer, locale);
+}
+
+void Storage::StartPendingDownloadsForTesting()
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  m_downloader->StartPendingMapDownloads();
 }
 
 LocalFilePtr Storage::GetLocalFile(CountryId const & countryId, int64_t version) const
@@ -2103,23 +2252,25 @@ Progress Storage::CalculateProgress(CountriesVec const & descendants) const
   auto const mwmsInQueue = GetQueuedCountries(m_downloader->GetQueue());
   for (auto const & d : descendants)
   {
+    auto const & countryFile = GetCountryFile(d);
+    MwmSize const remoteSz = storage::GetRemoteDownloadSize(*m_diffsDataSource, countryFile);
+
     auto const downloadingIt = m_downloadingCountries.find(d);
     if (downloadingIt != m_downloadingCountries.cend())
     {
       if (!downloadingIt->second.IsUnknown())
         result.m_bytesDownloaded += downloadingIt->second.m_bytesDownloaded;
 
-      result.m_bytesTotal += GetRemoteSize(GetCountryFile(d));
+      result.m_bytesTotal += remoteSz;
     }
     else if (mwmsInQueue.count(d) != 0)
     {
-      result.m_bytesTotal += GetRemoteSize(GetCountryFile(d));
+      result.m_bytesTotal += remoteSz;
     }
     else if (m_justDownloaded.count(d) != 0)
     {
-      MwmSize const localCountryFileSz = GetRemoteSize(GetCountryFile(d));
-      result.m_bytesDownloaded += localCountryFileSz;
-      result.m_bytesTotal += localCountryFileSz;
+      result.m_bytesDownloaded += remoteSz;
+      result.m_bytesTotal += remoteSz;
     }
   }
 

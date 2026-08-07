@@ -73,6 +73,9 @@ uint64_t QueuedCountry::GetDownloadSize() const
     return size;
   }
 
+  if (m_fileType == MapFileType::Spa)
+    return m_countryFile.GetRemoteSpaSize();
+
   return GetRemoteSize(*m_diffsDataSource, m_countryFile);
 }
 
