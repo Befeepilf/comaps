@@ -194,7 +194,12 @@ UNIT_TEST(FocusEngine_Manager_SelectAtPoint_OutsideClears)
   m2::PointD const outside = mercator::FromLatLon(70.0, 30.0);
   bool const focused = manager.SelectFocusedAreaAtPoint(outside, fx.spaPath, fx.mapDataVersion);
   if (!focused)
-    TEST(!manager.GetFocusedAreaProgress().m_hasFocus, ());
+  {
+    auto p = manager.GetFocusedAreaProgress();
+    TEST(!p.m_hasFocus, ());
+    TEST(p.m_noExplorationArea, ());
+    TEST(p.m_displayName.empty(), ());
+  }
   CleanupFocusFx(fx);
 }
 
