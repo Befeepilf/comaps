@@ -178,7 +178,7 @@ follow-up. Evidence:
 | SP-032 | Accepted — offline `spa_emit_tool` + shipping-encoder FI sizes |
 | SP-033 | **Accepted** 2026-08-07 — qualitative Pixel 3a OK; quantitative Spike 1 → Phase 10 |
 | SP-034 | **Accepted** 2026-08-07 — area completion cache + SPD-026 |
-| SP-035 | Planned — Primary progress badge bound to focused area |
+| SP-035 | Implemented — focused-area badge binding (awaiting acceptance) |
 | SP-036 | Planned — Focus-selection engine (§12.5) |
 | SP-037 | Planned — Area boundary rendering and completion shading |
 | SP-038 | Planned — Area tap selection and focused-area detail surface |
@@ -402,7 +402,7 @@ SPD-020–025 Accepted under SP-024. Validation:
 | --- | --- | --- | --- | --- |
 | 33 | [SP-033](work-items/SP-033-city-scale-rendering-performance-spike.md) | Spike: city-scale street-pixel rendering performance | 5 | **Accepted** 2026-08-07 — qualitative Pixel 3a OK; quantitative Spike 1 → Phase 10 |
 | 34 | [SP-034](work-items/SP-034-area-scoped-completion-computation.md) | Area-scoped completion computation and cache | 5 | **Accepted** 2026-08-07 — `AreaCompletionCache` + SPD-026 |
-| 35 | [SP-035](work-items/SP-035-primary-progress-badge-focused-area.md) | Primary progress badge bound to focused area | 5 | **Planned** — name + %; no MWM country id as name |
+| 35 | [SP-035](work-items/SP-035-primary-progress-badge-focused-area.md) | Primary progress badge bound to focused area | 5 | **Implemented** — DisplayName + SP-034 %; map-centre stub until SP-036 |
 | 36 | [SP-036](work-items/SP-036-focus-selection-engine.md) | Focus-selection engine (§12.5) | 5 | **Planned** — all five rules as separate cases |
 | 37 | [SP-037](work-items/SP-037-area-boundary-rendering-and-shading.md) | Area boundary rendering and completion shading by zoom | 5 | **Planned** — depends on SP-033 LOD outcome |
 | 38 | [SP-038](work-items/SP-038-area-tap-selection-and-detail-surface.md) | Area tap selection and focused-area detail surface | 5 | **Planned** — polygon hit-test, not pixel picking |

@@ -1,12 +1,12 @@
 # SP-035 — Primary progress badge bound to focused area
 
 **Phase:** 5 — Area progress and map interaction
-**Status:** Planned
-**Branch:** `street-pixels`
-**Depends on:** Phase 4 Accepted; SP-033 measurement recorded; SP-034
-  completion API (or tightly sequenced same stack with SP-034 first)
+**Status:** Implemented (awaiting review / acceptance)
+**Branch:** `cursor/sp-035-focused-area-badge-191e`
+**Depends on:** Phase 4 Accepted; SP-033 Accepted (partial); SP-034 Accepted
 **Notes:** SP-037+ additionally note SP-033 LOD outcome; this item needs
-  focused-area name + % only.
+  focused-area name + % only. Full §12.5 focus engine is SP-036 — temporary
+  map-centre stub used until then.
 
 ---
 
@@ -84,9 +84,9 @@ Phase 4 `DisplayName` exists but is not wired to the badge.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Test output | |
-| Manual validation | |
+| Branch | `cursor/sp-035-focused-area-badge-191e` |
+| Test output | `street_pixels_tests` 196/196 (6 FocusedAreaBadge_* / LookupExplorationAreaAtPoint_*); `street_pixels_areas_tests` 50/50 |
+| Manual validation | Deferred — device badge spot-check with Helsinki → SP-041 / Phase 10 residual pattern |
 | Accepted by | |
 | Accepted date | |
 
@@ -94,4 +94,6 @@ Phase 4 `DisplayName` exists but is not wired to the badge.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Temporary map-centre `TryFocusAtPoint` / JNI refresh until §12.5 | Replace in SP-036 |
+| Badge hides when no focus / blank name (no-area stub) | SP-040 empty-state polish |
+| Manual Helsinki badge spot-check not run in this cloud agent | SP-041 / Phase 10 |
