@@ -1742,6 +1742,7 @@ void StreetPixelsManager::ClearFocusedArea()
 {
   std::lock_guard<std::mutex> lock(m_focusedAreaMutex);
   ClearFocusedAreaUnlocked();
+  m_explicitFocusSticky = false;
 }
 
 bool StreetPixelsManager::SetFocusedArea(uint32_t compactIndex, std::string const & spaPath, bool citySummary)
@@ -1800,7 +1801,49 @@ void StreetPixelsManager::SetFocusedAreaForTesting(uint32_t compactIndex, std::s
 
 bool StreetPixelsManager::SelectFocusedAreaExplicit(uint32_t compactIndex, std::string const & spaPath)
 {
-  return SetFocusedArea(compactIndex, spaPath, false);
+  bool const ok = SetFocusedArea(compactIndex, spaPath, false);
+  m_explicitFocusSticky = ok;
+  return ok;
+}
+
+bool StreetPixelsManager::SelectFocusedAreaAtPoint(m2::PointD const & mercator, std::string const & spaPath,
+                                                   int64_t mapDataVersion)
+{
+  auto sidecar = street_pixels::TryLoadExplorationSidecar(spaPath);
+  if (sidecar.m_status != street_pixels::SpaLoadStatus::Ok ||
+      sidecar.m_file.m_header.m_mapDataVersion != mapDataVersion)
+  {
+    ClearFocusedArea();
+    return false;
+  }
+
+  street_pixels::CountryPolicy policy;
+  try
+  {
+    std::string const policyPath =
+        base::JoinPath(GetPlatform().ResourcesDir(), street_pixels::kCountryPoliciesRelativePath);
+    auto const config = street_pixels::CountryConfig::LoadFromFile(policyPath);
+    policy = config.GetByIso(sidecar.m_file.m_header.m_isoCode);
+  }
+  catch (RootException const &)
+  {
+    ClearFocusedArea();
+    return false;
+  }
+
+  auto const * area = street_pixels::LookupExplorationAreaAtPoint(sidecar.m_file, policy, mercator);
+  if (area == nullptr)
+  {
+    ClearFocusedArea();
+    return false;
+  }
+
+  street_pixels::FocusSelectionRequest req;
+  req.m_event = street_pixels::FocusEvent::ExplicitSelect;
+  req.m_explicitAreaCompactIndex = area->m_compactIndex;
+  bool const ok = ApplyFocusSelection(req, spaPath, mapDataVersion);
+  m_explicitFocusSticky = ok;
+  return ok;
 }
 
 bool StreetPixelsManager::ApplyFocusSelection(street_pixels::FocusSelectionRequest const & request,
@@ -1892,6 +1935,13 @@ bool StreetPixelsManager::RefreshFocusFromViewport(m2::PointD const & mapCentre,
   else
     req.m_event = street_pixels::FocusEvent::MapPan;
 
+  if (m_explicitFocusSticky && req.m_event == street_pixels::FocusEvent::MapPan && !req.m_atCityScale)
+  {
+    RefreshFocusedAreaFractionUnlocked();
+    return true;
+  }
+
+  m_explicitFocusSticky = false;
   return ApplyFocusSelection(req, spaPath, mapDataVersion);
 }
 

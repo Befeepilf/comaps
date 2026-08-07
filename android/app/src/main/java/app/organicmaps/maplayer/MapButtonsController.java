@@ -30,6 +30,7 @@ import app.organicmaps.R;
 import app.organicmaps.leftbutton.LeftButton;
 import app.organicmaps.leftbutton.LeftToggleButton;
 import app.organicmaps.MwmApplication;
+import app.organicmaps.maplayer.streetpixels.FocusedAreaDetailBottomSheet;
 import app.organicmaps.sdk.Framework;
 import app.organicmaps.sdk.downloader.MapManager;
 import app.organicmaps.sdk.downloader.UpdateInfo;
@@ -203,7 +204,21 @@ public class MapButtonsController extends Fragment
 
     mExplorationBadge = mFrame.findViewById(R.id.exploration_percentage);
     if (mExplorationBadge != null)
+    {
       mButtonsMap.put(MapButtons.explorationBanner, mExplorationBadge);
+      mExplorationBadge.setOnClickListener(v -> {
+        Context ctx = getContext();
+        if (ctx == null)
+          return;
+        FocusedAreaProgress progress =
+            MwmApplication.from(ctx).getStreetPixelsManager().getFocusedAreaProgress();
+        if (progress.hasFocus && !TextUtils.isEmpty(progress.displayName))
+        {
+          FocusedAreaDetailBottomSheet.show(getParentFragmentManager(), progress.displayName, progress.fractionValid,
+                                            progress.fraction);
+        }
+      });
+    }
   }
 
   private void applyLeftButton()

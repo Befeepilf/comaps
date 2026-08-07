@@ -1,8 +1,8 @@
 # SP-038 — Area tap selection and focused-area detail surface
 
 **Phase:** 5 — Area progress and map interaction
-**Status:** Planned
-**Branch:** `street-pixels`
+**Status:** Implemented (awaiting review / acceptance)
+**Branch:** `cursor/sp-038-area-tap-detail-191e`
 **Depends on:** Phase 4 Accepted; SP-033 measurement recorded; SP-034
   completion; SP-036 focus engine (or sequenced to feed it); SP-037 boundaries
   helpful for affordance
@@ -80,7 +80,7 @@ geometrically and would miss unexplored cells.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
+| Branch | `cursor/sp-038-area-tap-detail-191e` |
 | Test output | |
 | Manual validation | |
 | Accepted by | |
@@ -90,4 +90,7 @@ geometrically and would miss unexplored cells.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Explicit tap sticky until recording/recentre/city zoom | Keeps badge map-centre refresh from stealing focus |
+| Place page + detail sheet both open on map tap | Product may later gate sheet vs POI; residual polish |
+| Device tap walk Helsinki | SP-041 / Phase 10 |
+| Empty-state UI polish for no-area | SP-040 |

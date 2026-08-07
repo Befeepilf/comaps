@@ -14,6 +14,7 @@
 #include "storage/storage_defines.hpp"
 
 #include "geometry/point2d.hpp"
+#include "geometry/mercator.hpp"
 
 extern "C"
 {
@@ -143,7 +144,33 @@ Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeRefresh
       mode == location::EMyPositionMode::Follow || mode == location::EMyPositionMode::FollowAndRotate;
   int const drawScale = native.GetDrawScale();
 
-  manager.RefreshFocusFromViewport(centre, userPos, recordingActive, following, drawScale, spaPath, mapDataVersion);
+JNIEXPORT jobject JNICALL
+Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeSelectFocusedAreaAtLatLon(
+    JNIEnv * env, jclass clazz, jdouble lat, jdouble lon, jstring countryId)
+{
+  CHECK(g_framework, ("Framework isn't created yet!"));
+  auto & native = *g_framework->NativeFramework();
+  auto & manager = native.GetStreetPixelsManager();
+  std::string const country = jni::ToNativeString(env, countryId);
+  if (country.empty())
+  {
+    manager.ClearFocusedArea();
+    return ToJavaFocusedAreaProgress(env, manager.GetFocusedAreaProgress());
+  }
+
+  std::string spaPath;
+  auto localFile = g_framework->GetStorage().GetLatestLocalFile(country);
+  if (localFile && localFile->OnDisk(MapFileType::Map))
+    spaPath = street_pixels::ExplorationSidecarPathBesideMwm(localFile->GetPath(MapFileType::Map));
+  else
+    spaPath = street_pixels::ExplorationSidecarPath(GetPlatform().WritableDir(), country);
+
+  int64_t const mapDataVersion = manager.GetPixMapDataVersion();
+  if (!manager.IsAreaCompletionCacheValid())
+    manager.RebuildAreaCompletionCache(country, spaPath, mapDataVersion);
+
+  m2::PointD const mercator = mercator::FromLatLon(lat, lon);
+  manager.SelectFocusedAreaAtPoint(mercator, spaPath, mapDataVersion);
   return ToJavaFocusedAreaProgress(env, manager.GetFocusedAreaProgress());
 }
 }

@@ -78,6 +78,9 @@ public class StreetPixelsManager
   private static native FocusedAreaProgress nativeGetFocusedAreaProgress();
   @NonNull
   private static native FocusedAreaProgress nativeRefreshFocusedAreaAtMapCenter(@NonNull String countryId);
+  @NonNull
+  private static native FocusedAreaProgress nativeSelectFocusedAreaAtLatLon(double lat, double lon,
+                                                                            @NonNull String countryId);
 
   public void attach(@NonNull StreetPixelsErrorDialogListener listener)
   {
@@ -110,6 +113,13 @@ public class StreetPixelsManager
   public FocusedAreaProgress refreshFocusedAreaAtMapCenter(@NonNull String countryId)
   {
     return nativeRefreshFocusedAreaAtMapCenter(countryId);
+  }
+
+  // Polygon hit-test tap → §12.5 rule 3 explicit focus (SP-038).
+  @NonNull
+  public FocusedAreaProgress selectFocusedAreaAtLatLon(double lat, double lon, @NonNull String countryId)
+  {
+    return nativeSelectFocusedAreaAtLatLon(lat, lon, countryId);
   }
 
   @Nullable
