@@ -1,7 +1,7 @@
 # SP-039 — City-scale aggregation and summary badge
 
 **Phase:** 5 — Area progress and map interaction
-**Status:** Implemented, awaiting acceptance
+**Status:** Accepted 2026-08-07
 **Branch:** `cursor/sp-039-city-aggregation-191e`
 **Depends on:** Phase 4 Accepted (settlement containment); SP-033 measurement
   recorded; SP-034 area completion; SP-035/036 badge/focus integration
@@ -82,8 +82,8 @@ double-counting pixels.
 | Branch | `cursor/sp-039-city-aggregation-191e` |
 | Test output | `street_pixels_areas_tests` 66/66 (CityCompletion_* multi-area 1/2 rollup, settlement-only, cache, no country/world); `street_pixels_tests` 204/204 (CitySummaryUsesRollupFraction 0.5 vs settlement-only 0.0; fail-closed without .pix) |
 | Manual validation | Device city-zoom Helsinki walk residual → SP-041 / Phase 10 |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer (accept 2026-08-07) |
+| Accepted date | 2026-08-07 |
 
 ## Discovered follow-up
 
