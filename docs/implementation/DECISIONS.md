@@ -749,6 +749,36 @@ SPD-023; SP-023; SP-024; SP-026; SP-027; SP-029;
 
 ---
 
+## SPD-026 — Phase 5 personal area completion uses explored / total in the area
+
+**Decision.** For Phase 5 personal progress, area completion is the percentage of
+**valid street pixels in the exploration area** that the user has explored:
+`explored / total` for that area's compact index. Both validated live pixels and
+imported GPX pixels count. Zero-total areas report fraction `0` (no
+divide-by-zero). No-area pixels contribute to no area row. Completion rows are
+keyed by **compact area index** (and stable OSM id), never by MWM / country id.
+This does **not** decide ownership-score or contested-state formulas (still
+OQ-1 / Phase 8).
+
+**Status.** Accepted (Phase 5 personal-completion slice only).
+
+**Context.** Spec §7 surrounding text states the intent; the LaTeX formula
+markup is blank (OQ-1). SP-034 needs a lock for cache arithmetic without
+inventing a contested competition formula. Surrounding text plus SPD-007
+no-area behaviour are unambiguous for personal completion.
+
+**Consequences.**
+
+- `AreaCompletionCache` and badge/detail UI (SP-035+) use this formula.
+- OQ-1 remains open for ownership-score (§22.4) and contested threshold
+  (§22.9); only the personal completion slice is closed here.
+- Competition eligibility and recency stay live-only (SPD-015 / Phase 8).
+
+**Related documents.** Product spec §7, §15.4; OQ-1; SPD-007, SPD-015,
+SPD-021, SPD-022; SP-034; `phases/phase-05-area-progress-and-map-interaction.md`.
+
+---
+
 ## 15. Recorded open questions (not decisions)
 
 These are carried from existing project documents. They are listed so they are
@@ -757,7 +787,7 @@ treated as authorisation.
 
 | Ref | Question | Source | Blocks |
 | --- | --- | --- | --- |
-| OQ-1 | The area-completion formula (§7), ownership-score formula (§22.4), and contested-state threshold (§22.9) are empty in the product spec. | Product spec; audit §2, §22 | Phase 8. Phase 5 needs the completion formula, though its intent is unambiguous from surrounding text. |
+| OQ-1 | The area-completion formula (§7), ownership-score formula (§22.4), and contested-state threshold (§22.9) are empty in the product spec. **Personal completion slice closed by SPD-026** (explored/total; live+imported). Ownership / contested remain open. | Product spec; audit §2, §22 | Phase 8 (ownership / contested). Phase 5 personal completion → SPD-026. |
 | OQ-2 | Does prefer-unexplored routing use the personal explored set including imported pixels, or live-only? | Audit §12, §27 Q4 | Phase 6 acceptance criteria. |
 | OQ-3 | Weekly leaderboard reset when a city's local time zone is unknown. | Audit §24 | Phase 8. |
 | OQ-4 | Nickname uniqueness: the spec says nicknames need not be unique, but the current backend enforces a unique `username`. | Product spec §20.4; backend `core/models.py` | Phase 8. |
