@@ -24,6 +24,8 @@ set(SRC
   exploration_sidecar.hpp
   focus_selection_engine.cpp
   focus_selection_engine.hpp
+  sample_centres.cpp
+  sample_centres.hpp
   sparse_assignment_store.cpp
   sparse_assignment_store.hpp
   spa_jsonl.cpp
@@ -35,6 +37,14 @@ set(SRC
 )
 
 omim_add_library(${PROJECT_NAME} ${SRC})
+
+# Light HEALPix centres via chealpix C (avoids linking full cxx healpix / libsharp).
+target_sources(${PROJECT_NAME} PRIVATE
+  ${OMIM_ROOT}/3party/healpix/healpix/src/C/subs/chealpix.c
+)
+target_include_directories(${PROJECT_NAME} PRIVATE
+  ${OMIM_ROOT}/3party/healpix/healpix/src/C/subs
+)
 
 target_link_libraries(${PROJECT_NAME}
   PUBLIC

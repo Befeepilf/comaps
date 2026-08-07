@@ -79,4 +79,14 @@ std::vector<std::pair<uint64_t, std::string>> HelsinkiKnownOsmIds();
 
 std::vector<KnownIdSpotCheck> SpotCheckKnownIds(std::vector<ExplorationArea> const & areas,
                                                 std::vector<std::pair<uint64_t, std::string>> const & known);
+
+// Leaf border discovery: `{leafId}.poly` under bordersDir. When `namePrefix` is
+// non-empty (e.g. "Finland"), only matching filenames are returned. Sorted by leaf id.
+struct LeafBorder
+{
+  std::string m_leafId;
+  std::string m_polyPath;
+};
+
+std::vector<LeafBorder> ListLeafBorders(std::string const & bordersDir, std::string const & namePrefix = {});
 }  // namespace street_pixels
