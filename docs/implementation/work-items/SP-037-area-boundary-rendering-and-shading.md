@@ -1,0 +1,98 @@
+# SP-037 — Area boundary rendering and completion shading by zoom
+
+**Phase:** 5 — Area progress and map interaction
+**Status:** Planned
+**Branch:** `street-pixels`
+**Depends on:** Phase 4 Accepted; **SP-033 outcome** (LOD / renderer strategy);
+  SP-034 completion data for shading
+**Notes:** Do not start until SP-033 measurement is recorded. LOD and fade /
+  aggregate choices must follow SP-033 numbers.
+
+---
+
+## Objective
+
+Render exploration-area boundaries and completion-based shading across street /
+neighbourhood / city zoom levels per spec §12, informed by the SP-033
+performance outcome (keep current pixel overlay, add LOD, or aggregate).
+
+## Motivation
+
+Users need to see area shape and relative completion while panning. Spec §12.2–
+§12.3 allow fade/aggregate for readability. Blindly drawing every ring plus
+every circle may fail Spike 1; SP-033 decides.
+
+## In-scope behavior
+
+- Area boundary overlay from Phase 4 true polygons (`.spa`).
+- Completion shading by area using SP-034 percentages.
+- Zoom-dependent LOD / fade / aggregate behaviour consistent with §12 and
+  SP-033 recommendation.
+- Preserve street-pixel red/green semantics; do not replace them with shading
+  alone at street zoom unless measurement says otherwise and spec allows.
+
+## Out-of-scope behavior
+
+- Tap hit-testing (SP-038).
+- Completed-only distinct chrome beyond shading (SP-040 may add outline/check).
+- Country/world choropleth (forbidden).
+- Ignoring SP-033 and shipping unbounded full-detail rings at city scale.
+
+## Relevant product requirements
+
+- Spec §12.1–§12.3; §18.6 overlap noted but owned with SP-040.
+- Audit Spike 1 / SP-033 pass criteria.
+
+## Relevant source files or symbols
+
+- `libs/drape_frontend/street_pixel_renderer.*`
+- Phase 4 sidecar geometry APIs
+- Existing drape overlay / shape machinery (reuse vs new layer — decide in plan)
+
+## Implementation notes / constraints
+
+- **SP-033 gate:** coding starts only after measurement recorded; LOD design
+  cites those numbers.
+- Offline geometry only.
+- Prefer additive drape layer over restructuring unrelated map engines.
+
+## Acceptance criteria
+
+1. Boundaries visible at appropriate zooms; completion shading reads correctly
+   for fixture areas.
+2. Strategy matches SP-033 recommendation (or documents deliberate deviation
+   with maintainer approval).
+3. No country/world percentage choropleth.
+4. Automated or golden regression where practical (`drape_frontend_tests`).
+
+## Required automated tests
+
+- Renderer / overlay regression as applicable; geometry fixture smoke.
+
+## Required manual validation
+
+- Zoom street → neighbourhood → city; confirm boundaries and shading; spot FPS
+  if device available.
+
+## Failure and rollback considerations
+
+- If FPS regresses below Spike 1 after shading, residual LOD work or Phase 10
+  device re-measure — do not ship knowingly broken city-scale performance.
+
+## Completion evidence
+
+| Field | Value |
+| --- | --- |
+| Branch | |
+| SP-033 outcome cited | |
+| LOD / strategy summary | |
+| Test output | |
+| Manual validation | |
+| Accepted by | |
+| Accepted date | |
+
+## Discovered follow-up
+
+| Finding | Proposed disposition |
+| --- | --- |
+| | |

@@ -1,8 +1,8 @@
 # SP-031 — Area-pipeline end-to-end validation
 
 **Phase:** 4 — Administrative-area pipeline
-**Status:** In review
-**Branch:** `cursor/sp-031-area-pipeline-validation-191e` (lands on `street-pixels`)
+**Status:** Accepted
+**Branch:** `street-pixels` (merged from `cursor/sp-031-area-pipeline-validation-191e` via SP-032)
 **Depends on:** SP-025–030 implemented (or explicitly residualled)
 
 ---
@@ -87,9 +87,8 @@ assignment, fallback, and size budget hold.
 | Test output | Rebuild SHA `e10111c537`: `street_pixels_areas_tests` **44/44**; `street_pixels_tests --filter=Rematch` **18/18**; `--filter=AssignmentPersist` **3/3**; `--filter=CountryConfig` **11/11**; full `street_pixels_tests` **185/185** (PauseResume flake absent). Independent review re-verify same counts on docs tip. SP-032: areas **46/46**; FI `.spa` emit under `/tmp/sp032/` |
 | Exit criteria table | See evidence log — **1 Pass**; **2–5 Pass**; **6/8 Pass+Residual**; **7 Pass** (after SP-032) |
 | Residuals | Narrowed R1 mapgen emit (pre-production); R2/R4 **closed** (SP-032); R3 device walks → Phase 10 |
-| Implemented by | Agent |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-07 |
 
 ## Discovered follow-up
 
@@ -98,4 +97,4 @@ assignment, fallback, and size budget hold.
 | Production mapgen emit (collectors → `.spa`) still not wired | Narrowed R1 — pre-production; offline harness (SP-032) satisfies exit #1 fixture-country bar |
 | Shipping-encoder FI size measured under SP-032 | R2 closed — see evidence size table; no SPD-024 floor |
 | Device / Helsinki UI walks not executed | Phase 10 residual (SP-014/022 pattern) |
-| Phase 4 “Current code locations” table still says area id / assignment Not found (dated 2026-08-03) | Docs hygiene; refresh after Phase 4 exit decision — not required to record SP-031 suite evidence |
+| Phase 4 “Current code locations” table still said area id / assignment Not found (dated 2026-08-03) | Closed — refreshed at Phase 4 exit / Phase 5 entry docs (2026-08-07) |
