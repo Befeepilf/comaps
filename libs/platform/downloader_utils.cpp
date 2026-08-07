@@ -40,11 +40,16 @@ std::string GetFilePathByUrl(std::string const & url)
   uint64_t dataVersion = 0;
   CHECK(strings::to_uint(urlComponents[2], dataVersion), ());
 
-  std::string mwmFile = url::UrlDecode(urlComponents.back());
+  std::string const fileName = url::UrlDecode(urlComponents.back());
   // remove extension
-  mwmFile = mwmFile.substr(0, mwmFile.find('.'));
+  std::string mwmFile = fileName.substr(0, fileName.find('.'));
 
-  auto const fileType = urlComponents[0] == kDiffsPath ? MapFileType::Diff : MapFileType::Map;
+  MapFileType fileType = MapFileType::Map;
+  if (urlComponents[0] == kDiffsPath)
+    fileType = MapFileType::Diff;
+  else if (fileName.ends_with(SPA_FILE_EXTENSION))
+    fileType = MapFileType::Spa;
+
   return platform::GetFileDownloadPath(dataVersion, mwmFile, fileType);
 }
 

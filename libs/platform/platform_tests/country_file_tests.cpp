@@ -44,6 +44,7 @@ UNIT_TEST(CountryFile_Smoke)
     TEST_EQUAL(42, cf.GetRemoteSpaSize(), ());
     TEST_EQUAL("spaSha", cf.GetSpaSha1(), ());
     TEST(cf.HasRemoteSpa(), ());
+    TEST_EQUAL("SpaLeaf" SPA_FILE_EXTENSION, cf.GetFileName(MapFileType::Spa), ());
   }
 
   {

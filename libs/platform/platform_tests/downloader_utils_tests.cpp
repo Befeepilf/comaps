@@ -38,9 +38,25 @@ UNIT_TEST(Downloader_GetFilePathByUrl)
 
     TEST_EQUAL(path, resultPath, ());
   }
+  {
+    std::string const mwmName = "Luna";
+    std::string const fileName = platform::GetFileName(mwmName, MapFileType::Spa);
+    int64_t const dataVersion = version::FOR_TESTING_MWM1;
+    int64_t const diffVersion = 0;
+    MapFileType const fileType = MapFileType::Spa;
+
+    auto const path = platform::GetFileDownloadPath(dataVersion, mwmName, fileType);
+
+    auto const url = downloader::GetFileDownloadUrl(fileName, dataVersion, diffVersion);
+    auto const resultPath = downloader::GetFilePathByUrl(url);
+
+    TEST_EQUAL(path, resultPath, ());
+  }
 
   TEST_EQUAL(downloader::GetFilePathByUrl("/maps/2026.04.01/260401/Belarus_Brest Region.mwm"),
              base::JoinPath(GetPlatform().WritableDir(), "260401/Belarus_Brest Region.mwm.ready"), ());
+  TEST_EQUAL(downloader::GetFilePathByUrl("/maps/2026.04.01/260401/Finland_Southern Finland_Helsinki.spa"),
+             base::JoinPath(GetPlatform().WritableDir(), "260401/Finland_Southern Finland_Helsinki.spa.ready"), ());
 }
 
 
