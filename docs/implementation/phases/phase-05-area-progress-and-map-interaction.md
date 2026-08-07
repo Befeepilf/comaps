@@ -115,7 +115,7 @@ APIs the 2026-07-20 audit marked absent. Renderer shape matches the audit
 | 8 | [SP-040](../work-items/SP-040-completed-area-and-no-area-states.md) | Completed-area visual state and no-area empty state |
 | 9 | [SP-041](../work-items/SP-041-phase5-end-to-end-validation.md) | Phase 5 end-to-end validation (**exit gate**) |
 
-SP-033–SP-037 **Accepted** 2026-08-07. Next: SP-038 area tap selection.
+SP-033–SP-038 **Accepted** 2026-08-07. Next: SP-039 city-scale aggregation.
 SP-033 quantitative Spike 1 remains Phase 10.
 
 ### Open questions
