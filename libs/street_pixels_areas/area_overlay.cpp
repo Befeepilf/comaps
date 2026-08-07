@@ -82,6 +82,37 @@ AreaOverlayStyle StyleForCompletion(double fraction, AreaOverlayZoomBand band)
   if (band == AreaOverlayZoomBand::Hidden)
     return style;
 
+  if (IsAreaCompleted(fraction))
+  {
+    // §18.6: green completion outline + restrained fill; street stays outline-only.
+    style.m_completed = true;
+    style.m_showOutline = true;
+    style.m_outline = Rgba8{24, 150, 72, 255};
+    switch (band)
+    {
+    case AreaOverlayZoomBand::City:
+      style.m_showFill = true;
+      style.m_fill = Rgba8{40, 160, 80, 48};
+      style.m_outlineWidthPx = 2.5f;
+      style.m_showCheck = true;
+      break;
+    case AreaOverlayZoomBand::Neighbourhood:
+      style.m_showFill = true;
+      style.m_fill = Rgba8{40, 160, 80, 36};
+      style.m_outlineWidthPx = 3.0f;
+      style.m_showCheck = true;
+      break;
+    case AreaOverlayZoomBand::Street:
+      style.m_showFill = false;
+      style.m_outlineWidthPx = 2.25f;
+      style.m_outline.m_a = 230;
+      break;
+    case AreaOverlayZoomBand::Hidden:
+      break;
+    }
+    return style;
+  }
+
   double const t = Clamp01(fraction);
   // Interpolate unexplored-ish red → explored green for fill tint.
   uint8_t const r = static_cast<uint8_t>(std::lround(220.0 * (1.0 - t) + 40.0 * t));

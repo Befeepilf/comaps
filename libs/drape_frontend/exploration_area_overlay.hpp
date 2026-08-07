@@ -17,6 +17,7 @@ struct ExplorationAreaOverlayItem
 {
   uint32_t m_compactIndex = 0;
   double m_fraction = 0.0;
+  bool m_completed = false;
   std::vector<std::vector<m2::PointD>> m_rings;
   std::vector<m2::PointD> m_triangles;
   m2::RectD m_bounds;

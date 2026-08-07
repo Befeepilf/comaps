@@ -158,6 +158,8 @@ UNIT_TEST(FocusedAreaBadge_SetFocusShowsNameAndFraction)
   TEST_EQUAL(progress.m_compactIndex, 0u, ());
   TEST_EQUAL(progress.m_osmId, 10u, ());
   TEST_EQUAL(progress.m_fraction, 1.0, ());
+  TEST(progress.m_areaCompleted, ());
+  TEST(!progress.m_noExplorationArea, ());
   TEST(progress.m_displayName != fx.leaf, ());
 
   CleanupFab(fx);
@@ -170,11 +172,16 @@ UNIT_TEST(FocusedAreaBadge_BlankNameClearsFocus)
   StreetPixelsManager manager(dataSource);
   manager.SetFocusedAreaForTesting(0, "", 10);
   TEST(!manager.GetFocusedAreaProgress().m_hasFocus, ());
+  TEST(manager.GetFocusedAreaProgress().m_noExplorationArea, ());
 
   manager.SetFocusedAreaForTesting(0, "District", 10);
   TEST(manager.GetFocusedAreaProgress().m_hasFocus, ());
+  TEST(!manager.GetFocusedAreaProgress().m_noExplorationArea, ());
   manager.ClearFocusedArea();
   TEST(!manager.GetFocusedAreaProgress().m_hasFocus, ());
+  TEST(manager.GetFocusedAreaProgress().m_noExplorationArea, ());
+  TEST(manager.GetFocusedAreaProgress().m_displayName.empty(), ());
+  TEST(manager.GetFocusedAreaProgress().m_displayName != fx.leaf, ());
 
   CleanupFab(fx);
 }
@@ -212,6 +219,30 @@ UNIT_TEST(FocusedAreaBadge_FocusChangeUpdatesBadgeSnapshot)
   TEST_EQUAL(progress.m_compactIndex, 1u, ());
   TEST(progress.m_fractionValid, ());
   TEST_EQUAL(progress.m_fraction, 0.0, ());
+  TEST(!progress.m_areaCompleted, ());
+  TEST(!progress.m_noExplorationArea, ());
+
+  CleanupFab(fx);
+}
+
+UNIT_TEST(FocusedAreaBadge_NoAreaSignalNeverUsesMwmId)
+{
+  auto fx = MakeFabFixture("sp040_no_area");
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  TEST(manager.RebuildAreaCompletionCache(fx.leaf, fx.spaPath, fx.mapDataVersion), ());
+  TEST(manager.SetFocusedArea(0, fx.spaPath), ());
+  TEST(manager.GetFocusedAreaProgress().m_hasFocus, ());
+
+  m2::PointD const outside = mercator::FromLatLon(70.0, 30.0);
+  bool const focused = manager.SelectFocusedAreaAtPoint(outside, fx.spaPath, fx.mapDataVersion);
+  TEST(!focused, ());
+  auto progress = manager.GetFocusedAreaProgress();
+  TEST(!progress.m_hasFocus, ());
+  TEST(progress.m_noExplorationArea, ());
+  TEST(!progress.m_areaCompleted, ());
+  TEST(progress.m_displayName.empty(), ());
+  TEST(progress.m_displayName != fx.leaf, ());
 
   CleanupFab(fx);
 }

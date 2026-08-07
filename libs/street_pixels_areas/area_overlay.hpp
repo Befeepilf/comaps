@@ -55,9 +55,17 @@ struct AreaOverlayStyle
   float m_outlineWidthPx = 1.0f;
   bool m_showFill = false;
   bool m_showOutline = false;
+  // Distinct §18.6 completed chrome (not merely the green end of the in-progress lerp).
+  bool m_completed = false;
+  // Wider zooms may show a check; drape may ignore until a marker path exists.
+  bool m_showCheck = false;
 };
 
-// Completion shading: low → higher alpha red-ish; high → green. Street band is outline-only.
+// Personal completion reaches 100% (explored/total); fail-closed for empty totals via caller.
+inline bool IsAreaCompleted(double fraction) { return fraction >= 1.0 - 1e-9; }
+
+// Completion shading: low → red-ish; high → green. 100% uses distinct completed chrome (§18.6).
+// Street band remains outline-only so ordinary street pixels stay visible.
 AreaOverlayStyle StyleForCompletion(double fraction, AreaOverlayZoomBand band);
 
 // Fan triangulation for simple outer rings (no holes). Returns empty on failure.

@@ -212,11 +212,13 @@ public class MapButtonsController extends Fragment
           return;
         FocusedAreaProgress progress =
             MwmApplication.from(ctx).getStreetPixelsManager().getFocusedAreaProgress();
-        if (progress.hasFocus && !TextUtils.isEmpty(progress.displayName))
+        if (progress.noExplorationArea || !progress.hasFocus || TextUtils.isEmpty(progress.displayName))
         {
-          FocusedAreaDetailBottomSheet.show(getParentFragmentManager(), progress.displayName, progress.fractionValid,
-                                            progress.fraction);
+          FocusedAreaDetailBottomSheet.showEmpty(getParentFragmentManager());
+          return;
         }
+        FocusedAreaDetailBottomSheet.show(getParentFragmentManager(), progress.displayName, progress.fractionValid,
+                                          progress.fraction, progress.areaCompleted);
       });
     }
   }
@@ -428,19 +430,30 @@ public class MapButtonsController extends Fragment
         FocusedAreaProgress progress =
             MwmApplication.from(ctx).getStreetPixelsManager().refreshFocusedAreaAtMapCenter(
                 countryId != null ? countryId : "");
-        if (!progress.hasFocus || TextUtils.isEmpty(progress.displayName))
+        if (progress.hasFocus && !TextUtils.isEmpty(progress.displayName))
         {
-          showButton(false, MapButtons.explorationBanner);
-        }
-        else if (progress.fractionValid)
-        {
-          double percent = Math.round(progress.fraction * 100 * 10) / 10.0;
-          mExplorationBadge.setText(progress.displayName + " • " + percent + "%");
+          if (progress.fractionValid)
+          {
+            if (progress.areaCompleted)
+            {
+              mExplorationBadge.setText(progress.displayName + " • " +
+                                        ctx.getString(R.string.street_pixels_area_completed));
+            }
+            else
+            {
+              double percent = Math.round(progress.fraction * 100 * 10) / 10.0;
+              mExplorationBadge.setText(progress.displayName + " • " + percent + "%");
+            }
+          }
+          else
+          {
+            mExplorationBadge.setText(progress.displayName);
+          }
           showButton(true, MapButtons.explorationBanner);
         }
         else
         {
-          mExplorationBadge.setText(progress.displayName);
+          mExplorationBadge.setText(R.string.street_pixels_no_exploration_area);
           showButton(true, MapButtons.explorationBanner);
         }
       } else {
