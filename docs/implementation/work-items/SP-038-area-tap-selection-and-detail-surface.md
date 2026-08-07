@@ -1,7 +1,7 @@
 # SP-038 — Area tap selection and focused-area detail surface
 
 **Phase:** 5 — Area progress and map interaction
-**Status:** Implemented (awaiting review / acceptance)
+**Status:** Accepted 2026-08-07
 **Branch:** `cursor/sp-038-area-tap-detail-191e`
 **Depends on:** Phase 4 Accepted; SP-033 measurement recorded; SP-034
   completion; SP-036 focus engine (or sequenced to feed it); SP-037 boundaries
@@ -83,8 +83,8 @@ geometrically and would miss unexplored cells.
 | Branch | `cursor/sp-038-area-tap-detail-191e` |
 | Test output | `street_pixels_tests` 202/202 (SelectAtPoint nested/outside + sticky; LookupExplorationAreaAtPoint_*); `street_pixels_areas_tests` 62/62 |
 | Manual validation | Device tap walk residual → SP-041 / Phase 10 |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer (accept 2026-08-07) |
+| Accepted date | 2026-08-07 |
 
 ## Discovered follow-up
 
