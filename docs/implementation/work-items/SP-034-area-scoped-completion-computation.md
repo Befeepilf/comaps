@@ -1,10 +1,10 @@
 # SP-034 — Area-scoped completion computation and cache
 
 **Phase:** 5 — Area progress and map interaction
-**Status:** Planned
-**Branch:** `street-pixels`
-**Depends on:** Phase 4 Accepted; **SP-033 measurement recorded** (do not start
-  coding until then)
+**Status:** Implemented (awaiting review / acceptance)
+**Branch:** `cursor/sp-033-034-area-completion-191e`
+**Depends on:** Phase 4 Accepted; SP-033 measurement recorded (qualitative Pixel 3a
+  OK; quantitative Spike 1 → Phase 10)
 **Unblocks:** SP-035–041 progress UI and aggregation
 
 ---
@@ -99,10 +99,10 @@ sufficient.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Formula disposition (provisional SPD id / deferral note) | |
-| Cache location / API | |
-| Test output | |
+| Branch | `cursor/sp-033-034-area-completion-191e` |
+| Formula disposition (provisional SPD id / deferral note) | **SPD-026** — personal explored/total; live+imported; zero-total → 0; OQ-1 ownership/contested remain open |
+| Cache location / API | `libs/street_pixels_areas/area_completion_cache.*`; `StreetPixelsManager::GetAreaCompletion` / `RebuildAreaCompletionCache` / invalidate on collect·import·rematch·policy |
+| Test output | `street_pixels_areas_tests` 50/50 (4 AreaCompletion_*); `street_pixels_tests` all green incl. 5 AreaCompletionManager_* |
 | Accepted by | |
 | Accepted date | |
 
@@ -110,4 +110,5 @@ sufficient.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Rebuild scans full `.pix` universe (not incremental on collect) | Acceptable for V1; optimize later if city-scale rebuild is slow |
+| Quantitative Spike 1 still Phase 10 | SP-033 residual; does not block this item |
