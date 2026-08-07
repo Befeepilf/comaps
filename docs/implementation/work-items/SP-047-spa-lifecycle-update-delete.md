@@ -100,7 +100,7 @@ Run: `./tools/unix/run_tests.sh -b /workspace/omim-build-debug -f "Storage_SpaDo
 
 | Item | Owner |
 | --- | --- |
-| Incomplete / retry UX when advertised spa missing after fail-soft | **SP-048** |
+| Incomplete / retry signaling when advertised spa missing after fail-soft | **SP-048** (In review) |
 | `LocalCountryFile::DeleteFromDisk(Map)` remains Map-only (storage lifecycle owns Spa) | intentional; document only |
 
 ---

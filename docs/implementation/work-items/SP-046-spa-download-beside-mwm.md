@@ -118,7 +118,7 @@ targets). Run: `./tools/unix/run_tests.sh -b … -f "CountryFile_Smoke|LocalCoun
 | Item | Owner |
 | --- | --- |
 | DeleteCountry / update full-refetch deletes or replaces `.spa` | **SP-047** |
-| Incomplete / retry UX when advertised spa missing after fail-soft | **SP-048** |
+| Incomplete / retry signaling when advertised spa missing after fail-soft | **SP-048** (In review) |
 | `DeleteFromDisk(Spa)` not called from Map delete — orphan `.spa` possible until SP-047 | **SP-047** |
 | Spa-only progress while Map already local (re-fetch) does not add map bytes to downloaded offset when Map type was not just downloaded in-session | residual / low priority |
 
