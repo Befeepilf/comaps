@@ -1,7 +1,7 @@
 # SP-033 — Spike: city-scale street-pixel rendering performance
 
 **Phase:** 5 — Area progress and map interaction
-**Status:** Implemented (qualitative device OK; quantitative Spike 1 deferred)
+**Status:** Implemented (partial — qualitative Pixel 3a OK; quantitative Spike 1 deferred)
 **Branch:** `cursor/sp-033-034-area-completion-191e`
 **Depends on:** Phase 4 Accepted (exit criteria met 2026-08-07)
 **Unblocks:** SP-034+ coding; SP-037 LOD decisions (provisional: keep current renderer)

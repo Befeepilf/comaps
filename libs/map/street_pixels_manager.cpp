@@ -722,6 +722,7 @@ bool StreetPixelsManager::RematerializeAssignmentsOnPolicyBump(storage::CountryI
   {
     LOG(LWARNING, ("Policy rematerialize skipped; sidecar unavailable", countryId,
                    street_pixels::DebugPrint(verified.m_status)));
+    InvalidateAreaCompletionCache();
     return false;
   }
   RefreshSparseAssignmentsBestEffortUnlocked(countryId, spaPath, mapDataVersion, true /* policyOnly */);

@@ -131,6 +131,24 @@ UNIT_TEST(AreaCompletion_KnownTotalsAndFractions)
   TEST_EQUAL(cache.GetFraction(0), 1.0, ());
   TEST_EQUAL(cache.GetFraction(1), 1.0, ());
 
+  // Explore one of two district pixels → 50%.
+  explored = {10};
+  fx.m_samples = {
+      MercatorFromLonLat(24.5, 60.5),
+      MercatorFromLonLat(24.6, 60.6),
+      MercatorFromLonLat(30.0, 70.0),
+  };
+  fx.m_universe = {10, 15, 30};
+  RemoveIfExists(fx.m_path);
+  WriteExplorationSidecar(fx.m_path, fx.m_areas, fx.m_samples, fx.m_policy, fx.m_params);
+  resolver = ExplorationAreaResolver::TryLoad(fx.m_path, fx.m_universe, fx.m_params.m_mapDataVersion,
+                                              fx.m_params.m_policyVersion);
+  TEST(resolver.has_value(), ());
+  cache = AreaCompletionCache::Build(*resolver, fx.m_universe, fx.m_samples, explored);
+  TEST_EQUAL(cache.Get(0)->m_total, 2u, ());
+  TEST_EQUAL(cache.Get(0)->m_explored, 1u, ());
+  TEST_EQUAL(cache.GetFraction(0), 0.5, ());
+
   RemoveIfExists(fx.m_path);
 }
 
