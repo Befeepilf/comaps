@@ -34,10 +34,14 @@
 #include "map/live_segment_interpolation.hpp"
 
 #include "street_pixels_areas/area_completion_cache.hpp"
+#include "street_pixels_areas/area_overlay.hpp"
 #include "street_pixels_areas/exploration_area_resolver.hpp"
 #include "street_pixels_areas/exploration_sidecar.hpp"
 #include "street_pixels_areas/focus_selection_engine.hpp"
 #include "street_pixels_areas/sparse_assignment_store.hpp"
+
+#include "drape_frontend/exploration_area_overlay.hpp"
+#include "drape/color.hpp"
 
 #include "street_pixels_config/country_config.hpp"
 
@@ -185,6 +189,7 @@ void StreetPixelsManager::SetEnabled(bool enabled)
 {
   ChangeState(StreetPixelsState{enabled, m_state.status});
   m_drapeEngine.SafeCall(&df::DrapeEngine::EnableStreetPixels, enabled);
+  m_drapeEngine.SafeCall(&df::DrapeEngine::EnableExplorationAreaOverlay, enabled);
 }
 
 bool StreetPixelsManager::IsEnabled() const
@@ -1994,13 +1999,54 @@ bool StreetPixelsManager::RebuildAreaCompletionCacheUnlocked(storage::CountryId 
     std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
     m_areaCompletionCache = std::move(built);
   }
+  PushExplorationAreaOverlayUnlocked(sidecar.m_file);
   return true;
+}
+
+void StreetPixelsManager::PushExplorationAreaOverlayUnlocked(street_pixels::SpaFile const & file)
+{
+  uint32_t maxIndex = 0;
+  for (auto const & area : file.m_areas)
+    maxIndex = std::max(maxIndex, area.m_compactIndex);
+
+  std::vector<std::optional<double>> fractions(static_cast<size_t>(maxIndex) + 1);
+  {
+    std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+    for (auto const & area : file.m_areas)
+    {
+      auto const counts = m_areaCompletionCache.Get(area.m_compactIndex);
+      if (counts)
+        fractions[area.m_compactIndex] = street_pixels::AreaCompletionFraction(*counts);
+    }
+  }
+
+  auto geometries = street_pixels::BuildAreaOverlayGeometry(file, fractions, nullptr);
+  std::vector<df::ExplorationAreaOverlayItem> items;
+  items.reserve(geometries.size());
+  for (auto & geom : geometries)
+  {
+    auto const style =
+        street_pixels::StyleForCompletion(geom.m_fraction, street_pixels::AreaOverlayZoomBand::Neighbourhood);
+    df::ExplorationAreaOverlayItem item;
+    item.m_compactIndex = geom.m_compactIndex;
+    item.m_fraction = geom.m_fraction;
+    item.m_rings = std::move(geom.m_rings);
+    item.m_triangles = std::move(geom.m_triangles);
+    item.m_bounds = geom.m_bounds;
+    item.m_fillColor = dp::Color(style.m_fill.m_r, style.m_fill.m_g, style.m_fill.m_b, style.m_fill.m_a);
+    item.m_outlineColor =
+        dp::Color(style.m_outline.m_r, style.m_outline.m_g, style.m_outline.m_b, style.m_outline.m_a);
+    item.m_outlineWidthPx = style.m_outlineWidthPx;
+    items.push_back(std::move(item));
+  }
+  m_drapeEngine.SafeCall(&df::DrapeEngine::UpdateExplorationAreaOverlay, std::move(items));
 }
 
 void StreetPixelsManager::ClearPixels()
 {
   LOG(LINFO, ("Clearing pixels and unmapping pix file"));
   m_drapeEngine.SafeCall(&df::DrapeEngine::ClearStreetPixels);
+  m_drapeEngine.SafeCall(&df::DrapeEngine::ClearExplorationAreaOverlay);
   {
     std::lock_guard<std::shared_mutex> lock(m_streetPixelsMutex);
     m_streetPixels = {};

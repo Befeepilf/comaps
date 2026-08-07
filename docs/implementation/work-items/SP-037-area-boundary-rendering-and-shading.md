@@ -1,12 +1,11 @@
 # SP-037 — Area boundary rendering and completion shading by zoom
 
 **Phase:** 5 — Area progress and map interaction
-**Status:** Planned
-**Branch:** `street-pixels`
+**Status:** Implemented (awaiting review / acceptance)
+**Branch:** `cursor/sp-037-area-boundary-shading-191e`
 **Depends on:** Phase 4 Accepted; **SP-033 outcome** (LOD / renderer strategy);
   SP-034 completion data for shading
-**Notes:** Do not start until SP-033 measurement is recorded. LOD and fade /
-  aggregate choices must follow SP-033 numbers.
+**Notes:** SP-033 provisional: keep one-circle-per-cell; ring LOD via simplify.
 
 ---
 
@@ -83,11 +82,11 @@ every circle may fail Spike 1; SP-033 decides.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| SP-033 outcome cited | |
-| LOD / strategy summary | |
-| Test output | |
-| Manual validation | |
+| Branch | `cursor/sp-037-area-boundary-shading-191e` |
+| SP-033 outcome cited | Provisional keep one-circle-per-cell (Accepted 2026-08-07); quantitative Spike 1 → Phase 10 |
+| LOD / strategy summary | Pixel circles unchanged. Additive `ExplorationAreaOverlayRenderer`: outlines all visible zooms ≥9; fills at neighbourhood/city (≤15); street outline-only. Ring simplify for city/neighbourhood vertex caps. |
+| Test output | `street_pixels_areas_tests` 62/62 (5 AreaOverlay_*); `street_pixels_tests` 199/199 |
+| Manual validation | Device zoom walk / FPS spot-check residual → SP-041 / Phase 10 |
 | Accepted by | |
 | Accepted date | |
 
@@ -95,4 +94,8 @@ every circle may fail Spike 1; SP-033 decides.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Quantitative Spike 1 still Phase 10; shading may need re-measure | SP-041 / Phase 10 residual |
+| City fill uses neighbourhood-baked alpha (not per-band rebuild) | Acceptable stub; SP-039 may retune |
+| Completed-area chrome beyond shading | SP-040 |
+| Tap hit-test on polygons | SP-038 |
+| Initialized previously-null `m_drapeApiBuilder` in BackendRenderer | Latent fix bundled with overlay builder ctor |

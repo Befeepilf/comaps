@@ -71,6 +71,11 @@ set(SRC
   drape_measurer.hpp
   engine_context.cpp
   engine_context.hpp
+  exploration_area_overlay.hpp
+  exploration_area_overlay_builder.cpp
+  exploration_area_overlay_builder.hpp
+  exploration_area_overlay_renderer.cpp
+  exploration_area_overlay_renderer.hpp
   frame_values.hpp
   frontend_renderer.cpp
   frontend_renderer.hpp

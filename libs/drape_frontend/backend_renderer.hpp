@@ -28,6 +28,7 @@ class TextureManager;
 namespace df
 {
 class DrapeApiBuilder;
+class ExplorationAreaOverlayBuilder;
 class Message;
 class ReadManager;
 class RouteBuilder;
@@ -132,6 +133,7 @@ private:
   drape_ptr<TrafficGenerator> m_trafficGenerator;
   drape_ptr<UserMarkGenerator> m_userMarkGenerator;
   drape_ptr<DrapeApiBuilder> m_drapeApiBuilder;
+  drape_ptr<ExplorationAreaOverlayBuilder> m_explorationAreaOverlayBuilder;
   gui::LayerCacher m_guiCacher;
 
   ref_ptr<RequestedTiles> m_requestedTiles;
