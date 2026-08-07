@@ -79,7 +79,7 @@ V1 scope. Explorer Pro **purchasing** is not.
 | 1 | Baseline and guardrails | [`phases/phase-01-baseline-and-guardrails.md`](phases/phase-01-baseline-and-guardrails.md) | Not started |
 | 2 | Recording and collection correctness | [`phases/phase-02-recording-and-collection-correctness.md`](phases/phase-02-recording-and-collection-correctness.md) | Complete (OEM screen-off residual → Phase 10) |
 | 3 | Exploration storage and map-update reconciliation | [`phases/phase-03-exploration-storage-and-reconciliation.md`](phases/phase-03-exploration-storage-and-reconciliation.md) | Complete (device-walk residual → Phase 10) |
-| 4 | Administrative-area pipeline | [`phases/phase-04-administrative-area-pipeline.md`](phases/phase-04-administrative-area-pipeline.md) | In progress (SP-029 Accepted; SP-030 In review) |
+| 4 | Administrative-area pipeline | [`phases/phase-04-administrative-area-pipeline.md`](phases/phase-04-administrative-area-pipeline.md) | In progress (SP-030 Accepted; SP-031 next) |
 | 5 | Area progress and map interaction | [`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md) | Not started |
 | 6 | Exploration-aware routing | [`phases/phase-06-exploration-aware-routing.md`](phases/phase-06-exploration-aware-routing.md) | Not started |
 | 7 | Milestones and share cards | [`phases/phase-07-milestones-and-share-cards.md`](phases/phase-07-milestones-and-share-cards.md) | Not started |
@@ -168,7 +168,7 @@ roadmap tracks.
 | SP-027 | Accepted — offline `.spa` client load/verify API |
 | SP-028 | Accepted — consume/verify precomputed subdivision map |
 | SP-029 | Accepted — settlement fallback / no-area (SPD-007/025) |
-| SP-030 | In review — sparse `.spx` + rematerialize (SPD-022) |
+| SP-030 | Accepted — sparse `.spx` + rematerialize (SPD-022) |
 | SP-031 | Planned — end-to-end validation |
 
 Phase 4 entry criteria for polygon store and assignment locus are **Met**
@@ -371,7 +371,7 @@ Phase 3 residual (Pixel 3a / Uusimaa device walks, rematch timing on large
 | 27 | [SP-027](work-items/SP-027-client-polygon-runtime-api.md) | Client runtime polygon API | 4 | **Accepted** 2026-08-04 — offline TryLoad/verify façade over `.spa` |
 | 28 | [SP-028](work-items/SP-028-pixel-to-area-assignment.md) | Deterministic pixel-to-area assignment | 4 | **Accepted** 2026-08-06 — consume/verify precomputed subdivision map |
 | 29 | [SP-029](work-items/SP-029-settlement-fallback-and-no-area.md) | Settlement fallback and no-area state | 4 | **Accepted** 2026-08-06 — true municipal rings; SPD-007; client settlement PIP |
-| 30 | [SP-030](work-items/SP-030-assignment-persistence-and-rematch.md) | Persist assignments and rematch hooks | 4 | In review — sparse `.spx` + rematerialize (SPD-022) |
+| 30 | [SP-030](work-items/SP-030-assignment-persistence-and-rematch.md) | Persist assignments and rematch hooks | 4 | **Accepted** 2026-08-07 — sparse `.spx` + rematerialize |
 | 31 | [SP-031](work-items/SP-031-area-pipeline-end-to-end-validation.md) | Area-pipeline end-to-end validation | 4 | Planned — Phase 4 exit gate; no numeric floor yet (SPD-024) |
 
 Phase 4 entry investigation (2026-08-03) recorded in
