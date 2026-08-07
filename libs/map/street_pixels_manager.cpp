@@ -1729,6 +1729,7 @@ void StreetPixelsManager::RefreshFocusedAreaFractionUnlocked()
   {
     m_focusedAreaProgress.m_fractionValid = false;
     m_focusedAreaProgress.m_fraction = 0.0;
+    m_focusedAreaProgress.m_areaCompleted = false;
     return;
   }
 
@@ -1739,6 +1740,7 @@ void StreetPixelsManager::RefreshFocusedAreaFractionUnlocked()
     {
       m_focusedAreaProgress.m_fractionValid = false;
       m_focusedAreaProgress.m_fraction = 0.0;
+      m_focusedAreaProgress.m_areaCompleted = false;
       return;
     }
     counts = m_cityCompletionCache.Get(m_focusedAreaProgress.m_compactIndex);
@@ -1752,15 +1754,19 @@ void StreetPixelsManager::RefreshFocusedAreaFractionUnlocked()
   {
     m_focusedAreaProgress.m_fractionValid = false;
     m_focusedAreaProgress.m_fraction = 0.0;
+    m_focusedAreaProgress.m_areaCompleted = false;
     return;
   }
   m_focusedAreaProgress.m_fraction = street_pixels::AreaCompletionFraction(*counts);
   m_focusedAreaProgress.m_fractionValid = true;
+  m_focusedAreaProgress.m_areaCompleted =
+      counts->m_total > 0 && counts->m_explored >= counts->m_total;
 }
 
 void StreetPixelsManager::ClearFocusedAreaUnlocked()
 {
   m_focusedAreaProgress = street_pixels::FocusedAreaProgress{};
+  m_focusedAreaProgress.m_noExplorationArea = true;
 }
 
 street_pixels::FocusedAreaProgress StreetPixelsManager::GetFocusedAreaProgress() const
@@ -2113,10 +2119,14 @@ void StreetPixelsManager::PushExplorationAreaOverlayUnlocked(street_pixels::SpaF
     df::ExplorationAreaOverlayItem item;
     item.m_compactIndex = geom.m_compactIndex;
     item.m_fraction = geom.m_fraction;
+    item.m_completed = style.m_completed;
     item.m_rings = std::move(geom.m_rings);
     item.m_triangles = std::move(geom.m_triangles);
     item.m_bounds = geom.m_bounds;
-    item.m_fillColor = dp::Color(style.m_fill.m_r, style.m_fill.m_g, style.m_fill.m_b, style.m_fill.m_a);
+    if (style.m_showFill)
+      item.m_fillColor = dp::Color(style.m_fill.m_r, style.m_fill.m_g, style.m_fill.m_b, style.m_fill.m_a);
+    else
+      item.m_fillColor = dp::Color(0, 0, 0, 0);
     item.m_outlineColor =
         dp::Color(style.m_outline.m_r, style.m_outline.m_g, style.m_outline.m_b, style.m_outline.m_a);
     item.m_outlineWidthPx = style.m_outlineWidthPx;

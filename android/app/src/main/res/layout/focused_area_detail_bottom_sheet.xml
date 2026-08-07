@@ -25,8 +25,20 @@
     android:layout_marginStart="@dimen/margin_base"
     android:layout_marginEnd="@dimen/margin_base"
     android:layout_marginTop="@dimen/margin_half"
-    android:layout_marginBottom="@dimen/margin_base"
     android:textAppearance="@style/MwmTextAppearance.Body1"
     tools:text="37.5%" />
+
+  <com.google.android.material.textview.MaterialTextView
+    android:id="@+id/focused_area_detail_body"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/margin_base"
+    android:layout_marginEnd="@dimen/margin_base"
+    android:layout_marginTop="@dimen/margin_half"
+    android:layout_marginBottom="@dimen/margin_base"
+    android:textAppearance="@style/MwmTextAppearance.Body3"
+    android:visibility="gone"
+    tools:text="Personal pixels still work."
+    tools:visibility="visible" />
 
 </LinearLayout>
