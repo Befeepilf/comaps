@@ -184,11 +184,15 @@ follow-up. Evidence:
 | SP-038 | **Accepted** 2026-08-07 — Area tap selection and focused-area detail surface |
 | SP-039 | **Accepted** 2026-08-07 — City-scale aggregation and summary badge |
 | SP-040 | **Accepted** 2026-08-07 — Completed-area visual + no-area empty state |
-| SP-041 | Planned — Phase 5 end-to-end validation (**exit gate**) |
+| SP-041 | Implemented, awaiting acceptance — Phase 5 end-to-end validation (**exit gate**) |
 
-**Next: SP-041 Phase 5 end-to-end validation (exit gate).** SP-033
-quantitative Spike 1 remains a Phase 10 residual. Phase 5 entry investigation:
+**Next: maintainer acceptance of SP-041 / Phase 5 exit** (evidence recorded;
+device + Spike 1 quantitative residuals → Phase 10). Phase 5 entry
+investigation:
 [`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md).
+Validation:
+[`validation/SP-041-validation-plan.md`](validation/SP-041-validation-plan.md),
+[`validation/SP-041-evidence-log.md`](validation/SP-041-evidence-log.md).
 
 ## 5. Release slices
 
@@ -408,12 +412,13 @@ SPD-020–025 Accepted under SP-024. Validation:
 | 38 | [SP-038](work-items/SP-038-area-tap-selection-and-detail-surface.md) | Area tap selection and focused-area detail surface | 5 | **Accepted** 2026-08-07 — polygon PIP + detail sheet; sticky explicit focus |
 | 39 | [SP-039](work-items/SP-039-city-scale-aggregation-and-summary-badge.md) | City-scale aggregation and summary badge | 5 | **Accepted** 2026-08-07 — city rollup explored/total (not avg %) |
 | 40 | [SP-040](work-items/SP-040-completed-area-and-no-area-states.md) | Completed-area visual state and no-area empty state | 5 | **Accepted** 2026-08-07 — §18.6 completed chrome + §31 empty |
-| 41 | [SP-041](work-items/SP-041-phase5-end-to-end-validation.md) | Phase 5 end-to-end validation | 5 | **Planned** — exit gate; device residual → Phase 10 pattern |
+| 41 | [SP-041](work-items/SP-041-phase5-end-to-end-validation.md) | Phase 5 end-to-end validation | 5 | Implemented, awaiting acceptance — exit evidence; device/Spike1 → Phase 10 |
 
 Phase 5 entry investigation (2026-08-07) recorded in
 [`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md).
-SP-033–SP-040 **Accepted** 2026-08-07. Quantitative Spike 1 → Phase 10.
-SPD-026 locks personal completion. Next: SP-041 Phase 5 exit validation.
+SP-033–SP-040 **Accepted** 2026-08-07. SP-041 exit evidence recorded (awaiting
+maintainer Phase 5 exit decision). Quantitative Spike 1 → Phase 10.
+SPD-026 locks personal completion.
 
 Detailed work items exist for Phases 1–5. Later phases are broken down after
 their entry criteria are met, and after any spike that phase depends on has a

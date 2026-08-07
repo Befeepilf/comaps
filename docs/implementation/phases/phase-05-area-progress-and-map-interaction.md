@@ -115,8 +115,11 @@ APIs the 2026-07-20 audit marked absent. Renderer shape matches the audit
 | 8 | [SP-040](../work-items/SP-040-completed-area-and-no-area-states.md) | Completed-area visual state and no-area empty state |
 | 9 | [SP-041](../work-items/SP-041-phase5-end-to-end-validation.md) | Phase 5 end-to-end validation (**exit gate**) |
 
-SP-033–SP-040 **Accepted** 2026-08-07. Next: SP-041 Phase 5 end-to-end
-validation (exit gate). SP-033 quantitative Spike 1 remains Phase 10.
+SP-033–SP-040 **Accepted** 2026-08-07. SP-041 exit validation evidence recorded
+(awaiting maintainer Phase 5 exit decision) — see
+[`../validation/SP-041-evidence-log.md`](../validation/SP-041-evidence-log.md).
+Automated suites green (67/67 areas, 205/205 map). Device walks + Spike 1
+quantitative → Phase 10. Agent does **not** mark Phase 5 exit Met.
 
 ### Open questions
 
