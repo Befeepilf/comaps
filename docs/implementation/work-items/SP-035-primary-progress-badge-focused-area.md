@@ -86,7 +86,7 @@ Phase 4 `DisplayName` exists but is not wired to the badge.
 | --- | --- |
 | Branch | `cursor/sp-035-focused-area-badge-191e` |
 | Test output | `street_pixels_tests` 196/196 (6 FocusedAreaBadge_* / LookupExplorationAreaAtPoint_*); `street_pixels_areas_tests` 50/50 |
-| Manual validation | Deferred — device badge spot-check with Helsinki → SP-041 / Phase 10 residual pattern |
+| Manual validation | Desktop interactive harness `focused_area_badge_desktop_demo` on DISPLAY=:1 — all 8 UI steps + scripted pass PASS (2026-08-07). Recording: `/opt/cursor/artifacts/sp035-focused-area-badge-desktop-demo.mp4`. Note: CoMaps Qt has no Street Pixels badge UI; harness exercises the same manager APIs Android binds. Helsinki device badge residual → SP-041 / Phase 10 |
 | Accepted by | |
 | Accepted date | |
 
@@ -98,4 +98,5 @@ Phase 4 `DisplayName` exists but is not wired to the badge.
 | JNI spa path must use `ExplorationSidecarPathBesideMwm` for versioned installs | Fixed in review follow-up |
 | R8 stripped JNI-only `FocusedAreaProgress` ctor → `mid == null` SIGABRT on test/release | Fixed with `@Keep` |
 | Badge hides when no focus / blank name (no-area stub) | SP-040 empty-state polish |
-| Manual Helsinki badge spot-check not run in this cloud agent | SP-041 / Phase 10 |
+| CoMaps Qt desktop has no Street Pixels badge chrome | Validated via `tools/focused_area_badge_desktop_demo`; product UI remains Android |
+| Helsinki on-device badge spot-check | SP-041 / Phase 10 |
