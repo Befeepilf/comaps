@@ -237,7 +237,7 @@ and
 [`validation/SP-031-evidence-log.md`](../validation/SP-031-evidence-log.md).
 Automated suites green (`street_pixels_areas_tests` 44/44; full
 `street_pixels_tests` 185/185; Rematch 18; AssignmentPersist 3; CountryConfig
-11). Exit checklist in the evidence log: **2–5 Pass**; **1 / 6 / 8**
+11). Exit checklist in the evidence log: **1 Residual**; **2–5 Pass**; **6 / 8**
 Pass+Residual; **7 Residual**. Known residuals: mapgen emit gap (SP-026),
 shipping-encoder FI size unmeasured, device/Helsinki walks → Phase 10,
 `/tmp/sp023` absent this run. **Exit criteria are not marked Met** — maintainer

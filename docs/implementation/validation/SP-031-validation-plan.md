@@ -1,8 +1,8 @@
 # SP-031 — Validation plan (reviewed before execution)
 
 **Work item:** [SP-031](../work-items/SP-031-area-pipeline-end-to-end-validation.md)
-**Plan reviewed by:** Maintainer
-**Plan review date:** 2026-08-07
+**Plan authored by:** Agent
+**Plan review date:** 2026-08-07 (independent review pass; maintainer counter-sign pending)
 **Branch:** `cursor/sp-031-area-pipeline-validation-191e` (lands on `street-pixels`)
 
 ## Approved decisions
@@ -13,7 +13,7 @@
 | Device walks | Deferred to **Phase 10** residual if OEM/device access blocks (same posture as SP-014 / SP-022). Not required to record automated exit coverage. |
 | Aggressive OEM | Deferred to Phase 10. |
 | SPD-024 floors | Exit #7 is sidecar / assignment-blob **size acceptance** only. There is **no** V1 numeric client pixel/area floor to validate. Do **not** invent floors in the evidence log. |
-| Mapgen emit | Full generator mapgen emission into `.spa` remains a known SP-026 residual. Do not claim exit #1 Met for a shipping full-country blob until emit (or an equivalent offline FI `.spa`) is evidenced. |
+| Mapgen emit | Full generator mapgen emission into `.spa` remains a known SP-026 residual. Do not claim exit #1 Pass for a shipping full-country blob until emit (or an equivalent offline FI `.spa`) is evidenced. |
 | Shipping size | Exit #7 may stay **residual** until `SaveOuterPath` shipping encoder is re-measured vs SP-023 zlib `coded_delta` baseline (~2.06 MiB national / ~0.52 MiB Helsinki). |
 | Helsinki names | Programmatic name spot-check only if `/tmp/sp023` (or equivalent FI rings) is present; otherwise residual. |
 | Flake note | `PauseResume_TrackBoundary_ImmediateResumeAdd_SplitsCorrectly` is a known intermittent pre-existing flake. Do **not** fail Phase 4 on a single flake of that test; re-run once and record. |
@@ -152,7 +152,7 @@ Explicit candidates (add rows only when observed):
 
 | Residual class | Example | Disposition |
 | --- | --- | --- |
-| Mapgen emit gap | Collectors not wired to write production `.spa` | Owning follow-up from SP-026; blocks claiming exit #1 Met for shipping FI |
+| Mapgen emit gap | Collectors not wired to write production `.spa` | Owning follow-up from SP-026; blocks claiming exit #1 Pass for shipping FI |
 | Shipping size unmeasured | No FI `.spa` byte size with `SaveOuterPath` | Exit #7 residual; re-measure when emit/offline harness available |
 | Device / Helsinki walks | Pixel 3a area UX, coastal/rural visual | Phase 10 (SP-014/022 pattern) |
 | `/tmp/sp023` absent | Cannot run programmatic Helsinki name check | Residual until spike data or shipping FI `.spa` restored |
@@ -174,18 +174,18 @@ Explicit candidates (add rows only when observed):
 Record results in the evidence log. Executor must paste **real** output counts
 from this branch SHA.
 
-## Phase 4 exit status (fill after evidence)
+## Phase 4 exit status (filled from evidence; maintainer decides)
 
 | Exit # | Criterion | Status | Evidence |
 | --- | --- | --- | --- |
-| 1 | True closed polygons available for fixture country | | A1–A5, G1; mapgen residual honest |
-| 2 | Versioned country config applied by priority | | B1–B3, G4 |
-| 3 | Every valid street pixel ≤1 area; deterministic | | C1, C4–C5, D4, G1/G3 |
-| 4 | Smallest-polygon + stable-id tie-break tested | | C2–C3 |
-| 5 | Settlement fallback | | D1, D3 |
-| 6 | Outside settlements: exploration works, no area | | D2; device residual if walks skip |
-| 7 | Sidecar/assignment-blob size measured and accepted (no client numeric floor — SPD-024) | | A4, S1–S3; residual OK if unmeasured |
-| 8 | No MWM country id as neighbourhood | | E1; E2 device residual |
+| 1 | True closed polygons available for fixture country | **Residual** | A1–A2 / G1 fixtures+library green; A3 mapgen emit not wired; no shipping FI `.spa` — full-country bar not claimed Pass |
+| 2 | Versioned country config applied by priority | **Pass** | B1–B3, G4 |
+| 3 | Every valid street pixel ≤1 area; deterministic | **Pass** | C1, C4–C5, D4, G1/G3 |
+| 4 | Smallest-polygon + stable-id tie-break tested | **Pass** | C2–C3 |
+| 5 | Settlement fallback | **Pass** | D1, D3 |
+| 6 | Outside settlements: exploration works, no area | **Pass (automated) + Residual (device)** | D2; F2/F3 → Phase 10 |
+| 7 | Sidecar/assignment-blob size measured and accepted (no client numeric floor — SPD-024) | **Residual** | A4, S1–S3; shipping encoder unmeasured; no floor invented |
+| 8 | No MWM country id as neighbourhood | **Pass (automated) + Residual (device UI)** | E1; E2 → Phase 10 |
 
 **Do not** mark “Exit criteria met” in phase docs unilaterally. Maintainer
 decides Phase 4 exit (Accepted / Accepted with residuals / Blocked).

@@ -2,14 +2,14 @@
 
 **Plan:** [SP-031-validation-plan.md](SP-031-validation-plan.md)
 **Branch:** `cursor/sp-031-area-pipeline-validation-191e`
-**Status:** In review (automated evidence recorded; device walks → Phase 10 residual)
+**Status:** In review (automated evidence recorded; device walks → Phase 10 residual; independent review honesty fixes applied)
 
 ## Build / automated baseline
 
 | Field | Value |
 | --- | --- |
 | Date | 2026-08-07 |
-| Git SHA (suite run tip) | `e10111c5372c676b8d016d2fa50a8c9afc98bf94` (`[map][docs] Merge SP-030 sparse assignment persistence`) |
+| Git SHA (suite run tip) | `e10111c5372c676b8d016d2fa50a8c9afc98bf94` (`[map][docs] Merge SP-030 sparse assignment persistence`; docs-only branch delta after this SHA) |
 | Build command | `./tools/unix/build_omim.sh -d -p /workspace street_pixels_areas_tests street_pixels_tests` |
 | Build result | OK — linked `street_pixels_areas_tests` and `street_pixels_tests` (debug) |
 | `street_pixels_areas_tests` | **44/44** All tests passed |
@@ -107,7 +107,7 @@ All tests passed.
 
 | Exit # | Criterion | Pass / fail / residual | Evidence pointers |
 | --- | --- | --- | --- |
-| 1 | True closed polygons available for fixture country | **Pass (fixtures/library) + Residual (shipping full-country emit)** | A1–A2 / G1 **44/44**; A3 mapgen emit not wired; no FI production `.spa` in tree; SP-023 measured FI rings offline only |
+| 1 | True closed polygons available for fixture country | **Residual** | A1–A2 / G1 fixtures+library green (**44/44**); A3 mapgen emit not wired; no FI production `.spa` in tree; SP-023 measured FI rings offline only — **full-country availability bar not Pass** |
 | 2 | Versioned country config applied by priority | **Pass** | B1–B3; G4 **11/11**; shipped `data/street_pixels/country_policies.json` FI 10→9→11 / admin_8 |
 | 3 | Every valid street pixel ≤1 area; deterministic | **Pass** | C1, C4–C5; assigner + assignment + sparse suites in G1; G3 **3/3** |
 | 4 | Smallest-polygon + stable-id tie-break tested | **Pass** | C2–C3; assigner nested/tie-break + lookup mirrors |
@@ -120,7 +120,7 @@ All tests passed.
 
 | ID | Summary | Disposition |
 | --- | --- | --- |
-| R1 | Full generator mapgen emission (OSM collectors → `.spa`) not wired | SP-026 follow-up / pre-production emit item; blocks exit #1 “shipping full country” Met |
+| R1 | Full generator mapgen emission (OSM collectors → `.spa`) not wired | SP-026 follow-up / pre-production emit item; blocks exit #1 Pass for shipping full country |
 | R2 | Shipping-encoder FI / Helsinki `.spa` (+ assign) size not re-measured vs SP-023 | Exit #7 residual; re-measure when emit or `/tmp/sp023` offline harness available |
 | R3 | Device walks (Helsinki names UX, rural/coastal, no MWM-id neighbourhood in UI) | Phase 10 — same pattern as SP-014 / SP-022 |
 | R4 | `/tmp/sp023` absent — no programmatic Helsinki name / size emit this run | Residual; SP-023 spike previously validated 11/11 known districts |
@@ -147,4 +147,4 @@ All tests passed.
 | Proposed residuals | R1 mapgen emit; R2 shipping size; R3 device walks; R4 `/tmp/sp023` spot-check |
 | Accepted by | |
 | Accepted date | |
-| Notes | Automated exit coverage for criteria 2–5 Met; 1/6/8 Met on fixture/API path with shipping/device residuals; 7 Residual (SPD-024 — no floor). |
+| Notes | Checklist: **1 Residual**; **2–5 Pass**; **6/8 Pass (automated) + Residual (device)**; **7 Residual** (SPD-024 — no floor). Fixtures/library do not satisfy exit #1’s full-country bar. |
