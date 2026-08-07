@@ -1,7 +1,7 @@
 # SP-035 — Primary progress badge bound to focused area
 
 **Phase:** 5 — Area progress and map interaction
-**Status:** Implemented (awaiting review / acceptance)
+**Status:** Accepted 2026-08-07
 **Branch:** `cursor/sp-035-focused-area-badge-191e`
 **Depends on:** Phase 4 Accepted; SP-033 Accepted (partial); SP-034 Accepted
 **Notes:** SP-037+ additionally note SP-033 LOD outcome; this item needs
@@ -87,8 +87,8 @@ Phase 4 `DisplayName` exists but is not wired to the badge.
 | Branch | `cursor/sp-035-focused-area-badge-191e` |
 | Test output | `street_pixels_tests` 196/196 (6 FocusedAreaBadge_* / LookupExplorationAreaAtPoint_*); `street_pixels_areas_tests` 50/50 |
 | Manual validation | Desktop interactive harness `focused_area_badge_desktop_demo` on DISPLAY=:1 — all 8 UI steps + scripted pass PASS (2026-08-07). Recording: `/opt/cursor/artifacts/sp035-focused-area-badge-desktop-demo.mp4`. Note: CoMaps Qt has no Street Pixels badge UI; harness exercises the same manager APIs Android binds. Helsinki device badge residual → SP-041 / Phase 10 |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer (accept 2026-08-07) |
+| Accepted date | 2026-08-07 |
 
 ## Discovered follow-up
 
