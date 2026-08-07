@@ -1,6 +1,6 @@
 # Phase 4 — Administrative-area pipeline
 
-**Status:** Exit criteria met 2026-08-07 (device-walk residual R3 → Phase 10; narrowed R1 mapgen emit → pre-production)
+**Status:** Exit criteria met 2026-08-07 (device-walk residual R3 → Phase 10; narrowed R1 → Phase 4 residual / pre-production packaging SP-042+)
 **Depends on:** Phase 3
 **Blocks:** Phases 5, 7, 8
 
@@ -110,6 +110,7 @@ Area id / assignment APIs exist under `libs/street_pixels_areas/` (SP-026–030)
 | 8 | [SP-030](../work-items/SP-030-assignment-persistence-and-rematch.md) | Persist assignments and rematch hooks |
 | 9 | [SP-031](../work-items/SP-031-area-pipeline-end-to-end-validation.md) | Area-pipeline end-to-end validation |
 | 10 | [SP-032](../work-items/SP-032-phase4-residual-spa-emit.md) | Offline `.spa` emit harness (SP-031 R1/R2/R4) |
+| — | [SP-042](../work-items/SP-042-sidecar-shipping-decisions.md) | Sidecar shipping decisions (SPD-027–033); follow-ons SP-043–048 (pre-production packaging, not Phase 5) |
 
 **SP-025+ unblocked** — SP-024 Accepted 2026-08-03 (SPD-020–025).
 
@@ -245,7 +246,7 @@ Pass (automated) + Residual (device); **7 Pass** (no SPD-024 floor).
 | ID | Summary | Disposition |
 | --- | --- | --- |
 | R3 | Device walks (Helsinki UX, rural/coastal, no MWM-id neighbourhood in UI) | Phase 10 |
-| R1 (narrowed) | Production mapgen collectors → `.spa` still unwired | Pre-production follow-up; offline harness satisfies fixture-country exit #1 |
+| R1 (narrowed) | Production mapgen collectors → `.spa` still unwired; CDN leaf download / packaging not wired | **Phase 4 residual / pre-production packaging** — shipping decisions owned by [SP-042](../work-items/SP-042-sidecar-shipping-decisions.md) (**SPD-027–033**); follow-ons SP-043–048. Still pre-production packaging, **not** Phase 5 and **not** a Phase 10 device item. Offline harness (SP-032) satisfies fixture-country exit #1 |
 
 ## Explicit non-goals
 

@@ -158,8 +158,9 @@ roadmap tracks.
 **Active phase: Phase 5 — Area progress and map interaction.**
 
 Phase 4 is **complete** (Exit criteria met 2026-08-07) with residuals: R3
-device walks → Phase 10; narrowed R1 production mapgen emit → pre-production
-follow-up. Evidence:
+device walks → Phase 10; narrowed R1 production `.spa` shipping → **Phase 4
+residual / pre-production packaging** (SP-042 / SPD-027–033; follow-ons
+SP-043–048 — **not** Phase 5, **not** Phase 10 device work). Evidence:
 [`validation/SP-031-evidence-log.md`](validation/SP-031-evidence-log.md).
 
 | Work item | Status |
@@ -176,6 +177,8 @@ follow-up. Evidence:
 | SP-030 | Accepted — sparse `.spx` + rematerialize (SPD-022) |
 | SP-031 | Accepted — Phase 4 exit validation (R3 → Phase 10) |
 | SP-032 | Accepted — offline `spa_emit_tool` + shipping-encoder FI sizes |
+| SP-042 | **In review** — sidecar shipping decisions (SPD-027–033); Phase 4 R1 packaging track |
+| SP-043–048 | Planned (stubs) — blob freeze, mapgen emit, countries meta, download, lifecycle, validation |
 | SP-033 | **Accepted** 2026-08-07 — qualitative Pixel 3a OK; quantitative Spike 1 → Phase 10 |
 | SP-034 | **Accepted** 2026-08-07 — area completion cache + SPD-026 |
 | SP-035 | **Accepted** 2026-08-07 — focused-area badge binding (map-centre stub → SP-036) |
@@ -396,11 +399,29 @@ Phase 3 residual (Pixel 3a / Uusimaa device walks, rematch timing on large
 | 32 | [SP-032](work-items/SP-032-phase4-residual-spa-emit.md) | Phase 4 residual: offline `.spa` emit | 4 | **Accepted** 2026-08-07 — `spa_emit_tool`; FI ~1.93 MiB / Helsinki ~0.44 MiB; 11/11 spot-check |
 
 Phase 4 **Exit criteria met** 2026-08-07. Residuals: R3 device walks → Phase
-10; narrowed R1 production mapgen emit → pre-production. Investigation and
-architecture: [`phases/phase-04-administrative-area-pipeline.md`](phases/phase-04-administrative-area-pipeline.md);
+10; narrowed R1 production `.spa` shipping → **Phase 4 residual /
+pre-production packaging** (not Phase 5; not Phase 10 device work).
+Investigation and architecture:
+[`phases/phase-04-administrative-area-pipeline.md`](phases/phase-04-administrative-area-pipeline.md);
 SPD-020–025 Accepted under SP-024. Validation:
 [`validation/SP-031-validation-plan.md`](validation/SP-031-validation-plan.md),
 [`validation/SP-031-evidence-log.md`](validation/SP-031-evidence-log.md).
+
+### Phase 4 residual / pre-production packaging (`.spa` shipping)
+
+Closes narrowed R1 (production mapgen emit + CDN leaf download / packaging).
+**Not** a Phase 5 exit gate and **not** a Phase 10 device residual
+(**SPD-033**). Decisions: **SPD-027–033** under SP-042.
+
+| Order | ID | Title | Phase | Why |
+| --- | --- | --- | --- | --- |
+| 42 | [SP-042](work-items/SP-042-sidecar-shipping-decisions.md) | Sidecar shipping decisions | 4 residual | **In review** — SPD-027–033; product locks D1–D7 (2026-08-07) |
+| 43 | SP-043 | Freeze production `.spa` blob contract (`nside` / universe-order / `format_version`) | 4 residual | Planned (stub) — **SPD-032** |
+| 44 | SP-044 | Wire production mapgen collectors → `.spa` emit (Phase 4 R1) | 4 residual | Planned (stub) |
+| 45 | SP-045 | Add optional `spa` / `spa_sha1_base64` leaf fields to `countries.txt` publish | 4 residual | Planned (stub) — **SPD-028** |
+| 46 | SP-046 | Client leaf download fetches advertised `.spa` beside MWM | 4 residual | Planned (stub) — **SPD-027**, **SPD-031** |
+| 47 | SP-047 | `.spa` full-refetch on map update and delete-with-map lifecycle | 4 residual | Planned (stub) — **SPD-029**, **SPD-030** |
+| 48 | SP-048 | Sidecar shipping validation and incomplete / retry signaling | 4 residual | Planned (stub) |
 
 | Order | ID | Title | Phase | Why first |
 | --- | --- | --- | --- | --- |
