@@ -355,8 +355,8 @@ MwmSubtreeAttrs LoadGroupImpl(size_t depth, json_t * node, CountryId const & par
   string nodeHash;
   FromJSONObjectOptionalField(node, "sha1_base64", nodeHash);
 
-  // Optional Street Pixels area sidecar meta (SPD-028). Do not fold spa bytes into
-  // GetSubtreeMwmSizeBytes / Android totalSize here — that is SP-046 follow-up.
+  // Optional Street Pixels area sidecar meta (SPD-028). Fold advertised spa bytes into
+  // GetSubtreeMwmSizeBytes / Android totalSize when present (SP-046).
   MwmSize spaSize = 0;
   FromJSONObjectOptionalField(node, "spa", spaSize);
   string spaHash;
@@ -379,7 +379,10 @@ MwmSubtreeAttrs LoadGroupImpl(size_t depth, json_t * node, CountryId const & par
   if (children.empty())
   {
     mwmCounter = 1;  // It's a leaf. Any leaf contains one mwm.
-    mwmSize = nodeSize;  // MWM `"s"` only; spa size is not included (SP-045).
+    mwmSize = nodeSize;
+    // Advertised `.spa` bytes fold into subtree / download estimate size (SP-046).
+    if (spaSize > 0)
+      mwmSize += spaSize;
   }
   else
   {

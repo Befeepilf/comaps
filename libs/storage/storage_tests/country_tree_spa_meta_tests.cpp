@@ -57,7 +57,7 @@ UNIT_TEST(CountryTree_SpaMeta_Absent)
   TEST(file.GetSpaSha1().empty(), ());
   TEST(!file.HasRemoteSpa(), ());
 
-  // Subtree MWM size must remain `"s"` only (spa not folded in — SP-045 / SP-046).
+  // Subtree size is MWM `"s"` only when spa is not advertised.
   Storage storage(json, std::make_unique<TestMapFilesDownloader>());
   TEST_EQUAL(200, storage.CountryLeafByCountryId("SpaMetaLeaf").GetSubtreeMwmSizeBytes(), ());
 }
@@ -77,8 +77,8 @@ UNIT_TEST(CountryTree_SpaMeta_BothPresent)
   TEST(file.HasRemoteSpa(), ());
 
   Storage storage(json, std::make_unique<TestMapFilesDownloader>());
-  // Spa bytes must not inflate subtree MWM size.
-  TEST_EQUAL(200, storage.CountryLeafByCountryId("SpaMetaLeaf").GetSubtreeMwmSizeBytes(), ());
+  // Advertised spa bytes fold into subtree / Android totalSize (SP-046).
+  TEST_EQUAL(242, storage.CountryLeafByCountryId("SpaMetaLeaf").GetSubtreeMwmSizeBytes(), ());
   TEST_EQUAL(100, storage.CountryLeafByCountryId("PlainLeaf").GetSubtreeMwmSizeBytes(), ());
 }
 

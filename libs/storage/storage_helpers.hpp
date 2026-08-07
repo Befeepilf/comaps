@@ -40,4 +40,7 @@ m2::RectD CalcLimitRect(CountryId const & countryId, Storage const & storage,
                         CountryInfoGetter const & countryInfoGetter);
 
 MwmSize GetRemoteSize(diffs::DiffsDataSource const & diffsDataSource, platform::CountryFile const & file);
+
+/// Remote download estimate: MWM (or diff) size plus advertised `.spa` when present (SP-046).
+MwmSize GetRemoteDownloadSize(diffs::DiffsDataSource const & diffsDataSource, platform::CountryFile const & file);
 }  // namespace storage
