@@ -32,6 +32,10 @@
 #include "map/live_sample_acceptance_filter.hpp"
 #include "map/live_segment_interpolation.hpp"
 
+#include "street_pixels_areas/exploration_area_resolver.hpp"
+#include "street_pixels_areas/exploration_sidecar.hpp"
+#include "street_pixels_areas/sparse_assignment_store.hpp"
+
 #include "base/timer.hpp"
 #include "map/track.hpp"
 
@@ -111,6 +115,34 @@ uint64_t CountPixBodyEntries(std::string const & path, uint64_t fileSize)
   case street_pixels_file::FileKind::Corrupt: return 0;
   }
   return 0;
+}
+
+m2::PointD MercatorCentreForHealpixNest(std::int64_t pixelId)
+{
+  pointing const ang = hp::GetHealpixBase().pix2ang(pixelId);
+  double const lat = math::RadToDeg(M_PI_2 - ang.theta);
+  double const lon = math::RadToDeg(ang.phi);
+  return mercator::FromLatLon(lat, lon);
+}
+
+void CollectExploredAscendingWithCentres(street_pixels_file::ExploredEverLiveMap const & explored,
+                                         std::vector<std::int64_t> & exploredAscending,
+                                         std::vector<m2::PointD> & centres)
+{
+  exploredAscending.clear();
+  centres.clear();
+  exploredAscending.reserve(explored.size());
+  centres.reserve(explored.size());
+  std::vector<std::int64_t> ids;
+  ids.reserve(explored.size());
+  for (auto const & entry : explored)
+    ids.push_back(entry.first);
+  std::sort(ids.begin(), ids.end());
+  for (std::int64_t id : ids)
+  {
+    exploredAscending.push_back(id);
+    centres.push_back(MercatorCentreForHealpixNest(id));
+  }
 }
 }  // namespace
 
@@ -343,7 +375,8 @@ void StreetPixelsManager::LoadStreetPixels(storage::LocalFilePtr const & localFi
       std::string const mwmPath = localFile->GetPath(MapFileType::Map);
       FeaturesVectorTest featuresVector(mwmPath);
       auto const newIds = DeriveStreetPixelsFromFeatures(featuresVector, countryId);
-      return RematchStreetPixelsWithNewUniverseUnlocked(countryId, newIds, mapDataVersion);
+      std::string const spaPath = street_pixels::ExplorationSidecarPathBesideMwm(mwmPath);
+      return RematchStreetPixelsWithNewUniverseUnlocked(countryId, newIds, mapDataVersion, spaPath);
     }
     catch (std::exception const & e)
     {
@@ -436,6 +469,12 @@ void StreetPixelsManager::LoadStreetPixels(storage::LocalFilePtr const & localFi
     LOG(LINFO, ("Loaded", m_streetPixels.size(), "total street pixels"));
   }
   LoadAccountedBits();
+
+  if (localFile && localFile->OnDisk(MapFileType::Map))
+  {
+    std::string const spaPath = street_pixels::ExplorationSidecarPathBesideMwm(localFile->GetPath(MapFileType::Map));
+    RefreshSparseAssignmentsBestEffortUnlocked(countryId, spaPath, mapDataVersion, false /* policyOnly */);
+  }
 }
 
 void StreetPixelsManager::LoadStreetPixelsFromFile(storage::CountryId const & countryId,
@@ -588,6 +627,7 @@ void StreetPixelsManager::CleanupStreetPixelsUnlocked(storage::CountryId const &
   Platform::RemoveFileIfExists(pixPath);
   Platform::RemoveFileIfExists(accountedPath);
   Platform::RemoveFileIfExists(pixfPath);
+  Platform::RemoveFileIfExists(street_pixels::SparseAssignmentPath(GetPlatform().WritableDir(), countryId));
 }
 
 void StreetPixelsManager::RematchStreetPixelsOnMapUpdate(storage::CountryId const & countryId,
@@ -614,13 +654,18 @@ void StreetPixelsManager::RematchStreetPixelsOnMapUpdate(storage::CountryId cons
       {
         LOG(LINFO, ("Rematch skipped; map-data version already current", countryId, mapDataVersion));
         Platform::RemoveFileIfExists(archivePath);
+        // .pix is current; still best-effort refresh .spx (missing/corrupt/stale policy).
+        std::string const spaPath =
+            street_pixels::ExplorationSidecarPathBesideMwm(localFile->GetPath(MapFileType::Map));
+        RefreshSparseAssignmentsBestEffortUnlocked(countryId, spaPath, mapDataVersion, false /* policyOnly */);
         return;
       }
 
       std::string const mwmPath = localFile->GetPath(MapFileType::Map);
       FeaturesVectorTest featuresVector(mwmPath);
       auto const newIds = DeriveStreetPixelsFromFeatures(featuresVector, countryId);
-      RematchStreetPixelsWithNewUniverseUnlocked(countryId, newIds, mapDataVersion);
+      std::string const spaPath = street_pixels::ExplorationSidecarPathBesideMwm(mwmPath);
+      RematchStreetPixelsWithNewUniverseUnlocked(countryId, newIds, mapDataVersion, spaPath);
     }
     catch (std::exception const & e)
     {
@@ -630,8 +675,8 @@ void StreetPixelsManager::RematchStreetPixelsOnMapUpdate(storage::CountryId cons
 }
 
 bool StreetPixelsManager::RematchStreetPixelsWithNewUniverseForTesting(storage::CountryId const & countryId,
-                                                                       std::set<std::int64_t> const & newIds,
-                                                                       std::int64_t mapDataVersion)
+                                                                    std::set<std::int64_t> const & newIds,
+                                                                    std::int64_t mapDataVersion)
 {
   std::lock_guard<std::mutex> pixLock(m_pixFileMutex);
   return RematchStreetPixelsWithNewUniverseUnlocked(countryId, newIds, mapDataVersion);
@@ -648,6 +693,38 @@ std::optional<StreetPixelsManager::RematchFractionChange> StreetPixelsManager::T
   auto change = std::move(m_pendingRematchFractionChange);
   m_pendingRematchFractionChange.reset();
   return change;
+}
+
+std::optional<StreetPixelsManager::AssignmentRematchSignal> StreetPixelsManager::TakePendingAssignmentRematch(
+    storage::CountryId const & forCountryId)
+{
+  std::lock_guard<std::mutex> lock(m_pendingAssignmentRematchMutex);
+  if (!m_pendingAssignmentRematch)
+    return std::nullopt;
+  if (!forCountryId.empty() && m_pendingAssignmentRematch->countryId != forCountryId)
+    return std::nullopt;
+  auto signal = std::move(m_pendingAssignmentRematch);
+  m_pendingAssignmentRematch.reset();
+  return signal;
+}
+
+bool StreetPixelsManager::RematerializeAssignmentsOnPolicyBump(storage::CountryId const & countryId,
+                                                               std::string const & spaPath,
+                                                               std::int64_t mapDataVersion,
+                                                               uint32_t expectedPolicyVersion)
+{
+  std::lock_guard<std::mutex> pixLock(m_pixFileMutex);
+  auto verified = street_pixels::TryLoadAndVerifyExplorationSidecar(spaPath, mapDataVersion, expectedPolicyVersion);
+  if (verified.m_status != street_pixels::SpaLoadStatus::Ok)
+  {
+    LOG(LWARNING, ("Policy rematerialize skipped; sidecar unavailable", countryId,
+                   street_pixels::DebugPrint(verified.m_status)));
+    return false;
+  }
+  RefreshSparseAssignmentsBestEffortUnlocked(countryId, spaPath, mapDataVersion, true /* policyOnly */);
+  auto const spxPath = street_pixels::SparseAssignmentPath(GetPlatform().WritableDir(), countryId);
+  auto loaded = street_pixels::TryLoadAndVerifySparseAssignmentStore(spxPath, mapDataVersion, expectedPolicyVersion);
+  return loaded.m_status == street_pixels::SpxLoadStatus::Ok;
 }
 
 bool StreetPixelsManager::ReloadStreetPixelsAfterRematchUnlocked(storage::CountryId const & countryId,
@@ -674,7 +751,8 @@ bool StreetPixelsManager::ReloadStreetPixelsAfterRematchUnlocked(storage::Countr
 
 bool StreetPixelsManager::RematchStreetPixelsWithNewUniverseUnlocked(storage::CountryId const & countryId,
                                                                      std::set<std::int64_t> const & newIds,
-                                                                     std::int64_t mapDataVersion)
+                                                                     std::int64_t mapDataVersion,
+                                                                     std::string const & spaPath)
 {
   LOG(LINFO, ("RematchStreetPixels", countryId, "newUniverse", newIds.size(), "mapDataVersion", mapDataVersion));
 
@@ -694,6 +772,8 @@ bool StreetPixelsManager::RematchStreetPixelsWithNewUniverseUnlocked(storage::Co
   {
     LOG(LINFO, ("Rematch skipped; map-data version already current", countryId, mapDataVersion));
     Platform::RemoveFileIfExists(archivePath);
+    if (!spaPath.empty())
+      RefreshSparseAssignmentsBestEffortUnlocked(countryId, spaPath, mapDataVersion, false /* policyOnly */);
     if (isActiveCountry)
       return ReloadStreetPixelsAfterRematchUnlocked(countryId, mapDataVersion);
     return true;
@@ -798,6 +878,9 @@ bool StreetPixelsManager::RematchStreetPixelsWithNewUniverseUnlocked(storage::Co
   Platform::RemoveFileIfExists(archivePath);
   street_stats::StreetStatsDB::Instance().ReconcileStatsAfterRematch(countryId);
 
+  if (!spaPath.empty())
+    RefreshSparseAssignmentsBestEffortUnlocked(countryId, spaPath, mapDataVersion, false /* policyOnly */);
+
   bool const stillActive = [&]()
   {
     std::lock_guard<std::mutex> lock(m_countryIdMutex);
@@ -812,6 +895,82 @@ bool StreetPixelsManager::RematchStreetPixelsWithNewUniverseUnlocked(storage::Co
   }
 
   return true;
+}
+
+void StreetPixelsManager::RefreshSparseAssignmentsBestEffortUnlocked(storage::CountryId const & countryId,
+                                                                     std::string const & spaPath,
+                                                                     std::int64_t mapDataVersion,
+                                                                     bool policyOnly)
+{
+  if (spaPath.empty())
+    return;
+
+  std::string const pixPath = GetPlatform().WritablePathForFile(countryId + ".pix");
+  std::string const spxPath = street_pixels::SparseAssignmentPath(GetPlatform().WritableDir(), countryId);
+
+  auto const universe = street_pixels_file::ScanUniverseAscending(pixPath);
+  auto const exploredMap = street_pixels_file::ScanExploredEverLive(pixPath);
+  if (!universe || !exploredMap)
+  {
+    LOG(LWARNING, ("Sparse assignment refresh skipped; .pix unreadable", countryId));
+    return;
+  }
+
+  auto sidecar = street_pixels::TryLoadExplorationSidecar(spaPath);
+  if (sidecar.m_status != street_pixels::SpaLoadStatus::Ok)
+  {
+    LOG(LINFO, ("Sparse assignment refresh skipped; no sidecar", countryId,
+                street_pixels::DebugPrint(sidecar.m_status)));
+    return;
+  }
+  if (sidecar.m_file.m_header.m_mapDataVersion != mapDataVersion)
+  {
+    LOG(LINFO, ("Sparse assignment refresh deferred; sidecar map-data mismatch", countryId,
+                sidecar.m_file.m_header.m_mapDataVersion, mapDataVersion));
+    return;
+  }
+
+  auto prior = street_pixels::TryLoadSparseAssignmentStore(spxPath);
+  // TryLoad never returns VersionMismatch; treat Ok with wrong versions as stale.
+  bool const hadDurablePrior = prior.m_status == street_pixels::SpxLoadStatus::Ok ||
+                               prior.m_status == street_pixels::SpxLoadStatus::Corrupt;
+  bool const versionsMatch =
+      prior.m_status == street_pixels::SpxLoadStatus::Ok &&
+      prior.m_store.MatchesVersions(sidecar.m_file.m_header.m_mapDataVersion,
+                                    sidecar.m_file.m_header.m_policyVersion);
+
+  auto resolver = street_pixels::ExplorationAreaResolver::TryLoad(
+      spaPath, *universe, sidecar.m_file.m_header.m_mapDataVersion, sidecar.m_file.m_header.m_policyVersion);
+  if (!resolver)
+  {
+    LOG(LWARNING, ("Sparse assignment refresh skipped; resolver load failed", countryId));
+    return;
+  }
+
+  std::vector<std::int64_t> exploredAscending;
+  std::vector<m2::PointD> centres;
+  CollectExploredAscendingWithCentres(*exploredMap, exploredAscending, centres);
+
+  auto ensured = street_pixels::EnsureSparseAssignmentStore(spxPath, *resolver, exploredAscending, centres);
+  if (!ensured)
+  {
+    LOG(LWARNING, ("Sparse assignment refresh failed", countryId));
+    return;
+  }
+
+  // Signal version rematch / corrupt rebuild. Quiet exploration catch-up under the
+  // same (map, policy) pair does not set the pending signal. policyOnly only
+  // annotates the signal when a rematch was requested via the policy-bump API.
+  if (hadDurablePrior && (!versionsMatch || prior.m_status == street_pixels::SpxLoadStatus::Corrupt))
+  {
+    std::lock_guard<std::mutex> lock(m_pendingAssignmentRematchMutex);
+    AssignmentRematchSignal signal;
+    signal.countryId = countryId;
+    signal.mapDataVersion = ensured->GetHeader().m_mapDataVersion;
+    signal.policyVersion = ensured->GetHeader().m_policyVersion;
+    signal.policyOnly = policyOnly;
+    m_pendingAssignmentRematch = std::move(signal);
+  }
 }
 
 std::set<std::int64_t> StreetPixelsManager::DeriveStreetPixelsFromFeatures(FeaturesVectorTest & featuresVector)
