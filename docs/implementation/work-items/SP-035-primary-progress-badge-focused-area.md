@@ -95,5 +95,6 @@ Phase 4 `DisplayName` exists but is not wired to the badge.
 | Finding | Proposed disposition |
 | --- | --- |
 | Temporary map-centre `TryFocusAtPoint` / JNI refresh until §12.5 | Replace in SP-036 |
+| JNI spa path must use `ExplorationSidecarPathBesideMwm` for versioned installs | Fixed in review follow-up |
 | Badge hides when no focus / blank name (no-area stub) | SP-040 empty-state polish |
 | Manual Helsinki badge spot-check not run in this cloud agent | SP-041 / Phase 10 |
