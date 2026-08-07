@@ -186,7 +186,7 @@ follow-up. Evidence:
 | SP-040 | Planned — Completed-area visual + no-area empty state |
 | SP-041 | Planned — Phase 5 end-to-end validation (**exit gate**) |
 
-**Next: SP-038 area tap selection** (after SP-037 Accepted). SP-033
+**Next: SP-038 area tap selection and focused-area detail surface.** SP-033
 quantitative Spike 1 remains a Phase 10 residual. Phase 5 entry investigation:
 [`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md).
 
@@ -404,7 +404,7 @@ SPD-020–025 Accepted under SP-024. Validation:
 | 34 | [SP-034](work-items/SP-034-area-scoped-completion-computation.md) | Area-scoped completion computation and cache | 5 | **Accepted** 2026-08-07 — `AreaCompletionCache` + SPD-026 |
 | 35 | [SP-035](work-items/SP-035-primary-progress-badge-focused-area.md) | Primary progress badge bound to focused area | 5 | **Accepted** 2026-08-07 — DisplayName + SP-034 %; map-centre stub → SP-036 |
 | 36 | [SP-036](work-items/SP-036-focus-selection-engine.md) | Focus-selection engine (§12.5) | 5 | **Accepted** 2026-08-07 — five §12.5 rules + recording>pan; city zoom stub → SP-039 |
-| 37 | [SP-037](work-items/SP-037-area-boundary-rendering-and-shading.md) | Area boundary rendering and completion shading by zoom | 5 | **Implemented** — additive overlay; keep one-circle-per-cell (SP-033) |
+| 37 | [SP-037](work-items/SP-037-area-boundary-rendering-and-shading.md) | Area boundary rendering and completion shading by zoom | 5 | **Accepted** 2026-08-07 — additive overlay; keep one-circle-per-cell (SP-033) |
 | 38 | [SP-038](work-items/SP-038-area-tap-selection-and-detail-surface.md) | Area tap selection and focused-area detail surface | 5 | **Planned** — polygon hit-test, not pixel picking |
 | 39 | [SP-039](work-items/SP-039-city-scale-aggregation-and-summary-badge.md) | City-scale aggregation and summary badge | 5 | **Planned** — settlement containment from Phase 4 |
 | 40 | [SP-040](work-items/SP-040-completed-area-and-no-area-states.md) | Completed-area visual state and no-area empty state | 5 | **Planned** — §18.6, §31 |
@@ -412,8 +412,8 @@ SPD-020–025 Accepted under SP-024. Validation:
 
 Phase 5 entry investigation (2026-08-07) recorded in
 [`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md).
-SP-033–SP-036 **Accepted** 2026-08-07. Quantitative Spike 1 → Phase 10.
-SPD-026 locks personal completion. Next: SP-037 acceptance, then SP-038.
+SP-033–SP-037 **Accepted** 2026-08-07. Quantitative Spike 1 → Phase 10.
+SPD-026 locks personal completion. Next: SP-038 area tap selection.
 
 Detailed work items exist for Phases 1–5. Later phases are broken down after
 their entry criteria are met, and after any spike that phase depends on has a
