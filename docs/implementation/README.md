@@ -176,8 +176,8 @@ follow-up. Evidence:
 | SP-030 | Accepted — sparse `.spx` + rematerialize (SPD-022) |
 | SP-031 | Accepted — Phase 4 exit validation (R3 → Phase 10) |
 | SP-032 | Accepted — offline `spa_emit_tool` + shipping-encoder FI sizes |
-| SP-033 | Implemented — qualitative Pixel 3a OK; quantitative Spike 1 → Phase 10 |
-| SP-034 | Implemented — area completion cache + SPD-026 (awaiting acceptance) |
+| SP-033 | **Accepted** 2026-08-07 — qualitative Pixel 3a OK; quantitative Spike 1 → Phase 10 |
+| SP-034 | **Accepted** 2026-08-07 — area completion cache + SPD-026 |
 | SP-035 | Planned — Primary progress badge bound to focused area |
 | SP-036 | Planned — Focus-selection engine (§12.5) |
 | SP-037 | Planned — Area boundary rendering and completion shading |
@@ -186,9 +186,8 @@ follow-up. Evidence:
 | SP-040 | Planned — Completed-area visual + no-area empty state |
 | SP-041 | Planned — Phase 5 end-to-end validation (**exit gate**) |
 
-**Do not start SP-035+ UI coding until SP-034 is Accepted.** SP-033 quantitative
-Spike 1 remains a Phase 10 residual (qualitative Pixel 3a OK recorded). Phase 5
-entry investigation:
+**Do not start SP-036+ focus rules until SP-035 badge binding lands.** SP-033
+quantitative Spike 1 remains a Phase 10 residual. Phase 5 entry investigation:
 [`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md).
 
 ## 5. Release slices
@@ -401,8 +400,8 @@ SPD-020–025 Accepted under SP-024. Validation:
 
 | Order | ID | Title | Phase | Why first |
 | --- | --- | --- | --- | --- |
-| 33 | [SP-033](work-items/SP-033-city-scale-rendering-performance-spike.md) | Spike: city-scale street-pixel rendering performance | 5 | **Implemented** — qualitative Pixel 3a OK; quantitative Spike 1 → Phase 10 |
-| 34 | [SP-034](work-items/SP-034-area-scoped-completion-computation.md) | Area-scoped completion computation and cache | 5 | **Implemented** — `AreaCompletionCache` + SPD-026 (awaiting acceptance) |
+| 33 | [SP-033](work-items/SP-033-city-scale-rendering-performance-spike.md) | Spike: city-scale street-pixel rendering performance | 5 | **Accepted** 2026-08-07 — qualitative Pixel 3a OK; quantitative Spike 1 → Phase 10 |
+| 34 | [SP-034](work-items/SP-034-area-scoped-completion-computation.md) | Area-scoped completion computation and cache | 5 | **Accepted** 2026-08-07 — `AreaCompletionCache` + SPD-026 |
 | 35 | [SP-035](work-items/SP-035-primary-progress-badge-focused-area.md) | Primary progress badge bound to focused area | 5 | **Planned** — name + %; no MWM country id as name |
 | 36 | [SP-036](work-items/SP-036-focus-selection-engine.md) | Focus-selection engine (§12.5) | 5 | **Planned** — all five rules as separate cases |
 | 37 | [SP-037](work-items/SP-037-area-boundary-rendering-and-shading.md) | Area boundary rendering and completion shading by zoom | 5 | **Planned** — depends on SP-033 LOD outcome |
@@ -413,9 +412,8 @@ SPD-020–025 Accepted under SP-024. Validation:
 
 Phase 5 entry investigation (2026-08-07) recorded in
 [`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md).
-SP-033 qualitative Pixel 3a OK recorded; quantitative Spike 1 → Phase 10.
-SPD-026 locks personal completion (explored/total; live+imported). **Do not
-start SP-035+ until SP-034 is Accepted.**
+SP-033 / SP-034 **Accepted** 2026-08-07. Quantitative Spike 1 → Phase 10.
+SPD-026 locks personal completion. Next: SP-035 badge binding.
 
 Detailed work items exist for Phases 1–5. Later phases are broken down after
 their entry criteria are met, and after any spike that phase depends on has a
