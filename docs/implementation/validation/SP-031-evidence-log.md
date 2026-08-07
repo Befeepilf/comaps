@@ -22,11 +22,28 @@
 | `/tmp/sp023` | **Absent** — Helsinki programmatic name spot-check and shipping-encoder FI size emit not run |
 | Smoke / APK | Not run (agent desktop suites only) |
 
+### Independent review re-verify (2026-08-07)
+
+Docs-only delta on this branch; binaries match merge-base `e10111c537`.
+Re-ran without rebuild:
+
+| Suite | Result |
+| --- | --- |
+| `street_pixels_areas_tests` | **44/44** All tests passed (`grep -c '^OK$'` → 44) |
+| `--filter=Rematch` | **18/18** All tests passed |
+| `--filter=AssignmentPersist` | **3/3** All tests passed |
+| `--filter=CountryConfig` | **11/11** All tests passed |
+| Full `street_pixels_tests` | **185/185** All tests passed; `PauseResume_TrackBoundary_ImmediateResumeAdd_SplitsCorrectly` → OK |
+
+Source macro spot-check (same counts): areas UNIT_TEST files 6+8+4+7+6+5+8=44;
+`street_pixels_tests` UNIT_TEST total 185; Rematch/AssignmentPersist/CountryConfig
+name matches 18/3/11.
+
 ### Suite command transcripts (counts)
 
 ```text
 $ ./omim-build-debug/street_pixels_areas_tests
-… (44 × OK) …
+… (44 × Running / OK; ends with SelectSettlement / filter / sidecar / …) …
 All tests passed.
 # grep -c '^OK$' → 44
 
@@ -41,7 +58,7 @@ All tests passed.
 # grep -c '^OK$' → 3
 
 $ ./omim-build-debug/street_pixels_tests --filter=CountryConfig
-… (11 × OK) …
+… (11 × OK; includes FinlandFixturePriority, IgnoreFloorKeysNeverApply, LoadShippedFinlandFixture) …
 All tests passed.
 # grep -c '^OK$' → 11
 
