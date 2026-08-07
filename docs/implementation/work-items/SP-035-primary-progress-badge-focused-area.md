@@ -25,6 +25,9 @@ Phase 4 `DisplayName` exists but is not wired to the badge.
 ## In-scope behavior
 
 - Primary badge displays focused area `DisplayName` + area-scoped %.
+- Require `StreetPixelsManager::IsAreaCompletionCacheValid()` before trusting
+  `GetAreaCompletionFraction` (invalid cache fail-closes to 0 and must not be
+  shown as a real 0% without rebuild).
 - Empty / no-area handling may stub toward SP-040; must not show MWM id.
 - Numeric/name updates when focus changes (focus engine may land in SP-036;
   this item supplies the binding surface).
