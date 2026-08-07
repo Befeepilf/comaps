@@ -1,7 +1,7 @@
 # SP-040 — Completed-area visual state and no-area empty state
 
 **Phase:** 5 — Area progress and map interaction
-**Status:** Implemented, awaiting acceptance
+**Status:** Accepted 2026-08-07
 **Branch:** `cursor/sp-040-completed-no-area-191e`
 **Depends on:** Phase 4 Accepted; SP-033 measurement recorded; SP-034
   completion; SP-037 shading/boundaries preferred; SP-035/038 for badge/detail
@@ -80,8 +80,8 @@ exploration area. Spec forbids inventing grid areas; empty state must not lie.
 | Test output | `street_pixels_areas_tests` 67/67 (`AreaOverlay_StyleCompletedDistinctFromInProgress` + existing); `street_pixels_tests` 205/205 (`FocusedAreaBadge_NoAreaSignalNeverUsesMwmId`; 100% → `m_areaCompleted`; clear → `m_noExplorationArea`) |
 | Manual validation | Device completed chrome + leave-settlement empty walk → SP-041 / Phase 10 |
 | Completion-date persistence (yes/no) | No — deferred to Phase 7 |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer (accept 2026-08-07) |
+| Accepted date | 2026-08-07 |
 
 ## Discovered follow-up
 
