@@ -115,8 +115,8 @@ APIs the 2026-07-20 audit marked absent. Renderer shape matches the audit
 | 8 | [SP-040](../work-items/SP-040-completed-area-and-no-area-states.md) | Completed-area visual state and no-area empty state |
 | 9 | [SP-041](../work-items/SP-041-phase5-end-to-end-validation.md) | Phase 5 end-to-end validation (**exit gate**) |
 
-**Do not start SP-035+ until SP-034 is Accepted.** SP-033 quantitative Spike 1
-remains Phase 10 (qualitative Pixel 3a OK recorded; unlocks SP-034).
+SP-033–SP-035 **Accepted** 2026-08-07. Next: SP-036 focus-selection engine.
+SP-033 quantitative Spike 1 remains Phase 10.
 
 ### Open questions
 
@@ -124,7 +124,7 @@ remains Phase 10 (qualitative Pixel 3a OK recorded; unlocks SP-034).
 | --- | --- | --- |
 | OQ-1 (completion slice) | Spec §7 formula markup is blank. Intent from surrounding text: explored / total **valid street pixels in the area** (live + imported). Ownership/contested pieces of OQ-1 stay Phase 8. | **Closed for personal completion by SPD-026** (SP-034). Ownership / contested remain Phase 8. |
 | Spike 1 / SP-033 | Does one-circle-per-cell meet ≥30 FPS p95 at zoom 14–16 and &lt;150 MB memory uplift on mid-tier Android? | **Partial SP-033** — qualitative OK on Pixel 3a; quantitative → Phase 10. Provisional SP-037: keep one-circle-per-cell. |
-| Badge vs recording focus | Spec §12.5 rules 1 and 2 can both apply when map centre ≠ user during recording. | Resolve in SP-036 with separate test cases per rule; escalate product conflict if observed. |
+| Badge vs recording focus | Spec §12.5 rules 1 and 2 can both apply when map centre ≠ user during recording. | **Resolved in SP-036:** during active recording, rule 1 wins (user area). Documented in work-item follow-up. |
 
 ## Data and migration concerns
 
