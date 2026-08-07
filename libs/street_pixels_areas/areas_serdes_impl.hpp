@@ -8,7 +8,7 @@
 
 namespace street_pixels
 {
-namespace detail
+namespace spa_detail
 {
 template <typename Source>
 ExplorationArea ReadArea(Source & src, uint32_t compactIndex)
@@ -31,7 +31,7 @@ ExplorationArea ReadArea(Source & src, uint32_t compactIndex)
     serial::LoadOuterPath(src, cp, area.m_rings[i]);
   return area;
 }
-}  // namespace detail
+}  // namespace spa_detail
 
 template <typename Source>
 SpaHeader ReadSpaHeader(Source & src)
@@ -49,10 +49,34 @@ SpaHeader ReadSpaHeader(Source & src)
 
   if (header.m_magic != kSpaMagic)
     MYTHROW(SpaFormatException, ("Bad .spa magic", header.m_magic));
-  if (header.m_formatVersion != kSpaFormatVersion)
-    MYTHROW(SpaFormatException, ("Unsupported .spa format_version", header.m_formatVersion));
   if (header.m_indexWidth != 2 && header.m_indexWidth != 4)
     MYTHROW(SpaFormatException, ("Unsupported .spa index_width", header.m_indexWidth));
+
+  if (header.m_formatVersion == kSpaFormatVersion)
+  {
+    header.m_nside = ReadPrimitiveFromSource<uint32_t>(src);
+    header.m_universeOrder = ReadPrimitiveFromSource<uint8_t>(src);
+    uint8_t reserved[3] = {};
+    src.Read(reserved, sizeof(reserved));
+    if (header.m_nside != kSpaNside)
+      MYTHROW(SpaFormatException, ("Unsupported .spa nside", header.m_nside));
+    if (header.m_universeOrder != kSpaUniverseOrderAscendingNest)
+      MYTHROW(SpaFormatException, ("Unsupported .spa universe_order", header.m_universeOrder));
+    if (reserved[0] != 0 || reserved[1] != 0 || reserved[2] != 0)
+      MYTHROW(SpaFormatException, ("Non-zero .spa header reserved bytes"));
+  }
+  else if (header.m_formatVersion == kSpaFormatVersionV1)
+  {
+    // Geometry-only dual-read: v1 headers end at index_width. Assigning blobs
+    // without a frozen nside / universe_order tag are rejected fail-closed.
+    if (header.m_assignCount != 0)
+      MYTHROW(SpaFormatException, ("Rejected .spa format_version 1 with assign_count > 0",
+                                   header.m_assignCount));
+  }
+  else
+  {
+    MYTHROW(SpaFormatException, ("Unsupported .spa format_version", header.m_formatVersion));
+  }
   return header;
 }
 
@@ -62,7 +86,7 @@ std::vector<ExplorationArea> ReadAreasSection(Source & src, uint32_t expectedCou
   std::vector<ExplorationArea> areas;
   areas.reserve(expectedCount);
   for (uint32_t i = 0; i < expectedCount; ++i)
-    areas.push_back(detail::ReadArea(src, i));
+    areas.push_back(spa_detail::ReadArea(src, i));
   return areas;
 }
 
