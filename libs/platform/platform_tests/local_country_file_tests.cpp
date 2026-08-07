@@ -125,7 +125,8 @@ UNIT_TEST(LocalCountryFile_DiskFiles)
     testMapFile.Reset();
 
     // Spa remains detectable independently of Map deletion from LocalCountryFile state
-    // until the next SyncWithDisk; DeleteCountry Spa lifecycle is SP-047.
+    // until the next SyncWithDisk. Storage DeleteFromDiskWithIndexes(Map) removes `.spa`
+    // (SPD-030 / SP-047); this API stays Map-only.
     localFile.SyncWithDisk();
     TEST(!localFile.OnDisk(MapFileType::Map), ());
     TEST(localFile.OnDisk(MapFileType::Spa), ());

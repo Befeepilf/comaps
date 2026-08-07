@@ -65,6 +65,13 @@ void DeleteFromDiskWithIndexes(LocalCountryFile const & localFile, MapFileType t
 {
   DeleteCountryIndexes(localFile);
   localFile.DeleteFromDisk(type);
+  // SPD-030: `.spa` is map-adjacent geometry — delete with the map. Personal
+  // `.pix` / `.pixr` / `.spx` keep SPD-016 / SP-030 sparse rules (not MapFileType
+  // lifecycle here).
+  // Use RemoveFileIfExists: deferred DeleteCustomCountryVersion may hold a
+  // LocalCountryFile copy that never SyncWithDisk'd after Spa download.
+  if (type == MapFileType::Map)
+    Platform::RemoveFileIfExists(localFile.GetPath(MapFileType::Spa));
 }
 
 CountryTree::Node const & LeafNodeFromCountryId(CountryTree const & root, CountryId const & countryId)
@@ -1182,8 +1189,14 @@ void Storage::RegisterDownloadedFiles(CountryId const & countryId, MapFileType t
     NotifyStatusChangedForHierarchy(countryId);
 
     // Sequential `.spa` after Map (queue is per CountryId). Diff Ok → Map also lands here.
+    // SPD-029: no spa-diffs — drop any stale `.spa` so MaybeEnqueue always full-refetches
+    // after Map / Diff replace (same-version Diff or redownload included).
     if (type == MapFileType::Map || type == MapFileType::Diff)
+    {
+      Platform::RemoveFileIfExists(localFile->GetPath(MapFileType::Spa));
+      localFile->SyncWithDisk();
       MaybeEnqueueRemoteSpa(countryId);
+    }
   };
 
   if (type == MapFileType::Diff)
