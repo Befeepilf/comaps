@@ -9,6 +9,7 @@ set(SRC
   exploration_sidecar_tests.cpp
   focus_selection_engine_tests.cpp
   sparse_assignment_store_tests.cpp
+  spa_dense_emit_tests.cpp
   spa_jsonl_emit_tests.cpp
   spa_serdes_tests.cpp
   subdivision_assigner_tests.cpp
