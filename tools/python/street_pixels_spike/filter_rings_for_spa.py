@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Optional offline helper: filter SP-023 JSONL rings by street_pixels policy.
 
-Does not write .spa (C++ WriteExplorationSidecar owns the shipping codec).
-Use to preview admit/reject counts before a local C++ emit harness.
+Does not write .spa — use tools/spa_emit_tool (SP-032) for the shipping
+SaveOuterPath emit. This script previews admit/reject counts.
 
 Example:
   python3 tools/python/street_pixels_spike/filter_rings_for_spa.py \\
