@@ -1,8 +1,8 @@
 # SP-041 — Phase 5 end-to-end validation
 
 **Phase:** 5 — Area progress and map interaction
-**Status:** Planned
-**Branch:** `street-pixels`
+**Status:** Implemented, awaiting acceptance
+**Branch:** `cursor/sp-041-phase5-validation-191e`
 **Depends on:** SP-033–040 implemented (or explicitly residualled)
 **Notes:** Exit gate. Device residual → Phase 10 pattern (same as SP-014 / SP-022 / SP-031).
 
@@ -79,11 +79,11 @@ performance (or recorded residual).
 
 | Field | Value |
 | --- | --- |
-| Validation plan | |
-| Evidence log | |
-| Test output | |
-| Device roster / residual | |
-| Exit criteria table | |
+| Validation plan | [SP-041-validation-plan.md](../validation/SP-041-validation-plan.md) |
+| Evidence log | [SP-041-evidence-log.md](../validation/SP-041-evidence-log.md) |
+| Test output | SHA `5b27b4227`: `street_pixels_areas_tests` **67/67**; `street_pixels_tests` **205/205**; `--filter=Focus` **14/14**; `--filter=AreaCompletion` **5/5**; `--filter=FocusedArea` **6/6**; `--filter=City` **3/3** |
+| Device roster / residual | D1 Pixel 3a / D2 OEM deferred → Phase 10 (H1–H6) |
+| Exit criteria table | Evidence log — **1–6/8 Pass+Residual (device)**; **7 Pass (Partial)+Residual (Spike 1 quantitative)** |
 | Accepted by | |
 | Accepted date | |
 
@@ -91,4 +91,9 @@ performance (or recorded residual).
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Device Helsinki Phase 5 walks | Phase 10 residual R1 |
+| Quantitative Spike 1 FPS/memory | Phase 10 (R2 / SP-033) |
+| Completed check glyph not drawn | Polish residual R3 |
+| Overlay Neighbourhood-baked push | Optional retune R4 |
+| Completion-date persistence | Phase 7 (R5) |
+| Phase 5 exit Met? | Maintainer decision — agent does not self-accept |
