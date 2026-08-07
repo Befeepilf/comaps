@@ -74,6 +74,10 @@ public class StreetPixelsManager
   private static native double nativeGetTotalExploredFraction();
   @Nullable
   private static native RematchFractionChange nativeTakePendingRematchFractionChange(@NonNull String countryId);
+  @NonNull
+  private static native FocusedAreaProgress nativeGetFocusedAreaProgress();
+  @NonNull
+  private static native FocusedAreaProgress nativeRefreshFocusedAreaAtMapCenter(@NonNull String countryId);
 
   public void attach(@NonNull StreetPixelsErrorDialogListener listener)
   {
@@ -93,6 +97,19 @@ public class StreetPixelsManager
   public double getTotalExploredFraction()
   {
     return nativeGetTotalExploredFraction();
+  }
+
+  @NonNull
+  public FocusedAreaProgress getFocusedAreaProgress()
+  {
+    return nativeGetFocusedAreaProgress();
+  }
+
+  // Temporary until SP-036: resolve focus from map centre, rebuild completion if needed.
+  @NonNull
+  public FocusedAreaProgress refreshFocusedAreaAtMapCenter(@NonNull String countryId)
+  {
+    return nativeRefreshFocusedAreaAtMapCenter(countryId);
   }
 
   @Nullable
