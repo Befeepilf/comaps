@@ -2,7 +2,7 @@
 
 **Plan:** [SP-031-validation-plan.md](SP-031-validation-plan.md)
 **Branch:** `cursor/sp-032-phase4-residual-emit-191e` (includes SP-031 validation docs + SP-032 emit harness)
-**Status:** In review (exit #1/#7 Pass via SP-032 offline emit; R3 device walks → Phase 10; mapgen production emit still follow-up; **not** unilaterally Met)
+**Status:** Accepted — Phase 4 **Exit criteria met** 2026-08-07 (R3 device walks → Phase 10; narrowed R1 mapgen emit → pre-production)
 
 ## Build / automated baseline
 
@@ -186,15 +186,15 @@ No client numeric floor applied (SPD-024). Sizes are below the SP-023 zlib coded
 | WI | Status at SP-031 / SP-032 run |
 | --- | --- |
 | SP-023–030 | Accepted (see README / work items) |
-| SP-031 | **In review** — exit #1/#7 Pass after SP-032; R3 Phase 10; maintainer decides Phase 4 exit |
-| SP-032 | **In review** — offline emit harness + evidence |
+| SP-031 | **Accepted** 2026-08-07 — Phase 4 exit with R3 → Phase 10 |
+| SP-032 | **Accepted** 2026-08-07 — offline emit harness + size evidence |
 
 ## Maintainer exit decision
 
 | Field | Value |
 | --- | --- |
-| Phase 4 exit | *(proposed: Accepted with residuals — do **not** set “Exit criteria met” until maintainer confirms)* |
-| Proposed residuals | Narrowed R1 mapgen emit (pre-production); R3 device walks → Phase 10 |
-| Accepted by | |
-| Accepted date | |
-| Notes | Checklist after SP-032: **1 Pass**; **2–5 Pass**; **6/8 Pass (automated) + Residual (device)**; **7 Pass** (SPD-024 — no floor). Offline FI `.spa` satisfies fixture-country availability; production collectors→`.spa` still follow-up. |
+| Phase 4 exit | **Exit criteria met** 2026-08-07 — device-walk residual (R3) → Phase 10; narrowed R1 mapgen emit → pre-production follow-up |
+| Proposed residuals | R3 device walks → Phase 10; narrowed R1 mapgen emit (pre-production) |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-07 |
+| Notes | Checklist: **1 Pass**; **2–5 Pass**; **6/8 Pass (automated) + Residual (device)**; **7 Pass** (SPD-024 — no floor). |

@@ -1,8 +1,8 @@
 # SP-032 — Phase 4 residual: offline `.spa` emit harness
 
 **Phase:** 4 — Administrative-area pipeline
-**Status:** In review
-**Branch:** `cursor/sp-032-phase4-residual-emit-191e` (lands on `street-pixels`)
+**Status:** Accepted
+**Branch:** `street-pixels` (merged from `cursor/sp-032-phase4-residual-emit-191e`)
 **Depends on:** SP-026 (format/library), SP-031 residuals R1/R2/R4 (partial)
 **Unblocks:** SP-031 exit #1 / #7 Pass (device walks R3 stay Phase 10)
 
@@ -94,8 +94,8 @@ enough to demonstrate true closed rings + `SaveOuterPath` sizes for Finland.
 | Test output | `./tools/unix/build_omim.sh -d -p /workspace spa_emit_tool street_pixels_areas_tests`; `./omim-build-debug/street_pixels_areas_tests` — **46/46 OK** (`SpaJsonlEmit_*` 2/2); emit re-verify sizes unchanged |
 | Decision ids | SPD-020, SPD-021, SPD-023, SPD-024 |
 | Implemented by | Agent |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-07 |
 
 ## Discovered follow-up
 
