@@ -989,6 +989,55 @@ covers area progress UI; Phase 10 covers device hardening. Product owner lock
 
 ---
 
+## SPD-034 — Production `.spa` blob contract (`format_version` 2)
+
+**Decision.** Freeze the production `.spa` header / assign-universe contract as
+follows (little-endian; fields after `index_width` are **format_version 2**
+only):
+
+| Item | Value |
+| --- | --- |
+| `format_version` | **2** (`kSpaFormatVersion`) |
+| `nside` | **1048576** (`kSpaNside`; SPD-017) |
+| `universe_order` | **1** = AscendingNest (`kSpaUniverseOrderAscendingNest`) — dense `assign[i]` slots are strictly ascending HEALPix NEST ids, same order as `ScanUniverseAscending` |
+| `reserved[3]` | must be **0** on write; non-zero → fail-closed on read |
+
+**Writer.** Always emits format_version 2 with the production `nside` /
+`universe_order` / zero reserved bytes.
+
+**Reader (fail-closed).**
+
+- format_version **2**: require `nside == 1048576`, `universe_order ==
+  AscendingNest`, and `reserved == 0`; else corrupt / reject.
+- format_version **1** + `assign_count == 0`: accept (geometry-only dual-read
+  for fixtures / offline harness).
+- format_version **1** + `assign_count > 0`: reject on production load paths.
+- Other format versions: unsupported.
+
+This closes the field-level freeze gated by **SPD-032**. Do not invent grids or
+change `nside`. Mapgen emit of production assignment blobs remains **SP-044**.
+
+**Status.** Accepted.
+
+**Context.** SP-026 / SP-028 previously documented an informal universe-order
+contract without header fields. Shipping CDN assignment blobs before encoding
+`nside` / order risked silent client/generator mismatch. Product lock D6 /
+SPD-032 required this freeze before CDN publish; SP-043 implements it.
+
+**Consequences.**
+
+- Notes SP-026 / SP-028 describe AscendingNest as the production contract
+  (not unsorted emit order).
+- SP-044+ emit and clients consume only post-freeze artifacts for production
+  assignment sidecars.
+- Geometry-only v1 fixtures remain readable until retired.
+
+**Related documents.** SPD-017, SPD-021, SPD-022, SPD-032; SP-026 notes;
+SP-028 notes; SP-042; SP-043; SP-044;
+`phases/phase-04-administrative-area-pipeline.md`.
+
+---
+
 ## 15. Recorded open questions (not decisions)
 
 These are carried from existing project documents. They are listed so they are
