@@ -612,5 +612,7 @@
     />
     <!-- Do not ship application logs to Sentry; they may contain location values -->
     <meta-data android:name="io.sentry.logs.enabled" android:value="false" />
+
+    <meta-data android:name="io.sentry.tombstone.enable" android:value="true" />
 </application>
 </manifest>
