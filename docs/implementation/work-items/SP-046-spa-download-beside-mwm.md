@@ -1,9 +1,11 @@
 # SP-046 — Client leaf download fetches advertised `.spa` beside MWM
 
 **Phase:** 4 residual / pre-production packaging (not Phase 5; not Phase 10 device)
-**Status:** In review
+**Status:** Accepted
+**Accepted by:** Maintainer
+**Accepted date:** 2026-08-08
 **Branch:** `cursor/sp-042-sidecar-shipping-fe62`
-**Depends on:** SP-042 In review (**SPD-027**, **SPD-031** Accepted); SP-045 In review
+**Depends on:** SP-042 Accepted (**SPD-027**, **SPD-031** Accepted); SP-045 Accepted
   (`HasRemoteSpa` / size / hash advertisement)
 **Unblocks:** SP-047 (lifecycle beside download); SP-048 (incomplete / retry signaling)
 
@@ -118,7 +120,7 @@ targets). Run: `./tools/unix/run_tests.sh -b … -f "CountryFile_Smoke|LocalCoun
 | Item | Owner |
 | --- | --- |
 | DeleteCountry / update full-refetch deletes or replaces `.spa` | **SP-047** |
-| Incomplete / retry signaling when advertised spa missing after fail-soft | **SP-048** (In review) |
+| Incomplete / retry signaling when advertised spa missing after fail-soft | **SP-048** (Accepted 2026-08-08) |
 | `DeleteFromDisk(Spa)` not called from Map delete — orphan `.spa` possible until SP-047 | **SP-047** |
 | Spa-only progress while Map already local (re-fetch) does not add map bytes to downloaded offset when Map type was not just downloaded in-session | residual / low priority |
 
@@ -134,8 +136,8 @@ targets). Run: `./tools/unix/run_tests.sh -b … -f "CountryFile_Smoke|LocalCoun
 | Test output | Re-run after restore-queue fix: `./tools/unix/build_omim.sh -d -p /workspace storage_tests` OK; `./tools/unix/run_tests.sh -b /workspace/omim-build-debug -f "Storage_SpaDownload"` — `Storage_SpaDownload_AdvertisedMapThenSpa`, `Storage_SpaDownload_NoAdvertiseNeverQueuesSpa`, `Storage_SpaDownload_FailKeepsMap`, `Storage_SpaDownload_RestoreQueueEnqueuesSpaWhenMapOnDisk` all OK; `3 / 3 passed`. |
 | Docs touched | this file; README |
 | Implemented by | Cursor Agent |
-| Accepted by | — |
-| Accepted date | — |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-08 |
 
 ### Implementation notes (2026-08-07)
 
