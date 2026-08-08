@@ -70,10 +70,51 @@ Community tools above mirror **MWMs only**. Street Pixels exploration sidecars
 (`.spa`) must sit beside matching `.mwm` under the CDN layout the app already
 requests (`meta/maps.json` + `maps/{MAP_SERIES}/{version}/`).
 
-Use the assemble tool (SP-050) to build that tree from `countries.txt`, a
-directory of `{leaf}.spa` (from `spa_emit_tool`), and matching MWMs:
+### 1. Assemble (SP-050)
 
-See `docs/implementation/work-items/SP-050-spa-publish-tree-assemble.md` for the
-operator recipe (`post_generation assemble_spa_publish_tree`). Serve the
-resulting `--out` root with SP-051 or any static HTTP server; point the app
-Custom Maps URL at that host. Do not invent placeholder spa meta.
+Build the CDN-identical tree from `countries.txt`, `{leaf}.spa` (from
+`spa_emit_tool`), and matching MWMs. See
+`docs/implementation/work-items/SP-050-spa-publish-tree-assemble.md`.
+
+```bash
+cd tools/python
+PYTHONPATH=. python3 -m post_generation assemble_spa_publish_tree \
+  --countries ../../data/countries.txt \
+  --spa-dir /path/to/spa_emit_out \
+  --mwm-dir /path/to/matching_mwms \
+  --out /tmp/spa_publish \
+  --map-series 2026.06.28 \
+  --data-version 260714
+```
+
+Do not invent placeholder spa meta. Channel A (signed countries with a bumped
+`"v"`) and Channel B (temporary local APK inject) are documented in
+`docs/implementation/notes/spa-advertise-channels.md` (SP-052).
+
+### 2. Serve on the LAN (SP-051)
+
+Serve the assemble `--out` root with the in-repo server (Range GETs for large
+MWMs; `/health`; debug inventory opt-in only):
+
+```bash
+cd tools/python
+PYTHONPATH=. python3 -m street_pixels serve_spa_publish_tree \
+  --root /tmp/spa_publish \
+  --host 0.0.0.0 \
+  --port 8080
+```
+
+Startup prints a pasteable Custom Maps URL (detected LAN IPv4). On the phone:
+Settings → Advanced → Custom Maps server → that URL (never a build default).
+
+Same Wi-Fi as the phone, or USB:
+
+```bash
+adb reverse tcp:8080 tcp:8080
+# then Custom Maps URL: http://127.0.0.1:8080/
+```
+
+Optional: `--enable-debug-routes` exposes `GET /debug/inventory` (off by
+default). Any static HTTP host serving the same tree is CDN-compatible; this
+server is the supported Street Pixels LAN path until community distributors
+ship `.spa`.
