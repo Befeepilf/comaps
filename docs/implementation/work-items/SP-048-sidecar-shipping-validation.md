@@ -112,7 +112,7 @@ Optional fail-closed: `-f ExplorationSidecar_MissingIsEmptySafe` on `street_pixe
 | Item | Owner |
 | --- | --- |
 | Android / settings chrome observing `IsSpaIncomplete` (toast/dialog) | Phase 10 / UX follow-up |
-| CDN publish of production `countries.txt` with spa fields | ops |
+| CDN publish of production `countries.txt` with spa fields | ops → **SP-049–053 Planned** (LAN/CDN publish mirror) |
 | Packaging track SP-042–048 maintainer acceptance | maintainer |
 
 ---
