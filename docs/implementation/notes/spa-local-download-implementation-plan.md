@@ -1,7 +1,7 @@
 # Implementation plan — production `.spa` download on the local network
 
-**Status:** Plans only (2026-08-08; revised after PR review). Awaiting
-maintainer approval of SP-049 locks before coding (roadmap §8 steps 1–2).  
+**Status:** SP-049 Accepted; SP-050–053 **In review** (2026-08-08). Device
+S2–S8 residual. See work items + `notes/spa-advertise-channels.md`.  
 **Track:** Phase 4 residual continuation (SP-049–053) — **publish / serve /
 advertise**, not mapgen collectors.  
 **Not:** Phase 5 feature work; not a Phase 5 exit criterion (**SPD-033**);
@@ -34,7 +34,7 @@ observability and temporary recipes, never a second protocol.**
 | Dense FI `.spa` emit | `spa_emit_tool` (SP-044) |
 | `countries.txt` spa fields | Parse + `inject_spa_meta` (SP-045); **not** in bundled `data/countries.txt` |
 | Storage download / lifecycle / retry | SP-046–048 |
-| CDN / LAN publish of blobs + spa-bearing countries | **Missing** (SP-048 ops residual) |
+| CDN / LAN publish of blobs + spa-bearing countries | **In review** SP-050–053 (device walks residual) |
 | Community map servers | MWM-only (`DEPLOY_OWN_MAP_SERVER.md`) |
 
 Detail:
