@@ -70,7 +70,13 @@ advertisement, SP-046 never queues Spa even if blobs sit on a custom server.
 
 Countries **updates** require Ed25519 signature verification against
 `COUNTRIES_TXT_SIGNATURE_HEX` (`private.h`). An unsigned LAN `countries.txt`
-will not be applied by the production update path.
+will not be applied by the production update path. Same-version
+`maps.json` `latest` is also skipped — Channel A must bump `"v"` / `latest`
+(SP-049 D10).
+
+**Upstream of assemble:** dense FI `.spa` emit needs leaf `.pix` for universe
+**U** (SP-044 residual). This distribute track does not implement mapgen
+Option A or `.pix` derive.
 
 ---
 
