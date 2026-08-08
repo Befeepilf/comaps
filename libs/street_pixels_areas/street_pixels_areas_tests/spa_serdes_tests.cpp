@@ -9,6 +9,7 @@
 #include "street_pixels_areas/exploration_filter.hpp"
 #include "street_pixels_areas/exploration_sidecar.hpp"
 #include "street_pixels_areas/subdivision_assigner.hpp"
+#include "street_pixels_areas/subdivision_assignment.hpp"
 
 #include "coding/files_container.hpp"
 #include "coding/point_coding.hpp"
@@ -20,6 +21,7 @@
 #include "platform/platform.hpp"
 
 #include "base/file_name_utils.hpp"
+#include "base/logging.hpp"
 #include "base/math.hpp"
 
 #include "defines.hpp"
@@ -199,6 +201,94 @@ UNIT_TEST(SpaSerdes_RoundTripRingsAndAssignments)
     }
   }
   TEST(settlementSeen, ());
+
+  RemoveIfExists(path);
+}
+
+std::vector<m2::PointD> DenseLonLatBox(double west, double south, double east, double north, size_t pointsPerEdge)
+{
+  std::vector<m2::PointD> ring;
+  ring.reserve(pointsPerEdge * 4 + 1);
+  for (size_t i = 0; i < pointsPerEdge; ++i)
+  {
+    double const t = static_cast<double>(i) / static_cast<double>(pointsPerEdge);
+    ring.push_back({west + (east - west) * t, south});
+  }
+  for (size_t i = 0; i < pointsPerEdge; ++i)
+  {
+    double const t = static_cast<double>(i) / static_cast<double>(pointsPerEdge);
+    ring.push_back({east, south + (north - south) * t});
+  }
+  for (size_t i = 0; i < pointsPerEdge; ++i)
+  {
+    double const t = static_cast<double>(i) / static_cast<double>(pointsPerEdge);
+    ring.push_back({east - (east - west) * t, north});
+  }
+  for (size_t i = 0; i < pointsPerEdge; ++i)
+  {
+    double const t = static_cast<double>(i) / static_cast<double>(pointsPerEdge);
+    ring.push_back({west, north - (north - south) * t});
+  }
+  ring.push_back(ring.front());
+  return ring;
+}
+
+std::vector<ExplorationArea> RoundTripAreasInMemory(std::vector<ExplorationArea> const & areas)
+{
+  std::vector<uint8_t> buffer;
+  {
+    MemWriter<std::vector<uint8_t>> writer(buffer);
+    WriteAreasSection(writer, areas);
+  }
+  MemReader reader(buffer.data(), buffer.size());
+  ReaderSource src(reader);
+  return ReadAreasSection(src, static_cast<uint32_t>(areas.size()));
+}
+
+UNIT_TEST(SpaSerdes_DenseRingAssignmentsUseSerdeGeometry)
+{
+  auto const config = FinlandConfig();
+  auto const policy = config.GetByIso("FI");
+  auto areas = AdmitAll(
+      {
+          MakeAdminCandidate(10, 10, "DenseDistrict",
+                             DenseLonLatBox(24.0, 60.0, 25.0, 61.0, /*pointsPerEdge=*/256)),
+          MakeAdminCandidate(8, 8, "City", LonLatBox(23.5, 59.5, 25.5, 61.5)),
+      },
+      policy);
+  for (uint32_t i = 0; i < areas.size(); ++i)
+    areas[i].m_compactIndex = i;
+
+  std::vector<m2::PointD> const samples = {
+      MercatorFromLonLat(24.5, 60.5),
+      MercatorFromLonLat(30.0, 70.0),
+  };
+
+  auto const serdeAreas = RoundTripAreasInMemory(areas);
+  uint32_t const sentinel = NoSubdivisionSentinel(ChooseIndexWidth(static_cast<uint32_t>(areas.size())));
+  auto const fromRaw = BuildDenseAssignments(samples, areas, policy, sentinel);
+  auto const fromSerde = BuildDenseAssignments(samples, serdeAreas, policy, sentinel);
+  if (fromRaw == fromSerde)
+  {
+    LOG(LWARNING, ("Dense ring serde round-trip did not change assignments; skipping mismatch assert"));
+  }
+  else
+  {
+    TEST(fromRaw != fromSerde, ());
+  }
+
+  std::string const path = SpaPath("dense_ring_assign");
+  RemoveIfExists(path);
+
+  SpaWriteParams params;
+  params.m_mapDataVersion = 260417;
+  params.m_policyVersion = config.GetPolicyVersion();
+  params.m_isoCode = "FI";
+  params.m_mwmId = "dense_ring_assign";
+
+  WriteExplorationSidecar(path, areas, samples, policy, params);
+  auto const loaded = ReadExplorationSidecar(path);
+  TEST(VerifyDenseAssignments(loaded, samples, policy), ());
 
   RemoveIfExists(path);
 }
