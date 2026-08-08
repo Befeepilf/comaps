@@ -63,3 +63,17 @@ Prerequisites
 - Edit URL with your URL server and enjoy   
 
 You can find more details in the [FAQ article](https://www.comaps.app/support/how-can-i-host-a-custom-map-server-for-downloads/) to deploy your own HTTP maps server and find more details [here](https://www.comaps.app/support/how-can-i-set-a-custom-map-server-for-downloads/) about restrictions.
+
+## Street Pixels (`.spa` publish tree)
+
+Community tools above mirror **MWMs only**. Street Pixels exploration sidecars
+(`.spa`) must sit beside matching `.mwm` under the CDN layout the app already
+requests (`meta/maps.json` + `maps/{MAP_SERIES}/{version}/`).
+
+Use the assemble tool (SP-050) to build that tree from `countries.txt`, a
+directory of `{leaf}.spa` (from `spa_emit_tool`), and matching MWMs:
+
+See `docs/implementation/work-items/SP-050-spa-publish-tree-assemble.md` for the
+operator recipe (`post_generation assemble_spa_publish_tree`). Serve the
+resulting `--out` root with SP-051 or any static HTTP server; point the app
+Custom Maps URL at that host. Do not invent placeholder spa meta.
