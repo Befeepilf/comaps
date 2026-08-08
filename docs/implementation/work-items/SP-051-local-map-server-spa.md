@@ -172,6 +172,7 @@ advertisement is in place (SP-053).
 | CLI | `python3 -m street_pixels serve_spa_publish_tree --root …` |
 | Tests | `tools/python/street_pixels/tests/test_serve_spa_publish_tree.py` (15) |
 | Test command | `cd tools/python && python3 -m unittest street_pixels.tests.test_serve_spa_publish_tree -v` |
-| Covered | spa GET bytes; Range 206; 404; health; debug off-by-default; path traversal |
+| Covered | spa GET; Range 206; 404; health; debug off-by-default; path traversal; inventory leak closed; HEAD debug; `%20` leaf |
 | Docs | `docs/DEPLOY_OWN_MAP_SERVER.md` Street Pixels section |
 | Range | Implemented — Android `ChunkTask` requires 206 for ranged MWM chunks |
+| Review fixes (2026-08-08) | Hide `/inventory.json` unless debug route; HEAD `/debug/inventory`; BrokenPipe; startup tree warn; health `ok` when meta present |

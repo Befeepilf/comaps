@@ -217,9 +217,10 @@ maps/{map_series}/{data_version}/{leaf}.mwm          # if --include-mwm
 | Hash helper | `file_sha1_base64` (+ `get_spa_hash` alias) in `inject_spa_meta.py` |
 | Tests | `tools/python/post_generation/tests/test_assemble_spa_publish_tree.py` |
 | Test command | `cd tools/python && python3 -m unittest post_generation.tests.test_assemble_spa_publish_tree -v` |
-| Covered | happy path layout+hashes; mwm hash mismatch fail-closed; publish-version bump; spa-only; series mismatch; dry-run |
+| Covered | happy path; mwm hash mismatch; publish-version bump; spa-only; series mismatch; dry-run; empty ads fail; atomic replace |
 | Inventory | `{out}/inventory.json` (operator/debug; static serve may expose it) |
 | Docs | Operator recipe below; pointer in `docs/DEPLOY_OWN_MAP_SERVER.md` |
+| Review fixes (2026-08-08) | Fail-closed on zero ads; atomic version-dir swap; orphan spa warn; Channel A sign-without-bump warn; `--allow-empty` |
 
 ### Operator recipe
 
