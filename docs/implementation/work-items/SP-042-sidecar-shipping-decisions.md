@@ -1,7 +1,9 @@
 # SP-042 — Sidecar shipping decisions (Phase 4 residual)
 
 **Phase:** 4 residual / pre-production packaging (not Phase 5; not Phase 10 device)
-**Status:** In review
+**Status:** Accepted
+**Accepted by:** Maintainer
+**Accepted date:** 2026-08-08
 **Branch:** `cursor/sp-042-sidecar-shipping-fe62`
 **Depends on:** SP-032 Accepted; Phase 4 exit criteria met (narrowed R1);
   product-owner locks D1–D7 (2026-08-07)
@@ -106,8 +108,8 @@ land as SPD-027–033 before coding download, meta, or CDN packaging.
 | Product locks | D1–D7 = A (2026-08-07); D3–D6 recommended locks accepted for implementation |
 | Docs touched | `DECISIONS.md`; `README.md`; `phases/phase-04-…`; `phases/phase-10-…`; this file |
 | Implemented by | Agent |
-| Accepted by | — |
-| Accepted date | — |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-08 |
 
 ## Discovered follow-up
 

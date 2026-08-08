@@ -1,9 +1,11 @@
 # SP-044 — Production leaf `.spa` emit (Phase 4 R1)
 
 **Phase:** 4 residual / pre-production packaging (not Phase 5; not Phase 10 device)
-**Status:** In review
+**Status:** Accepted
+**Accepted by:** Maintainer
+**Accepted date:** 2026-08-08
 **Branch:** `cursor/sp-042-sidecar-shipping-fe62`
-**Depends on:** SP-043 In review / Accepted (**SPD-034** frozen v2 contract);
+**Depends on:** SP-043 Accepted (**SPD-034** frozen v2 contract);
   SP-032 Accepted (`spa_emit_tool` / `spa_jsonl`); SPD-020–025; SPD-032/034
 **Unblocks:** SP-045 (countries meta can advertise real leaf blobs); SP-048
   packaging validation; CDN publish tree for FI
@@ -303,8 +305,8 @@ Honest assessment:
 | Test output | `street_pixels_areas_tests` **78/78** OK (includes 5 new `spa_dense_emit_tests` / sample-centres cases). `spa_emit_tool --help` smoke OK |
 | Decision ids | SPD-020–025, SPD-032, SPD-034; SPD-033 track |
 | Implemented by | Cloud agent (SP-044 Option B) |
-| Accepted by | — |
-| Accepted date | — |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-08 |
 
 ### Offline FI batch notes (this run)
 
