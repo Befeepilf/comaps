@@ -11,6 +11,7 @@ from post_generation.hierarchy_to_countries import (
 )
 from post_generation.inject_promo_ids import inject_promo_ids
 from post_generation.inject_spa_meta import inject_spa_meta
+from post_generation.assemble_spa_publish_tree import main as assemble_spa_publish_tree_main
 
 
 class PostGeneration:
@@ -19,9 +20,10 @@ class PostGeneration:
             description="Post-generation instruments",
             usage="""post_generation <command> [<args>]
 The post_generation commands are:
-    hierarchy_to_countries Produces countries.txt from hierarchy.txt.
-    inject_promo_ids       Injects promo osm ids into countries.txt
-    inject_spa_meta        Injects spa size/sha1 into countries.txt from .spa files
+    hierarchy_to_countries      Produces countries.txt from hierarchy.txt.
+    inject_promo_ids            Injects promo osm ids into countries.txt
+    inject_spa_meta             Injects spa size/sha1 into countries.txt from .spa files
+    assemble_spa_publish_tree   Assembles CDN/LAN .spa publish tree (SP-050)
     """,
         )
         parser.add_argument("command", help="Subcommand to run")
@@ -159,6 +161,10 @@ The post_generation commands are:
 
         with open(args.output, "w") as f:
             json.dump(countries, f, ensure_ascii=False, indent=1)
+
+    @staticmethod
+    def assemble_spa_publish_tree():
+        raise SystemExit(assemble_spa_publish_tree_main(sys.argv[2:]))
 
 
 PostGeneration()
