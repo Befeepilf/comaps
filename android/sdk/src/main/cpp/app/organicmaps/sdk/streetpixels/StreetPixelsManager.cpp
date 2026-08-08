@@ -145,6 +145,9 @@ Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeRefresh
   bool const following =
       mode == location::EMyPositionMode::Follow || mode == location::EMyPositionMode::FollowAndRotate;
   int const drawScale = native.GetDrawScale();
+
+  manager.RefreshFocusFromViewport(centre, userPos, recordingActive, following, drawScale, spaPath, mapDataVersion);
+  return ToJavaFocusedAreaProgress(env, manager.GetFocusedAreaProgress());
 }
 
 JNIEXPORT jobject JNICALL
