@@ -286,6 +286,39 @@ def build_inventory(
     }
 
 
+def _warn_orphan_spa_files(spa_dir, countries):
+    spa_ids = set(list_spa_leaf_ids(spa_dir))
+    country_ids = {leaf.get("id") for leaf in _get_leaf_nodes(countries) if leaf.get("id")}
+    orphans = sorted(spa_ids - country_ids)
+    if orphans:
+        preview = orphans[:8]
+        more = "" if len(orphans) <= 8 else " (+{} more)".format(len(orphans) - 8)
+        logger.warning(
+            "spa files with no matching countries leaf id (ignored): %s%s",
+            ", ".join(preview),
+            more,
+        )
+
+
+def _replace_dir_atomic(src_dir, dst_dir):
+    """Replace dst_dir with src_dir using rename swap (keeps prior dst until success)."""
+    parent = os.path.dirname(dst_dir) or "."
+    os.makedirs(parent, exist_ok=True)
+    incoming = dst_dir + ".new"
+    previous = dst_dir + ".old"
+    for path in (incoming, previous):
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+        elif os.path.lexists(path):
+            os.remove(path)
+    shutil.move(src_dir, incoming)
+    if os.path.isdir(dst_dir):
+        os.rename(dst_dir, previous)
+    os.rename(incoming, dst_dir)
+    if os.path.isdir(previous):
+        shutil.rmtree(previous, ignore_errors=True)
+
+
 def version_dir(out, map_series, publish_version):
     return os.path.join(out, "maps", str(map_series), str(publish_version))
 
@@ -449,6 +482,7 @@ def assemble_spa_publish_tree(
     spa_only=False,
     dry_run=False,
     verify_only=False,
+    allow_empty=False,
 ):
     """Core assemble entry. Returns 0 on success; raises AssembleError on failure."""
     if spa_only:
@@ -476,6 +510,8 @@ def assemble_spa_publish_tree(
     _assert_source_versions(countries, map_series, data_version)
     countries = copy.deepcopy(countries)
 
+    _warn_orphan_spa_files(spa_dir, countries)
+
     # Inject from spa-dir; optionally restrict to --leaves allowlist.
     inject_spa_meta(countries, spa_dir)
     _filter_spa_allowlist(countries, allowlist)
@@ -487,11 +523,23 @@ def assemble_spa_publish_tree(
             data_version,
             publish_version,
         )
+    elif secret_key is not None:
+        logger.warning(
+            "signing countries without --publish-version bump: devices already at "
+            "data-version %s will NoUpdate and will not pick up spa ads (SPD-036)",
+            data_version,
+        )
 
     advertised_ids = _verify_spa_against_dir(countries, spa_dir, data_version)
     if allowlist is not None:
         # Only assemble allowlisted advertised leaves (intersection).
         advertised_ids = [i for i in advertised_ids if i in allowlist]
+
+    if not advertised_ids and not allow_empty:
+        raise AssembleError(
+            "no spa advertisements to publish; check --spa-dir leaf names match "
+            "countries ids (or pass --allow-empty)"
+        )
 
     if include_mwm:
         _verify_mwm_against_dir(countries, mwm_dir, advertised_ids)
@@ -550,14 +598,10 @@ def assemble_spa_publish_tree(
             secret_key=secret_key,
             inventory=inventory,
         )
-        # Merge staging into out: replace maps/{series}/{ver}, meta/maps.json, inventory.
         os.makedirs(out_abs, exist_ok=True)
         final_vdir = version_dir(out_abs, map_series, publish_version)
         staging_vdir = version_dir(staging, map_series, publish_version)
-        if os.path.isdir(final_vdir):
-            shutil.rmtree(final_vdir)
-        os.makedirs(os.path.dirname(final_vdir), exist_ok=True)
-        shutil.move(staging_vdir, final_vdir)
+        _replace_dir_atomic(staging_vdir, final_vdir)
 
         meta_dst = os.path.join(out_abs, "meta")
         os.makedirs(meta_dst, exist_ok=True)
@@ -569,16 +613,11 @@ def assemble_spa_publish_tree(
             os.path.join(staging, "inventory.json"),
             os.path.join(out_abs, "inventory.json"),
         )
-    except Exception:
-        # Staging discarded below; if final_vdir was removed already, fail closed
-        # without a corrupt half-tree from this run's staging merge.
-        raise
     finally:
         shutil.rmtree(staging, ignore_errors=True)
 
     logger.info("Assembled publish tree at %s", out_abs)
     return 0
-
 
 def build_arg_parser():
     parser = argparse.ArgumentParser(
@@ -636,6 +675,11 @@ def build_arg_parser():
         action="store_true",
         help="Re-check existing --out without writing",
     )
+    parser.add_argument(
+        "--allow-empty",
+        action="store_true",
+        help="Allow assembling with zero advertised spa leaves (default: fail)",
+    )
     parser.add_argument("--verbose", action="store_true", help="Verbose logging")
     return parser
 
@@ -670,6 +714,7 @@ def main(argv=None):
             spa_only=args.spa_only,
             dry_run=args.dry_run,
             verify_only=args.verify_only,
+            allow_empty=args.allow_empty,
         )
     except AssembleError as exc:
         logger.error("%s", exc)

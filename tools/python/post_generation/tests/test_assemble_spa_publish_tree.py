@@ -237,6 +237,56 @@ class AssembleSpaPublishTreeTest(unittest.TestCase):
             self.assertIn("dry-run plan:", buf.getvalue())
             self.assertFalse(os.path.exists(out) and os.listdir(out))
 
+    def test_empty_advertised_fails_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            leaf, spa_dir, mwm_dir, out, countries_path = self._fixture(tmp)
+            os.remove(os.path.join(spa_dir, "{}.spa".format(leaf)))
+            with self.assertRaises(AssembleError) as ctx:
+                assemble_spa_publish_tree(
+                    countries_path=countries_path,
+                    spa_dir=spa_dir,
+                    mwm_dir=mwm_dir,
+                    out=out,
+                    map_series=self.SERIES,
+                    data_version=self.DATA_V,
+                )
+            self.assertIn("no spa advertisements", str(ctx.exception))
+
+    def test_atomic_replace_keeps_prior_on_second_assemble(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            leaf, spa_dir, mwm_dir, out, countries_path = self._fixture(tmp)
+            self.assertEqual(
+                0,
+                assemble_spa_publish_tree(
+                    countries_path=countries_path,
+                    spa_dir=spa_dir,
+                    mwm_dir=mwm_dir,
+                    out=out,
+                    map_series=self.SERIES,
+                    data_version=self.DATA_V,
+                ),
+            )
+            vdir = os.path.join(out, "maps", self.SERIES, str(self.DATA_V))
+            first_spa = os.path.join(vdir, "{}.spa".format(leaf))
+            self.assertTrue(os.path.isfile(first_spa))
+            _write(os.path.join(spa_dir, "{}.spa".format(leaf)), b"second-spa-payload")
+            # countries spa hash must match new bytes after re-inject — reassemble
+            self.assertEqual(
+                0,
+                assemble_spa_publish_tree(
+                    countries_path=countries_path,
+                    spa_dir=spa_dir,
+                    mwm_dir=mwm_dir,
+                    out=out,
+                    map_series=self.SERIES,
+                    data_version=self.DATA_V,
+                ),
+            )
+            with open(os.path.join(vdir, "{}.spa".format(leaf)), "rb") as f:
+                self.assertEqual(b"second-spa-payload", f.read())
+            self.assertFalse(os.path.isdir(vdir + ".old"))
+            self.assertFalse(os.path.isdir(vdir + ".new"))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -17,7 +17,6 @@ import logging
 import mimetypes
 import os
 import socket
-import sys
 import time
 from http.server import BaseHTTPRequestHandler
 from http.server import ThreadingHTTPServer
@@ -28,7 +27,8 @@ from urllib.parse import urlparse
 logger = logging.getLogger(__name__)
 
 _BINARY_EXTS = {".mwm", ".spa", ".sig", ".diff", ".mwm.ready"}
-_JSON_NAMES = {"countries.txt", "maps.json", "inventory.json"}
+_JSON_NAMES = {"countries.txt", "maps.json"}
+_OPERATOR_ONLY_NAMES = frozenset({"inventory.json"})
 
 
 def guess_content_type(path):
@@ -36,16 +36,17 @@ def guess_content_type(path):
     _, ext = os.path.splitext(name)
     if ext.lower() in _BINARY_EXTS:
         return "application/octet-stream"
-    if name in _JSON_NAMES or ext.lower() == ".json":
+    if name in _JSON_NAMES or name == "inventory.json" or ext.lower() == ".json":
         return "application/json"
     guessed, _ = mimetypes.guess_type(path)
     return guessed or "application/octet-stream"
 
 
-def resolve_under_root(root, url_path):
+def resolve_under_root(root, url_path, allow_operator_files=False):
     """Map a URL path to an absolute file under root, or None if unsafe/missing.
 
     Rejects path traversal and symlink escape outside root.
+    Operator-only files (inventory.json) are hidden unless allow_operator_files.
     """
     if not url_path or url_path == "/":
         return None
@@ -55,6 +56,10 @@ def resolve_under_root(root, url_path):
     rel = decoded.lstrip("/")
     if not rel:
         return None
+    if not allow_operator_files:
+        base = os.path.basename(rel)
+        if base in _OPERATOR_ONLY_NAMES:
+            return None
     root_real = os.path.realpath(root)
     candidate = os.path.realpath(os.path.join(root_real, rel))
     try:
@@ -71,8 +76,8 @@ def resolve_under_root(root, url_path):
 def parse_range_header(range_header, file_size):
     """Parse a single-range ``bytes=`` header.
 
-    Returns ``(start, end_inclusive)`` or ``None`` if absent/invalid for 416.
-    Raises ``ValueError`` for unsatisfiable ranges (caller may send 416).
+    Returns ``(start, end_inclusive)`` or ``None`` if the header is absent.
+    Raises ``ValueError`` for malformed or unsatisfiable ranges (caller → 416).
     """
     if not range_header:
         return None
@@ -129,6 +134,23 @@ def detect_lan_ipv4():
     return "127.0.0.1"
 
 
+def _count_inventory_spa_leaves(leaves):
+    if isinstance(leaves, dict):
+        return len(leaves)
+    if not isinstance(leaves, list):
+        return 0
+    count = 0
+    for entry in leaves:
+        if isinstance(entry, str):
+            count += 1
+        elif isinstance(entry, dict):
+            if entry.get("advertised", True) and (
+                entry.get("spa_bytes") is not None or entry.get("id")
+            ):
+                count += 1
+    return count
+
+
 def load_health_payload(root):
     inventory_path = os.path.join(root, "inventory.json")
     map_series = None
@@ -141,10 +163,7 @@ def load_health_payload(root):
             map_series = inv.get("map_series") or inv.get("map-series")
             data_version = inv.get("publish_version") or inv.get("data_version")
             leaves = inv.get("leaves") or inv.get("spa_leaves") or []
-            if isinstance(leaves, list):
-                spa_leaf_count = len(leaves)
-            elif isinstance(leaves, dict):
-                spa_leaf_count = len(leaves)
+            spa_leaf_count = _count_inventory_spa_leaves(leaves)
         except (OSError, ValueError, TypeError) as exc:
             logger.warning("health: failed to read inventory.json: %s", exc)
     if map_series is None or data_version is None:
@@ -155,9 +174,12 @@ def load_health_payload(root):
                     meta = json.load(f)
                 series_map = meta.get("map-series") or {}
                 if isinstance(series_map, dict) and series_map:
-                    map_series = next(iter(series_map.keys()))
-                    entry = series_map[map_series]
-                    if isinstance(entry, dict):
+                    if map_series is None:
+                        map_series = next(iter(series_map.keys()))
+                    entry = series_map.get(map_series) or next(
+                        iter(series_map.values())
+                    )
+                    if isinstance(entry, dict) and data_version is None:
                         data_version = entry.get("latest")
             except (OSError, ValueError, TypeError) as exc:
                 logger.warning("health: failed to read meta/maps.json: %s", exc)
@@ -167,12 +189,30 @@ def load_health_payload(root):
             spa_leaf_count = sum(
                 1 for name in os.listdir(vdir) if name.endswith(".spa")
             )
+    ok = bool(map_series is not None and data_version is not None)
     return {
-        "ok": True,
+        "ok": ok,
         "map_series": map_series,
         "data_version": data_version,
         "spa_leaf_count": spa_leaf_count,
     }
+
+
+def warn_if_tree_incomplete(root):
+    maps_json = os.path.join(root, "meta", "maps.json")
+    if not os.path.isfile(maps_json):
+        logger.warning(
+            "publish root missing meta/maps.json — Custom Maps updates will fail"
+        )
+        print(
+            "warning: missing meta/maps.json under {}".format(root),
+            flush=True,
+        )
+        return
+    maps_dir = os.path.join(root, "maps")
+    if not os.path.isdir(maps_dir):
+        logger.warning("publish root missing maps/ — leaf downloads will 404")
+        print("warning: missing maps/ under {}".format(root), flush=True)
 
 
 def make_handler(root, enable_debug_routes, log_access):
@@ -196,77 +236,71 @@ def make_handler(root, enable_debug_routes, log_access):
                     duration_ms,
                 )
 
+        def _send_not_found(self, path, started):
+            self.send_error(404, "Not Found")
+            self._access(
+                self.command, path, 404, 0, (time.monotonic() - started) * 1000
+            )
+
+        def _handle_debug_inventory(self, path, started, head_only):
+            if not enable_debug_routes:
+                self._send_not_found(path, started)
+                return True
+            inv_path = os.path.join(root_abs, "inventory.json")
+            if not os.path.isfile(inv_path):
+                self.send_error(404, "inventory.json missing")
+                self._access(
+                    self.command, path, 404, 0, (time.monotonic() - started) * 1000
+                )
+                return True
+            self._send_file(inv_path, path, started, head_only=head_only)
+            return True
+
+        def _handle_health(self, path, started, head_only):
+            body = json.dumps(load_health_payload(root_abs)).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            if not head_only:
+                self.wfile.write(body)
+            self._access(
+                self.command,
+                path,
+                200,
+                0 if head_only else len(body),
+                (time.monotonic() - started) * 1000,
+            )
+
         def do_GET(self):
+            self._dispatch(head_only=False)
+
+        def do_HEAD(self):
+            self._dispatch(head_only=True)
+
+        def _dispatch(self, head_only):
             started = time.monotonic()
             parsed = urlparse(self.path)
             path = parsed.path or "/"
 
-            if path == "/health" or path == "/healthz":
-                body = json.dumps(load_health_payload(root_abs)).encode("utf-8")
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json")
-                self.send_header("Content-Length", str(len(body)))
-                self.send_header("Cache-Control", "no-store")
-                self.end_headers()
-                self.wfile.write(body)
-                self._access(
-                    "GET", path, 200, len(body), (time.monotonic() - started) * 1000
-                )
+            if path in ("/health", "/healthz"):
+                self._handle_health(path, started, head_only)
                 return
 
             if path == "/debug/inventory":
-                if not enable_debug_routes:
-                    self.send_error(404, "Not Found")
-                    self._access(
-                        "GET", path, 404, 0, (time.monotonic() - started) * 1000
-                    )
-                    return
-                inv_path = os.path.join(root_abs, "inventory.json")
-                if not os.path.isfile(inv_path):
-                    self.send_error(404, "inventory.json missing")
-                    self._access(
-                        "GET", path, 404, 0, (time.monotonic() - started) * 1000
-                    )
-                    return
-                self._send_file(inv_path, path, started)
+                self._handle_debug_inventory(path, started, head_only)
                 return
 
             if path in ("/", "/index.html"):
-                self.send_error(404, "Not Found")
-                self._access("GET", path, 404, 0, (time.monotonic() - started) * 1000)
+                self._send_not_found(path, started)
                 return
 
             file_path = resolve_under_root(root_abs, path)
             if file_path is None:
-                self.send_error(404, "Not Found")
-                self._access("GET", path, 404, 0, (time.monotonic() - started) * 1000)
+                self._send_not_found(path, started)
                 return
-            self._send_file(file_path, path, started)
-
-        def do_HEAD(self):
-            started = time.monotonic()
-            parsed = urlparse(self.path)
-            path = parsed.path or "/"
-            if path in ("/health", "/healthz"):
-                body = json.dumps(load_health_payload(root_abs)).encode("utf-8")
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json")
-                self.send_header("Content-Length", str(len(body)))
-                self.end_headers()
-                self._access(
-                    "HEAD", path, 200, 0, (time.monotonic() - started) * 1000
-                )
-                return
-            if path == "/debug/inventory" and not enable_debug_routes:
-                self.send_error(404, "Not Found")
-                self._access("HEAD", path, 404, 0, (time.monotonic() - started) * 1000)
-                return
-            file_path = resolve_under_root(root_abs, path)
-            if file_path is None:
-                self.send_error(404, "Not Found")
-                self._access("HEAD", path, 404, 0, (time.monotonic() - started) * 1000)
-                return
-            self._send_file(file_path, path, started, head_only=True)
+            self._send_file(file_path, path, started, head_only=head_only)
 
         def _send_file(self, file_path, url_path, started, head_only=False):
             file_size = os.path.getsize(file_path)
@@ -286,7 +320,7 @@ def make_handler(root, enable_debug_routes, log_access):
 
             if byte_range is None:
                 status = 200
-                start, end = 0, file_size - 1 if file_size else 0
+                start = 0
                 length = file_size
             else:
                 status = 206
@@ -300,23 +334,33 @@ def make_handler(root, enable_debug_routes, log_access):
             if status == 206:
                 self.send_header(
                     "Content-Range",
-                    "bytes {}-{}/{}".format(start, end, file_size),
+                    "bytes {}-{}/{}".format(start, start + length - 1, file_size),
                 )
             self.send_header("Cache-Control", "no-transform")
             self.end_headers()
 
             nbytes = 0
             if not head_only and length > 0:
-                with open(file_path, "rb") as f:
-                    f.seek(start)
-                    remaining = length
-                    while remaining > 0:
-                        chunk = f.read(min(64 * 1024, remaining))
-                        if not chunk:
-                            break
-                        self.wfile.write(chunk)
-                        remaining -= len(chunk)
-                        nbytes += len(chunk)
+                try:
+                    with open(file_path, "rb") as f:
+                        f.seek(start)
+                        remaining = length
+                        while remaining > 0:
+                            chunk = f.read(min(64 * 1024, remaining))
+                            if not chunk:
+                                break
+                            self.wfile.write(chunk)
+                            remaining -= len(chunk)
+                            nbytes += len(chunk)
+                except (BrokenPipeError, ConnectionResetError):
+                    self._access(
+                        self.command,
+                        url_path,
+                        status,
+                        nbytes,
+                        (time.monotonic() - started) * 1000,
+                    )
+                    return
 
             self._access(
                 self.command,
@@ -342,6 +386,7 @@ def serve_forever(root, host="0.0.0.0", port=8080, enable_debug_routes=False,
                   log_access=True):
     if not os.path.isdir(root):
         raise SystemExit("publish root not found: {}".format(root))
+    warn_if_tree_incomplete(root)
     handler = make_handler(root, enable_debug_routes, log_access)
     server = ThreadingHTTPServer((host, port), handler)
     url = build_custom_maps_url(host, port, host)
