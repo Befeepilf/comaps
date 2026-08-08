@@ -1,7 +1,7 @@
 # SP-052 — Countries advertisement path for LAN / pre-CDN `.spa`
 
 **Phase:** 4 residual / pre-production packaging
-**Status:** Planned
+**Status:** In review
 **Depends on:** SP-049 Accepted (D10–D11); SP-050 / SP-051 for tree + server
 **Unblocks:** SP-053 device validation; honest CDN cutover later
 
@@ -157,3 +157,17 @@ For walks when the publish signing key is unavailable in the session:
 | Device playbook + evidence | SP-053 |
 | CDN cutover PR merging spa ads into `data/countries.txt` | ops after blobs live |
 | Settings UI for incomplete spa | Phase 10 |
+
+---
+
+## Implementation evidence (agent — not Accepted)
+
+| Field | Value |
+| --- | --- |
+| Status | **In review** — human acceptance pending |
+| Recipes | `docs/implementation/notes/spa-advertise-channels.md` |
+| Channel A | Assemble `--publish-version` bump + `--secret-key`; no client change |
+| Channel B | Local `inject_spa_meta` + local APK; **do not merge** early |
+| Channel C | Explicitly rejected (no signature bypass landed) |
+| Client delta | None |
+| Signed bump verification on device | Residual — needs maintainer signing key + hardware (SP-053) |
