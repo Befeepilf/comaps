@@ -69,7 +69,7 @@ Presence of both `"spa"` and `"spa_sha1_base64"` on a leaf is the only
 advertisement signal (`HasRemoteSpa()`). The local server does not teach the
 client about spa via headers, directory listing, or a side manifest.
 
-### D10 — Countries update on LAN uses the production signature path
+### D10 — Countries update: keep signature; Channel A uses meta-only version bump
 
 **Recommended: Accept (production-first).**
 
@@ -78,8 +78,24 @@ Applying a new `countries.txt` from a custom/LAN server still requires a valid
 weaken Ed25519 verification when `CustomMapServerUrl` is set (community custom
 servers would inherit a security hole).
 
-**Consequence:** LAN mirrors that need a *new* countries file (spa ads, version
-bump) must sign with the real publish key (maintainer ops), same as CDN.
+**Same-version skip (code fact):** `Storage::RunCountriesCheckAsyncSaveOnly`
+skips when `maps.json` `latest <= m_currentVersion`. Spa-only meta changes
+therefore **do not apply** without either a version bump or a new client
+same-version refresh path.
+
+**Channel A rule:** when only spa advertisement (and optional other meta)
+changes, bump countries `"v"` and `meta/maps.json` `"latest"` together, keep
+MWM `"s"` / `"sha1_base64"` unchanged, resign, and serve MWMs under the **new**
+version directory (copy/link the same MWM bytes). This mirrors a real map
+publish and needs no client change.
+
+**Reject:** unsigned countries apply; “set latest == current and hope spa
+ads appear.”
+
+Optional later (not required for this track): a narrowly scoped client
+affordance to re-fetch countries at the current version when Custom Map Server
+is set **and** signature still verifies — track as a follow-up if bumping is
+operationally painful; do not block SP-050–053 on it.
 
 ### D11 — Temporary advertisement without CDN publish (debug support)
 
@@ -90,7 +106,7 @@ of these channels, in preference order:
 
 | Priority | Channel | Production code path? | Landing rule |
 | --- | --- | --- | --- |
-| 1 | Signed countries on LAN (D10) with spa meta + blobs | Yes | Preferred for maintainer walks |
+| 1 | Signed countries on LAN (D10) with spa meta + blobs + version bump | Yes | Preferred for maintainer walks |
 | 2 | Rebuild APK with spa fields injected into **bundled** `data/countries.txt` for FI leaves only, same `"v"` / MWM hashes; serve `.spa` (and optionally `.mwm`) from LAN custom server | Yes (SP-046 fetch) | **Do not merge** spa ads into `street-pixels` `data/countries.txt` until CDN (or equivalent) will serve matching blobs — otherwise stock CDN users advertise missing spa → IncompleteSpa |
 | 3 | WritableDir countries override via signed update only | Yes | Same as 1 |
 
@@ -112,15 +128,31 @@ address.
 This track is **Phase 4 residual / pre-production packaging** continued (same
 as SP-042–048), and is the **device enabler** for Phase 5 / Phase 10 Helsinki
 walks. It is **not** a Phase 5 exit criterion and does not reopen Phase 5
-coding (SP-033–040).
+coding (SP-033–040). It is **not** Option A mapgen collectors.
+
+### D14 — `meta/maps.json` field contract matches CDN
+
+**Recommended: Accept.**
+
+`ParseServerMapsAndGetLatestVersion` reads:
+
+- top-level `"map-series"` (hyphen), object keyed by series string
+- per series: `"latest"` (integer), `"status"` (string; `"EOL"` sets EOL flag)
+
+Assemble / LAN trees must use `"status": "active"` for non-EOL series (CDN
+convention), not invented values like `"current"`. Unknown non-EOL status
+strings still work today (only `"EOL"` is special-cased) but matching CDN
+avoids drift.
 
 ---
 
 ## In-scope behavior (this WI)
 
-1. Append **SPD-035–039** (or fewer, if maintainer collapses) to
+1. Append **SPD-035–040** (or fewer, if maintainer collapses) to
    `DECISIONS.md` once locks land — Status Accepted with product-owner lock
-   date.
+   date. Suggested mapping: D8→SPD-035 layout, D9 affirm SPD-028, D10→SPD-036
+   signature+version-bump, D11→SPD-037 temporary inject channel, D12 affirm
+   SP-004 posture, D13→SPD-038 track placement, D14→SPD-039 maps.json contract.
 2. Create/index SP-050–053 work items (plans already drafted under this
    planning branch).
 3. Point phase-04 residual note + README packaging track at this continuation.
@@ -133,6 +165,7 @@ coding (SP-033–040).
 
 - Implementing assemble tool, HTTP server, or client changes (SP-050–052).
 - Running device walks (SP-053).
+- Option A mapgen collectors / StageMwm (still unallocated residual).
 - Editing product spec or technical audit.
 - Weakening SPD-016 / SPD-030 / SPD-031.
 - Marking Accepted unilaterally.
@@ -141,7 +174,7 @@ coding (SP-033–040).
 
 ## Acceptance criteria
 
-1. Maintainer locks D8–D13 (or records alternate choices with rationale).
+1. Maintainer locks D8–D14 (or records alternate choices with rationale).
 2. Matching SPD entries in `DECISIONS.md` with Status Accepted.
 3. README / phase-04 residual index this continuation; SPD-033 still holds
    (not Phase 5 exit).
@@ -164,6 +197,7 @@ coding (SP-033–040).
 - Do not skip countries signature for custom servers (D10).
 - Do not commit spa advertisements to bundled countries before blobs exist on
   the URL the stock app will hit (D11).
+- Do not assume same-version `maps.json` latest applies spa ads (D10 bump).
 
 ## Discovered follow-up
 
@@ -173,3 +207,6 @@ coding (SP-033–040).
 | LAN HTTP server | SP-051 |
 | Countries advertise channels | SP-052 |
 | Device playbook | SP-053 |
+| Optional same-version signed countries refresh client affordance | Follow-up only if D10 bumps are painful |
+| Option A mapgen collectors | Unallocated residual (not this track) |
+| Leaf `.pix` / offline derive for dense emit | SP-044 residual; blocks FI spa blobs upstream of SP-050 |
