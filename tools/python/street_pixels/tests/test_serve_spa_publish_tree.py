@@ -7,6 +7,7 @@ import sys
 import tempfile
 import threading
 import unittest
+from http.client import HTTPConnection
 from http.server import ThreadingHTTPServer
 from urllib.error import HTTPError
 from urllib.request import Request
@@ -198,6 +199,65 @@ class ServeSpaPublishTreeTest(unittest.TestCase):
                     self.DATA_V,
                     payload["map-series"][self.SERIES]["latest"],
                 )
+
+    def test_inventory_json_not_served_without_debug(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._tree(tmp)
+            port = self._serve(tmp, enable_debug=False)
+            url = "http://127.0.0.1:{}/inventory.json".format(port)
+            with self.assertRaises(HTTPError) as ctx:
+                urlopen(url, timeout=5)
+            self.assertEqual(404, ctx.exception.code)
+
+    def test_head_debug_inventory_when_enabled(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._tree(tmp)
+            port = self._serve(tmp, enable_debug=True)
+            conn = HTTPConnection("127.0.0.1", port, timeout=5)
+            try:
+                conn.request("HEAD", "/debug/inventory")
+                resp = conn.getresponse()
+                self.assertEqual(200, resp.status)
+                self.assertGreater(int(resp.getheader("Content-Length")), 0)
+                self.assertEqual(b"", resp.read())
+            finally:
+                conn.close()
+
+    def test_url_encoded_leaf_with_space(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            leaf = "Finland_Southern Finland_Helsinki"
+            vdir = os.path.join(tmp, "maps", self.SERIES, str(self.DATA_V))
+            os.makedirs(vdir)
+            os.makedirs(os.path.join(tmp, "meta"))
+            spa = b"helsinki-spa"
+            with open(os.path.join(vdir, "{}.spa".format(leaf)), "wb") as f:
+                f.write(spa)
+            with open(os.path.join(tmp, "meta", "maps.json"), "w") as f:
+                json.dump(
+                    {
+                        "map-series": {
+                            self.SERIES: {"latest": self.DATA_V, "status": "active"}
+                        }
+                    },
+                    f,
+                )
+            with open(os.path.join(tmp, "inventory.json"), "w") as f:
+                json.dump(
+                    {
+                        "map_series": self.SERIES,
+                        "publish_version": self.DATA_V,
+                        "leaves": [{"id": leaf, "advertised": True, "spa_bytes": len(spa)}],
+                    },
+                    f,
+                )
+            port = self._serve(tmp)
+            encoded = "Finland_Southern%20Finland_Helsinki.spa"
+            url = "http://127.0.0.1:{}/maps/{}/{}/{}".format(
+                port, self.SERIES, self.DATA_V, encoded
+            )
+            with urlopen(url, timeout=5) as resp:
+                self.assertEqual(200, resp.status)
+                self.assertEqual(spa, resp.read())
 
 
 if __name__ == "__main__":
