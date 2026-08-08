@@ -177,13 +177,13 @@ SP-043–048 — **not** Phase 5, **not** Phase 10 device work). Evidence:
 | SP-030 | Accepted — sparse `.spx` + rematerialize (SPD-022) |
 | SP-031 | Accepted — Phase 4 exit validation (R3 → Phase 10) |
 | SP-032 | Accepted — offline `spa_emit_tool` + shipping-encoder FI sizes |
-| SP-042 | **In review** — sidecar shipping decisions (SPD-027–033); Phase 4 R1 packaging track |
-| SP-043 | **In review** — blob contract freeze (**SPD-034**; `format_version` 2) |
-| SP-044 | **In review** — production leaf `.spa` emit (Option B offline batch; closes R1 emit) |
-| SP-045 | **In review** — optional `spa` / `spa_sha1_base64` in `countries.txt` (**SPD-028**) |
-| SP-046 | **In review** — client leaf download fetches advertised `.spa` beside MWM (**SPD-027**, **SPD-031**) |
-| SP-047 | **In review** — `.spa` full-refetch on update + delete-with-map (**SPD-029**, **SPD-030**) |
-| SP-048 | **In review** — incomplete / retry signaling (**SPD-031**) |
+| SP-042 | **Accepted** 2026-08-08 — sidecar shipping decisions (SPD-027–033); Phase 4 R1 packaging track |
+| SP-043 | **Accepted** 2026-08-08 — blob contract freeze (**SPD-034**; `format_version` 2) |
+| SP-044 | **Accepted** 2026-08-08 — production leaf `.spa` emit (Option B offline batch; closes R1 emit) |
+| SP-045 | **Accepted** 2026-08-08 — optional `spa` / `spa_sha1_base64` in `countries.txt` (**SPD-028**) |
+| SP-046 | **Accepted** 2026-08-08 — client leaf download fetches advertised `.spa` beside MWM (**SPD-027**, **SPD-031**) |
+| SP-047 | **Accepted** 2026-08-08 — `.spa` full-refetch on update + delete-with-map (**SPD-029**, **SPD-030**) |
+| SP-048 | **Accepted** 2026-08-08 — incomplete / retry signaling (**SPD-031**) |
 | SP-033 | **Accepted** 2026-08-07 — qualitative Pixel 3a OK; quantitative Spike 1 → Phase 10 |
 | SP-034 | **Accepted** 2026-08-07 — area completion cache + SPD-026 |
 | SP-035 | **Accepted** 2026-08-07 — focused-area badge binding (map-centre stub → SP-036) |
@@ -420,13 +420,13 @@ Closes narrowed R1 (production mapgen emit + CDN leaf download / packaging).
 
 | Order | ID | Title | Phase | Why |
 | --- | --- | --- | --- | --- |
-| 42 | [SP-042](work-items/SP-042-sidecar-shipping-decisions.md) | Sidecar shipping decisions | 4 residual | **In review** — SPD-027–033; product locks D1–D7 (2026-08-07) |
-| 43 | [SP-043](work-items/SP-043-spa-blob-contract-freeze.md) | Freeze production `.spa` blob contract (`nside` / universe-order / `format_version`) | 4 residual | **In review** — **SPD-034** (`format_version` 2) |
-| 44 | [SP-044](work-items/SP-044-production-spa-emit.md) | Production leaf `.spa` emit (Phase 4 R1; Option B offline batch) | 4 residual | **In review** — Option A mapgen collectors deferred |
-| 45 | [SP-045](work-items/SP-045-countries-spa-meta.md) | Add optional `spa` / `spa_sha1_base64` leaf fields to `countries.txt` publish | 4 residual | **In review** — **SPD-028**; parse + publish inject; download = SP-046 |
-| 46 | [SP-046](work-items/SP-046-spa-download-beside-mwm.md) | Client leaf download fetches advertised `.spa` beside MWM | 4 residual | **In review** — **SPD-027**, **SPD-031**; delete lifecycle = SP-047 |
-| 47 | [SP-047](work-items/SP-047-spa-lifecycle-update-delete.md) | `.spa` full-refetch on map update and delete-with-map lifecycle | 4 residual | **In review** — **SPD-029**, **SPD-030** |
-| 48 | [SP-048](work-items/SP-048-sidecar-shipping-validation.md) | Sidecar shipping validation and incomplete / retry signaling | 4 residual | **In review** — **SPD-031**; packaging track SP-042–048 pending maintainer |
+| 42 | [SP-042](work-items/SP-042-sidecar-shipping-decisions.md) | Sidecar shipping decisions | 4 residual | **Accepted** 2026-08-08 — SPD-027–033; product locks D1–D7 (2026-08-07) |
+| 43 | [SP-043](work-items/SP-043-spa-blob-contract-freeze.md) | Freeze production `.spa` blob contract (`nside` / universe-order / `format_version`) | 4 residual | **Accepted** 2026-08-08 — **SPD-034** (`format_version` 2) |
+| 44 | [SP-044](work-items/SP-044-production-spa-emit.md) | Production leaf `.spa` emit (Phase 4 R1; Option B offline batch) | 4 residual | **Accepted** 2026-08-08 — Option A mapgen collectors deferred |
+| 45 | [SP-045](work-items/SP-045-countries-spa-meta.md) | Add optional `spa` / `spa_sha1_base64` leaf fields to `countries.txt` publish | 4 residual | **Accepted** 2026-08-08 — **SPD-028**; parse + publish inject; download = SP-046 |
+| 46 | [SP-046](work-items/SP-046-spa-download-beside-mwm.md) | Client leaf download fetches advertised `.spa` beside MWM | 4 residual | **Accepted** 2026-08-08 — **SPD-027**, **SPD-031**; delete lifecycle = SP-047 |
+| 47 | [SP-047](work-items/SP-047-spa-lifecycle-update-delete.md) | `.spa` full-refetch on map update and delete-with-map lifecycle | 4 residual | **Accepted** 2026-08-08 — **SPD-029**, **SPD-030** |
+| 48 | [SP-048](work-items/SP-048-sidecar-shipping-validation.md) | Sidecar shipping validation and incomplete / retry signaling | 4 residual | **Accepted** 2026-08-08 — **SPD-031**; packaging track SP-042–048 |
 
 | Order | ID | Title | Phase | Why first |
 | --- | --- | --- | --- | --- |
