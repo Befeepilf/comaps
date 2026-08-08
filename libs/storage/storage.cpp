@@ -2421,12 +2421,10 @@ Progress Storage::CalculateProgress(CountriesVec const & descendants) const
   auto const mwmsInQueue = GetQueuedCountries(m_downloader->GetQueue());
   for (auto const & d : descendants)
   {
-    auto const & countryFile = GetCountryFile(d);
-    MwmSize const remoteSz = storage::GetRemoteDownloadSize(*m_diffsDataSource, countryFile);
-
     auto const downloadingIt = m_downloadingCountries.find(d);
     if (downloadingIt != m_downloadingCountries.cend())
     {
+      MwmSize const remoteSz = storage::GetRemoteDownloadSize(*m_diffsDataSource, GetCountryFile(d));
       if (!downloadingIt->second.IsUnknown())
         result.m_bytesDownloaded += downloadingIt->second.m_bytesDownloaded;
 
@@ -2434,10 +2432,11 @@ Progress Storage::CalculateProgress(CountriesVec const & descendants) const
     }
     else if (mwmsInQueue.count(d) != 0)
     {
-      result.m_bytesTotal += remoteSz;
+      result.m_bytesTotal += storage::GetRemoteDownloadSize(*m_diffsDataSource, GetCountryFile(d));
     }
     else if (m_justDownloaded.count(d) != 0)
     {
+      MwmSize const remoteSz = storage::GetRemoteDownloadSize(*m_diffsDataSource, GetCountryFile(d));
       result.m_bytesDownloaded += remoteSz;
       result.m_bytesTotal += remoteSz;
     }
