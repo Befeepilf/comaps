@@ -4,6 +4,7 @@
 
 #include "street_pixels_areas/areas_format.hpp"
 #include "street_pixels_areas/areas_reader.hpp"
+#include "street_pixels_areas/areas_serdes.hpp"
 #include "street_pixels_areas/exploration_filter.hpp"
 #include "street_pixels_areas/exploration_sidecar.hpp"
 #include "street_pixels_areas/sample_centres.hpp"
@@ -11,8 +12,13 @@
 #include "street_pixels_areas/subdivision_assigner.hpp"
 #include "street_pixels_areas/subdivision_assignment.hpp"
 
+#include "street_pixels_config/country_config.hpp"
+
 #include "coding/file_writer.hpp"
+#include "coding/files_container.hpp"
 #include "coding/writer.hpp"
+
+#include "geometry/mercator.hpp"
 
 #include "platform/platform.hpp"
 
@@ -25,6 +31,7 @@
 #include <cstdint>
 #include <cstring>
 #include <fstream>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -194,6 +201,122 @@ UNIT_TEST(SpaDenseEmit_AcceleratedMatchesPerPoint)
     TEST_EQUAL(dense[i], AssignSubdivision(points[i], areas, policy, sentinel), (i));
 }
 
+UNIT_TEST(SpaDenseEmit_RealHelsinkiRingsVerify)
+{
+  // Optional integration: requires SP-044 rings + Helsinki border on the machine.
+  std::string const ringsPath = "/tmp/sp044/finland_admin_place_rings.jsonl";
+  std::string const polyPath = base::JoinPath(GetPlatform().ResourcesDir(), "..", "borders",
+                                              "Finland_Southern Finland_Helsinki.poly");
+  std::string const polyFallback = "data/borders/Finland_Southern Finland_Helsinki.poly";
+  if (!Platform::IsFileExistsByFullPath(ringsPath))
+  {
+    LOG(LWARNING, ("Skipping real Helsinki rings verify; missing", ringsPath));
+    return;
+  }
+  std::string const poly = Platform::IsFileExistsByFullPath(polyPath) ? polyPath : polyFallback;
+  if (!Platform::IsFileExistsByFullPath(poly))
+  {
+    LOG(LWARNING, ("Skipping real Helsinki rings verify; missing poly", poly));
+    return;
+  }
+
+  auto const config = CountryConfig::LoadFromFile(
+      base::JoinPath(GetPlatform().ResourcesDir(), "street_pixels", "country_policies.json"));
+  auto const policy = config.GetByIso("FI");
+
+  std::vector<m2::RegionD> regions;
+  TEST(LoadPolyFileAsMercatorRegions(poly, regions), (poly));
+
+  std::vector<ExplorationArea> areas;
+  auto const stats = FilterJsonlRings(ringsPath, policy, &regions, areas);
+  TEST_EQUAL(stats.m_admitted, 694u, (stats.m_admitted));
+  TEST_EQUAL(areas.size(), 694u, ());
+
+  // Boundary-heavy sample set: nest centres near ring vertices (reproduces pre-fix mismatch).
+  std::set<int64_t> idSet;
+  for (double lat = 60.10; lat <= 60.30; lat += 0.01)
+  {
+    for (double lon = 24.80; lon <= 25.10; lon += 0.01)
+      idSet.insert(NestIdFromLonLat(lon, lat));
+  }
+  for (auto const & area : areas)
+  {
+    for (auto const & ring : area.m_rings)
+    {
+      for (auto const & pt : ring)
+      {
+        double const lat = mercator::YToLat(pt.y);
+        double const lon = mercator::XToLon(pt.x);
+        idSet.insert(NestIdFromLonLat(lon, lat));
+        for (int dlat = -1; dlat <= 1; ++dlat)
+        {
+          for (int dlon = -1; dlon <= 1; ++dlon)
+            idSet.insert(NestIdFromLonLat(lon + dlon * 1e-5, lat + dlat * 1e-5));
+        }
+      }
+    }
+  }
+  std::vector<int64_t> ids(idSet.begin(), idSet.end());
+  auto centres = MercatorCentresFromAscendingNest(ids);
+  TEST(centres.has_value(), ());
+  TEST_GREATER(centres->size(), 1000u, (centres->size()));
+
+  // Pre-fix behaviour: assign from raw geometry, persist raw rings → verify fails.
+  {
+    for (uint32_t i = 0; i < areas.size(); ++i)
+      areas[i].m_compactIndex = i;
+    uint32_t const sentinel = NoSubdivisionSentinel(ChooseIndexWidth(static_cast<uint32_t>(areas.size())));
+    auto const rawAssign = BuildDenseAssignments(*centres, areas, policy, sentinel);
+
+    std::string const oldPath = ExplorationSidecarPath(GetPlatform().WritableDir(), "sp044_old_writer");
+    RemoveIfExists(oldPath);
+    SpaHeader header;
+    header.m_magic = kSpaMagic;
+    header.m_formatVersion = kSpaFormatVersion;
+    header.m_mapDataVersion = 260803;
+    header.m_policyVersion = config.GetPolicyVersion();
+    header.m_isoCode = "FI";
+    header.m_mwmId = "sp044_old_writer";
+    header.m_areaCount = static_cast<uint32_t>(areas.size());
+    header.m_indexWidth = ChooseIndexWidth(header.m_areaCount);
+    header.m_nside = kSpaNside;
+    header.m_universeOrder = kSpaUniverseOrderAscendingNest;
+    header.m_assignCount = static_cast<uint32_t>(rawAssign.size());
+    {
+      FilesContainerW container(oldPath, FileWriter::OP_WRITE_TRUNCATE);
+      {
+        auto w = container.GetWriter(SPA_HEADER_FILE_TAG);
+        WriteSpaHeader(*w, header);
+      }
+      {
+        auto w = container.GetWriter(SPA_AREAS_FILE_TAG);
+        WriteAreasSection(*w, areas);
+      }
+      {
+        auto w = container.GetWriter(SPA_ASSIGN_FILE_TAG);
+        WriteAssignSection(*w, rawAssign, header.m_indexWidth);
+      }
+      container.Finish();
+    }
+    auto const oldLoaded = ReadExplorationSidecar(oldPath);
+    TEST(!VerifyDenseAssignments(oldLoaded, *centres, policy),
+         ("raw-geometry assign must fail verify on real Helsinki rings"));
+    RemoveIfExists(oldPath);
+  }
+
+  std::string const spaPath = ExplorationSidecarPath(GetPlatform().WritableDir(), "sp044_real_helsinki");
+  RemoveIfExists(spaPath);
+  SpaWriteParams params;
+  params.m_mapDataVersion = 260803;
+  params.m_policyVersion = config.GetPolicyVersion();
+  params.m_isoCode = "FI";
+  params.m_mwmId = "sp044_real_helsinki";
+  WriteExplorationSidecar(spaPath, areas, *centres, policy, params);
+  auto const loaded = ReadExplorationSidecar(spaPath);
+  TEST(VerifyDenseAssignments(loaded, *centres, policy), ());
+  RemoveIfExists(spaPath);
+}
+
 UNIT_TEST(SpaDenseEmit_ListLeafBordersFinland)
 {
   // Uses committed data/borders when ResourcesDir layout matches a desktop build;
@@ -219,3 +342,4 @@ UNIT_TEST(SpaDenseEmit_ListLeafBordersFinland)
   }
   TEST(sawHelsinki, ());
 }
+

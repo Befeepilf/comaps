@@ -4,6 +4,8 @@
 #include "street_pixels_areas/exploration_sidecar.hpp"
 #include "street_pixels_areas/subdivision_assigner.hpp"
 
+#include "base/logging.hpp"
+
 #include <algorithm>
 #include <utility>
 
@@ -62,12 +64,35 @@ bool VerifyDenseAssignments(SpaFile const & file, std::vector<m2::PointD> const 
                             CountryPolicy const & policy)
 {
   if (sampleCentresInSlotOrder.size() != file.m_assignments.size())
+  {
+    LOG(LWARNING, ("VerifyDenseAssignments size mismatch samples", sampleCentresInSlotOrder.size(), "assign",
+                   file.m_assignments.size()));
     return false;
+  }
 
   uint32_t const sentinel = NoSubdivisionSentinel(file.m_header.m_indexWidth);
   auto const recomputed = BuildDenseAssignments(sampleCentresInSlotOrder, file.m_areas, policy, sentinel);
   if (recomputed != file.m_assignments)
+  {
+    size_t mismatches = 0;
+    size_t first = 0;
+    bool sawFirst = false;
+    for (size_t i = 0; i < recomputed.size(); ++i)
+    {
+      if (recomputed[i] == file.m_assignments[i])
+        continue;
+      if (!sawFirst)
+      {
+        first = i;
+        sawFirst = true;
+      }
+      ++mismatches;
+    }
+    LOG(LWARNING, ("VerifyDenseAssignments column mismatch count", mismatches, "first_slot", first,
+                   "written", sawFirst ? file.m_assignments[first] : 0u, "recomputed",
+                   sawFirst ? recomputed[first] : 0u));
     return false;
+  }
 
   for (uint32_t value : file.m_assignments)
   {

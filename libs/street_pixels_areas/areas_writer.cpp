@@ -17,16 +17,19 @@ namespace street_pixels
 {
 namespace
 {
-std::vector<ExplorationArea> RoundTripAreasForAssign(std::vector<ExplorationArea> const & areas)
+// Persist and assign against the same area bytes. SaveOuterPath/LoadOuterPath
+// quantizes rings; assigning against pre-serde geometry then verifying against
+// post-serde geometry fails on real OSM rings (boundary pixels flip).
+void SerializeAreasForPersist(std::vector<ExplorationArea> & areas, std::vector<uint8_t> & areasBytes)
 {
-  std::vector<uint8_t> buffer;
+  areasBytes.clear();
   {
-    MemWriter<std::vector<uint8_t>> writer(buffer);
+    MemWriter<std::vector<uint8_t>> writer(areasBytes);
     WriteAreasSection(writer, areas);
   }
-  MemReader reader(buffer.data(), buffer.size());
+  MemReader reader(areasBytes.data(), areasBytes.size());
   ReaderSource src(reader);
-  return ReadAreasSection(src, static_cast<uint32_t>(areas.size()));
+  areas = ReadAreasSection(src, static_cast<uint32_t>(areas.size()));
 }
 }  // namespace
 
@@ -37,7 +40,8 @@ void WriteExplorationSidecar(std::string const & path, std::vector<ExplorationAr
   for (uint32_t i = 0; i < areas.size(); ++i)
     areas[i].m_compactIndex = i;
 
-  areas = RoundTripAreasForAssign(areas);
+  std::vector<uint8_t> areasBytes;
+  SerializeAreasForPersist(areas, areasBytes);
 
   SpaHeader header;
   header.m_magic = kSpaMagic;
@@ -60,10 +64,7 @@ void WriteExplorationSidecar(std::string const & path, std::vector<ExplorationAr
     auto w = container.GetWriter(SPA_HEADER_FILE_TAG);
     WriteSpaHeader(*w, header);
   }
-  {
-    auto w = container.GetWriter(SPA_AREAS_FILE_TAG);
-    WriteAreasSection(*w, areas);
-  }
+  container.Write(areasBytes, SPA_AREAS_FILE_TAG);
   {
     auto w = container.GetWriter(SPA_ASSIGN_FILE_TAG);
     WriteAssignSection(*w, assignments, header.m_indexWidth);
