@@ -33,13 +33,18 @@ def _get_leaf_nodes(root):
     return leaves
 
 
-def get_spa_hash(spa_path):
-    """SHA-1 digest of the `.spa` file, base64-encoded (same style as get_mwm_hash)."""
+def file_sha1_base64(path):
+    """SHA-1 digest of a file, base64-encoded (same style as get_mwm_hash / spa)."""
     h = hashlib.sha1()
-    with open(spa_path, "rb") as f:
+    with open(path, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
             h.update(chunk)
     return str(base64.b64encode(h.digest()), "utf-8")
+
+
+def get_spa_hash(spa_path):
+    """SHA-1 digest of the `.spa` file, base64-encoded (alias of file_sha1_base64)."""
+    return file_sha1_base64(spa_path)
 
 
 def inject_spa_meta(countries, spa_dir):
@@ -59,7 +64,7 @@ def inject_spa_meta(countries, spa_dir):
         if os.path.isfile(spa_path):
             size = os.path.getsize(spa_path)
             leaf["spa"] = size
-            leaf["spa_sha1_base64"] = get_spa_hash(spa_path)
+            leaf["spa_sha1_base64"] = file_sha1_base64(spa_path)
             advertised += 1
             logger.info("Advertised spa for %s (%s bytes)", leaf_id, size)
         else:
