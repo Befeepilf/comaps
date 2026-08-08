@@ -575,5 +575,47 @@ UNIT_TEST(Storage_SpaIncomplete_RestoreQueueAutoRetries)
   TEST(localFile->OnDisk(MapFileType::Spa), ());
   TEST(!storage.IsSpaIncomplete(id), ());
 }
+
+UNIT_TEST(Storage_GetNodeAttrs_GroupSubtreeDoesNotAbort)
+{
+  WritableDirChanger const writableDirChanger(kMapTestDir);
+  Platform::ThreadRunner threadRunner;
+
+  auto const json = std::string(R"({
+    "id": "Countries",
+    "v": )") +
+                    strings::to_string(version::FOR_TESTING_MWM1) + R"(,
+    "g": [
+      {
+        "id": "RegionGroup",
+        "g": [
+          {
+            "id": "SpaLeaf",
+            "s": 2048,
+            "sha1_base64": "mwmSha",
+            "spa": 512,
+            "spa_sha1_base64": "spaSha"
+          }
+        ]
+      }
+    ]
+  })";
+
+  TaskRunner runner;
+  Storage storage(json, std::make_unique<FakeMapFilesDownloader>(runner));
+  InitSpaStorage(storage, runner);
+
+  NodeAttrs attrs;
+  storage.GetNodeAttrs("RegionGroup", attrs);
+  TEST_EQUAL(attrs.m_status, NodeStatus::NotDownloaded, ());
+  TEST_EQUAL(attrs.m_mwmCounter, 1, ());
+  TEST_EQUAL(attrs.m_mwmSize, 2048 + 512, ());
+  TEST_EQUAL(attrs.m_downloadingProgress.m_bytesTotal, 0, ());
+
+  storage.GetNodeAttrs(storage.GetRootId(), attrs);
+  TEST_EQUAL(attrs.m_status, NodeStatus::NotDownloaded, ());
+  TEST_EQUAL(attrs.m_mwmCounter, 1, ());
+  TEST_EQUAL(attrs.m_mwmSize, 2048 + 512, ());
+}
 }  // namespace
 }  // namespace storage
