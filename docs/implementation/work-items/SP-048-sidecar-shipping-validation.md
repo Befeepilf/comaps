@@ -1,10 +1,12 @@
 # SP-048 — Sidecar shipping validation and incomplete / retry signaling
 
 **Phase:** 4 residual / pre-production packaging (not Phase 5; not Phase 10 device)
-**Status:** In review
+**Status:** Accepted
+**Accepted by:** Maintainer
+**Accepted date:** 2026-08-08
 **Branch:** `cursor/sp-042-sidecar-shipping-fe62`
-**Depends on:** SP-042 In review (**SPD-031** Accepted); SP-046 In review (fail-soft);
-  SP-047 In review (lifecycle)
+**Depends on:** SP-042 Accepted (**SPD-031** Accepted); SP-046 Accepted (fail-soft);
+  SP-047 Accepted (lifecycle)
 **Unblocks:** Phase 4 packaging track close (maintainer acceptance of SP-042–048)
 
 ---
@@ -125,8 +127,8 @@ Optional fail-closed: `-f ExplorationSidecar_MissingIsEmptySafe` on `street_pixe
 | Test output | `./tools/unix/build_omim.sh -d -p /workspace storage_tests` OK; `./tools/unix/run_tests.sh -b /workspace/omim-build-debug -f "Storage_SpaDownload\|Storage_SpaLifecycle\|Storage_SpaIncomplete"` — all eleven Spa* cases OK; `3 / 3 passed`. Fail-closed: `-f ExplorationSidecar_MissingIsEmptySafe` OK. |
 | Docs touched | this file; README; phase-04 residual note; SP-046/047 follow-up pointers |
 | Implemented by | Cursor Agent |
-| Accepted by | — |
-| Accepted date | — |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-08 |
 
 ### Implementation notes (2026-08-07)
 

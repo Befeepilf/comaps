@@ -1,9 +1,11 @@
 # SP-043 — Freeze production `.spa` blob contract
 
 **Phase:** 4 residual / pre-production packaging (not Phase 5; not Phase 10 device)
-**Status:** In review
+**Status:** Accepted
+**Accepted by:** Maintainer
+**Accepted date:** 2026-08-08
 **Branch:** `cursor/sp-042-sidecar-shipping-fe62`
-**Depends on:** SP-042 In review (SPD-032 freeze gate); SPD-017 (`nside`);
+**Depends on:** SP-042 Accepted (SPD-032 freeze gate); SPD-017 (`nside`);
   SP-026 / SP-028 format notes
 **Unblocks:** SP-044 (mapgen emit against frozen contract); SP-045–048 consume
 
@@ -96,8 +98,8 @@ freeze risks irreversible mismatched assignment.
 | Test output | `./tools/unix/build_omim.sh -d -p /workspace street_pixels_areas_tests`; `./omim-build-debug/street_pixels_areas_tests` — **73/73 OK** (All tests passed.) |
 | Docs touched | `DECISIONS.md`; notes SP-026 / SP-028; README; phase-04; this file |
 | Implemented by | Agent |
-| Accepted by | — |
-| Accepted date | — |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-08 |
 
 ## Discovered follow-up
 

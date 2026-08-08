@@ -1,10 +1,12 @@
 # SP-045 — Add optional `spa` / `spa_sha1_base64` leaf fields to `countries.txt` publish
 
 **Phase:** 4 residual / pre-production packaging (not Phase 5; not Phase 10 device)
-**Status:** In review
+**Status:** Accepted
+**Accepted by:** Maintainer
+**Accepted date:** 2026-08-08
 **Branch:** `cursor/sp-042-sidecar-shipping-fe62` (implementation); planning draft was
   `cursor/sp-045-countries-spa-meta-cf0b`
-**Depends on:** SP-042 In review (**SPD-028** Accepted); SP-044 In review (real leaf
+**Depends on:** SP-042 Accepted (**SPD-028** Accepted); SP-044 Accepted (real leaf
   `.spa` blobs to advertise); `data/countries.txt` / storage country tree
 **Unblocks:** SP-046 (advertisement signal + size/hash for download); SP-048
   packaging checks that meta matches published blobs
@@ -327,8 +329,8 @@ Do not weaken existing storage size assertions that sum `"s"` only.
 | Test output | `./tools/unix/run_tests.sh -b /workspace/omim-build-debug -f "CountryFile_Smoke\|CountryTree_SpaMeta"` — `CountryFile_Smoke` OK; six `CountryTree_SpaMeta_*` OK (partial meta logs `Inconsistent spa meta … - ignoring`); `python3 tools/python/post_generation/tests/test_inject_spa_meta.py` — 3/3 OK. Note: full `platform_tests` unity build currently fails on pre-existing `glaze_test.cpp` / `glz::expected`; `CountryFile_Smoke` was validated by temporarily excluding `glaze_test.cpp` from that target’s CMakeLists (restored; not committed). |
 | Docs touched | this file; README; phase-04 index |
 | Implemented by | Cursor Agent |
-| Accepted by | — |
-| Accepted date | — |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-08 |
 
 ### Implementation notes (2026-08-07)
 

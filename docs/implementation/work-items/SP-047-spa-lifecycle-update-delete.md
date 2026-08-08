@@ -1,9 +1,11 @@
 # SP-047 — `.spa` full-refetch on map update and delete-with-map lifecycle
 
 **Phase:** 4 residual / pre-production packaging (not Phase 5; not Phase 10 device)
-**Status:** In review
+**Status:** Accepted
+**Accepted by:** Maintainer
+**Accepted date:** 2026-08-08
 **Branch:** `cursor/sp-042-sidecar-shipping-fe62`
-**Depends on:** SP-042 In review (**SPD-029**, **SPD-030** Accepted); SP-046 In review
+**Depends on:** SP-042 Accepted (**SPD-029**, **SPD-030** Accepted); SP-046 Accepted
   (`MaybeEnqueueRemoteSpa` after Map/Diff; SyncWithDisk Spa; fail-soft)
 **Unblocks:** SP-048 (incomplete / retry signaling beside lifecycle)
 
@@ -100,7 +102,7 @@ Run: `./tools/unix/run_tests.sh -b /workspace/omim-build-debug -f "Storage_SpaDo
 
 | Item | Owner |
 | --- | --- |
-| Incomplete / retry signaling when advertised spa missing after fail-soft | **SP-048** (In review) |
+| Incomplete / retry signaling when advertised spa missing after fail-soft | **SP-048** (Accepted 2026-08-08) |
 | `LocalCountryFile::DeleteFromDisk(Map)` remains Map-only (storage lifecycle owns Spa) | intentional; document only |
 
 ---
@@ -115,8 +117,8 @@ Run: `./tools/unix/run_tests.sh -b /workspace/omim-build-debug -f "Storage_SpaDo
 | Test output | `./tools/unix/build_omim.sh -d -p /workspace storage_tests` OK; `./tools/unix/run_tests.sh -b /workspace/omim-build-debug -f "Storage_SpaDownload\|Storage_SpaLifecycle"` — all seven SpaDownload/SpaLifecycle cases OK; `3 / 3 passed`. |
 | Docs touched | this file; README; phase-04 residual note |
 | Implemented by | Cursor Agent |
-| Accepted by | — |
-| Accepted date | — |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-08 |
 
 ### Implementation notes (2026-08-07)
 
