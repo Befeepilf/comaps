@@ -5,20 +5,39 @@
 #include "street_pixels_areas/subdivision_assigner.hpp"
 
 #include "coding/files_container.hpp"
+#include "coding/reader.hpp"
 #include "coding/writer.hpp"
 
 #include "defines.hpp"
 
 #include <utility>
+#include <vector>
 
 namespace street_pixels
 {
+namespace
+{
+std::vector<ExplorationArea> RoundTripAreasForAssign(std::vector<ExplorationArea> const & areas)
+{
+  std::vector<uint8_t> buffer;
+  {
+    MemWriter<std::vector<uint8_t>> writer(buffer);
+    WriteAreasSection(writer, areas);
+  }
+  MemReader reader(buffer.data(), buffer.size());
+  ReaderSource src(reader);
+  return ReadAreasSection(src, static_cast<uint32_t>(areas.size()));
+}
+}  // namespace
+
 void WriteExplorationSidecar(std::string const & path, std::vector<ExplorationArea> areas,
                              std::vector<m2::PointD> const & samplePoints, CountryPolicy const & policy,
                              SpaWriteParams const & params)
 {
   for (uint32_t i = 0; i < areas.size(); ++i)
     areas[i].m_compactIndex = i;
+
+  areas = RoundTripAreasForAssign(areas);
 
   SpaHeader header;
   header.m_magic = kSpaMagic;
