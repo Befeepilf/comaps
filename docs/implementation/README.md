@@ -184,6 +184,7 @@ SP-043–048 — **not** Phase 5, **not** Phase 10 device work). Evidence:
 | SP-046 | **Accepted** 2026-08-08 — client leaf download fetches advertised `.spa` beside MWM (**SPD-027**, **SPD-031**) |
 | SP-047 | **Accepted** 2026-08-08 — `.spa` full-refetch on update + delete-with-map (**SPD-029**, **SPD-030**) |
 | SP-048 | **Accepted** 2026-08-08 — incomplete / retry signaling (**SPD-031**) |
+| SP-049–053 | **Planned** 2026-08-08 — LAN/CDN `.spa` publish mirror (device enabler; not Phase 5 exit) |
 | SP-033 | **Accepted** 2026-08-07 — qualitative Pixel 3a OK; quantitative Spike 1 → Phase 10 |
 | SP-034 | **Accepted** 2026-08-07 — area completion cache + SPD-026 |
 | SP-035 | **Accepted** 2026-08-07 — focused-area badge binding (map-centre stub → SP-036) |
@@ -427,6 +428,21 @@ Closes narrowed R1 (production mapgen emit + CDN leaf download / packaging).
 | 46 | [SP-046](work-items/SP-046-spa-download-beside-mwm.md) | Client leaf download fetches advertised `.spa` beside MWM | 4 residual | **Accepted** 2026-08-08 — **SPD-027**, **SPD-031**; delete lifecycle = SP-047 |
 | 47 | [SP-047](work-items/SP-047-spa-lifecycle-update-delete.md) | `.spa` full-refetch on map update and delete-with-map lifecycle | 4 residual | **Accepted** 2026-08-08 — **SPD-029**, **SPD-030** |
 | 48 | [SP-048](work-items/SP-048-sidecar-shipping-validation.md) | Sidecar shipping validation and incomplete / retry signaling | 4 residual | **Accepted** 2026-08-08 — **SPD-031**; packaging track SP-042–048 |
+
+**Continuation — LAN / CDN publish mirror (device enabler; plans 2026-08-08):**
+closes SP-048 ops residual (serve advertised `.spa` on a production-shaped
+HTTP tree). Needed because Android scoped storage blocks copying `.spa` onto
+device for Phase 5 / Phase 10 Helsinki walks. Still **not** a Phase 5 exit gate
+(**SPD-033**). Current-state note:
+[`notes/spa-local-download-current-state.md`](notes/spa-local-download-current-state.md).
+
+| Order | ID | Title | Phase | Why |
+| --- | --- | --- | --- | --- |
+| 49 | [SP-049](work-items/SP-049-spa-distribute-layout-decisions.md) | Publish-layout + LAN advertisement decisions | 4 residual | **Planned** — D8–D13 → SPD-035+; production layout ≡ LAN |
+| 50 | [SP-050](work-items/SP-050-spa-publish-tree-assemble.md) | Assemble CDN-identical publish tree (MWM + `.spa` + countries + meta) | 4 residual | **Planned** — production tree for CDN and LAN |
+| 51 | [SP-051](work-items/SP-051-local-map-server-spa.md) | Local-network HTTP server for that layout | 4 residual | **Planned** — Custom Maps URL; debug = observability |
+| 52 | [SP-052](work-items/SP-052-spa-countries-advertise-path.md) | Countries advertisement path (signed update vs temporary bundle inject) | 4 residual | **Planned** — no signature bypass |
+| 53 | [SP-053](work-items/SP-053-spa-lan-device-validation.md) | LAN device validation — download `.spa` via the app | 4 residual | **Planned** — gate for Phase 10 Helsinki `.spa` precondition |
 
 | Order | ID | Title | Phase | Why first |
 | --- | --- | --- | --- | --- |
