@@ -1,9 +1,11 @@
 # Implementation plan — production `.spa` download on the local network
 
-**Status:** Plans only (2026-08-08). Awaiting maintainer approval before coding
-(roadmap §8 steps 1–2).  
-**Track:** Phase 4 residual continuation (SP-049–053).  
-**Not:** Phase 5 feature work; not a Phase 5 exit criterion (**SPD-033**).
+**Status:** Plans only (2026-08-08; revised after PR review). Awaiting
+maintainer approval of SP-049 locks before coding (roadmap §8 steps 1–2).  
+**Track:** Phase 4 residual continuation (SP-049–053) — **publish / serve /
+advertise**, not mapgen collectors.  
+**Not:** Phase 5 feature work; not a Phase 5 exit criterion (**SPD-033**);
+**not** Option A in-pipeline mapgen emit (still an unallocated SP-044 residual).
 
 ---
 
@@ -14,6 +16,10 @@ Client download of advertised `.spa` beside MWM is **already shipped**
 countries advertisement** so a phone on the LAN can use Advanced → Custom Maps
 server and receive `.spa` through that same path. Android scoped storage makes
 file copy unsupported as the test method.
+
+This track is the right next step for device testing. **Do not** divert into
+Option A (OSM collectors + `StageMwm`) to unblock Phase 5 walks — Option B
+`spa_emit_tool` already produces leaf blobs; the gap is distribution.
 
 Design rule for this track: **one CDN layout; LAN is a mirror; debug is
 observability and temporary recipes, never a second protocol.**
@@ -107,12 +113,23 @@ supported ingress; debug JNI install-spa; second URL scheme for `.spa`.
 `HasRemoteSpa()` is false today for all leaves in bundled countries. Without
 advertisement, a LAN server full of `.spa` files is ignored.
 
-**Preferred:** signed countries (version bump when meta-only) on the LAN/CDN
-tree (SP-052 Channel A).  
-**Temporary:** inject spa into a **local** `data/countries.txt` for an APK
-rebuild; do not land that inject on `street-pixels` until CDN serves blobs.
+**Preferred (Channel A):** signed countries on the LAN/CDN tree with a
+**meta-only `"v"` bump** in both `countries.txt` and `meta/maps.json`
+`latest`. Same-version updates are skipped today
+(`dataVersion <= m_currentVersion` → NoUpdate), so bumping is required for
+Channel A without a client change (SP-049 D10 / SP-052).  
+**Temporary (Channel B):** inject spa into a **local** `data/countries.txt`
+for an APK rebuild; do not land that inject on `street-pixels` until CDN
+serves blobs.
 
-Countries updates always verify Ed25519 (SP-049 D10).
+Countries updates always verify Ed25519 (SP-049 D10). No signature bypass.
+
+### Emit precondition (not this track’s code, but blocks FI assemble)
+
+Production dense emit still needs leaf `.pix` (ascending NEST **U**) matching
+the MWM version. Offline MWM→`.pix` derive remains an SP-044 residual. SP-050
+assumes a populated `--spa-dir`; obtaining those `.spa` files is upstream of
+assemble.
 
 ---
 
@@ -129,14 +146,15 @@ Countries updates always verify Ed25519 (SP-049 D10).
 
 ## Open locks for maintainer (SP-049)
 
-Approve or amend D8–D13 before SP-050 coding:
+Approve or amend D8–D14 before SP-050 coding:
 
-- Single CDN≡LAN layout
-- Advertisement = countries fields only
-- Keep signature verification on custom servers
-- Temporary bundle inject allowed but not merged early
-- Custom URL never build-default
-- Track stays Phase 4 residual / device enabler
+- D8 Single CDN≡LAN layout
+- D9 Advertisement = countries fields only
+- D10 Keep signature verification; **Channel A uses meta-only version bump**
+- D11 Temporary bundle inject allowed but not merged early
+- D12 Custom URL never build-default
+- D13 Track stays Phase 4 residual / device enabler
+- D14 `meta/maps.json` uses CDN field names (`"map-series"`, `"status": "active"|"EOL"`)
 
 ---
 
@@ -146,3 +164,4 @@ Approve or amend D8–D13 before SP-050 coding:
 - Product spec / technical audit
 - Privacy invariants (no GPS upload; collection only in session)
 - Making `.spa` mandatory for map install (**SPD-027** / **SPD-031**)
+- Option A mapgen collectors / `StageMwm` wiring (deferred residual)
