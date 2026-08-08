@@ -1,9 +1,11 @@
 # SP-049 — `.spa` publish-layout and LAN advertisement decisions
 
 **Phase:** 4 residual / pre-production packaging (device enabler for Phase 5 /
-Phase 10 Helsinki walks; **not** a Phase 5 exit gate — **SPD-033**)
-**Status:** Planned
-**Branch:** `cursor/spa-local-download-plans-5ca4` (plans); implementation TBD
+Phase 10 Helsinki walks; **not** a Phase 5 exit gate — **SPD-033** / **SPD-038**)
+**Status:** Accepted
+**Accepted by:** Maintainer
+**Accepted date:** 2026-08-08
+**Branch:** `cursor/sp-049-053-spa-publish-fe62`
 **Depends on:** SP-042–048 Accepted (**SPD-027–034**)
 **Unblocks:** SP-050–053
 
@@ -30,11 +32,23 @@ server” risks becoming a debug-only path that diverges from CDN.
 
 ---
 
-## Proposed decisions (for maintainer lock → SPD-035+)
+## Locked decisions (D8–D14 → SPD-035–039)
+
+Product-owner locks accepted 2026-08-08:
+
+| Lock | Choice | SPD |
+| --- | --- | --- |
+| D8 | Single CDN≡LAN publish layout | **SPD-035** |
+| D9 | Advertisement = `countries.txt` spa fields only | Affirm **SPD-028** (no new SPD) |
+| D10 | Keep signature; Channel A meta-only version bump | **SPD-036** |
+| D11 | Temporary bundled countries spa inject; not merged early | **SPD-037** |
+| D12 | Custom URL never a build default | Affirm SP-004 (in SPD-035 / SPD-038) |
+| D13 | Track = Phase 4 residual / device enabler; not Phase 5 exit; not Option A | **SPD-038** (refs **SPD-033**) |
+| D14 | `meta/maps.json`: `map-series`, `latest`, `status` `active`\|`EOL` | **SPD-039** |
 
 ### D8 — Single publish layout (CDN ≡ LAN)
 
-**Recommended: Accept.**
+**Accepted** → **SPD-035**.
 
 Publish tree and HTTP URL paths are identical for production CDN and local
 mirror:
@@ -63,7 +77,7 @@ maps; embedding `.spa` inside the `.mwm`.
 
 ### D9 — Advertisement remains `countries.txt` only (**SPD-028**)
 
-**Recommended: Affirm.**
+**Affirmed** — no new SPD (recorded in SPD-035 consequences).
 
 Presence of both `"spa"` and `"spa_sha1_base64"` on a leaf is the only
 advertisement signal (`HasRemoteSpa()`). The local server does not teach the
@@ -71,7 +85,7 @@ client about spa via headers, directory listing, or a side manifest.
 
 ### D10 — Countries update: keep signature; Channel A uses meta-only version bump
 
-**Recommended: Accept (production-first).**
+**Accepted** → **SPD-036**.
 
 Applying a new `countries.txt` from a custom/LAN server still requires a valid
 `countries.txt.sig` verified with `COUNTRIES_TXT_SIGNATURE_HEX`. Do **not**
@@ -99,7 +113,7 @@ operationally painful; do not block SP-050–053 on it.
 
 ### D11 — Temporary advertisement without CDN publish (debug support)
 
-**Recommended: Accept as a bounded, non-default channel.**
+**Accepted** → **SPD-037**.
 
 Until CDN publishes spa-bearing `countries.txt`, device testing may use **one**
 of these channels, in preference order:
@@ -115,7 +129,7 @@ debug JNI “install spa from path”; making Spa mandatory for Map OnDisk.
 
 ### D12 — Custom server never a build default
 
-**Recommended: Affirm** (existing android.mdc / SP-004 posture).
+**Affirmed** (existing android.mdc / SP-004 posture; in SPD-035 / SPD-038).
 
 LAN URL is entered in Advanced → Custom Maps server (or equivalent). No
 flavor, debug build type, or `BuildConfig` may default to a private-network
@@ -123,7 +137,7 @@ address.
 
 ### D13 — Track placement
 
-**Recommended: Accept.**
+**Accepted** → **SPD-038** (references **SPD-033**).
 
 This track is **Phase 4 residual / pre-production packaging** continued (same
 as SP-042–048), and is the **device enabler** for Phase 5 / Phase 10 Helsinki
@@ -132,7 +146,7 @@ coding (SP-033–040). It is **not** Option A mapgen collectors.
 
 ### D14 — `meta/maps.json` field contract matches CDN
 
-**Recommended: Accept.**
+**Accepted** → **SPD-039**.
 
 `ParseServerMapsAndGetLatestVersion` reads:
 
@@ -148,13 +162,12 @@ avoids drift.
 
 ## In-scope behavior (this WI)
 
-1. Append **SPD-035–040** (or fewer, if maintainer collapses) to
-   `DECISIONS.md` once locks land — Status Accepted with product-owner lock
-   date. Suggested mapping: D8→SPD-035 layout, D9 affirm SPD-028, D10→SPD-036
-   signature+version-bump, D11→SPD-037 temporary inject channel, D12 affirm
-   SP-004 posture, D13→SPD-038 track placement, D14→SPD-039 maps.json contract.
-2. Create/index SP-050–053 work items (plans already drafted under this
-   planning branch).
+1. Append **SPD-035–039** to `DECISIONS.md` — Status Accepted with product-owner
+   lock date 2026-08-08. Mapping: D8→SPD-035 layout, D9 affirm SPD-028,
+   D10→SPD-036 signature+version-bump, D11→SPD-037 temporary inject channel,
+   D12 affirm SP-004 posture, D13→SPD-038 track placement, D14→SPD-039
+   maps.json contract.
+2. Index SP-050–053 work items (plans already drafted).
 3. Point phase-04 residual note + README packaging track at this continuation.
 4. Cross-link
    [`notes/spa-local-download-current-state.md`](../notes/spa-local-download-current-state.md).
@@ -168,7 +181,6 @@ avoids drift.
 - Option A mapgen collectors / StageMwm (still unallocated residual).
 - Editing product spec or technical audit.
 - Weakening SPD-016 / SPD-030 / SPD-031.
-- Marking Accepted unilaterally.
 
 ---
 
@@ -198,6 +210,18 @@ avoids drift.
 - Do not commit spa advertisements to bundled countries before blobs exist on
   the URL the stock app will hit (D11).
 - Do not assume same-version `maps.json` latest applies spa ads (D10 bump).
+
+## Completion evidence
+
+| Field | Value |
+| --- | --- |
+| Branch | `cursor/sp-049-053-spa-publish-fe62` |
+| Decision ids | SPD-035, SPD-036, SPD-037, SPD-038, SPD-039 (D9 → SPD-028; D12 → SP-004) |
+| Product locks | D8–D14 Accepted 2026-08-08 |
+| Docs touched | `DECISIONS.md`; `README.md`; this file |
+| Implemented by | Agent |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-08 |
 
 ## Discovered follow-up
 
