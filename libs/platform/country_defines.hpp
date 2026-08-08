@@ -10,7 +10,8 @@ enum class MapFileType : uint8_t
   Map,
   Diff,
   Pix,
-  
+  Spa,
+
   Count
 };
 

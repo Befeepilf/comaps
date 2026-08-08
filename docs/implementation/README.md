@@ -158,8 +158,9 @@ roadmap tracks.
 **Active phase: Phase 5 — Area progress and map interaction.**
 
 Phase 4 is **complete** (Exit criteria met 2026-08-07) with residuals: R3
-device walks → Phase 10; narrowed R1 production mapgen emit → pre-production
-follow-up. Evidence:
+device walks → Phase 10; narrowed R1 production `.spa` shipping → **Phase 4
+residual / pre-production packaging** (SP-042 / SPD-027–033; follow-ons
+SP-043–048 — **not** Phase 5, **not** Phase 10 device work). Evidence:
 [`validation/SP-031-evidence-log.md`](validation/SP-031-evidence-log.md).
 
 | Work item | Status |
@@ -176,6 +177,13 @@ follow-up. Evidence:
 | SP-030 | Accepted — sparse `.spx` + rematerialize (SPD-022) |
 | SP-031 | Accepted — Phase 4 exit validation (R3 → Phase 10) |
 | SP-032 | Accepted — offline `spa_emit_tool` + shipping-encoder FI sizes |
+| SP-042 | **Accepted** 2026-08-08 — sidecar shipping decisions (SPD-027–033); Phase 4 R1 packaging track |
+| SP-043 | **Accepted** 2026-08-08 — blob contract freeze (**SPD-034**; `format_version` 2) |
+| SP-044 | **Accepted** 2026-08-08 — production leaf `.spa` emit (Option B offline batch; closes R1 emit) |
+| SP-045 | **Accepted** 2026-08-08 — optional `spa` / `spa_sha1_base64` in `countries.txt` (**SPD-028**) |
+| SP-046 | **Accepted** 2026-08-08 — client leaf download fetches advertised `.spa` beside MWM (**SPD-027**, **SPD-031**) |
+| SP-047 | **Accepted** 2026-08-08 — `.spa` full-refetch on update + delete-with-map (**SPD-029**, **SPD-030**) |
+| SP-048 | **Accepted** 2026-08-08 — incomplete / retry signaling (**SPD-031**) |
 | SP-033 | **Accepted** 2026-08-07 — qualitative Pixel 3a OK; quantitative Spike 1 → Phase 10 |
 | SP-034 | **Accepted** 2026-08-07 — area completion cache + SPD-026 |
 | SP-035 | **Accepted** 2026-08-07 — focused-area badge binding (map-centre stub → SP-036) |
@@ -396,11 +404,29 @@ Phase 3 residual (Pixel 3a / Uusimaa device walks, rematch timing on large
 | 32 | [SP-032](work-items/SP-032-phase4-residual-spa-emit.md) | Phase 4 residual: offline `.spa` emit | 4 | **Accepted** 2026-08-07 — `spa_emit_tool`; FI ~1.93 MiB / Helsinki ~0.44 MiB; 11/11 spot-check |
 
 Phase 4 **Exit criteria met** 2026-08-07. Residuals: R3 device walks → Phase
-10; narrowed R1 production mapgen emit → pre-production. Investigation and
-architecture: [`phases/phase-04-administrative-area-pipeline.md`](phases/phase-04-administrative-area-pipeline.md);
+10; narrowed R1 production `.spa` shipping → **Phase 4 residual /
+pre-production packaging** (not Phase 5; not Phase 10 device work).
+Investigation and architecture:
+[`phases/phase-04-administrative-area-pipeline.md`](phases/phase-04-administrative-area-pipeline.md);
 SPD-020–025 Accepted under SP-024. Validation:
 [`validation/SP-031-validation-plan.md`](validation/SP-031-validation-plan.md),
 [`validation/SP-031-evidence-log.md`](validation/SP-031-evidence-log.md).
+
+### Phase 4 residual / pre-production packaging (`.spa` shipping)
+
+Closes narrowed R1 (production mapgen emit + CDN leaf download / packaging).
+**Not** a Phase 5 exit gate and **not** a Phase 10 device residual
+(**SPD-033**). Decisions: **SPD-027–033** under SP-042.
+
+| Order | ID | Title | Phase | Why |
+| --- | --- | --- | --- | --- |
+| 42 | [SP-042](work-items/SP-042-sidecar-shipping-decisions.md) | Sidecar shipping decisions | 4 residual | **Accepted** 2026-08-08 — SPD-027–033; product locks D1–D7 (2026-08-07) |
+| 43 | [SP-043](work-items/SP-043-spa-blob-contract-freeze.md) | Freeze production `.spa` blob contract (`nside` / universe-order / `format_version`) | 4 residual | **Accepted** 2026-08-08 — **SPD-034** (`format_version` 2) |
+| 44 | [SP-044](work-items/SP-044-production-spa-emit.md) | Production leaf `.spa` emit (Phase 4 R1; Option B offline batch) | 4 residual | **Accepted** 2026-08-08 — Option A mapgen collectors deferred |
+| 45 | [SP-045](work-items/SP-045-countries-spa-meta.md) | Add optional `spa` / `spa_sha1_base64` leaf fields to `countries.txt` publish | 4 residual | **Accepted** 2026-08-08 — **SPD-028**; parse + publish inject; download = SP-046 |
+| 46 | [SP-046](work-items/SP-046-spa-download-beside-mwm.md) | Client leaf download fetches advertised `.spa` beside MWM | 4 residual | **Accepted** 2026-08-08 — **SPD-027**, **SPD-031**; delete lifecycle = SP-047 |
+| 47 | [SP-047](work-items/SP-047-spa-lifecycle-update-delete.md) | `.spa` full-refetch on map update and delete-with-map lifecycle | 4 residual | **Accepted** 2026-08-08 — **SPD-029**, **SPD-030** |
+| 48 | [SP-048](work-items/SP-048-sidecar-shipping-validation.md) | Sidecar shipping validation and incomplete / retry signaling | 4 residual | **Accepted** 2026-08-08 — **SPD-031**; packaging track SP-042–048 |
 
 | Order | ID | Title | Phase | Why first |
 | --- | --- | --- | --- | --- |

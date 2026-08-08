@@ -22,6 +22,7 @@ public:
   CountryFile();
   explicit CountryFile(std::string name);
   CountryFile(std::string name, MwmSize size, std::string sha1);
+  CountryFile(std::string name, MwmSize size, std::string sha1, MwmSize spaSize, std::string spaSha1);
 
   std::string GetFileName(MapFileType type) const { return platform::GetFileName(m_name, type); }
 
@@ -31,6 +32,15 @@ public:
   std::string const & GetName() const { return m_name; }
   MwmSize GetRemoteSize() const { return m_mapSize; }
   std::string const & GetSha1() const { return m_sha1; }
+
+  /// Optional Street Pixels area sidecar (`.spa`) size from countries.txt `"spa"`.
+  /// Not included in GetRemoteSize() (MWM/`"s"` only). Leaf subtree / download
+  /// progress may add this when advertised (SP-046).
+  MwmSize GetRemoteSpaSize() const { return m_spaSize; }
+  /// SHA-1 of the leaf `.spa`, base64-encoded (`"spa_sha1_base64"`).
+  std::string const & GetSpaSha1() const { return m_spaSha1; }
+  /// Advertisement signal for SP-046: both size > 0 and non-empty hash.
+  bool HasRemoteSpa() const { return m_spaSize > 0 && !m_spaSha1.empty(); }
 
   inline bool operator<(CountryFile const & rhs) const { return m_name < rhs.m_name; }
   inline bool operator==(CountryFile const & rhs) const { return m_name == rhs.m_name; }
@@ -44,6 +54,9 @@ private:
   MwmSize m_mapSize = 0;
   /// \note SHA1 is encoded to base64.
   std::string m_sha1;
+  MwmSize m_spaSize = 0;
+  /// \note SPA SHA1 is encoded to base64.
+  std::string m_spaSha1;
 };
 
 std::string DebugPrint(CountryFile const & file);

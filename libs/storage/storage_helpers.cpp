@@ -89,4 +89,12 @@ MwmSize GetRemoteSize(diffs::DiffsDataSource const & diffsDataSource, platform::
     return size;
   return file.GetRemoteSize();
 }
+
+MwmSize GetRemoteDownloadSize(diffs::DiffsDataSource const & diffsDataSource, platform::CountryFile const & file)
+{
+  MwmSize size = GetRemoteSize(diffsDataSource, file);
+  if (file.HasRemoteSpa())
+    size += file.GetRemoteSpaSize();
+  return size;
+}
 }  // namespace storage

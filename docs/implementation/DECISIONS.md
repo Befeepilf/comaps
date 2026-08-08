@@ -779,6 +779,265 @@ SPD-021, SPD-022; SP-034; `phases/phase-05-area-progress-and-map-interaction.md`
 
 ---
 
+## SPD-027 — Leaf download couples MWM and advertised `.spa`
+
+**Decision.** When downloading or updating a map leaf, the client **always
+fetches the leaf `.spa`** if `countries.txt` meta advertises one for that leaf.
+If meta **omits** spa fields, there is **no advertisement and no spa fetch**;
+the **MWM still installs and remains usable**, and exploration **areas stay
+empty** (fail-closed — no invented grids or pretend areas). Personal
+street-pixel collection and map viewing are not blocked by a missing sidecar.
+Advertised-but-unavailable downloads (HTTP 404, network error, checksum
+mismatch, incomplete file) are owned by **SPD-031**, not this decision.
+
+**Status.** Accepted.
+
+**Context.** SPD-020 places exploration geometry in a downloadable sidecar with
+per-MWM-leaf grain (`{mwmLeafId}.spa`, SP-026). Production download was never
+wired; Phase 4 exit used an offline emit harness (SP-032). Product owner lock
+(D1 = A, 2026-08-07): couple fetch to advertisement, never make `.spa`
+mandatory for map install.
+
+**Consequences.**
+
+- SP-046 implements storage download of `.spa` only when meta advertises it.
+- Absent meta is a valid worldwide state (incremental sidecar coverage);
+  settlement / no-area / empty-area UX already apply (SPD-007, SPD-020, §31).
+- Does not require in-MWM exploration geometry.
+- Cross-ref **SPD-031** for advertised download failure / incomplete signaling.
+
+**Related documents.** Product spec §3.5, §8.6, §31; SPD-007, SPD-020,
+SPD-031; SP-026 notes; SP-042; SP-046; SP-048;
+`phases/phase-04-administrative-area-pipeline.md`.
+
+---
+
+## SPD-028 — Optional `spa` / `spa_sha1_base64` in `countries.txt`
+
+**Decision.** Leaf nodes in `countries.txt` may carry optional fields
+**`"spa"`** (payload size in bytes) and **`"spa_sha1_base64"`** (SHA-1 of the
+`.spa` file, base64-encoded), parallel to existing `"s"` / `"sha1_base64"` for
+the MWM. **Omit both** when the leaf has no sidecar. Do not invent placeholder
+sizes or hashes.
+
+**Status.** Accepted.
+
+**Context.** Map download already trusts leaf `"s"` / `"sha1_base64"` for MWM
+integrity. Sidecar advertisement needs the same pattern without forcing every
+leaf to ship exploration geometry. Product owner lock (D2 = A, 2026-08-07).
+
+**Consequences.**
+
+- SP-045 extends countries meta publish / parser for the optional fields.
+- SP-046 uses presence of the fields as the advertisement signal (SPD-027).
+- Size UI / download estimates may include `"spa"` when present; omitting
+  fields must not break older clients that ignore unknown keys (parser
+  tolerance is an SP-045 detail).
+
+**Related documents.** SPD-020, SPD-027; SP-042; SP-045; SP-046; `data/countries.txt`;
+`phases/phase-04-administrative-area-pipeline.md`.
+
+---
+
+## SPD-029 — No spa-diffs in V1; full `.spa` on map / dataVersion update
+
+**Decision.** Android V1 does **not** ship or apply spa-diffs. On map update or
+a new storage `dataVersion` that replaces a leaf MWM, the client downloads a
+**full** `.spa` when meta advertises one for the new leaf. Partial / delta
+sidecar updates are post-V1 unless a new SPD says otherwise.
+
+**Status.** Accepted.
+
+**Context.** Assignment and geometry are keyed by `(map_data_version,
+policy_version)` (SPD-021/022). Sidecar content is version-bound to map data;
+diff pipelines would add packaging and client complexity before production
+emit exists. Recommended lock D3 = A (no contradiction with Accepted SPDs).
+
+**Consequences.**
+
+- SP-047 implements full `.spa` refetch beside full/leaf MWM update paths.
+- CDN packaging publishes whole `.spa` objects per leaf version (**SP-044**
+  emit / publish tree; SP-047 refetch). `countries.txt` spa size/hash fields
+  remain **SP-045** (SPD-028); validation / incomplete signaling remain
+  **SP-048** (SPD-031).
+- MWM diff mechanisms (if any) must not be silently reused for `.spa`.
+
+**Related documents.** SPD-021, SPD-022, SPD-027; SP-042; SP-044; SP-047;
+`phases/phase-04-administrative-area-pipeline.md`.
+
+---
+
+## SPD-030 — Delete `.spa` with the map; personal files unchanged
+
+**Decision.** Deleting a country / leaf map **deletes the corresponding
+`.spa`** (version-bound exploration geometry). Personal exploration and
+assignment artifacts keep their **existing** rules: `.pix` / `.pixr` per
+**SPD-016** / SP-018; `.spx` per **existing SP-030** behaviour. This decision
+does **not** reopen or weaken SPD-016 permanence.
+
+**Status.** Accepted.
+
+**Context.** `.spa` is downloadable map-adjacent geometry + dense assign
+(SPD-020–022), not personal explored state. Keeping orphan `.spa` after map
+delete wastes storage and risks mismatched versions on redownload. Recommended
+lock D4 = A.
+
+**Consequences.**
+
+- SP-047 wires `.spa` removal on map delete / deregister paths beside MWM
+  cleanup.
+- Rematch-on-redownload still depends on retained `.pixr` (and `.spx` rules as
+  already implemented); new `.spa` arrives with the new MWM when advertised.
+- Do not delete `.pix` / `.pixr` as part of “sidecar cleanup.”
+
+**Related documents.** Product spec §3.6, §27; SPD-016, SPD-020; SP-018;
+SP-030 (sparse store); SP-042; SP-047;
+`phases/phase-03-exploration-storage-and-reconciliation.md`,
+`phases/phase-04-administrative-area-pipeline.md`.
+
+---
+
+## SPD-031 — Advertised `.spa` download failure keeps MWM; areas fail-closed
+
+**Decision.** If meta advertises a `.spa` but the download **fails** (HTTP 404
+or other missing object, network error, checksum mismatch, incomplete file,
+etc.), the client **keeps the MWM usable**. Exploration **areas fail-closed**:
+do not invent rings, assignment, or completion percentages from missing /
+corrupt sidecar data. Prefer **retry and incomplete / unavailable signaling**
+that does not block map viewing, routing that does not need areas, or personal
+pixel collection. Omitted meta (no advertisement) remains **SPD-027** only.
+
+**Status.** Accepted.
+
+**Context.** Aligns with SPD-020 (“missing sidecar → no exploration areas”)
+and spec §31 (no selected exploration area: personal pixels still work).
+Product-recommended lock D5 = A: never make a sidecar failure a map-install
+hard failure. Separates D1 soft path (no advertisement) from D5 (advertised
+but unavailable).
+
+**Consequences.**
+
+- SP-046/047/048 implement non-blocking failure paths and signaling.
+- Corrupt partial `.spa` must not be treated as authoritative assignment
+  input (fail closed / discard / retry — implementation detail in those
+  items).
+- Competition / area % / focus chrome stay unavailable until a verified
+  sidecar is present (existing empty / no-area behaviour).
+
+**Related documents.** Product spec §8.6, §31; SPD-007, SPD-020, SPD-027;
+SP-042; SP-046; SP-048;
+`phases/phase-04-administrative-area-pipeline.md`.
+
+---
+
+## SPD-032 — Freeze production `.spa` blob contract before CDN publish
+
+**Decision.** Before publishing production `.spa` blobs to the CDN, freeze the
+**production blob contract**: at least HEALPix **`nside`**, **universe
+ordering** for the dense assign column, and **`format_version`** (plus any
+header fields required so clients and generator cannot silently disagree).
+**SP-042 only records that this freeze is required**; field-level specification
+and header changes land in **SP-043**. Do not publish production sidecars
+against an unfrozen contract.
+
+**Status.** Accepted.
+
+**Context.** SP-026 / SP-028 notes already state the `.spa` header does not yet
+encode `nside` / an explicit universe-order tag; client/generator agreement is
+informal until freeze. Shipping CDN bytes before freeze risks irreversible
+mismatched assignment. Recommended lock D6 = A.
+
+**Consequences.**
+
+- SP-043 produces the frozen contract doc / format bump as needed.
+- SP-044+ publish and client consume only post-freeze artifacts for
+  production.
+- Fixture / offline harness blobs (SP-032) remain non-CDN.
+
+**Related documents.** SPD-017, SPD-021, SPD-022; SP-026 notes; SP-028 notes;
+SP-042; SP-043; SP-044; SP-048;
+`phases/phase-04-administrative-area-pipeline.md`.
+
+---
+
+## SPD-033 — Sidecar shipping is Phase 4 residual / pre-production packaging
+
+**Decision.** Closing the production `.spa` download / packaging gap is its
+**own track**: **Phase 4 residual / pre-production packaging** (SP-042 and
+follow-ons SP-043–048). It is **not** a Phase 5 exit gate and **not** a Phase
+10 device-walk residual. Phase 10 continues to list narrowed R1 as
+pre-production only (not a device matrix item).
+
+**Status.** Accepted.
+
+**Context.** Phase 4 exit criteria were met with offline FI `.spa` (SP-032);
+production mapgen emit and CDN download remain pre-production (R1). Phase 5
+covers area progress UI; Phase 10 covers device hardening. Product owner lock
+(D7 = A, 2026-08-07).
+
+**Consequences.**
+
+- README / phase-04 / phase-10 index this track under Phase 4 residual /
+  pre-production packaging.
+- Do not block Phase 5 acceptance on CDN `.spa` shipping.
+- Do not fold SP-043–048 into Phase 10 device residuals.
+
+**Related documents.** SP-031 R1; SP-032; SP-042; SP-043–048;
+`phases/phase-04-administrative-area-pipeline.md`,
+`phases/phase-10-android-release-hardening.md`;
+`docs/implementation/README.md`.
+
+---
+
+## SPD-034 — Production `.spa` blob contract (`format_version` 2)
+
+**Decision.** Freeze the production `.spa` header / assign-universe contract as
+follows (little-endian; fields after `index_width` are **format_version 2**
+only):
+
+| Item | Value |
+| --- | --- |
+| `format_version` | **2** (`kSpaFormatVersion`) |
+| `nside` | **1048576** (`kSpaNside`; SPD-017) |
+| `universe_order` | **1** = AscendingNest (`kSpaUniverseOrderAscendingNest`) — dense `assign[i]` slots are strictly ascending HEALPix NEST ids, same order as `ScanUniverseAscending` |
+| `reserved[3]` | must be **0** on write; non-zero → fail-closed on read |
+
+**Writer.** Always emits format_version 2 with the production `nside` /
+`universe_order` / zero reserved bytes.
+
+**Reader (fail-closed).**
+
+- format_version **2**: require `nside == 1048576`, `universe_order ==
+  AscendingNest`, and `reserved == 0`; else corrupt / reject.
+- format_version **1** + `assign_count == 0`: accept (geometry-only dual-read
+  for fixtures / offline harness).
+- format_version **1** + `assign_count > 0`: reject on production load paths.
+- Other format versions: unsupported.
+
+This closes the field-level freeze gated by **SPD-032**. Do not invent grids or
+change `nside`. Mapgen emit of production assignment blobs remains **SP-044**.
+
+**Status.** Accepted.
+
+**Context.** SP-026 / SP-028 previously documented an informal universe-order
+contract without header fields. Shipping CDN assignment blobs before encoding
+`nside` / order risked silent client/generator mismatch. Product lock D6 /
+SPD-032 required this freeze before CDN publish; SP-043 implements it.
+
+**Consequences.**
+
+- Notes SP-026 / SP-028 describe AscendingNest as the production contract
+  (not unsorted emit order).
+- SP-044+ emit and clients consume only post-freeze artifacts for production
+  assignment sidecars.
+- Geometry-only v1 fixtures remain readable until retired.
+
+**Related documents.** SPD-017, SPD-021, SPD-022, SPD-032; SP-026 notes;
+SP-028 notes; SP-042; SP-043; SP-044;
+`phases/phase-04-administrative-area-pipeline.md`.
+
+---
+
 ## 15. Recorded open questions (not decisions)
 
 These are carried from existing project documents. They are listed so they are

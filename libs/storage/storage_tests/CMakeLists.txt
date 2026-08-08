@@ -4,12 +4,14 @@ set(SRC
   countries_tests.cpp
   country_info_getter_tests.cpp
   country_name_getter_tests.cpp
+  country_tree_spa_meta_tests.cpp
   downloader_tests.cpp
   fake_map_files_downloader.cpp
   fake_map_files_downloader.hpp
   helpers.cpp
   helpers.hpp
   simple_tree_test.cpp
+  spa_download_tests.cpp
   storage_tests.cpp
   task_runner.cpp
   task_runner.hpp

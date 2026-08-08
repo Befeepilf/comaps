@@ -46,6 +46,7 @@ using namespace std;
 namespace
 {
 string const kDownloadQueueKey = "DownloadQueue";
+string const kIncompleteSpaKey = "IncompleteSpa";
 
 // Editing maps older than approximately three months old is disabled, since the data
 // is most likely already fixed on OSM. Not limited to the latest one or two versions,
@@ -65,6 +66,13 @@ void DeleteFromDiskWithIndexes(LocalCountryFile const & localFile, MapFileType t
 {
   DeleteCountryIndexes(localFile);
   localFile.DeleteFromDisk(type);
+  // SPD-030: `.spa` is map-adjacent geometry — delete with the map. Personal
+  // `.pix` / `.pixr` / `.spx` keep SPD-016 / SP-030 sparse rules (not MapFileType
+  // lifecycle here).
+  // Use RemoveFileIfExists: deferred DeleteCustomCountryVersion may hold a
+  // LocalCountryFile copy that never SyncWithDisk'd after Spa download.
+  if (type == MapFileType::Map)
+    Platform::RemoveFileIfExists(localFile.GetPath(MapFileType::Spa));
 }
 
 CountryTree::Node const & LeafNodeFromCountryId(CountryTree const & root, CountryId const & countryId)
@@ -735,7 +743,7 @@ LocalAndRemoteSize Storage::CountrySizeInBytes(CountryId const & countryId) cons
 {
   LocalFilePtr localFile = GetLatestLocalFile(countryId);
   CountryFile const & countryFile = GetCountryFile(countryId);
-  LocalAndRemoteSize sizes(0, GetRemoteSize(countryFile));
+  LocalAndRemoteSize sizes(0, storage::GetRemoteDownloadSize(*m_diffsDataSource, countryFile));
 
   if (!IsCountryInQueue(countryId) && !IsDiffApplyingInProgressToCountry(countryId))
     sizes.first = localFile ? localFile->GetSize(MapFileType::Map) : 0;
@@ -814,7 +822,16 @@ Status Storage::CountryStatusEx(CountryId const & countryId) const
 {
   auto const status = CountryStatus(countryId);
   if (status != Status::UnknownError)
+  {
+    // Do not demote a usable map while only an advertised `.spa` is queued/downloading (SP-046 / SPD-031).
+    if ((status == Status::InQueue || status == Status::Downloading) && IsSpaOnlyDownload(countryId))
+    {
+      auto localFile = GetLatestLocalFile(countryId);
+      if (localFile && localFile->OnDisk(MapFileType::Map) && localFile->GetVersion() == m_currentVersion)
+        return Status::OnDisk;
+    }
     return status;
+  }
 
   auto localFile = GetLatestLocalFile(countryId);
   if (!localFile || !(localFile->OnDisk(MapFileType::Map) || localFile->IsInBundle()))
@@ -845,7 +862,11 @@ void Storage::RestoreDownloadQueue()
   string download;
   settings::TryGet(kDownloadQueueKey, download);
   if (download.empty())
+  {
+    // Still retry incomplete advertised spa after cold start (SP-048).
+    RetryIncompleteSpaDownloads();
     return;
+  }
 
   strings::Tokenize(download, ";", [this](string_view v)
   {
@@ -856,10 +877,19 @@ void Storage::RestoreDownloadQueue()
     {
       string const s(v);
       auto localFile = GetLatestLocalFile(s);
-      auto isUpdate = localFile && localFile->OnDisk(MapFileType::Map);
-      DownloadNode(s, isUpdate);
+      // Map already current: DownloadNode early-returns OnDisk and would strand an
+      // advertised Spa that was the only pending queue entry (SPD-027 / SP-046).
+      if (localFile && localFile->GetVersion() == m_currentVersion && localFile->OnDisk(MapFileType::Map))
+        MaybeEnqueueRemoteSpa(s);
+      else
+      {
+        auto isUpdate = localFile && localFile->OnDisk(MapFileType::Map);
+        DownloadNode(s, isUpdate);
+      }
     }
   });
+
+  RetryIncompleteSpaDownloads();
 }
 
 void Storage::DownloadCountry(CountryId const & countryId, MapFileType type)
@@ -917,6 +947,8 @@ void Storage::DeleteCountry(CountryId const & countryId, MapFileType type)
   m_diffsDataSource->RemoveDiffForCountry(countryId);
 
   m_downloadingCountries.erase(countryId);
+  if (type == MapFileType::Map)
+    ClearSpaIncomplete(countryId);
 
   NotifyStatusChangedForHierarchy(countryId);
 }
@@ -1060,9 +1092,27 @@ void Storage::OnDownloadProgress(QueuedCountry const & queuedCountry, Progress c
   if (m_observers.empty())
     return;
 
-  m_downloadingCountries[queuedCountry.GetCountryId()] = progress;
+  Progress adjusted = progress;
+  auto const & countryFile = GetCountryFile(queuedCountry.GetCountryId());
+  if (countryFile.HasRemoteSpa())
+  {
+    MwmSize const mapSz = GetRemoteSize(countryFile);
+    MwmSize const spaSz = countryFile.GetRemoteSpaSize();
+    if (queuedCountry.GetFileType() == MapFileType::Spa)
+    {
+      // Spa follows Map: keep cumulative progress across the sequential pair.
+      adjusted.m_bytesDownloaded += mapSz;
+      adjusted.m_bytesTotal = mapSz + spaSz;
+    }
+    else if (queuedCountry.GetFileType() == MapFileType::Map)
+    {
+      adjusted.m_bytesTotal = mapSz + spaSz;
+    }
+  }
 
-  ReportProgressForHierarchy(queuedCountry.GetCountryId(), progress);
+  m_downloadingCountries[queuedCountry.GetCountryId()] = adjusted;
+
+  ReportProgressForHierarchy(queuedCountry.GetCountryId(), adjusted);
 }
 
 void Storage::OnDownloadFinished(QueuedCountry const & queuedCountry, DownloadStatus status)
@@ -1086,13 +1136,16 @@ void Storage::OnDownloadFinished(QueuedCountry const & queuedCountry, DownloadSt
     /// should make this kind of checks (taking expecting SHA as input). But now it's
     /// not so simple as it may seem ..
 
+    auto const & countryFile = GetCountryFile(countryId);
+    std::string const sha1 =
+        fileType == MapFileType::Spa ? countryFile.GetSpaSha1() : countryFile.GetSha1();
+
     GetPlatform().RunTask(Platform::Thread::File,
-                          [path = GetFileDownloadPath(countryId, fileType), sha1 = GetCountryFile(countryId).GetSha1(),
-                           fn = std::move(finishFn)]()
+                          [path = GetFileDownloadPath(countryId, fileType), sha1, fn = std::move(finishFn)]()
     {
       DownloadStatus status = DownloadStatus::Completed;
 
-      // Verify map checksum.
+      // Verify downloaded file checksum (MWM or advertised `.spa`).
       if (coding::SHA1::CalculateBase64(path) != sha1)
       {
         LOG(LERROR, ("SHA check error for", path));
@@ -1143,6 +1196,16 @@ void Storage::RegisterDownloadedFiles(CountryId const & countryId, MapFileType t
     SaveDownloadQueue();
 
     NotifyStatusChangedForHierarchy(countryId);
+
+    // Sequential `.spa` after Map (queue is per CountryId). Diff Ok → Map also lands here.
+    // SPD-029: no spa-diffs — drop any stale `.spa` so MaybeEnqueue always full-refetches
+    // after Map / Diff replace (same-version Diff or redownload included).
+    if (type == MapFileType::Map || type == MapFileType::Diff)
+    {
+      Platform::RemoveFileIfExists(localFile->GetPath(MapFileType::Spa));
+      localFile->SyncWithDisk();
+      MaybeEnqueueRemoteSpa(countryId);
+    }
   };
 
   if (type == MapFileType::Diff)
@@ -1150,6 +1213,67 @@ void Storage::RegisterDownloadedFiles(CountryId const & countryId, MapFileType t
     ApplyDiff(countryId, fn);
     return;
   }
+
+  if (type == MapFileType::Spa)
+  {
+    CountryFile const countryFile = GetCountryFile(countryId);
+    LocalFilePtr localFile = GetLocalFile(countryId, m_currentVersion);
+    if (!localFile || localFile->IsInBundle())
+      localFile = PreparePlaceForCountryFiles(m_currentVersion, m_dataDir, countryFile);
+
+    auto const failSoftSpa = [this, countryId, localFile]()
+    {
+      m_justDownloaded.erase(countryId);
+      bool const mapOnDisk =
+          localFile && (localFile->OnDisk(MapFileType::Map) || localFile->IsInBundle());
+      if (mapOnDisk)
+      {
+        // SPD-031: keep MWM usable; mark incomplete for retry (SP-048).
+        LOG(LWARNING, ("Advertised spa register failed for", countryId,
+                       "- keeping MWM; marking spa incomplete"));
+        MarkSpaIncomplete(countryId);
+        SaveDownloadQueue();
+        NotifyStatusChangedForHierarchy(countryId);
+        return;
+      }
+      OnMapDownloadFailed(countryId);
+    };
+
+    if (!localFile)
+    {
+      LOG(LERROR, ("Can't prepare LocalCountryFile for spa", countryFile, "in folder", m_dataDir));
+      failSoftSpa();
+      return;
+    }
+
+    string const path = GetFileDownloadPath(countryId, type);
+    if (!base::RenameFileX(path, localFile->GetPath(type)))
+    {
+      LOG(LWARNING, ("Failed to rename downloaded spa into place for", countryId));
+      failSoftSpa();
+      return;
+    }
+
+    localFile->SyncWithDisk();
+    if (!localFile->OnDisk(MapFileType::Spa))
+    {
+      LOG(LWARNING, ("Spa missing on disk after rename for", countryId));
+      failSoftSpa();
+      return;
+    }
+
+    Platform::DisableBackupForFile(localFile->GetPath(MapFileType::Spa));
+
+    // Successful Spa register clears incomplete signaling (SP-048).
+    ClearSpaIncomplete(countryId);
+
+    // Re-fire didDownload so clients can rematch / reload exploration beside the MWM.
+    m_didDownload(countryId, localFile);
+    SaveDownloadQueue();
+    NotifyStatusChangedForHierarchy(countryId);
+    return;
+  }
+
   ASSERT_EQUAL(type, MapFileType::Map, ());
 
   CountryFile const countryFile = GetCountryFile(countryId);
@@ -1190,6 +1314,20 @@ void Storage::OnMapDownloadFinished(CountryId const & countryId, DownloadStatus 
 
   if (status != DownloadStatus::Completed)
   {
+    if (type == MapFileType::Spa)
+    {
+      auto localFile = GetLatestLocalFile(countryId);
+      if (localFile && (localFile->OnDisk(MapFileType::Map) || localFile->IsInBundle()))
+      {
+        // SPD-031 fail-soft: do not mark the leaf map as download-failed.
+        LOG(LWARNING, ("Advertised spa download failed for", countryId, status,
+                       "- keeping MWM; marking spa incomplete"));
+        MarkSpaIncomplete(countryId);
+        NotifyStatusChangedForHierarchy(countryId);
+        return;
+      }
+    }
+
     if (status == DownloadStatus::FileNotFound && type == MapFileType::Diff)
     {
       AbortDiffScheme();
@@ -1202,6 +1340,172 @@ void Storage::OnMapDownloadFinished(CountryId const & countryId, DownloadStatus 
 
   m_justDownloaded.insert(countryId);
   RegisterDownloadedFiles(countryId, type);
+}
+
+void Storage::MaybeEnqueueRemoteSpa(CountryId const & countryId)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+
+  CountryFile const & countryFile = GetCountryFile(countryId);
+  if (!countryFile.HasRemoteSpa())
+    return;
+
+  LocalFilePtr localFile = GetLocalFile(countryId, m_currentVersion);
+  if (localFile)
+  {
+    localFile->SyncWithDisk();
+    if (localFile->OnDisk(MapFileType::Spa))
+      return;
+  }
+
+  if (IsCountryInQueue(countryId) || IsDiffApplyingInProgressToCountry(countryId))
+    return;
+
+  DownloadCountry(countryId, MapFileType::Spa);
+  // Sequential Spa after Map: start immediately. DownloadCountry may elect a countries
+  // update check when idle; do not leave Spa stranded in pending until that finishes.
+  m_downloader->StartPendingMapDownloads();
+}
+
+void Storage::EnsureIncompleteSpaLoaded() const
+{
+  if (m_incompleteSpaLoaded)
+    return;
+
+  m_incompleteSpaLoaded = true;
+  m_incompleteSpaCountries.clear();
+
+  string raw;
+  settings::TryGet(kIncompleteSpaKey, raw);
+  if (raw.empty())
+    return;
+
+  strings::Tokenize(raw, ";", [this](string_view v)
+  {
+    if (!v.empty())
+      m_incompleteSpaCountries.insert(CountryId(v));
+  });
+}
+
+void Storage::SaveIncompleteSpaCountries() const
+{
+  ostringstream ss;
+  bool first = true;
+  for (auto const & id : m_incompleteSpaCountries)
+  {
+    if (!first)
+      ss << ';';
+    first = false;
+    ss << id;
+  }
+  settings::Set(kIncompleteSpaKey, ss.str());
+}
+
+void Storage::MarkSpaIncomplete(CountryId const & countryId)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+
+  // Omitted meta must never become incomplete (SPD-027 / SPD-031).
+  if (!GetCountryFile(countryId).HasRemoteSpa())
+    return;
+
+  EnsureIncompleteSpaLoaded();
+  if (m_incompleteSpaCountries.insert(countryId).second)
+  {
+    SaveIncompleteSpaCountries();
+    LOG(LINFO, ("Marked advertised spa incomplete for", countryId));
+  }
+}
+
+void Storage::ClearSpaIncomplete(CountryId const & countryId)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+
+  EnsureIncompleteSpaLoaded();
+  if (m_incompleteSpaCountries.erase(countryId) != 0)
+  {
+    SaveIncompleteSpaCountries();
+    LOG(LINFO, ("Cleared incomplete spa flag for", countryId));
+  }
+}
+
+bool Storage::IsSpaIncomplete(CountryId const & countryId) const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  EnsureIncompleteSpaLoaded();
+  return m_incompleteSpaCountries.count(countryId) > 0;
+}
+
+void Storage::GetIncompleteSpaCountries(CountriesVec & out) const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  EnsureIncompleteSpaLoaded();
+  out.assign(m_incompleteSpaCountries.begin(), m_incompleteSpaCountries.end());
+}
+
+void Storage::RetryIncompleteSpaDownloads()
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+
+  EnsureIncompleteSpaLoaded();
+
+  // Reconcile: OnDisk Map at current version with advertised spa missing on disk.
+  for (auto const & entry : m_localFiles)
+  {
+    CountryId const & id = entry.first;
+    if (!IsLeaf(id))
+      continue;
+    if (!GetCountryFile(id).HasRemoteSpa())
+      continue;
+
+    LocalFilePtr localFile = GetLocalFile(id, m_currentVersion);
+    if (!localFile)
+      continue;
+    localFile->SyncWithDisk();
+    if (!(localFile->OnDisk(MapFileType::Map) || localFile->IsInBundle()))
+      continue;
+    if (localFile->OnDisk(MapFileType::Spa))
+    {
+      ClearSpaIncomplete(id);
+      continue;
+    }
+    MarkSpaIncomplete(id);
+  }
+
+  // Drop stale incomplete entries (no advertise, or map gone).
+  CountriesVec stale;
+  for (auto const & id : m_incompleteSpaCountries)
+  {
+    if (!IsLeaf(id) || !GetCountryFile(id).HasRemoteSpa())
+    {
+      stale.push_back(id);
+      continue;
+    }
+    LocalFilePtr localFile = GetLatestLocalFile(id);
+    if (!localFile || !(localFile->OnDisk(MapFileType::Map) || localFile->IsInBundle()))
+      stale.push_back(id);
+  }
+  for (auto const & id : stale)
+    ClearSpaIncomplete(id);
+
+  CountriesVec incomplete;
+  GetIncompleteSpaCountries(incomplete);
+  for (auto const & id : incomplete)
+    MaybeEnqueueRemoteSpa(id);
+}
+
+bool Storage::IsSpaOnlyDownload(CountryId const & countryId) const
+{
+  bool spaOnly = false;
+  bool found = false;
+  m_downloader->GetQueue().ForEachCountry([&](QueuedCountry const & queuedCountry)
+  {
+    if (queuedCountry.GetCountryId() != countryId)
+      return;
+    found = true;
+    spaOnly = queuedCountry.GetFileType() == MapFileType::Spa;
+  });
+  return found && spaOnly;
 }
 
 /*
@@ -1259,6 +1563,12 @@ void Storage::SetDownloadingServersForTesting(vector<string> const & downloading
 void Storage::SetLocaleForTesting(string const & jsonBuffer, string const & locale)
 {
   m_countryNameGetter.SetLocaleForTesting(jsonBuffer, locale);
+}
+
+void Storage::StartPendingDownloadsForTesting()
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  m_downloader->StartPendingMapDownloads();
 }
 
 LocalFilePtr Storage::GetLocalFile(CountryId const & countryId, int64_t version) const
@@ -1674,7 +1984,15 @@ void Storage::DownloadNode(CountryId const & countryId, bool isUpdate /* = false
     return;
 
   if (GetNodeStatus(*node).status == NodeStatus::OnDisk)
+  {
+    // Resume advertised Spa for OnDisk leaves so callers cannot strand SPD-027 sidecar.
+    node->ForEachInSubtree([this](CountryTree::Node const & descendantNode)
+    {
+      if (descendantNode.ChildrenCount() == 0)
+        MaybeEnqueueRemoteSpa(descendantNode.Value().Name());
+    });
     return;
+  }
 
   auto downloadAction = [this, isUpdate](CountryTree::Node const & descendantNode)
   {
@@ -2103,23 +2421,25 @@ Progress Storage::CalculateProgress(CountriesVec const & descendants) const
   auto const mwmsInQueue = GetQueuedCountries(m_downloader->GetQueue());
   for (auto const & d : descendants)
   {
+    auto const & countryFile = GetCountryFile(d);
+    MwmSize const remoteSz = storage::GetRemoteDownloadSize(*m_diffsDataSource, countryFile);
+
     auto const downloadingIt = m_downloadingCountries.find(d);
     if (downloadingIt != m_downloadingCountries.cend())
     {
       if (!downloadingIt->second.IsUnknown())
         result.m_bytesDownloaded += downloadingIt->second.m_bytesDownloaded;
 
-      result.m_bytesTotal += GetRemoteSize(GetCountryFile(d));
+      result.m_bytesTotal += remoteSz;
     }
     else if (mwmsInQueue.count(d) != 0)
     {
-      result.m_bytesTotal += GetRemoteSize(GetCountryFile(d));
+      result.m_bytesTotal += remoteSz;
     }
     else if (m_justDownloaded.count(d) != 0)
     {
-      MwmSize const localCountryFileSz = GetRemoteSize(GetCountryFile(d));
-      result.m_bytesDownloaded += localCountryFileSz;
-      result.m_bytesTotal += localCountryFileSz;
+      result.m_bytesDownloaded += remoteSz;
+      result.m_bytesTotal += remoteSz;
     }
   }
 

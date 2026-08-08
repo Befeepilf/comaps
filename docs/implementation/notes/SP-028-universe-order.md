@@ -9,7 +9,8 @@ For a valid-street-pixel universe **U**:
 1. **U** is the ordered list of HEALPix **NEST** cell ids that form the
    exploration universe for that MWM leaf (same NEST scheme / `nside` as live
    street pixels: `nside = 1048576`).
-2. **U is strictly ascending** by NEST id.
+2. **U is strictly ascending** by NEST id (same order as
+   `street_pixels_file::ScanUniverseAscending`).
 3. Dense column entry **`assign[i]`** is the compact area index (or
    no-subdivision sentinel) for **`U[i]`**.
 4. Therefore: **slot `i` ↔ `U[i]` ↔ `assign[i]`**.
@@ -27,15 +28,22 @@ Client lookup:
   mismatch, or non-ascending `U`. Table healpix lookup then assumes the bound
   `U` (no per-call ascending re-scan).
 
+## Header freeze (SPD-034 / SP-043)
+
+Production `.spa` **`format_version = 2`** encodes `nside = 1048576` and
+`universe_order = 1` (AscendingNest) after `index_width`. Writers always emit
+those values; readers reject mismatched `nside` / `universe_order` / non-zero
+`reserved`, and reject legacy `format_version = 1` when `assign_count > 0`.
+Geometry-only v1 (`assign_count == 0`) remains dual-readable for fixtures /
+offline harness blobs.
+
 ## What this is not
 
 - Not a primary full-universe on-device PIP rematch (SPD-021).
 - Settlement fallback / no-area productization is **SP-029** (see
   `SP-029-settlement-fallback.md`).
 - Sparse explored persistence + rematerialize is **SP-030** (SPD-022).
-- The `.spa` header still does **not** encode `nside` / an ordering tag
-  (SP-026 follow-up). This note freezes the client/generator contract until a
-  format field lands with generator emit.
+- Production mapgen collectors → `.spa` emit remains **SP-044**.
 
 ## Verification
 

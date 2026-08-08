@@ -234,6 +234,11 @@ private:
   /// stores countries whose download has failed recently
   CountriesSet m_failedCountries;
 
+  /// Leaf country ids whose advertised `.spa` failed after Map OnDisk (SPD-031 / SP-048).
+  /// Persisted via settings; does not demote Map status. Mutable: lazy settings load.
+  mutable CountriesSet m_incompleteSpaCountries;
+  mutable bool m_incompleteSpaLoaded = false;
+
   /// @todo Do we really store a list of local files here (of different versions)?
   /// I suspect that only one at a time, old versions are deleted automatically.
   std::map<CountryId, std::list<LocalFilePtr>> m_localFiles;
@@ -339,6 +344,18 @@ private:
   void RegisterDownloadedFiles(CountryId const & countryId, MapFileType type);
 
   void OnMapDownloadFinished(CountryId const & countryId, downloader::DownloadStatus status, MapFileType type);
+
+  /// After a successful Map (or Diff→Map) register, enqueue advertised `.spa` if missing (SP-046).
+  void MaybeEnqueueRemoteSpa(CountryId const & countryId);
+
+  /// True when the downloader queue entry for |countryId| is a Spa-only fetch.
+  bool IsSpaOnlyDownload(CountryId const & countryId) const;
+
+  /// SPD-031 / SP-048: durable incomplete advertised-spa set (settings-backed).
+  void EnsureIncompleteSpaLoaded() const;
+  void SaveIncompleteSpaCountries() const;
+  void MarkSpaIncomplete(CountryId const & countryId);
+  void ClearSpaIncomplete(CountryId const & countryId);
 
   /// Dummy ctor for private use only.
   explicit Storage(int);
@@ -639,6 +656,8 @@ public:
   void SetCurrentDataVersionForTesting(int64_t currentVersion);
   void SetDownloadingServersForTesting(std::vector<std::string> const & downloadingUrls);
   void SetLocaleForTesting(std::string const & jsonBuffer, std::string const & locale);
+  /// Moves pending Fake/real downloads into the active queue (skips countries-check wait).
+  void StartPendingDownloadsForTesting();
 
   /// Returns true if the diff scheme is available and all local outdated maps can be updated via diffs.
   // bool IsPossibleToAutoupdate() const;
@@ -648,6 +667,16 @@ public:
   std::string GetFilePath(CountryId const & countryId, MapFileType file) const;
 
   void RestoreDownloadQueue();
+
+  /// SPD-031 / SP-048: advertised `.spa` failed after Map is OnDisk (durable preference).
+  /// Does not invent areas; map remains usable. Cleared on successful Spa register.
+  bool IsSpaIncomplete(CountryId const & countryId) const;
+  void GetIncompleteSpaCountries(CountriesVec & out) const;
+
+  /// Re-enqueue missing advertised `.spa` for OnDisk maps without re-downloading MWM.
+  /// Also reconciles disk (Map OnDisk + HasRemoteSpa + !Spa) into the incomplete set.
+  /// Called from RestoreDownloadQueue (startup); safe for settings / manual retry.
+  void RetryIncompleteSpaDownloads();
 
   void ResetMapDownloadMetaConfig()
   {

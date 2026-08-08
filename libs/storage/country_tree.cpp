@@ -37,8 +37,8 @@ class StoreInterface
 {
 public:
   virtual ~StoreInterface() = default;
-  virtual Country * InsertToCountryTree(CountryId const & id, MwmSize mapSize, string const & mapSha1, size_t depth,
-                                        CountryId const & parent) = 0;
+  virtual Country * InsertToCountryTree(CountryId const & id, MwmSize mapSize, string const & mapSha1, MwmSize spaSize,
+                                        string const & spaSha1, size_t depth, CountryId const & parent) = 0;
   virtual void InsertOldMwmMapping(CountryId const & newId, CountryId const & oldId) = 0;
   virtual void InsertAffiliation(CountryId const & countryId, string const & affilation) = 0;
   virtual void InsertCountryNameSynonym(CountryId const & countryId, string const & synonym) = 0;
@@ -72,12 +72,12 @@ public:
   }
 
   // StoreInterface overrides:
-  Country * InsertToCountryTree(CountryId const & id, MwmSize mapSize, string const & mapSha1, size_t depth,
-                                CountryId const & parent) override
+  Country * InsertToCountryTree(CountryId const & id, MwmSize mapSize, string const & mapSha1, MwmSize spaSize,
+                                string const & spaSha1, size_t depth, CountryId const & parent) override
   {
     Country country(id, parent);
     if (mapSize)
-      country.SetFile(platform::CountryFile{id, mapSize, mapSha1});
+      country.SetFile(platform::CountryFile{id, mapSize, mapSha1, spaSize, spaSha1});
     return &m_countries.AddAtDepth(depth, std::move(country));
   }
 
@@ -133,7 +133,8 @@ public:
   explicit StoreFile2Info(map<string, CountryInfo> & file2info) : m_file2info(file2info) {}
   // StoreInterface overrides:
   Country * InsertToCountryTree(CountryId const & id, MwmSize /* mapSize */, string const & /* mapSha1 */,
-                                size_t /* depth */, CountryId const & /* parent */) override
+                                MwmSize /* spaSize */, string const & /* spaSha1 */, size_t /* depth */,
+                                CountryId const & /* parent */) override
   {
     CountryInfo info(id);
     m_file2info[id] = std::move(info);
@@ -354,8 +355,22 @@ MwmSubtreeAttrs LoadGroupImpl(size_t depth, json_t * node, CountryId const & par
   string nodeHash;
   FromJSONObjectOptionalField(node, "sha1_base64", nodeHash);
 
+  // Optional Street Pixels area sidecar meta (SPD-028). Fold advertised spa bytes into
+  // GetSubtreeMwmSizeBytes / Android totalSize when present (SP-046).
+  MwmSize spaSize = 0;
+  FromJSONObjectOptionalField(node, "spa", spaSize);
+  string spaHash;
+  FromJSONObjectOptionalField(node, "spa_sha1_base64", spaHash);
+  // Fail-closed advertisement: partial or inconsistent spa meta must not advertise.
+  if ((spaSize > 0) != !spaHash.empty())
+  {
+    LOG(LWARNING, ("Inconsistent spa meta for", id, "- ignoring"));
+    spaSize = 0;
+    spaHash.clear();
+  }
+
   // We expect that mwm and routing files should be less than 2GB.
-  Country * addedNode = store.InsertToCountryTree(id, nodeSize, nodeHash, depth, parent);
+  Country * addedNode = store.InsertToCountryTree(id, nodeSize, nodeHash, spaSize, spaHash, depth, parent);
 
   MwmCounter mwmCounter = 0;
   MwmSize mwmSize = 0;
@@ -365,6 +380,9 @@ MwmSubtreeAttrs LoadGroupImpl(size_t depth, json_t * node, CountryId const & par
   {
     mwmCounter = 1;  // It's a leaf. Any leaf contains one mwm.
     mwmSize = nodeSize;
+    // Advertised `.spa` bytes fold into subtree / download estimate size (SP-046).
+    if (spaSize > 0)
+      mwmSize += spaSize;
   }
   else
   {

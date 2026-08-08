@@ -25,20 +25,32 @@ API is SP-027.
 
 ## Header fields
 
-magic (`SPA1` / `kSpaMagic`), `format_version`, `map_data_version`,
-`policy_version`, ISO 3166-1 alpha-2, MWM leaf id, `area_count`,
-`assign_count`, `index_width` (2 or 4).
+magic (`SPA1` / `kSpaMagic`), `format_version` (**2** production; **1**
+geometry-only dual-read), `map_data_version`, `policy_version`, ISO 3166-1
+alpha-2, MWM leaf id, `area_count`, `assign_count`, `index_width` (2 or 4),
+then (format_version **2** only, little-endian after `index_width`):
+
+| Field | Type | Production value |
+| --- | --- | --- |
+| `nside` | `uint32` | `1048576` (`kSpaNside`) |
+| `universe_order` | `uint8` | `1` = AscendingNest (`kSpaUniverseOrderAscendingNest`) |
+| `reserved` | `uint8[3]` | must be `0` on write; non-zero → fail-closed on read |
+
+Frozen by **SPD-034** / **SP-043**. Writers always emit format_version 2 with
+those values. Readers accept v2 only when `nside` / `universe_order` /
+`reserved` match; accept v1 only when `assign_count == 0` (geometry-only
+fixtures / offline harness); reject v1 with `assign_count > 0`.
 
 Assignment determinism is keyed by `(map_data_version, policy_version)`.
 
 ### Assign column semantics (universe order)
 
-`assign[i]` is the compact area index for **sample slot `i`** supplied to
-`WriteExplorationSidecar` (typically valid-street-pixel HEALPix cell centres in
-generator emit order). The header does **not** yet encode HEALPix `nside` or an
-explicit universe-ordering tag; that contract is owned by the generator emit job
-and must be fixed before SP-027/028 consume production blobs (see SP-026
-follow-ups). `assign_count == 0` is valid for geometry-only fixtures.
+`assign[i]` is the compact area index for **slot `i`** of the HEALPix NEST
+exploration universe **U** for that MWM leaf: **U is strictly ascending** by
+NEST id at `nside = 1048576`, matching `ScanUniverseAscending` / the SP-028
+contract (`docs/implementation/notes/SP-028-universe-order.md`). Slot `i` ↔
+`U[i]` ↔ `assign[i]`. `assign_count == 0` remains valid for geometry-only
+fixtures.
 
 ## Areas
 
@@ -74,16 +86,30 @@ subdivision assigner, writer/reader.
 this library until SP-027.
 
 CI path: synthetic fixtures in `street_pixels_areas_tests` (no Finland
-mapgen). Offline FI emit harness (**SP-032** — `tools/spa_emit_tool/`):
+mapgen). Offline emit tool (`tools/spa_emit_tool/`):
+
+- **Production (SP-044 Option B, default `--mode=production`):** rings JSONL +
+  country policy + leaf `.poly` borders + leaf `.pix` (ascending NEST **U**) →
+  dense `{mwmLeafId}.spa` with `format_version` 2, `assign_count == |U|`.
+  Sample centres via chealpix (`sample_centres`); settlements admitted but never
+  assign targets. Full in-pipeline mapgen collectors remain **Option A**
+  residual.
+- **Geometry-only (fixtures / SP-032 debug):** `--mode=geometry_only` writes
+  `assign_count=0` (not the production default).
 
 ```bash
-# Optional admit-count preview:
-python3 tools/python/street_pixels_spike/filter_rings_for_spa.py \
-  --rings /tmp/sp023/finland_admin_place_rings.jsonl \
-  --policy data/street_pixels/country_policies.json --iso FI
-
-# Shipping-encoder emit (geometry-only assign_count=0; outputs under /tmp — not committed):
+# Production dense leaf emit (outputs under /tmp — not committed):
 ./omim-build-debug/spa_emit_tool \
+  --mode=production \
+  --rings=/tmp/sp044/finland_admin_place_rings.jsonl \
+  --policy=data/street_pixels/country_policies.json --iso=FI \
+  --borders_dir=data/borders \
+  --pix_dir=/tmp/sp044/fi_pix \
+  --out_dir=/tmp/sp044/publish
+
+# Geometry-only fixtures/debug (SP-032 path):
+./omim-build-debug/spa_emit_tool \
+  --mode=geometry_only \
   --rings=/tmp/sp023/finland_admin_place_rings.jsonl \
   --policy=data/street_pixels/country_policies.json --iso=FI \
   --out_dir=/tmp/sp032 \
@@ -91,8 +117,9 @@ python3 tools/python/street_pixels_spike/filter_rings_for_spa.py \
 ```
 
 `FilterExplorationCandidate` → `WriteExplorationSidecar` (not PlaceProcessor /
-three-box). Full generator mapgen hook remains a follow-up; SP-026 shipped the
-format + library + tests; SP-032 ships the offline emit CLI + size evidence.
+three-box). Full generator mapgen hook remains Option A follow-up; SP-026 shipped
+the format + library + tests; SP-032 shipped geometry-only offline emit; SP-044
+ships production dense Option B.
 
 ## Size vs SP-023
 

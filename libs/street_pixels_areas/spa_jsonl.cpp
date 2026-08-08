@@ -11,6 +11,8 @@
 
 #include "defines.hpp"
 
+#include <algorithm>
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 #include <utility>
@@ -293,6 +295,34 @@ std::vector<KnownIdSpotCheck> SpotCheckKnownIds(std::vector<ExplorationArea> con
     }
     out.push_back(std::move(row));
   }
+  return out;
+}
+
+std::vector<LeafBorder> ListLeafBorders(std::string const & bordersDir, std::string const & namePrefix)
+{
+  std::vector<LeafBorder> out;
+  namespace fs = std::filesystem;
+  std::error_code ec;
+  if (!fs::is_directory(bordersDir, ec))
+    return out;
+
+  for (auto const & entry : fs::directory_iterator(bordersDir, ec))
+  {
+    if (ec || !entry.is_regular_file())
+      continue;
+    auto const path = entry.path();
+    if (path.extension() != ".poly")
+      continue;
+    std::string const leafId = path.stem().string();
+    if (!namePrefix.empty() && leafId.compare(0, namePrefix.size(), namePrefix) != 0)
+      continue;
+    LeafBorder leaf;
+    leaf.m_leafId = leafId;
+    leaf.m_polyPath = path.string();
+    out.push_back(std::move(leaf));
+  }
+  std::sort(out.begin(), out.end(),
+            [](LeafBorder const & a, LeafBorder const & b) { return a.m_leafId < b.m_leafId; });
   return out;
 }
 }  // namespace street_pixels
