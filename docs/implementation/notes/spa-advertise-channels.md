@@ -12,13 +12,30 @@ signing key is unavailable in the session.
 
 ## Preconditions (both channels)
 
+**Shortcut (device on CDN latest):** 
+
+```bash
+cd tools/python
+PYTHONPATH=. python3 -m street_pixels prepare_spa_debug_root \
+  --spa-dir /path/to/spa_emit_out \
+  --out /tmp/spa_debug_root \
+  --channel serve-only   # or A / B
+```
+
+This downloads public CDN `meta/maps.json` + latest `countries.txt` for
+`MAP_SERIES`, then assembles the publish root. Prefer that over git
+`data/countries.txt` (bundled seed often lags WritableDir after map updates).
+
+Manual path:
+
 1. Emit leaf `.spa` with `spa_emit_tool` (SP-044). Finland Helsinki leaf id
    typically `Finland_Southern Finland_Helsinki` (space encoded in URLs by the
    client `UrlEncode`).
 2. Matching `.mwm` for the same `dataVersion` / `MAP_SERIES` the app uses
-   (`MAP_SERIES` = `2026.06.28` in current private.h; bundled countries `"v"` =
-   check `data/countries.txt`).
-3. SP-050 assemble tree under a local `--out` (not committed).
+   (`MAP_SERIES` = `2026.06.28` in current private.h). Use **CDN / WritableDir**
+   countries `"v"` (e.g. 260803), not necessarily bundled `data/countries.txt`.
+3. SP-050 assemble tree under a local `--out` (not committed) — or the prepare
+   helper above.
 4. SP-051 (or equivalent) serving that `--out`.
 5. Device Custom Maps URL = LAN host (user-set only; **D12**).
 
