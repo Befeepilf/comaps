@@ -70,36 +70,54 @@ Community tools above mirror **MWMs only**. Street Pixels exploration sidecars
 (`.spa`) must sit beside matching `.mwm` under the CDN layout the app already
 requests (`meta/maps.json` + `maps/{MAP_SERIES}/{version}/`).
 
-### 1. Assemble (SP-050)
+### 1. Debug prepare (CDN countries + spa) — recommended
 
-Build the CDN-identical tree from `countries.txt`, `{leaf}.spa` (from
-`spa_emit_tool`), and matching MWMs. See
-`docs/implementation/work-items/SP-050-spa-publish-tree-assemble.md`.
+Fetches **public CDN** `meta/maps.json` latest for `MAP_SERIES`, downloads that
+`countries.txt`, injects spa meta from your emit dir, and builds the publish
+root (spa-only by default — phone already has MWMs from CDN):
 
 ```bash
 cd tools/python
-PYTHONPATH=. python3 -m post_generation assemble_spa_publish_tree \
-  --countries ../../data/countries.txt \
+PYTHONPATH=. python3 -m street_pixels prepare_spa_debug_root \
   --spa-dir /path/to/spa_emit_out \
-  --mwm-dir /path/to/matching_mwms \
-  --out /tmp/spa_publish \
-  --map-series 2026.06.28 \
-  --data-version 260714
+  --out /tmp/spa_debug_root \
+  --channel serve-only
 ```
 
-Do not invent placeholder spa meta. Channel A (signed countries with a bumped
-`"v"`) and Channel B (temporary local APK inject) are documented in
+Then serve (`--root /tmp/spa_debug_root`) as in §2. Channels A/B:
+`--channel A --secret-key …` or `--channel B` (writes `{out}/_channel_b/countries.txt`
+for a local APK only — do not merge). Override mirrors with repeated
+`--cdn-base`; override catalog with `--countries` / `--data-version` if needed.
+
+Do not invent placeholder spa meta. Full Channel A/B recipes:
 `docs/implementation/notes/spa-advertise-channels.md` (SP-052).
 
-### 2. Serve on the LAN (SP-051)
+### 2. Assemble manually (SP-050)
 
-Serve the assemble `--out` root with the in-repo server (Range GETs for large
+Build the CDN-identical tree from a local `countries.txt`, `{leaf}.spa` (from
+`spa_emit_tool`), and matching MWMs. Prefer §1 when the device is on CDN latest.
+See `docs/implementation/work-items/SP-050-spa-publish-tree-assemble.md`.
+
+```bash
+cd tools/python
+PYTHONPATH=. python3 post_generation/assemble_spa_publish_tree.py \
+  --countries /path/to/cdn_countries.txt \
+  --spa-dir /path/to/spa_emit_out \
+  --out /tmp/spa_publish \
+  --map-series 2026.06.28 \
+  --data-version 260803 \
+  --spa-only
+```
+
+### 3. Serve on the LAN (SP-051)
+
+Serve the prepare/assemble `--out` root with the in-repo server (Range GETs for large
 MWMs; `/health`; debug inventory opt-in only):
 
 ```bash
 cd tools/python
 PYTHONPATH=. python3 -m street_pixels serve_spa_publish_tree \
-  --root /tmp/spa_publish \
+  --root /tmp/spa_debug_root \
   --host 0.0.0.0 \
   --port 8080
 ```
