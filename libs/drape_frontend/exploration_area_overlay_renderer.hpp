@@ -20,14 +20,17 @@ public:
   void SetEnabled(bool enabled) { m_enabled = enabled; }
   bool IsEnabled() const { return m_enabled; }
 
-  void SetOutlineProperties(std::vector<drape_ptr<DrapeApiRenderProperty>> && properties);
-  void SetFillProperties(std::vector<drape_ptr<DrapeApiRenderProperty>> && properties);
+  void SetProperties(ref_ptr<dp::GraphicsContext> context, ref_ptr<gpu::ProgramManager> mng,
+                     std::vector<drape_ptr<DrapeApiRenderProperty>> && outlines,
+                     std::vector<drape_ptr<DrapeApiRenderProperty>> && fills);
   void Clear();
 
   void Render(ref_ptr<dp::GraphicsContext> context, ref_ptr<gpu::ProgramManager> mng, ScreenBase const & screen,
               int zoomLevel, FrameValues const & frameValues);
 
 private:
+  void BuildProperties(ref_ptr<dp::GraphicsContext> context, ref_ptr<gpu::ProgramManager> mng,
+                       std::vector<drape_ptr<DrapeApiRenderProperty>> const & properties);
   void RenderProperties(ref_ptr<dp::GraphicsContext> context, ref_ptr<gpu::ProgramManager> mng,
                         ScreenBase const & screen, FrameValues const & frameValues,
                         std::vector<drape_ptr<DrapeApiRenderProperty>> const & properties);
