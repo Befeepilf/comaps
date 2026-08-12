@@ -30,6 +30,7 @@
 #include "street_pixels_areas/area_completion_cache.hpp"
 #include "street_pixels_areas/areas_types.hpp"
 #include "street_pixels_areas/city_completion_cache.hpp"
+#include "street_pixels_areas/exploration_area_resolver.hpp"
 #include "street_pixels_areas/focus_selection_engine.hpp"
 #include "street_pixels_areas/focused_area_progress.hpp"
 

@@ -78,6 +78,23 @@ ExplorationAreaResolver::ExplorationAreaResolver(SubdivisionAssignmentTable tabl
   , m_settlements(m_table.GetFile().m_areas)
 {}
 
+ExplorationAreaResolver::ExplorationAreaResolver(ExplorationAreaResolver && other) noexcept
+  : m_table(std::move(other.m_table))
+  , m_settlements(m_table.GetFile().m_areas)
+{
+  other.m_settlements = SettlementContainmentIndex();
+}
+
+ExplorationAreaResolver & ExplorationAreaResolver::operator=(ExplorationAreaResolver && other) noexcept
+{
+  if (this == &other)
+    return *this;
+  m_table = std::move(other.m_table);
+  m_settlements = SettlementContainmentIndex(m_table.GetFile().m_areas);
+  other.m_settlements = SettlementContainmentIndex();
+  return *this;
+}
+
 std::optional<ExplorationAreaResolver> ExplorationAreaResolver::TryLoad(
     std::string const & path, std::vector<int64_t> universeAscendingNest, int64_t expectedMapDataVersion,
     uint32_t expectedPolicyVersion)

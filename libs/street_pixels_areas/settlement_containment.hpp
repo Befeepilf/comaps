@@ -6,6 +6,7 @@
 #include "geometry/rect2d.hpp"
 #include "geometry/region2d.hpp"
 
+#include <cstddef>
 #include <cstdint>
 #include <limits>
 #include <vector>
@@ -15,11 +16,17 @@ namespace street_pixels
 // Cached settlement PIP geometry for batch / repeated SelectSettlementContaining.
 // Tie-break matches SelectSettlementContaining: smallest m_area, then OSM id,
 // then compact index. Outside all settlements → nullptr.
+// Not copyable: Entry pointers alias the construction-time areas vector.
 class SettlementContainmentIndex
 {
 public:
   SettlementContainmentIndex() = default;
   explicit SettlementContainmentIndex(std::vector<ExplorationArea> const & areas);
+
+  SettlementContainmentIndex(SettlementContainmentIndex const &) = delete;
+  SettlementContainmentIndex & operator=(SettlementContainmentIndex const &) = delete;
+  SettlementContainmentIndex(SettlementContainmentIndex &&) noexcept = default;
+  SettlementContainmentIndex & operator=(SettlementContainmentIndex &&) noexcept = default;
 
   ExplorationArea const * Select(m2::PointD const & point) const;
 

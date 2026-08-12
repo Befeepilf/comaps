@@ -43,6 +43,7 @@ ExplorationArea const * LookupExplorationArea(SpaFile const & file,
 
 // Version-gated consumption: same TryLoad gates as SubdivisionAssignmentTable,
 // then layered lookup (subdiv/place → settlement → none).
+// Not copyable: settlement index aliases SpaFile areas owned by m_table.
 class ExplorationAreaResolver
 {
 public:
@@ -50,6 +51,11 @@ public:
                                                         std::vector<int64_t> universeAscendingNest,
                                                         int64_t expectedMapDataVersion,
                                                         uint32_t expectedPolicyVersion);
+
+  ExplorationAreaResolver(ExplorationAreaResolver const &) = delete;
+  ExplorationAreaResolver & operator=(ExplorationAreaResolver const &) = delete;
+  ExplorationAreaResolver(ExplorationAreaResolver && other) noexcept;
+  ExplorationAreaResolver & operator=(ExplorationAreaResolver && other) noexcept;
 
   SpaFile const & GetFile() const { return m_table.GetFile(); }
   std::vector<int64_t> const & Universe() const { return m_table.Universe(); }

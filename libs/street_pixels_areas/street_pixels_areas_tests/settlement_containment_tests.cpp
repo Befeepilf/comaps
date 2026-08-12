@@ -68,11 +68,11 @@ UNIT_TEST(SettlementContainment_SelectTieBreakAndOutside)
   RemoveIfExists(path);
 }
 
-UNIT_TEST(SettlementContainment_MatchesSelectSettlementContaining)
+UNIT_TEST(SettlementContainment_MatchesNaiveContainsLoop)
 {
   auto const config = FinlandConfig();
   auto const policy = config.GetByIso("FI");
-  std::string const path = ExplorationSidecarPath(GetPlatform().WritableDir(), "sp_settlement_equiv");
+  std::string const path = ExplorationSidecarPath(GetPlatform().WritableDir(), "sp_settlement_naive");
   auto areas = AdmitAll(
       {
           MakeAdminCandidate(800, 8, "LargeOuter", LonLatBox(24.0, 60.0, 25.0, 61.0)),
@@ -87,10 +87,10 @@ UNIT_TEST(SettlementContainment_MatchesSelectSettlementContaining)
       MercatorFromLonLat(30.0, 70.0),
   };
   SpaWriteParams params;
-  params.m_mapDataVersion = 2;
+  params.m_mapDataVersion = 3;
   params.m_policyVersion = config.GetPolicyVersion();
   params.m_isoCode = "FI";
-  params.m_mwmId = "sp_settlement_equiv";
+  params.m_mwmId = "sp_settlement_naive";
   RemoveIfExists(path);
   WriteExplorationSidecar(path, areas, samples, policy, params);
 
@@ -98,19 +98,38 @@ UNIT_TEST(SettlementContainment_MatchesSelectSettlementContaining)
   TEST_EQUAL(loaded.m_status, SpaLoadStatus::Ok, ());
   SettlementContainmentIndex index(loaded.m_file.m_areas);
 
+  auto naiveSelect = [&](m2::PointD const & point) -> ExplorationArea const *
+  {
+    ExplorationArea const * best = nullptr;
+    for (auto const & area : loaded.m_file.m_areas)
+    {
+      if (area.m_role != AreaRole::Settlement || !area.Contains(point))
+        continue;
+      if (best == nullptr || area.m_area < best->m_area ||
+          (area.m_area == best->m_area &&
+           (area.m_osmId < best->m_osmId ||
+            (area.m_osmId == best->m_osmId && area.m_compactIndex < best->m_compactIndex))))
+      {
+        best = &area;
+      }
+    }
+    return best;
+  };
+
   for (auto const & pt : samples)
   {
     auto const * viaIndex = index.Select(pt);
-    auto const * viaFree = SelectSettlementContaining(loaded.m_file, pt);
+    auto const * viaNaive = naiveSelect(pt);
     if (viaIndex == nullptr)
-      TEST_EQUAL(viaFree, nullptr, ());
+      TEST_EQUAL(viaNaive, nullptr, ());
     else
     {
-      TEST(viaFree != nullptr, ());
-      TEST_EQUAL(viaIndex->m_compactIndex, viaFree->m_compactIndex, ());
+      TEST(viaNaive != nullptr, ());
+      TEST_EQUAL(viaIndex->m_compactIndex, viaNaive->m_compactIndex, ());
     }
   }
 
   RemoveIfExists(path);
 }
+
 }  // namespace
