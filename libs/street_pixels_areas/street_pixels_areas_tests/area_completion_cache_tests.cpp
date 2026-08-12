@@ -209,3 +209,24 @@ UNIT_TEST(AreaCompletion_IgnoresExploredOutsideUniverse)
 
   RemoveIfExists(fx.m_path);
 }
+
+UNIT_TEST(AreaCompletion_EmptyCentresMatchesProvidedCentres)
+{
+  auto fx = MakeDistrictCityFixture();
+  auto resolver = ExplorationAreaResolver::TryLoad(fx.m_path, fx.m_universe, fx.m_params.m_mapDataVersion,
+                                                   fx.m_params.m_policyVersion);
+  TEST(resolver.has_value(), ());
+
+  std::vector<int64_t> explored = {10, 20};
+  auto withCentres = AreaCompletionCache::Build(*resolver, fx.m_universe, fx.m_samples, explored);
+  auto withoutCentres = AreaCompletionCache::Build(*resolver, fx.m_universe, {}, explored);
+  TEST_EQUAL(withCentres.Rows().size(), withoutCentres.Rows().size(), ());
+  for (size_t i = 0; i < withCentres.Rows().size(); ++i)
+  {
+    TEST_EQUAL(withCentres.Rows()[i].m_compactIndex, withoutCentres.Rows()[i].m_compactIndex, (i));
+    TEST_EQUAL(withCentres.Rows()[i].m_total, withoutCentres.Rows()[i].m_total, (i));
+    TEST_EQUAL(withCentres.Rows()[i].m_explored, withoutCentres.Rows()[i].m_explored, (i));
+  }
+
+  RemoveIfExists(fx.m_path);
+}
