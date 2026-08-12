@@ -35,6 +35,7 @@
 
 #include "street_pixels_areas/area_completion_cache.hpp"
 #include "street_pixels_areas/area_overlay.hpp"
+#include "street_pixels_areas/areas_format.hpp"
 #include "street_pixels_areas/city_completion_cache.hpp"
 #include "street_pixels_areas/exploration_area_resolver.hpp"
 #include "street_pixels_areas/exploration_sidecar.hpp"
@@ -2097,8 +2098,19 @@ bool StreetPixelsManager::RebuildAreaCompletionCacheFromLoadedUnlocked(
   base::Timer buildTimer;
   // Empty centres: Build computes Mercator centres only for sentinel slots.
   auto built = street_pixels::AreaCompletionCache::Build(resolver, universeAscending, {}, exploredAscending);
+  size_t sentinelSlots = 0;
+  {
+    uint32_t const sentinel =
+        street_pixels::NoSubdivisionSentinel(resolver.GetFile().m_header.m_indexWidth);
+    for (uint32_t assign : resolver.GetFile().m_assignments)
+    {
+      if (assign == sentinel)
+        ++sentinelSlots;
+    }
+  }
   LOG(LINFO, ("StreetPixels AreaCompletionCache::Build ms", buildTimer.ElapsedMilliseconds(), "universe",
-              universeAscending.size(), "explored", exploredAscending.size()));
+              universeAscending.size(), "explored", exploredAscending.size(), "sentinelSlots", sentinelSlots,
+              "settlements", resolver.Settlements().Size()));
 
   base::Timer cityTimer;
   auto cityBuilt = street_pixels::CityCompletionCache::Build(resolver.GetFile(), built);
