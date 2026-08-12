@@ -9,19 +9,36 @@
 #include "drape/vertex_array_buffer.hpp"
 
 #include "shaders/program_params.hpp"
+#include "shaders/programs.hpp"
 
 #include "base/matrix.hpp"
 
 namespace df
 {
-void ExplorationAreaOverlayRenderer::SetOutlineProperties(std::vector<drape_ptr<DrapeApiRenderProperty>> && properties)
+void ExplorationAreaOverlayRenderer::BuildProperties(
+    ref_ptr<dp::GraphicsContext> context, ref_ptr<gpu::ProgramManager> mng,
+    std::vector<drape_ptr<DrapeApiRenderProperty>> const & properties)
 {
-  m_outlineProperties = std::move(properties);
+  for (auto const & property : properties)
+  {
+    for (auto const & bucket : property->m_buckets)
+    {
+      auto program = mng->GetProgram(bucket.first.GetProgram<gpu::Program>());
+      program->Bind();
+      bucket.second->GetBuffer()->Build(context, program);
+    }
+  }
 }
 
-void ExplorationAreaOverlayRenderer::SetFillProperties(std::vector<drape_ptr<DrapeApiRenderProperty>> && properties)
+void ExplorationAreaOverlayRenderer::SetProperties(ref_ptr<dp::GraphicsContext> context,
+                                                   ref_ptr<gpu::ProgramManager> mng,
+                                                   std::vector<drape_ptr<DrapeApiRenderProperty>> && outlines,
+                                                   std::vector<drape_ptr<DrapeApiRenderProperty>> && fills)
 {
-  m_fillProperties = std::move(properties);
+  m_outlineProperties = std::move(outlines);
+  m_fillProperties = std::move(fills);
+  BuildProperties(context, mng, m_outlineProperties);
+  BuildProperties(context, mng, m_fillProperties);
 }
 
 void ExplorationAreaOverlayRenderer::Clear()
