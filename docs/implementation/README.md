@@ -184,7 +184,7 @@ SP-043–048 — **not** Phase 5, **not** Phase 10 device work). Evidence:
 | SP-046 | **Accepted** 2026-08-08 — client leaf download fetches advertised `.spa` beside MWM (**SPD-027**, **SPD-031**) |
 | SP-047 | **Accepted** 2026-08-08 — `.spa` full-refetch on update + delete-with-map (**SPD-029**, **SPD-030**) |
 | SP-048 | **Accepted** 2026-08-08 — incomplete / retry signaling (**SPD-031**) |
-| SP-049–053 | **Planned** 2026-08-08 — LAN/CDN `.spa` publish mirror (device enabler; not Phase 5 exit) |
+| SP-049–053 | SP-049 **Accepted** 2026-08-08 (D8–D14 → **SPD-035–039**); SP-050–053 **In review** — LAN/CDN `.spa` publish mirror (device S2–S8 residual; not Phase 5 exit) |
 | SP-033 | **Accepted** 2026-08-07 — qualitative Pixel 3a OK; quantitative Spike 1 → Phase 10 |
 | SP-034 | **Accepted** 2026-08-07 — area completion cache + SPD-026 |
 | SP-035 | **Accepted** 2026-08-07 — focused-area badge binding (map-centre stub → SP-036) |
@@ -438,11 +438,11 @@ device for Phase 5 / Phase 10 Helsinki walks. Still **not** a Phase 5 exit gate
 
 | Order | ID | Title | Phase | Why |
 | --- | --- | --- | --- | --- |
-| 49 | [SP-049](work-items/SP-049-spa-distribute-layout-decisions.md) | Publish-layout + LAN advertisement decisions | 4 residual | **Planned** — D8–D14 → SPD-035+; production layout ≡ LAN; Channel A version bump |
-| 50 | [SP-050](work-items/SP-050-spa-publish-tree-assemble.md) | Assemble CDN-identical publish tree (MWM + `.spa` + countries + meta) | 4 residual | **Planned** — production tree for CDN and LAN; `--publish-version` |
-| 51 | [SP-051](work-items/SP-051-local-map-server-spa.md) | Local-network HTTP server for that layout | 4 residual | **Planned** — Custom Maps URL; debug = observability |
-| 52 | [SP-052](work-items/SP-052-spa-countries-advertise-path.md) | Countries advertisement path (signed bump vs temporary bundle inject) | 4 residual | **Planned** — no signature bypass; Channel A requires version bump |
-| 53 | [SP-053](work-items/SP-053-spa-lan-device-validation.md) | LAN device validation — download `.spa` via the app | 4 residual | **Planned** — gate for Phase 10 Helsinki `.spa` precondition |
+| 49 | [SP-049](work-items/SP-049-spa-distribute-layout-decisions.md) | Publish-layout + LAN advertisement decisions | 4 residual | **Accepted** 2026-08-08 — D8–D14 locked (**SPD-035–039**; D9→SPD-028; D12→SP-004); production layout ≡ LAN; Channel A version bump |
+| 50 | [SP-050](work-items/SP-050-spa-publish-tree-assemble.md) | Assemble CDN-identical publish tree (MWM + `.spa` + countries + meta) | 4 residual | **In review** — assemble tool + unit tests; human acceptance pending |
+| 51 | [SP-051](work-items/SP-051-local-map-server-spa.md) | Local-network HTTP server for that layout | 4 residual | **In review** — Range GETs; `/health`; debug opt-in; human acceptance pending |
+| 52 | [SP-052](work-items/SP-052-spa-countries-advertise-path.md) | Countries advertisement path (signed bump vs temporary bundle inject) | 4 residual | **In review** — Channel A/B recipes; no signature bypass; human acceptance pending |
+| 53 | [SP-053](work-items/SP-053-spa-lan-device-validation.md) | LAN device validation — download `.spa` via the app | 4 residual | **In review** — plan + evidence; S1 Pass; S2–S8 residual (no device) |
 
 | Order | ID | Title | Phase | Why first |
 | --- | --- | --- | --- | --- |

@@ -1,8 +1,8 @@
 # SP-051 — Local-network HTTP map server for `.spa` publish tree
 
 **Phase:** 4 residual / pre-production packaging (LAN mirror of production CDN)
-**Status:** Planned
-**Depends on:** SP-049 Accepted (D8, D12); SP-050 Accepted (tree to serve)
+**Status:** In review
+**Depends on:** SP-049 Accepted (D8, D12); SP-050 (tree to serve; In review)
 **Unblocks:** SP-052 (end-to-end advertise+fetch), SP-053 (device walks)
 
 ---
@@ -160,3 +160,19 @@ advertisement is in place (SP-053).
 | Countries advertisement channels | SP-052 |
 | Device evidence | SP-053 |
 | Upstream community distributor spa support | post-V1 / ops |
+
+---
+
+## Implementation evidence (agent — not Accepted)
+
+| Field | Value |
+| --- | --- |
+| Status | **In review** — human acceptance pending |
+| Tool | `tools/python/street_pixels/serve_spa_publish_tree.py` |
+| CLI | `python3 -m street_pixels serve_spa_publish_tree --root …` |
+| Tests | `tools/python/street_pixels/tests/test_serve_spa_publish_tree.py` (15) |
+| Test command | `cd tools/python && python3 -m unittest street_pixels.tests.test_serve_spa_publish_tree -v` |
+| Covered | spa GET; Range 206; 404; health; debug off-by-default; path traversal; inventory leak closed; HEAD debug; `%20` leaf |
+| Docs | `docs/DEPLOY_OWN_MAP_SERVER.md` Street Pixels section |
+| Range | Implemented — Android `ChunkTask` requires 206 for ranged MWM chunks |
+| Review fixes (2026-08-08) | Hide `/inventory.json` unless debug route; HEAD `/debug/inventory`; BrokenPipe; startup tree warn; health `ok` when meta present |

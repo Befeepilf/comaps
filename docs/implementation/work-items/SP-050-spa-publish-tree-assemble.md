@@ -1,7 +1,7 @@
 # SP-050 — Assemble CDN-identical `.spa` publish tree
 
 **Phase:** 4 residual / pre-production packaging (LAN + CDN)
-**Status:** Planned
+**Status:** In review
 **Depends on:** SP-049 Accepted (layout D8, maps.json D14); SP-044 / SP-045 tools Accepted
 **Unblocks:** SP-051 (serve), SP-052 (advertise), SP-053 (device)
 
@@ -204,3 +204,50 @@ maps/{map_series}/{data_version}/{leaf}.mwm          # if --include-mwm
 | Bundle vs signed advertise policy | SP-052 |
 | CDN upload automation for `.spa` | ops / later WI |
 | Leaf `.pix` acquisition for emit | SP-044 residual |
+
+---
+
+## Implementation evidence (agent — not Accepted)
+
+| Field | Value |
+| --- | --- |
+| Status | **In review** — human acceptance pending |
+| Tool | `tools/python/post_generation/assemble_spa_publish_tree.py` |
+| CLI | `python3 -m post_generation assemble_spa_publish_tree …` |
+| Hash helper | `file_sha1_base64` (+ `get_spa_hash` alias) in `inject_spa_meta.py` |
+| Tests | `tools/python/post_generation/tests/test_assemble_spa_publish_tree.py` |
+| Test command | `cd tools/python && python3 -m unittest post_generation.tests.test_assemble_spa_publish_tree -v` |
+| Covered | happy path; mwm hash mismatch; publish-version bump; spa-only; series mismatch; dry-run; empty ads fail; atomic replace |
+| Inventory | `{out}/inventory.json` (operator/debug; static serve may expose it) |
+| Docs | Operator recipe below; pointer in `docs/DEPLOY_OWN_MAP_SERVER.md` |
+| Review fixes (2026-08-08) | Fail-closed on zero ads; atomic version-dir swap; orphan spa warn; Channel A sign-without-bump warn; `--allow-empty` |
+
+### Operator recipe
+
+```bash
+# From a checkout with tools/python on PYTHONPATH:
+python3 -m post_generation assemble_spa_publish_tree \
+  --countries data/countries.txt \
+  --spa-dir /path/to/spa_emit_out \
+  --mwm-dir /path/to/matching_mwms \
+  --out /tmp/spa_publish \
+  --map-series 2026.06.28 \
+  --data-version 260714
+
+# Spa-only refetch tree (no MWM copies):
+python3 -m post_generation assemble_spa_publish_tree \
+  --countries data/countries.txt \
+  --spa-dir /path/to/spa_emit_out \
+  --out /tmp/spa_publish \
+  --map-series 2026.06.28 \
+  --data-version 260714 \
+  --spa-only
+
+# Channel A meta bump (D10):
+python3 -m post_generation assemble_spa_publish_tree \
+  ... --publish-version 260715 --secret-key /path/to/ed25519.pem
+```
+
+Serve the `--out` root with SP-051 (or any static HTTP server). Do not invent
+placeholder spa meta; binaries stay on maintainer disk / `/tmp`, not in git.
+

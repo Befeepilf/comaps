@@ -1038,6 +1038,178 @@ SP-028 notes; SP-042; SP-043; SP-044;
 
 ---
 
+## SPD-035 — Single CDN≡LAN `.spa` publish layout
+
+**Decision.** Production CDN and local-network (LAN) mirrors use **one**
+on-disk / HTTP publish tree. Paths match what the client already builds
+(`GetFileDownloadUrl`, `SERVER_MAPS_FILE`):
+
+```text
+{root}/
+  meta/
+    maps.json
+  maps/
+    {MAP_SERIES}/{dataVersion}/
+      countries.txt
+      countries.txt.sig
+      {mwmLeafId}.mwm
+      {mwmLeafId}.spa    # iff leaf has exploration sidecar
+```
+
+Do **not** invent `/spa/…`, query params, alternate extensions, a separate
+debug URL scheme, serving `.spa` from a different base than maps, or embedding
+`.spa` inside the `.mwm`.
+
+**Status.** Accepted.
+
+**Context.** Client download (SP-046) and meta parse (SP-045) are Accepted;
+ops publish and LAN serve remain residual. Device testing cannot `adb push`
+`.spa` into app-private storage. A second layout would diverge from CDN and
+risk a debug-only path. Product-owner lock D8 (2026-08-08) via SP-049.
+
+**Consequences.**
+
+- SP-050 assembles this tree for both CDN publish and LAN serve; SP-051 serves
+  it over HTTP.
+- Advertisement remains `countries.txt` fields only (**SPD-028** / D9) —
+  presence of both `"spa"` and `"spa_sha1_base64"` is the only spa signal; no
+  headers, directory listing, or side manifest.
+- Custom Maps server URL is never a build default (SP-004 / D12): LAN URL is
+  entered in Advanced settings only; no flavor, debug build type, or
+  `BuildConfig` may default to a private-network address.
+
+**Related documents.** SPD-028; SP-004; SP-045–046; SP-049–051;
+`notes/spa-local-download-current-state.md`;
+`phases/phase-04-administrative-area-pipeline.md`.
+
+---
+
+## SPD-036 — Countries signature kept; Channel A meta-only version bump
+
+**Decision.** Applying a new `countries.txt` from a custom/LAN server still
+requires a valid `countries.txt.sig` verified with
+`COUNTRIES_TXT_SIGNATURE_HEX`. Do **not** weaken Ed25519 verification when
+`CustomMapServerUrl` is set.
+
+When only spa advertisement (and optional other meta) changes, **Channel A**
+bumps countries `"v"` and `meta/maps.json` `"latest"` together, keeps MWM
+`"s"` / `"sha1_base64"` unchanged, resigns, and serves MWMs under the **new**
+version directory (same MWM bytes). Same-version `maps.json` `latest` does
+**not** apply spa-only meta changes (`Storage::RunCountriesCheckAsyncSaveOnly`
+skips when `latest <= m_currentVersion`).
+
+**Status.** Accepted.
+
+**Context.** Unsigned apply would be a security hole inherited by community
+custom servers. A same-version client refresh path is optional later and must
+not block SP-050–053. Product-owner lock D10 (2026-08-08) via SP-049.
+
+**Consequences.**
+
+- SP-050 supports `--publish-version` for the meta-only bump; SP-052 documents
+  Channel A as the preferred LAN advertisement path.
+- Reject unsigned countries apply and “set latest == current and hope spa ads
+  appear.”
+
+**Related documents.** SPD-028, SPD-035; SP-049; SP-050; SP-052;
+`notes/spa-local-download-implementation-plan.md`.
+
+---
+
+## SPD-037 — Temporary bundled countries spa inject channel
+
+**Decision.** Until CDN publishes spa-bearing `countries.txt`, device testing
+may use a **bounded, non-default** temporary channel: rebuild an APK with spa
+fields injected into **bundled** `data/countries.txt` for FI leaves only (same
+`"v"` / MWM hashes), and serve `.spa` (and optionally `.mwm`) from a LAN custom
+server. Prefer signed LAN countries with Channel A version bump (**SPD-036**)
+when available. WritableDir countries override via signed update is the same
+production path as Channel A.
+
+**Do not merge** spa advertisements into `street-pixels` `data/countries.txt`
+until CDN (or equivalent) will serve matching blobs — otherwise stock CDN users
+advertise missing spa → IncompleteSpa.
+
+**Reject as V1 approach:** unsigned countries apply; ADB push into map dirs;
+debug JNI “install spa from path”; making Spa mandatory for Map OnDisk.
+
+**Status.** Accepted.
+
+**Context.** Scoped storage blocks copying `.spa` onto device for Helsinki
+walks. A temporary inject channel unblocks testing without inventing a second
+download protocol. Product-owner lock D11 (2026-08-08) via SP-049.
+
+**Consequences.**
+
+- SP-052 documents Channel B (temporary inject) as debug support only; landing
+  rule forbids early merge to stock bundled countries.
+- SP-053 may use Channel B when Channel A is not yet operable.
+
+**Related documents.** SPD-028, SPD-031, SPD-036; SP-049; SP-052; SP-053.
+
+---
+
+## SPD-038 — SP-049–053 track is Phase 4 residual / device enabler
+
+**Decision.** The LAN/CDN `.spa` publish-mirror track (**SP-049–053**) is
+**Phase 4 residual / pre-production packaging** continued (same track as
+SP-042–048 per **SPD-033**), and is the **device enabler** for Phase 5 /
+Phase 10 Helsinki walks. It is **not** a Phase 5 exit criterion, does not
+reopen Phase 5 coding (SP-033–040), and is **not** Option A mapgen collectors.
+
+**Status.** Accepted.
+
+**Context.** SPD-033 placed sidecar shipping outside Phase 5 / Phase 10 device
+residuals. SP-049–053 closes the ops residual (serve advertised `.spa` on a
+production-shaped HTTP tree) so devices can download sidecars without
+`adb push`. Product-owner lock D13 (2026-08-08) via SP-049.
+
+**Consequences.**
+
+- README / phase-04 index SP-049–053 under Phase 4 residual; SPD-033 still
+  holds (not Phase 5 exit).
+- Do not fold assemble / LAN server / advertise / device playbook into Phase 5
+  exit or Option A collectors.
+- Affirms SP-004 / D12: no build-default custom map-server URL (see also
+  SPD-035).
+
+**Related documents.** SPD-033, SPD-035; SP-042–048; SP-049–053;
+`phases/phase-04-administrative-area-pipeline.md`;
+`phases/phase-10-android-release-hardening.md`;
+`docs/implementation/README.md`.
+
+---
+
+## SPD-039 — `meta/maps.json` field contract (`map-series`, `latest`, `status`)
+
+**Decision.** Assemble / LAN / CDN `meta/maps.json` must match what
+`ParseServerMapsAndGetLatestVersion` reads:
+
+- top-level **`"map-series"`** (hyphen), object keyed by series string;
+- per series: **`"latest"`** (integer), **`"status"`** (string; `"EOL"` sets
+  EOL flag).
+
+Non-EOL series use **`"status": "active"`** (CDN convention). Do not invent
+values like `"current"`. Unknown non-EOL status strings may still parse today
+(only `"EOL"` is special-cased) but matching CDN avoids drift.
+
+**Status.** Accepted.
+
+**Context.** Client meta parse already expects CDN field names. Divergent LAN
+JSON would break version checks or silently EOL maps. Product-owner lock D14
+(2026-08-08) via SP-049.
+
+**Consequences.**
+
+- SP-050 writes `meta/maps.json` with `"map-series"`, `"latest"`, and
+  `"status": "active"` (or `"EOL"` when intentional).
+- Channel A bumps (`SPD-036`) update `"latest"` together with countries `"v"`.
+
+**Related documents.** SPD-035, SPD-036; SP-049; SP-050;
+`notes/spa-local-download-implementation-plan.md`.
+
+---
+
 ## 15. Recorded open questions (not decisions)
 
 These are carried from existing project documents. They are listed so they are

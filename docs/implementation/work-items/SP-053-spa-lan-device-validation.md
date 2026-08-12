@@ -2,7 +2,7 @@
 
 **Phase:** 4 residual / pre-production packaging; **enables** Phase 5 / Phase 10
 Helsinki device walks
-**Status:** Planned
+**Status:** In review
 **Depends on:** SP-049–052 implemented (or Channel B documented and usable)
 **Unblocks:** Phase 10 Helsinki area UX walks that need live `.spa` on device
 
@@ -113,3 +113,16 @@ Record: OS, build type, APK `versionName`, git SHA, LAN URL, Channel A vs B,
 | Phase 5 H1–H6 Helsinki walks | Phase 10 (SP-041 R1) once S4/S7 Met |
 | CDN production cutover | ops after this track |
 | Incomplete spa Android chrome | Phase 10 |
+
+---
+
+## Implementation evidence (agent — not Accepted)
+
+| Field | Value |
+| --- | --- |
+| Status | **In review** — device rows residual; human acceptance pending |
+| Validation plan | `docs/implementation/validation/SP-053-validation-plan.md` |
+| Evidence log | `docs/implementation/validation/SP-053-evidence-log.md` |
+| S1 | **Pass** (SP-050/051 unit + curl parity in serve tests) |
+| S2–S8 | **Residual** — no device / no signing key in cloud agent |
+| ADB push used as pass? | No |
