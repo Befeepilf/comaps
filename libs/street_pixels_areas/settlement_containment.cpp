@@ -1,6 +1,7 @@
 #include "street_pixels_areas/settlement_containment.hpp"
 
 #include <limits>
+#include <utility>
 
 namespace street_pixels
 {
