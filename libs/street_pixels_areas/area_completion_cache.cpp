@@ -7,6 +7,7 @@
 #include "base/assert.hpp"
 
 #include <algorithm>
+#include <limits>
 
 namespace street_pixels
 {
@@ -77,8 +78,15 @@ AreaCompletionCache AreaCompletionCache::Build(ExplorationAreaResolver const & r
   }
 
   size_t universeSlot = 0;
+  int64_t prevExplored = std::numeric_limits<int64_t>::min();
+  bool sawExplored = false;
   for (int64_t healpix : exploredAscendingNest)
   {
+    if (sawExplored)
+      CHECK_GREATER(healpix, prevExplored, ());
+    sawExplored = true;
+    prevExplored = healpix;
+
     while (universeSlot < universeAscendingNest.size() &&
            universeAscendingNest[universeSlot] < healpix)
     {
