@@ -1,6 +1,7 @@
 #include "street_pixels_areas/city_completion_cache.hpp"
 
 #include "street_pixels_areas/exploration_sidecar.hpp"
+#include "street_pixels_areas/settlement_containment.hpp"
 
 namespace street_pixels
 {
@@ -18,6 +19,14 @@ m2::PointD RepresentativePoint(ExplorationArea const & area)
 }  // namespace
 
 AreaCompletionCounts AggregateCityCompletion(SpaFile const & file, AreaCompletionCache const & cache,
+                                             uint32_t settlementCompactIndex)
+{
+  SettlementContainmentIndex settlements(file.m_areas);
+  return AggregateCityCompletion(file, cache, settlements, settlementCompactIndex);
+}
+
+AreaCompletionCounts AggregateCityCompletion(SpaFile const & file, AreaCompletionCache const & cache,
+                                             SettlementContainmentIndex const & settlements,
                                              uint32_t settlementCompactIndex)
 {
   AreaCompletionCounts out;
@@ -47,7 +56,7 @@ AreaCompletionCounts AggregateCityCompletion(SpaFile const & file, AreaCompletio
     if (area.m_rings.empty())
       continue;
     m2::PointD const pt = RepresentativePoint(area);
-    if (!settlement->Contains(pt))
+    if (!settlements.SettlementContains(settlementCompactIndex, pt))
       continue;
     add(area.m_compactIndex);
   }
@@ -66,11 +75,13 @@ CityCompletionCache CityCompletionCache::Build(SpaFile const & file, AreaComplet
   if (!areaCache.IsValid())
     return out;
 
+  SettlementContainmentIndex settlements(file.m_areas);
   for (auto const & area : file.m_areas)
   {
     if (area.m_role != AreaRole::Settlement)
       continue;
-    out.m_rows.push_back(AggregateCityCompletion(file, areaCache, area.m_compactIndex));
+    out.m_rows.push_back(
+        AggregateCityCompletion(file, areaCache, settlements, area.m_compactIndex));
   }
   out.m_valid = true;
   return out;
