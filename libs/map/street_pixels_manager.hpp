@@ -278,6 +278,9 @@ private:
   void InvalidateAreaCompletionCacheUnlocked();
   bool RebuildAreaCompletionCacheUnlocked(storage::CountryId const & countryId, std::string const & spaPath,
                                           int64_t mapDataVersion);
+  bool RebuildAreaCompletionCacheFromLoadedUnlocked(std::vector<std::int64_t> const & universeAscending,
+                                                    std::vector<std::int64_t> const & exploredAscending,
+                                                    street_pixels::ExplorationAreaResolver const & resolver);
   void PushExplorationAreaOverlayUnlocked(street_pixels::SpaFile const & file);
   void RefreshFocusedAreaFractionUnlocked();
   void ClearFocusedAreaUnlocked();

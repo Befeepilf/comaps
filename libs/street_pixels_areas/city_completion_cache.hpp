@@ -2,6 +2,7 @@
 
 #include "street_pixels_areas/area_completion_cache.hpp"
 #include "street_pixels_areas/areas_types.hpp"
+#include "street_pixels_areas/settlement_containment.hpp"
 
 #include <cstdint>
 #include <optional>
@@ -14,6 +15,10 @@ namespace street_pixels
 // settlement. Counts are not averaged. Pixels remain exclusive (SPD-026).
 
 AreaCompletionCounts AggregateCityCompletion(SpaFile const & file, AreaCompletionCache const & cache,
+                                             uint32_t settlementCompactIndex);
+
+AreaCompletionCounts AggregateCityCompletion(SpaFile const & file, AreaCompletionCache const & cache,
+                                             SettlementContainmentIndex const & settlements,
                                              uint32_t settlementCompactIndex);
 
 class CityCompletionCache

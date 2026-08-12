@@ -42,9 +42,11 @@ public:
 
   void Invalidate();
 
-  // universeAscendingNest and universeCentres must be parallel and match the resolver universe.
-  // exploredAscendingNest must be strictly ascending; ids not in the universe are ignored.
-  // No-area pixels contribute to no row. Rows exist for every sidecar area (zero-total allowed).
+  // universeAscendingNest must match the resolver universe / dense assign column.
+  // universeCentres may be empty (centres computed on demand for sentinel slots) or
+  // parallel to the universe. exploredAscendingNest must be strictly ascending; ids
+  // not in the universe are ignored. No-area pixels contribute to no row. Rows exist
+  // for every sidecar area (zero-total allowed).
   static AreaCompletionCache Build(ExplorationAreaResolver const & resolver,
                                    std::vector<int64_t> const & universeAscendingNest,
                                    std::vector<m2::PointD> const & universeCentres,

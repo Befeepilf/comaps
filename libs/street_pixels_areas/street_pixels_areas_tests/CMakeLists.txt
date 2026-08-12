@@ -12,6 +12,7 @@ set(SRC
   spa_dense_emit_tests.cpp
   spa_jsonl_emit_tests.cpp
   spa_serdes_tests.cpp
+  settlement_containment_tests.cpp
   subdivision_assigner_tests.cpp
   subdivision_assignment_tests.cpp
   test_helpers.hpp
