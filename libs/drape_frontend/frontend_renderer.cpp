@@ -807,9 +807,10 @@ void FrontendRenderer::AcceptMessage(ref_ptr<Message> message)
   case Message::Type::FlushExplorationAreaOverlay:
   {
     ref_ptr<FlushExplorationAreaOverlayMessage> msg = message;
+    CHECK(m_context != nullptr, ());
     m_explorationAreaOverlayRenderer->Clear();
-    m_explorationAreaOverlayRenderer->SetOutlineProperties(msg->AcceptOutlines());
-    m_explorationAreaOverlayRenderer->SetFillProperties(msg->AcceptFills());
+    m_explorationAreaOverlayRenderer->SetProperties(m_context, make_ref(m_gpuProgramManager), msg->AcceptOutlines(),
+                                                    msg->AcceptFills());
     break;
   }
 
