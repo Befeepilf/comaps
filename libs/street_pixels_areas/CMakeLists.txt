@@ -26,6 +26,8 @@ set(SRC
   focus_selection_engine.hpp
   sample_centres.cpp
   sample_centres.hpp
+  settlement_containment.cpp
+  settlement_containment.hpp
   sparse_assignment_store.cpp
   sparse_assignment_store.hpp
   spa_jsonl.cpp

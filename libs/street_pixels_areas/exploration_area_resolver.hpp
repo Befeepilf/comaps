@@ -1,6 +1,7 @@
 #pragma once
 
 #include "street_pixels_areas/areas_types.hpp"
+#include "street_pixels_areas/settlement_containment.hpp"
 #include "street_pixels_areas/subdivision_assignment.hpp"
 
 #include "street_pixels_config/country_config.hpp"
@@ -19,6 +20,8 @@ namespace street_pixels
 
 // Among Settlement-role areas whose true rings contain `point`, pick smallest
 // m_area then lower OSM id (then compact index). Empty / none → nullptr.
+// Builds a one-shot SettlementContainmentIndex (cached RegionD). Prefer
+// ExplorationAreaResolver::Settlements() for batch / hot paths.
 ExplorationArea const * SelectSettlementContaining(SpaFile const & file, m2::PointD const & point);
 
 // Point-based layering for focus stub / SP-036: AssignSubdivision (policy) →
@@ -51,6 +54,7 @@ public:
   SpaFile const & GetFile() const { return m_table.GetFile(); }
   std::vector<int64_t> const & Universe() const { return m_table.Universe(); }
   SubdivisionAssignmentTable const & SubdivisionTable() const { return m_table; }
+  SettlementContainmentIndex const & Settlements() const { return m_settlements; }
 
   ExplorationArea const * LookupBySlot(size_t slot, m2::PointD const & sampleCentre) const;
   ExplorationArea const * LookupByHealpix(int64_t healpixNestId, m2::PointD const & sampleCentre) const;
@@ -59,5 +63,6 @@ private:
   explicit ExplorationAreaResolver(SubdivisionAssignmentTable table);
 
   SubdivisionAssignmentTable m_table;
+  SettlementContainmentIndex m_settlements;
 };
 }  // namespace street_pixels
