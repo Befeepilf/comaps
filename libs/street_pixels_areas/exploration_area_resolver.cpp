@@ -5,29 +5,12 @@
 #include "street_pixels_areas/subdivision_assigner.hpp"
 
 #include <algorithm>
-#include <limits>
 #include <utility>
 
 namespace street_pixels
 {
 namespace
 {
-struct SettlementScore
-{
-  double m_area = std::numeric_limits<double>::max();
-  uint64_t m_osmId = std::numeric_limits<uint64_t>::max();
-  uint32_t m_compactIndex = 0;
-
-  bool operator<(SettlementScore const & other) const
-  {
-    if (m_area != other.m_area)
-      return m_area < other.m_area;
-    if (m_osmId != other.m_osmId)
-      return m_osmId < other.m_osmId;
-    return m_compactIndex < other.m_compactIndex;
-  }
-};
-
 // Named distinctly from subdivision_assignment.cpp for unity builds.
 bool ExplorationUniverseIsStrictlyAscending(std::vector<int64_t> const & ids)
 {
@@ -42,29 +25,8 @@ bool ExplorationUniverseIsStrictlyAscending(std::vector<int64_t> const & ids)
 
 ExplorationArea const * SelectSettlementContaining(SpaFile const & file, m2::PointD const & point)
 {
-  bool found = false;
-  SettlementScore best;
-  ExplorationArea const * bestArea = nullptr;
-
-  for (auto const & area : file.m_areas)
-  {
-    if (area.m_role != AreaRole::Settlement)
-      continue;
-    if (!area.Contains(point))
-      continue;
-
-    SettlementScore score;
-    score.m_area = area.m_area;
-    score.m_osmId = area.m_osmId;
-    score.m_compactIndex = area.m_compactIndex;
-    if (!found || score < best)
-    {
-      best = score;
-      bestArea = &area;
-      found = true;
-    }
-  }
-  return bestArea;
+  SettlementContainmentIndex index(file.m_areas);
+  return index.Select(point);
 }
 
 ExplorationArea const * LookupExplorationAreaAtPoint(SpaFile const & file, CountryPolicy const & policy,
@@ -113,7 +75,25 @@ ExplorationArea const * LookupExplorationArea(SpaFile const & file,
 
 ExplorationAreaResolver::ExplorationAreaResolver(SubdivisionAssignmentTable table)
   : m_table(std::move(table))
+  , m_settlements(m_table.GetFile().m_areas)
 {}
+
+ExplorationAreaResolver::ExplorationAreaResolver(ExplorationAreaResolver && other) noexcept
+  : m_table(std::move(other.m_table))
+  , m_settlements(m_table.GetFile().m_areas)
+{
+  other.m_settlements = SettlementContainmentIndex();
+}
+
+ExplorationAreaResolver & ExplorationAreaResolver::operator=(ExplorationAreaResolver && other) noexcept
+{
+  if (this == &other)
+    return *this;
+  m_table = std::move(other.m_table);
+  m_settlements = SettlementContainmentIndex(m_table.GetFile().m_areas);
+  other.m_settlements = SettlementContainmentIndex();
+  return *this;
+}
 
 std::optional<ExplorationAreaResolver> ExplorationAreaResolver::TryLoad(
     std::string const & path, std::vector<int64_t> universeAscendingNest, int64_t expectedMapDataVersion,
@@ -129,7 +109,12 @@ std::optional<ExplorationAreaResolver> ExplorationAreaResolver::TryLoad(
 ExplorationArea const * ExplorationAreaResolver::LookupBySlot(size_t slot,
                                                               m2::PointD const & sampleCentre) const
 {
-  return LookupExplorationArea(m_table.GetFile(), slot, sampleCentre);
+  SpaFile const & file = m_table.GetFile();
+  if (slot >= file.m_assignments.size())
+    return nullptr;
+  if (auto const * assignable = LookupSubdivisionBySlot(file, slot))
+    return assignable;
+  return m_settlements.Select(sampleCentre);
 }
 
 ExplorationArea const * ExplorationAreaResolver::LookupByHealpix(int64_t healpixNestId,

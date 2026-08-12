@@ -6,11 +6,14 @@
 #include "street_pixels_areas/areas_writer.hpp"
 #include "street_pixels_areas/exploration_area_resolver.hpp"
 #include "street_pixels_areas/exploration_sidecar.hpp"
+#include "street_pixels_areas/sample_centres.hpp"
 
 #include "platform/platform.hpp"
 
+#include <algorithm>
 #include <cstdint>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace
@@ -208,4 +211,67 @@ UNIT_TEST(AreaCompletion_IgnoresExploredOutsideUniverse)
   TEST_EQUAL(cache.Get(1)->m_explored, 0u, ());
 
   RemoveIfExists(fx.m_path);
+}
+
+UNIT_TEST(AreaCompletion_EmptyCentresMatchesProvidedCentres)
+{
+  auto const config = FinlandConfig();
+  auto const policy = config.GetByIso("FI");
+  std::string const path = ExplorationSidecarPath(GetPlatform().WritableDir(), "sp034_empty_centres");
+  auto areas = AdmitAll(
+      {
+          MakeAdminCandidate(10, 10, "District", LonLatBox(24.2, 60.2, 24.8, 60.8)),
+          MakeAdminCandidate(8, 8, "City", LonLatBox(24.0, 60.0, 25.0, 61.0)),
+      },
+      policy);
+
+  // Production-like: universe nest ids and centres are HEALPix cell centres.
+  std::vector<std::pair<double, double>> lonLat = {
+      {24.5, 60.5},
+      {24.1, 60.1},
+      {30.0, 70.0},
+  };
+  std::vector<int64_t> universe;
+  std::vector<m2::PointD> centres;
+  for (auto const & ll : lonLat)
+  {
+    int64_t const nest = NestIdFromLonLat(ll.first, ll.second);
+    universe.push_back(nest);
+    centres.push_back(MercatorCentreFromNestId(nest));
+  }
+  std::vector<size_t> order(universe.size());
+  for (size_t i = 0; i < order.size(); ++i)
+    order[i] = i;
+  std::sort(order.begin(), order.end(), [&](size_t a, size_t b) { return universe[a] < universe[b]; });
+  std::vector<int64_t> universeAsc;
+  std::vector<m2::PointD> centresAsc;
+  for (size_t i : order)
+  {
+    universeAsc.push_back(universe[i]);
+    centresAsc.push_back(centres[i]);
+  }
+
+  SpaWriteParams params;
+  params.m_mapDataVersion = 342;
+  params.m_policyVersion = config.GetPolicyVersion();
+  params.m_isoCode = "FI";
+  params.m_mwmId = "sp034_empty_centres";
+  RemoveIfExists(path);
+  WriteExplorationSidecar(path, areas, centresAsc, policy, params);
+
+  auto resolver = ExplorationAreaResolver::TryLoad(path, universeAsc, params.m_mapDataVersion, params.m_policyVersion);
+  TEST(resolver.has_value(), ());
+
+  std::vector<int64_t> explored = {universeAsc.front()};
+  auto withCentres = AreaCompletionCache::Build(*resolver, universeAsc, centresAsc, explored);
+  auto withoutCentres = AreaCompletionCache::Build(*resolver, universeAsc, {}, explored);
+  TEST_EQUAL(withCentres.Rows().size(), withoutCentres.Rows().size(), ());
+  for (size_t i = 0; i < withCentres.Rows().size(); ++i)
+  {
+    TEST_EQUAL(withCentres.Rows()[i].m_compactIndex, withoutCentres.Rows()[i].m_compactIndex, (i));
+    TEST_EQUAL(withCentres.Rows()[i].m_total, withoutCentres.Rows()[i].m_total, (i));
+    TEST_EQUAL(withCentres.Rows()[i].m_explored, withoutCentres.Rows()[i].m_explored, (i));
+  }
+
+  RemoveIfExists(path);
 }

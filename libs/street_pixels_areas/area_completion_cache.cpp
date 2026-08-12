@@ -1,13 +1,50 @@
 #include "street_pixels_areas/area_completion_cache.hpp"
 
+#include "street_pixels_areas/areas_format.hpp"
 #include "street_pixels_areas/exploration_sidecar.hpp"
+#include "street_pixels_areas/sample_centres.hpp"
 
 #include "base/assert.hpp"
 
 #include <algorithm>
+#include <limits>
 
 namespace street_pixels
 {
+namespace
+{
+m2::PointD CentreForSlot(std::vector<int64_t> const & universeAscendingNest,
+                         std::vector<m2::PointD> const & universeCentres, size_t slot)
+{
+  if (universeCentres.size() == universeAscendingNest.size())
+    return universeCentres[slot];
+  return MercatorCentreFromNestId(universeAscendingNest[slot]);
+}
+
+void AccumulateSlot(SpaFile const & file, SettlementContainmentIndex const & settlements,
+                    uint32_t sentinel, size_t areaCount, size_t slot,
+                    std::vector<int64_t> const & universeAscendingNest,
+                    std::vector<m2::PointD> const & universeCentres, std::vector<uint64_t> & counts)
+{
+  uint32_t const assign = file.m_assignments[slot];
+  if (assign != sentinel)
+  {
+    if (assign < areaCount && file.m_areas[assign].IsAssignable())
+      ++counts[assign];
+    return;
+  }
+
+  ExplorationArea const * area =
+      settlements.Select(CentreForSlot(universeAscendingNest, universeCentres, slot));
+  if (area == nullptr)
+    return;
+  uint32_t const idx = area->m_compactIndex;
+  if (idx >= areaCount)
+    return;
+  ++counts[idx];
+}
+}  // namespace
+
 void AreaCompletionCache::Invalidate()
 {
   m_valid = false;
@@ -23,37 +60,45 @@ AreaCompletionCache AreaCompletionCache::Build(ExplorationAreaResolver const & r
 {
   AreaCompletionCache cache;
   SpaFile const & file = resolver.GetFile();
-  CHECK_EQUAL(universeAscendingNest.size(), universeCentres.size(), ());
   CHECK_EQUAL(universeAscendingNest.size(), resolver.Universe().size(), ());
+  CHECK(universeCentres.empty() || universeCentres.size() == universeAscendingNest.size(), ());
+  CHECK_EQUAL(universeAscendingNest.size(), file.m_assignments.size(), ());
 
   size_t const areaCount = file.m_areas.size();
   std::vector<uint64_t> totals(areaCount, 0);
   std::vector<uint64_t> explored(areaCount, 0);
 
+  uint32_t const sentinel = NoSubdivisionSentinel(file.m_header.m_indexWidth);
+  SettlementContainmentIndex const & settlements = resolver.Settlements();
+
   for (size_t slot = 0; slot < universeAscendingNest.size(); ++slot)
   {
-    ExplorationArea const * area = resolver.LookupBySlot(slot, universeCentres[slot]);
-    if (area == nullptr)
-      continue;
-    uint32_t const idx = area->m_compactIndex;
-    if (idx >= areaCount)
-      continue;
-    ++totals[idx];
+    AccumulateSlot(file, settlements, sentinel, areaCount, slot, universeAscendingNest, universeCentres,
+                   totals);
   }
 
+  size_t universeSlot = 0;
+  int64_t prevExplored = std::numeric_limits<int64_t>::min();
+  bool sawExplored = false;
   for (int64_t healpix : exploredAscendingNest)
   {
-    auto const it = std::lower_bound(universeAscendingNest.begin(), universeAscendingNest.end(), healpix);
-    if (it == universeAscendingNest.end() || *it != healpix)
+    if (sawExplored)
+      CHECK_GREATER(healpix, prevExplored, ());
+    sawExplored = true;
+    prevExplored = healpix;
+
+    while (universeSlot < universeAscendingNest.size() &&
+           universeAscendingNest[universeSlot] < healpix)
+    {
+      ++universeSlot;
+    }
+    if (universeSlot >= universeAscendingNest.size() ||
+        universeAscendingNest[universeSlot] != healpix)
+    {
       continue;
-    size_t const slot = static_cast<size_t>(std::distance(universeAscendingNest.begin(), it));
-    ExplorationArea const * area = resolver.LookupBySlot(slot, universeCentres[slot]);
-    if (area == nullptr)
-      continue;
-    uint32_t const idx = area->m_compactIndex;
-    if (idx >= areaCount)
-      continue;
-    ++explored[idx];
+    }
+    AccumulateSlot(file, settlements, sentinel, areaCount, universeSlot, universeAscendingNest,
+                   universeCentres, explored);
   }
 
   cache.m_rows.reserve(areaCount);
