@@ -2144,7 +2144,19 @@ void StreetPixelsManager::PushExplorationAreaOverlayUnlocked(street_pixels::SpaF
     }
   }
 
-  auto geometries = street_pixels::BuildAreaOverlayGeometry(file, fractions, nullptr);
+  street_pixels::CountryPolicy policy;
+  try
+  {
+    std::string const policyPath =
+        base::JoinPath(GetPlatform().ResourcesDir(), street_pixels::kCountryPoliciesRelativePath);
+    auto const config = street_pixels::CountryConfig::LoadFromFile(policyPath);
+    policy = config.GetByIso(file.m_header.m_isoCode);
+  }
+  catch (RootException const &)
+  {
+  }
+
+  auto geometries = street_pixels::BuildAreaOverlayGeometry(file, policy, fractions, nullptr);
   std::vector<df::ExplorationAreaOverlayItem> items;
   items.reserve(geometries.size());
   for (auto & geom : geometries)
@@ -2155,6 +2167,8 @@ void StreetPixelsManager::PushExplorationAreaOverlayUnlocked(street_pixels::SpaF
     item.m_compactIndex = geom.m_compactIndex;
     item.m_fraction = geom.m_fraction;
     item.m_completed = style.m_completed;
+    item.m_name = std::move(geom.m_name);
+    item.m_labelPoint = geom.m_labelPoint;
     item.m_rings = std::move(geom.m_rings);
     item.m_triangles = std::move(geom.m_triangles);
     item.m_bounds = geom.m_bounds;

@@ -99,3 +99,9 @@ every circle may fail Spike 1; SP-033 decides.
 | Completed-area chrome beyond shading | SP-040 |
 | Tap hit-test on polygons | SP-038 |
 | Initialized previously-null `m_drapeApiBuilder` in BackendRenderer | Latent fix bundled with overlay builder ctor |
+| Post-clip 96-vert index stride left holes/overlaps | Fixed: clip in §8.8 order, no stride after clip; see `notes/SP-037-overlay-geometry.md` |
+| Sentinel pixels had no overlay (outside neighbourhoods / OSM gaps) | Fixed: settlement leftover when assign column has sentinels (SPD-007) |
+| Voronoi / hull tiling of pixels | Rejected — would invent area geometry (SPD-004) |
+| Finland admin_11 (e.g. Maunula) swallowed by admin_10 (Oulunkylä) | Deferred; SPD-023 10→9→11 kept |
+| Settlement leftover can include water inside the municipal OSM ring | Residual; no Voronoi/pixel hull |
+| `SimplifyRingForOverlay` unused on clipped rings | Residual city LOD if vertex load needs a topology-preserving simplify |

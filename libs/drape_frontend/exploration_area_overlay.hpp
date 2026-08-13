@@ -6,6 +6,7 @@
 #include "geometry/rect2d.hpp"
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 namespace df
@@ -18,6 +19,8 @@ struct ExplorationAreaOverlayItem
   uint32_t m_compactIndex = 0;
   double m_fraction = 0.0;
   bool m_completed = false;
+  std::string m_name;
+  m2::PointD m_labelPoint;
   std::vector<std::vector<m2::PointD>> m_rings;
   std::vector<m2::PointD> m_triangles;
   m2::RectD m_bounds;
