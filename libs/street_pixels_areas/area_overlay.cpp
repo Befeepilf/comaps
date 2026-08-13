@@ -1,11 +1,24 @@
 #include "street_pixels_areas/area_overlay.hpp"
 
+#include "street_pixels_areas/areas_format.hpp"
+#include "street_pixels_areas/bg_point.hpp"
+#include "street_pixels_areas/subdivision_assigner.hpp"
+
+#include "geometry/algorithm.hpp"
 #include "geometry/point2d.hpp"
 
 #include "base/math.hpp"
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
+#include <limits>
+#include <utility>
+#include <vector>
+
+#include <boost/geometry/geometries/multi_polygon.hpp>
+#include <boost/geometry/geometries/polygon.hpp>
+#include "std/boost_geometry.hpp"
 
 namespace street_pixels
 {
@@ -74,6 +87,118 @@ bool IsEar(std::vector<m2::PointD> const & poly, size_t i, bool ccw)
   }
   return true;
 }
+
+using BgPoly = boost::geometry::model::polygon<m2::PointD>;
+using BgMulti = boost::geometry::model::multi_polygon<BgPoly>;
+
+BgMulti RingsToMulti(std::vector<std::vector<m2::PointD>> const & rings)
+{
+  BgMulti multi;
+  for (auto const & ring : rings)
+  {
+    if (ring.size() < 3)
+      continue;
+    BgPoly poly;
+    poly.outer().assign(ring.begin(), ring.end());
+    if (poly.outer().size() >= 2 && !poly.outer().front().EqualDxDy(poly.outer().back(), 1e-12))
+      poly.outer().push_back(poly.outer().front());
+    boost::geometry::correct(poly);
+    if (boost::geometry::num_points(poly) >= 4)
+      multi.push_back(std::move(poly));
+  }
+  return multi;
+}
+
+std::vector<std::vector<m2::PointD>> MultiToRings(BgMulti const & multi)
+{
+  std::vector<std::vector<m2::PointD>> rings;
+  for (auto const & poly : multi)
+  {
+    if (poly.outer().size() >= 4)
+      rings.emplace_back(poly.outer().begin(), poly.outer().end());
+    for (auto const & inner : poly.inners())
+    {
+      if (inner.size() >= 4)
+        rings.emplace_back(inner.begin(), inner.end());
+    }
+  }
+  return rings;
+}
+
+std::vector<m2::PointD> KeyholeRing(BgPoly const & poly)
+{
+  auto ring = DropClosingDuplicate({poly.outer().begin(), poly.outer().end()});
+  for (auto const & inner : poly.inners())
+  {
+    auto hole = DropClosingDuplicate({inner.begin(), inner.end()});
+    if (ring.size() < 3 || hole.size() < 3)
+      continue;
+    size_t bestI = 0;
+    size_t bestJ = 0;
+    double best = std::numeric_limits<double>::max();
+    for (size_t i = 0; i < ring.size(); ++i)
+    {
+      for (size_t j = 0; j < hole.size(); ++j)
+      {
+        double const d = ring[i].SquaredLength(hole[j]);
+        if (d < best)
+        {
+          best = d;
+          bestI = i;
+          bestJ = j;
+        }
+      }
+    }
+    std::vector<m2::PointD> injected;
+    injected.reserve(hole.size() + 2);
+    for (size_t k = 0; k < hole.size(); ++k)
+      injected.push_back(hole[(bestJ + k) % hole.size()]);
+    injected.push_back(hole[bestJ]);
+    injected.push_back(ring[bestI]);
+    ring.insert(ring.begin() + static_cast<std::ptrdiff_t>(bestI) + 1, injected.begin(), injected.end());
+  }
+  if (ring.size() >= 3)
+    ring.push_back(ring.front());
+  return ring;
+}
+
+BgMulti SubtractBetter(BgMulti const & subject, BgMulti const & clipper)
+{
+  if (boost::geometry::is_empty(clipper) || boost::geometry::is_empty(subject))
+    return subject;
+  BgMulti out;
+  try
+  {
+    boost::geometry::difference(subject, clipper, out);
+  }
+  catch (...)
+  {
+    return subject;
+  }
+  return out;
+}
+
+bool WinnerBetter(ExplorationArea const & a, ExplorationArea const & b, CountryPolicy const & policy)
+{
+  int const rankA = SubdivisionPriorityRank(a, policy);
+  int const rankB = SubdivisionPriorityRank(b, policy);
+  if (rankA != rankB)
+    return rankA < rankB;
+  if (a.m_area != b.m_area)
+    return a.m_area < b.m_area;
+  if (a.m_osmId != b.m_osmId)
+    return a.m_osmId < b.m_osmId;
+  return a.m_compactIndex < b.m_compactIndex;
+}
+
+std::vector<m2::PointD> ClosedRing(std::vector<m2::PointD> ring)
+{
+  ring = DropClosingDuplicate(std::move(ring));
+  if (ring.size() < 3)
+    return {};
+  ring.push_back(ring.front());
+  return ring;
+}
 }  // namespace
 
 AreaOverlayStyle StyleForCompletion(double fraction, AreaOverlayZoomBand band)
@@ -93,18 +218,18 @@ AreaOverlayStyle StyleForCompletion(double fraction, AreaOverlayZoomBand band)
     case AreaOverlayZoomBand::City:
       style.m_showFill = true;
       style.m_fill = Rgba8{40, 160, 80, 48};
-      style.m_outlineWidthPx = 2.5f;
+      style.m_outlineWidthPx = 4.5f;
       style.m_showCheck = true;
       break;
     case AreaOverlayZoomBand::Neighbourhood:
       style.m_showFill = true;
       style.m_fill = Rgba8{40, 160, 80, 36};
-      style.m_outlineWidthPx = 3.0f;
+      style.m_outlineWidthPx = 5.5f;
       style.m_showCheck = true;
       break;
     case AreaOverlayZoomBand::Street:
       style.m_showFill = false;
-      style.m_outlineWidthPx = 2.25f;
+      style.m_outlineWidthPx = 4.0f;
       style.m_outline.m_a = 230;
       break;
     case AreaOverlayZoomBand::Hidden:
@@ -127,16 +252,16 @@ AreaOverlayStyle StyleForCompletion(double fraction, AreaOverlayZoomBand band)
   case AreaOverlayZoomBand::City:
     style.m_showFill = true;
     style.m_fill = Rgba8{r, g, b, 90};
-    style.m_outlineWidthPx = 1.5f;
+    style.m_outlineWidthPx = 4.0f;
     break;
   case AreaOverlayZoomBand::Neighbourhood:
     style.m_showFill = true;
     style.m_fill = Rgba8{r, g, b, 55};
-    style.m_outlineWidthPx = 2.0f;
+    style.m_outlineWidthPx = 4.5f;
     break;
   case AreaOverlayZoomBand::Street:
     style.m_showFill = false;
-    style.m_outlineWidthPx = 1.25f;
+    style.m_outlineWidthPx = 3.0f;
     style.m_outline.m_a = 160;
     break;
   case AreaOverlayZoomBand::Hidden:
@@ -215,46 +340,110 @@ std::vector<m2::PointD> SimplifyRingForOverlay(std::vector<m2::PointD> const & r
 }
 
 std::vector<AreaOverlayGeometry> BuildAreaOverlayGeometry(
-    SpaFile const & file, std::vector<std::optional<double>> const & fractionByCompactIndex,
+    SpaFile const & file, CountryPolicy const & policy,
+    std::vector<std::optional<double>> const & fractionByCompactIndex,
     m2::RectD const * viewportOrNull)
 {
-  std::vector<AreaOverlayGeometry> out;
-  out.reserve(file.m_areas.size());
+  std::vector<uint8_t> winnerMask(file.m_areas.size(), 0);
+  uint32_t const sentinel = NoSubdivisionSentinel(file.m_header.m_indexWidth);
+  bool anySentinel = false;
+  for (uint32_t idx : file.m_assignments)
+  {
+    if (idx == sentinel)
+    {
+      anySentinel = true;
+      continue;
+    }
+    if (idx < winnerMask.size())
+      winnerMask[idx] = 1;
+  }
 
+  std::vector<ExplorationArea const *> winners;
+  winners.reserve(file.m_areas.size());
   for (auto const & area : file.m_areas)
   {
-    if (!(area.IsAssignable() || area.m_role == AreaRole::Settlement))
+    if (area.m_rings.empty() || area.m_compactIndex >= winnerMask.size())
       continue;
-    if (area.m_rings.empty())
+    bool const assignedWinner = winnerMask[area.m_compactIndex] != 0;
+    bool const settlementFallback =
+        anySentinel && policy.m_configured && area.m_role == AreaRole::Settlement;
+    if (!assignedWinner && !settlementFallback)
+      continue;
+    winners.push_back(&area);
+  }
+  std::sort(winners.begin(), winners.end(),
+            [&policy](ExplorationArea const * a, ExplorationArea const * b)
+            { return WinnerBetter(*a, *b, policy); });
+
+  std::vector<BgMulti> betterPolys;
+  betterPolys.reserve(winners.size());
+  std::vector<m2::RectD> betterBounds;
+  betterBounds.reserve(winners.size());
+
+  std::vector<AreaOverlayGeometry> out;
+  out.reserve(winners.size());
+
+  for (auto const * area : winners)
+  {
+    BgMulti clipped = RingsToMulti(area->m_rings);
+    m2::RectD bbox;
+    for (auto const & ring : area->m_rings)
+    {
+      for (auto const & pt : ring)
+        bbox.Add(pt);
+    }
+    for (size_t i = 0; i < betterPolys.size(); ++i)
+    {
+      if (!bbox.IsIntersect(betterBounds[i]))
+        continue;
+      clipped = SubtractBetter(clipped, betterPolys[i]);
+    }
+    betterPolys.push_back(RingsToMulti(area->m_rings));
+    betterBounds.push_back(bbox);
+
+    auto rings = MultiToRings(clipped);
+    if (rings.empty())
       continue;
 
     AreaOverlayGeometry geom;
-    geom.m_compactIndex = area.m_compactIndex;
-    geom.m_role = area.m_role;
-    if (area.m_compactIndex < fractionByCompactIndex.size() && fractionByCompactIndex[area.m_compactIndex].has_value())
-      geom.m_fraction = *fractionByCompactIndex[area.m_compactIndex];
+    geom.m_compactIndex = area->m_compactIndex;
+    geom.m_role = area->m_role;
+    geom.m_name = area->m_name;
+    if (area->m_compactIndex < fractionByCompactIndex.size() &&
+        fractionByCompactIndex[area->m_compactIndex].has_value())
+      geom.m_fraction = *fractionByCompactIndex[area->m_compactIndex];
     else
       geom.m_fraction = 0.0;
 
-    for (auto const & ring : area.m_rings)
+    for (auto const & ring : rings)
     {
-      if (ring.size() < 3)
+      auto closed = ClosedRing(ring);
+      if (closed.size() < 4)
         continue;
-      for (auto const & pt : ring)
+      for (auto const & pt : closed)
         geom.m_bounds.Add(pt);
-      auto simplified = SimplifyRingForOverlay(ring, AreaOverlayZoomBand::Neighbourhood);
-      auto tris = TriangulateOuterRing(simplified);
-      if (!tris.empty())
-      {
-        geom.m_rings.push_back(std::move(simplified));
-        geom.m_triangles.insert(geom.m_triangles.end(), tris.begin(), tris.end());
-      }
+      geom.m_rings.push_back(std::move(closed));
+    }
+
+    for (auto const & poly : clipped)
+    {
+      auto tris = TriangulateOuterRing(KeyholeRing(poly));
+      geom.m_triangles.insert(geom.m_triangles.end(), tris.begin(), tris.end());
     }
 
     if (geom.m_rings.empty())
       continue;
     if (viewportOrNull != nullptr && !viewportOrNull->IsIntersect(geom.m_bounds))
       continue;
+
+    if (geom.m_triangles.size() >= 3)
+    {
+      geom.m_labelPoint =
+          m2::ApplyCalculator(geom.m_triangles, m2::CalculatePointOnSurface(geom.m_bounds));
+    }
+    else
+      geom.m_labelPoint = geom.m_bounds.Center();
+
     out.push_back(std::move(geom));
   }
   return out;

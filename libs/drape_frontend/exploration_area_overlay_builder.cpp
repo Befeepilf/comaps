@@ -2,10 +2,15 @@
 
 #include "drape_frontend/area_shape.hpp"
 #include "drape_frontend/batcher_bucket.hpp"
+#include "drape_frontend/gui/gui_text.hpp"
 #include "drape_frontend/line_shape.hpp"
+#include "drape_frontend/map_shape.hpp"
 #include "drape_frontend/shape_view_params.hpp"
 
+#include "drape/attribute_provider.hpp"
 #include "drape/batcher.hpp"
+#include "drape/drape_global.hpp"
+#include "drape/glsl_types.hpp"
 
 #include "geometry/spline.hpp"
 
@@ -51,6 +56,20 @@ void ExplorationAreaOverlayBuilder::Build(ref_ptr<dp::GraphicsContext> context,
           lvp.m_color = item.m_outlineColor;
           lvp.m_width = item.m_outlineWidthPx;
           LineShape(spline, lvp).Draw(context, make_ref(&batcher), textures);
+        }
+
+        if (!item.m_name.empty())
+        {
+          dp::FontDecl font(dp::Color::Black(), 28.0f, dp::Color::White());
+          gui::StaticLabel::LabelResult result;
+          gui::StaticLabel::CacheStaticText(item.m_name, "\n", dp::Center, font, textures, result);
+          glsl::vec2 const pt =
+              glsl::ToVec2(MapShape::ConvertToLocal(item.m_labelPoint, property->m_center, kShapeCoordScalar));
+          for (gui::StaticLabel::Vertex & v : result.m_buffer)
+            v.m_position = glsl::vec3(pt, 0.0f);
+          dp::AttributeProvider provider(1, static_cast<uint32_t>(result.m_buffer.size()));
+          provider.InitStream(0, gui::StaticLabel::Vertex::GetBindingInfo(), make_ref(result.m_buffer.data()));
+          batcher.InsertListOfStrip(context, result.m_state, make_ref(&provider), dp::Batcher::VertexPerQuad);
         }
       }
       if (!property->m_buckets.empty())

@@ -11,6 +11,10 @@
 
 namespace street_pixels
 {
+// §8.8 rank: 0 = highest configured subdivision level, then remaining levels,
+// then place boundaries, then settlements / unconfigured (max int).
+int SubdivisionPriorityRank(ExplorationArea const & area, CountryPolicy const & policy);
+
 // §8.8: highest-priority configured level, then smallest polygon, then OSM id.
 // Settlements are never returned — only subdivision / place-boundary indices
 // or the no-subdivision sentinel (SPD-022 / SPD-025).
