@@ -14,6 +14,7 @@ set(SRC
   areas_types.hpp
   areas_writer.cpp
   areas_writer.hpp
+  bg_point.hpp
   city_completion_cache.cpp
   city_completion_cache.hpp
   exploration_area_resolver.cpp

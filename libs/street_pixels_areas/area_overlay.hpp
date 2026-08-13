@@ -2,11 +2,14 @@
 
 #include "street_pixels_areas/areas_types.hpp"
 
+#include "street_pixels_config/country_config.hpp"
+
 #include "geometry/point2d.hpp"
 #include "geometry/rect2d.hpp"
 
 #include <cstdint>
 #include <optional>
+#include <string>
 #include <vector>
 
 namespace street_pixels
@@ -79,16 +82,20 @@ struct AreaOverlayGeometry
   uint32_t m_compactIndex = 0;
   AreaRole m_role = AreaRole::Subdivision;
   double m_fraction = 0.0;
+  std::string m_name;
+  m2::PointD m_labelPoint;
   std::vector<std::vector<m2::PointD>> m_rings;
   std::vector<m2::PointD> m_triangles;
   m2::RectD m_bounds;
 };
 
 // Build overlay geometry from sidecar areas + per-area personal completion.
-// Includes assignable areas; settlements included for City band consumers.
+// Emits assign-column winners, clipped in §8.8 order. Sentinel pixels fall
+// through to settlement rings (SPD-007), clipped by those winners.
 // fractionOrNull: nullopt → treat as 0. viewport may cull by bounds.
 std::vector<AreaOverlayGeometry> BuildAreaOverlayGeometry(
-    SpaFile const & file, std::vector<std::optional<double>> const & fractionByCompactIndex,
+    SpaFile const & file, CountryPolicy const & policy,
+    std::vector<std::optional<double>> const & fractionByCompactIndex,
     m2::RectD const * viewportOrNull = nullptr);
 
 inline std::string DebugPrint(AreaOverlayZoomBand band)

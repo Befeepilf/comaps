@@ -6,6 +6,7 @@
 #include "street_pixels_areas/exploration_sidecar.hpp"
 #include "street_pixels_areas/street_pixels_areas_tests/test_helpers.hpp"
 
+#include "geometry/region2d.hpp"
 #include "platform/platform.hpp"
 
 #include <optional>
@@ -86,7 +87,8 @@ UNIT_TEST(AreaOverlay_BuildFromSidecar)
   auto areas = AdmitAll(
       {
           MakeAdminCandidate(10, 10, "District", LonLatBox(24.2, 60.2, 24.8, 60.8)),
-          MakeAdminCandidate(8, 8, "City", LonLatBox(24.0, 60.0, 25.0, 61.0)),
+          MakeAdminCandidate(9, 9, "Borough", LonLatBox(24.0, 60.0, 25.0, 61.0)),
+          MakeAdminCandidate(8, 8, "City", LonLatBox(23.9, 59.9, 25.1, 61.1)),
       },
       policy);
 
@@ -95,7 +97,7 @@ UNIT_TEST(AreaOverlay_BuildFromSidecar)
   params.m_policyVersion = config.GetPolicyVersion();
   params.m_isoCode = "FI";
   params.m_mwmId = "sp037_overlay";
-  std::vector<m2::PointD> samples = {MercatorFromLonLat(24.5, 60.5), MercatorFromLonLat(24.1, 60.1)};
+  std::vector<m2::PointD> samples = {MercatorFromLonLat(24.5, 60.5)};
   WriteExplorationSidecar(path, areas, samples, policy, params);
 
   auto loaded = TryLoadExplorationSidecar(path);
@@ -108,8 +110,22 @@ UNIT_TEST(AreaOverlay_BuildFromSidecar)
       fractions[a.m_compactIndex] = (a.m_role == AreaRole::Subdivision) ? 0.75 : 0.25;
   }
 
-  auto geom = BuildAreaOverlayGeometry(loaded.m_file, fractions, nullptr);
-  TEST_GREATER_OR_EQUAL(geom.size(), 2u, ());
+  auto geom = BuildAreaOverlayGeometry(loaded.m_file, policy, fractions, nullptr);
+  TEST_EQUAL(geom.size(), 1u, ());
+  TEST_EQUAL(geom[0].m_role, AreaRole::Subdivision, ());
+  uint32_t districtIndex = 0;
+  bool foundDistrict = false;
+  for (auto const & a : loaded.m_file.m_areas)
+  {
+    if (a.m_name == "District")
+    {
+      districtIndex = a.m_compactIndex;
+      foundDistrict = true;
+    }
+  }
+  TEST(foundDistrict, ());
+  TEST_EQUAL(geom[0].m_compactIndex, districtIndex, ());
+  TEST_EQUAL(geom[0].m_name, "District", ());
   for (auto const & g : geom)
   {
     TEST(!g.m_rings.empty(), ());
@@ -122,10 +138,192 @@ UNIT_TEST(AreaOverlay_BuildFromSidecar)
 
 UNIT_TEST(AreaOverlay_NoCountryChoropleth)
 {
-  // Builder only emits assignable + settlement areas from a sidecar — never invents
-  // country/world aggregates (spec §12.4).
   SpaFile empty;
-  auto geom = BuildAreaOverlayGeometry(empty, {}, nullptr);
+  auto geom = BuildAreaOverlayGeometry(empty, CountryConfig::UnconfiguredPolicy(), {}, nullptr);
   TEST(geom.empty(), ());
+}
+
+UNIT_TEST(AreaOverlay_GeometryOnlyHasNoWinners)
+{
+  auto const config = FinlandConfig();
+  auto const policy = config.GetByIso("FI");
+  std::string const path = ExplorationSidecarPath(GetPlatform().WritableDir(), "sp037_overlay_geom");
+  RemoveIfExists(path);
+
+  auto areas = AdmitAll(
+      {
+          MakeAdminCandidate(10, 10, "District", LonLatBox(24.2, 60.2, 24.8, 60.8)),
+          MakeAdminCandidate(8, 8, "City", LonLatBox(24.0, 60.0, 25.0, 61.0)),
+      },
+      policy);
+
+  SpaWriteParams params;
+  params.m_mapDataVersion = 370;
+  params.m_policyVersion = config.GetPolicyVersion();
+  params.m_isoCode = "FI";
+  params.m_mwmId = "sp037_overlay_geom";
+  WriteExplorationSidecar(path, areas, /*samplePoints=*/{}, policy, params);
+
+  auto loaded = TryLoadExplorationSidecar(path);
+  TEST_EQUAL(loaded.m_status, SpaLoadStatus::Ok, ());
+  TEST_EQUAL(loaded.m_file.m_assignments.size(), 0u, ());
+
+  auto geom = BuildAreaOverlayGeometry(loaded.m_file, policy, {}, nullptr);
+  TEST(geom.empty(), ());
+
+  RemoveIfExists(path);
+}
+
+UNIT_TEST(AreaOverlay_ClipNestedWinners)
+{
+  auto const config = FinlandConfig();
+  auto const policy = config.GetByIso("FI");
+  std::string const path = ExplorationSidecarPath(GetPlatform().WritableDir(), "sp037_overlay_clip");
+  RemoveIfExists(path);
+
+  auto areas = AdmitAll(
+      {
+          MakeAdminCandidate(10, 10, "District", LonLatBox(24.2, 60.2, 24.8, 60.8)),
+          MakeAdminCandidate(9, 9, "Borough", LonLatBox(24.0, 60.0, 25.0, 61.0)),
+      },
+      policy);
+
+  SpaWriteParams params;
+  params.m_mapDataVersion = 370;
+  params.m_policyVersion = config.GetPolicyVersion();
+  params.m_isoCode = "FI";
+  params.m_mwmId = "sp037_overlay_clip";
+  std::vector<m2::PointD> samples = {MercatorFromLonLat(24.5, 60.5), MercatorFromLonLat(24.1, 60.1)};
+  WriteExplorationSidecar(path, areas, samples, policy, params);
+
+  auto loaded = TryLoadExplorationSidecar(path);
+  TEST_EQUAL(loaded.m_status, SpaLoadStatus::Ok, ());
+
+  auto geom = BuildAreaOverlayGeometry(loaded.m_file, policy, {}, nullptr);
+  TEST_EQUAL(geom.size(), 2u, ());
+
+  AreaOverlayGeometry const * district = nullptr;
+  AreaOverlayGeometry const * borough = nullptr;
+  for (auto const & g : geom)
+  {
+    if (g.m_name == "District")
+      district = &g;
+    if (g.m_name == "Borough")
+      borough = &g;
+  }
+  TEST(district != nullptr, ());
+  TEST(borough != nullptr, ());
+  TEST_EQUAL(district->m_rings.size(), 1u, ());
+  TEST_GREATER_OR_EQUAL(borough->m_rings.size(), 2u, ());
+
+  RemoveIfExists(path);
+}
+
+bool OverlayRingContains(AreaOverlayGeometry const & geom, m2::PointD const & mercator)
+{
+  int hits = 0;
+  for (auto const & ring : geom.m_rings)
+  {
+    if (ring.size() < 3)
+      continue;
+    m2::RegionD region(ring.begin(), ring.end());
+    if (region.Contains(mercator))
+      ++hits;
+  }
+  return (hits % 2) == 1;
+}
+
+UNIT_TEST(AreaOverlay_ClipPrefersConfiguredPriorityOverArea)
+{
+  auto const config = FinlandConfig();
+  auto const policy = config.GetByIso("FI");
+  std::string const path = ExplorationSidecarPath(GetPlatform().WritableDir(), "sp037_overlay_rank");
+  RemoveIfExists(path);
+
+  auto areas = AdmitAll(
+      {
+          MakeAdminCandidate(10, 10, "District", LonLatBox(24.0, 60.0, 25.0, 61.0)),
+          MakeAdminCandidate(11, 11, "Fine", LonLatBox(24.8, 60.4, 25.2, 60.6)),
+      },
+      policy);
+
+  SpaWriteParams params;
+  params.m_mapDataVersion = 370;
+  params.m_policyVersion = config.GetPolicyVersion();
+  params.m_isoCode = "FI";
+  params.m_mwmId = "sp037_overlay_rank";
+  std::vector<m2::PointD> samples = {MercatorFromLonLat(24.5, 60.5), MercatorFromLonLat(25.1, 60.5)};
+  WriteExplorationSidecar(path, areas, samples, policy, params);
+
+  auto loaded = TryLoadExplorationSidecar(path);
+  TEST_EQUAL(loaded.m_status, SpaLoadStatus::Ok, ());
+
+  auto geom = BuildAreaOverlayGeometry(loaded.m_file, policy, {}, nullptr);
+  TEST_EQUAL(geom.size(), 2u, ());
+
+  AreaOverlayGeometry const * district = nullptr;
+  AreaOverlayGeometry const * fine = nullptr;
+  for (auto const & g : geom)
+  {
+    if (g.m_name == "District")
+      district = &g;
+    if (g.m_name == "Fine")
+      fine = &g;
+  }
+  TEST(district != nullptr, ());
+  TEST(fine != nullptr, ());
+  TEST_EQUAL(district->m_rings.size(), 1u, ());
+  TEST(OverlayRingContains(*district, MercatorFromLonLat(24.5, 60.5)), ());
+  TEST(!OverlayRingContains(*fine, MercatorFromLonLat(24.5, 60.5)), ());
+  TEST(OverlayRingContains(*fine, MercatorFromLonLat(25.1, 60.5)), ());
+
+  RemoveIfExists(path);
+}
+
+UNIT_TEST(AreaOverlay_SettlementFallbackForSentinel)
+{
+  auto const config = FinlandConfig();
+  auto const policy = config.GetByIso("FI");
+  std::string const path = ExplorationSidecarPath(GetPlatform().WritableDir(), "sp037_overlay_settle");
+  RemoveIfExists(path);
+
+  auto areas = AdmitAll(
+      {
+          MakeAdminCandidate(10, 10, "District", LonLatBox(24.2, 60.2, 24.8, 60.8)),
+          MakeAdminCandidate(8, 8, "City", LonLatBox(23.9, 59.9, 25.1, 61.1)),
+      },
+      policy);
+
+  SpaWriteParams params;
+  params.m_mapDataVersion = 370;
+  params.m_policyVersion = config.GetPolicyVersion();
+  params.m_isoCode = "FI";
+  params.m_mwmId = "sp037_overlay_settle";
+  std::vector<m2::PointD> samples = {MercatorFromLonLat(24.5, 60.5), MercatorFromLonLat(24.0, 60.0)};
+  WriteExplorationSidecar(path, areas, samples, policy, params);
+
+  auto loaded = TryLoadExplorationSidecar(path);
+  TEST_EQUAL(loaded.m_status, SpaLoadStatus::Ok, ());
+
+  auto geom = BuildAreaOverlayGeometry(loaded.m_file, policy, {}, nullptr);
+  TEST_EQUAL(geom.size(), 2u, ());
+
+  AreaOverlayGeometry const * district = nullptr;
+  AreaOverlayGeometry const * city = nullptr;
+  for (auto const & g : geom)
+  {
+    if (g.m_name == "District")
+      district = &g;
+    if (g.m_name == "City")
+      city = &g;
+  }
+  TEST(district != nullptr, ());
+  TEST(city != nullptr, ());
+  TEST_EQUAL(city->m_role, AreaRole::Settlement, ());
+  TEST_GREATER_OR_EQUAL(city->m_rings.size(), 2u, ());
+  TEST(OverlayRingContains(*city, MercatorFromLonLat(24.0, 60.0)), ());
+  TEST(!OverlayRingContains(*city, MercatorFromLonLat(24.5, 60.5)), ());
+
+  RemoveIfExists(path);
 }
 }  // namespace

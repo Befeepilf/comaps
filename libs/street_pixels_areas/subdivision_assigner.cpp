@@ -1,5 +1,7 @@
 #include "street_pixels_areas/subdivision_assigner.hpp"
 
+#include "street_pixels_areas/bg_point.hpp"
+
 #include "geometry/rect2d.hpp"
 
 #include "base/logging.hpp"
@@ -9,26 +11,15 @@
 #include <utility>
 #include <vector>
 
-#include <boost/geometry/geometries/register/point.hpp>
 #include <boost/geometry/index/rtree.hpp>
 #include "std/boost_geometry.hpp"
 
-BOOST_GEOMETRY_REGISTER_POINT_2D(m2::PointD, double, boost::geometry::cs::cartesian, x, y)
-
 namespace street_pixels
 {
-namespace
-{
-namespace bg = boost::geometry;
-namespace bgi = boost::geometry::index;
-
 int SubdivisionPriorityRank(ExplorationArea const & area, CountryPolicy const & policy)
 {
   if (area.m_role == AreaRole::PlaceBoundary)
-  {
-    // Place boundaries are a sparse supplement after all admin subdivision levels.
     return static_cast<int>(policy.m_subdivisionAdminLevels.size());
-  }
   if (area.m_role != AreaRole::Subdivision)
     return std::numeric_limits<int>::max();
 
@@ -38,6 +29,11 @@ int SubdivisionPriorityRank(ExplorationArea const & area, CountryPolicy const & 
     return std::numeric_limits<int>::max();
   return static_cast<int>(std::distance(levels.begin(), it));
 }
+
+namespace
+{
+namespace bg = boost::geometry;
+namespace bgi = boost::geometry::index;
 
 struct CandidateScore
 {

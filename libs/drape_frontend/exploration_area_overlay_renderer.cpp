@@ -2,7 +2,9 @@
 
 #include "drape_frontend/exploration_area_overlay.hpp"
 #include "drape_frontend/shape_view_params.hpp"
+#include "drape_frontend/visual_params.hpp"
 
+#include "drape/glsl_types.hpp"
 #include "drape/gpu_program.hpp"
 #include "drape/render_bucket.hpp"
 #include "drape/render_state.hpp"
@@ -61,10 +63,24 @@ void ExplorationAreaOverlayRenderer::RenderProperties(ref_ptr<dp::GraphicsContex
       program->Bind();
       dp::ApplyState(context, program, bucket.first);
 
-      gpu::MapProgramParams params;
-      frameValues.SetTo(params);
-      params.m_modelView = glsl::make_mat4(mv.m_data);
-      mng->GetParamsSetter()->Apply(context, program, params);
+      auto const p = bucket.first.GetProgram<gpu::Program>();
+      if (p == gpu::Program::TextOutlinedGui || p == gpu::Program::TextStaticOutlinedGui)
+      {
+        gpu::GuiProgramParams params;
+        frameValues.SetTo(params);
+        params.m_modelView = glsl::make_mat4(mv.m_data);
+        auto const & glyphParams = VisualParams::Instance().GetGlyphVisualParams();
+        params.m_contrastGamma = glsl::vec2(glyphParams.m_guiContrast, glyphParams.m_guiGamma);
+        params.m_isOutlinePass = 0.0f;
+        mng->GetParamsSetter()->Apply(context, program, params);
+      }
+      else
+      {
+        gpu::MapProgramParams params;
+        frameValues.SetTo(params);
+        params.m_modelView = glsl::make_mat4(mv.m_data);
+        mng->GetParamsSetter()->Apply(context, program, params);
+      }
 
       bucket.second->Render(context, bucket.first.GetDrawAsLine());
     }
