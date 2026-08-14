@@ -91,6 +91,6 @@ geometrically and would miss unexplored cells.
 | Finding | Proposed disposition |
 | --- | --- |
 | Explicit tap sticky until recording/recentre/city zoom | Keeps badge map-centre refresh from stealing focus |
-| Place page + detail sheet both open on map tap | Product may later gate sheet vs POI; residual polish |
+| Place page + detail sheet both open on map tap | Fixed: user map taps classify DiscreteObject vs AreaSurface; only one surface opens. Point POI / bookmark / my-position / track keep the place page. Area-surface hit (including buildings inside a ring) opens the exploration sheet only. Building outside a ring keeps the place page and does not clear focus. Search/bookmark `BuildInfo` sources are not intercepted. Device confirmation → SP-041 / Phase 10 |
 | Device tap walk Helsinki | SP-041 / Phase 10 |
 | Empty-state UI polish for no-area | SP-040 |
