@@ -316,6 +316,8 @@ public:
 
   StreetPixelsManager & GetStreetPixelsManager();
   StreetPixelsManager const & GetStreetPixelsManager() const;
+  void RefreshStreetPixelsFocusFromViewport();
+  bool SelectStreetPixelsFocusAt(m2::PointD const & mercator);
 
   RecordingSession & GetRecordingSession();
   RecordingSession const & GetRecordingSession() const;
@@ -402,6 +404,8 @@ private:
   std::optional<place_page::Info> m_currentPlacePageInfo;
 
   void OnTapEvent(place_page::BuildInfo const & buildInfo);
+  bool TryHandleExplorationAreaTap(place_page::Info const & info);
+  bool ResolveExplorationSidecarAt(m2::PointD const & pt, std::string & spaPath, int64_t & mapDataVersion) const;
   place_page::Info BuildPlacePageInfo(place_page::BuildInfo const & buildInfo);
   void BuildTrackPlacePage(Track::TrackSelectionInfo const & trackSelectionInfo, place_page::Info & info);
   Track::TrackSelectionInfo FindTrackInTapPosition(place_page::BuildInfo const & buildInfo) const;
