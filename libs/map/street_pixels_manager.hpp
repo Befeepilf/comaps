@@ -82,11 +82,16 @@ public:
 
   using StreetPixelsStateChangedFn =
       std::function<void(bool enabled, StreetPixelsStatus status, std::string countryId)>;
+  using FocusedAreaProgressChangedFn = std::function<void(street_pixels::FocusedAreaProgress const &)>;
+  using ExplorationAreaTappedFn = std::function<void(street_pixels::FocusedAreaProgress const &)>;
 
   StreetPixelsManager(DataSource const & dataSource);
 
   StreetPixelsState GetState() const;
   void SetStateListener(StreetPixelsStateChangedFn const & onStateChangedFn);
+  void SetFocusedAreaProgressListener(FocusedAreaProgressChangedFn const & fn);
+  void SetExplorationAreaTapListener(ExplorationAreaTappedFn const & fn);
+  void NotifyExplorationAreaTapped();
 
   void SetEnabled(bool enabled);
   bool IsEnabled() const;
@@ -182,6 +187,7 @@ public:
   bool SelectFocusedAreaExplicit(uint32_t compactIndex, std::string const & spaPath);
   // Polygon hit-test at point → ExplicitSelect (not MapPan). Outside → clear focus.
   bool SelectFocusedAreaAtPoint(m2::PointD const & mercator, std::string const & spaPath, int64_t mapDataVersion);
+  bool HasExplorationAreaAtPoint(m2::PointD const & mercator, std::string const & spaPath, int64_t mapDataVersion);
   // Resolve §12.5 inputs from viewport/session and apply the engine.
   bool RefreshFocusFromViewport(m2::PointD const & mapCentre, std::optional<m2::PointD> const & userPos,
                                 bool recordingActive, bool followingMyPosition, int drawScale,
@@ -223,9 +229,15 @@ private:
 
   StreetPixelsState m_state;
   StreetPixelsStateChangedFn m_onStateChangedFn;
+  FocusedAreaProgressChangedFn m_focusedAreaProgressListener;
+  ExplorationAreaTappedFn m_explorationAreaTapListener;
+  street_pixels::FocusedAreaProgress m_lastNotifiedFocusedAreaProgress;
   mutable std::mutex m_stateMutex;
 
   void ChangeState(StreetPixelsState newState);
+  void NotifyFocusedAreaProgressIfChanged();
+  bool LoadFocusSidecar(std::string const & spaPath, int64_t mapDataVersion, street_pixels::SpaFile & file,
+                        street_pixels::CountryPolicy & policy);
 
   storage::CountryId m_countryId;
   mutable std::mutex m_countryIdMutex;
@@ -315,7 +327,18 @@ private:
   mutable std::mutex m_areaCompletionMutex;
 
   street_pixels::FocusedAreaProgress m_focusedAreaProgress;
-  // Sticky until recording / recentre / city zoom / intentional pan refresh displaces it.
   bool m_explicitFocusSticky = false;
   mutable std::mutex m_focusedAreaMutex;
+
+  std::string m_cachedFocusSpaPath;
+  int64_t m_cachedFocusSpaVersion = 0;
+  bool m_cachedFocusSpaValid = false;
+  street_pixels::SpaFile m_cachedFocusSpaFile;
+  street_pixels::CountryPolicy m_cachedFocusPolicy;
+
+  m2::PointD m_lastFocusMapCentre{0.0, 0.0};
+  int m_lastFocusDrawScale = 0;
+  bool m_lastFocusRecording = false;
+  bool m_lastFocusFollowing = false;
+  bool m_hasLastFocusRefresh = false;
 };
