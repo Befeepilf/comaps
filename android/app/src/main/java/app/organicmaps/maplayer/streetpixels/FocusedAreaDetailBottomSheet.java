@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import app.organicmaps.R;
 import app.organicmaps.util.UiUtils;
@@ -39,6 +40,7 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
     args.putBoolean(ARG_AREA_COMPLETED, areaCompleted);
     args.putBoolean(ARG_EMPTY, false);
     sheet.setArguments(args);
+    dismissIfShowing(fm);
     sheet.show(fm, TAG);
   }
 
@@ -48,7 +50,15 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
     Bundle args = new Bundle();
     args.putBoolean(ARG_EMPTY, true);
     sheet.setArguments(args);
+    dismissIfShowing(fm);
     sheet.show(fm, TAG);
+  }
+
+  public static void dismissIfShowing(@NonNull FragmentManager fm)
+  {
+    Fragment existing = fm.findFragmentByTag(TAG);
+    if (existing instanceof FocusedAreaDetailBottomSheet)
+      ((FocusedAreaDetailBottomSheet) existing).dismissAllowingStateLoss();
   }
 
   @NonNull
