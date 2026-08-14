@@ -203,6 +203,47 @@ UNIT_TEST(FocusEngine_Manager_SelectAtPoint_OutsideClears)
   CleanupFocusFx(fx);
 }
 
+UNIT_TEST(FocusEngine_Manager_IdlePanRefreshFollowsMapCentre)
+{
+  auto fx = MakeFocusFx("sp038_pan_centre");
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  TEST(manager.RefreshFocusFromViewport(fx.districtCentre, std::nullopt, false, false, 16, fx.spaPath,
+                                        fx.mapDataVersion),
+       ());
+  TEST_EQUAL(manager.GetFocusedAreaProgress().m_displayName, "District", ());
+
+  TEST(manager.RefreshFocusFromViewport(fx.cityOnlyCentre, std::nullopt, false, false, 16, fx.spaPath,
+                                        fx.mapDataVersion),
+       ());
+  TEST_EQUAL(manager.GetFocusedAreaProgress().m_displayName, "City", ());
+  CleanupFocusFx(fx);
+}
+
+UNIT_TEST(FocusEngine_Manager_HasExplorationAreaAtPoint)
+{
+  auto fx = MakeFocusFx("sp038_has_area");
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  TEST(manager.HasExplorationAreaAtPoint(fx.districtCentre, fx.spaPath, fx.mapDataVersion), ());
+  TEST(manager.HasExplorationAreaAtPoint(fx.cityOnlyCentre, fx.spaPath, fx.mapDataVersion), ());
+  TEST(!manager.HasExplorationAreaAtPoint(mercator::FromLatLon(70.0, 30.0), fx.spaPath, fx.mapDataVersion), ());
+  CleanupFocusFx(fx);
+}
+
+UNIT_TEST(FocusEngine_Manager_FollowRefreshUsesUserArea)
+{
+  auto fx = MakeFocusFx("sp035_follow_user");
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  TEST(manager.RefreshFocusFromViewport(fx.cityOnlyCentre, fx.districtCentre, false, true, 16, fx.spaPath,
+                                        fx.mapDataVersion),
+       ());
+  TEST_EQUAL(manager.GetFocusedAreaProgress().m_displayName, "District", ());
+  TEST(!manager.GetFocusedAreaProgress().m_citySummary, ());
+  CleanupFocusFx(fx);
+}
+
 UNIT_TEST(FocusEngine_Manager_ExplicitStickyIgnoresIdlePanRefresh)
 {
   auto fx = MakeFocusFx("sp038_sticky");
@@ -211,11 +252,25 @@ UNIT_TEST(FocusEngine_Manager_ExplicitStickyIgnoresIdlePanRefresh)
   TEST(manager.SelectFocusedAreaExplicit(0, fx.spaPath), ());
   TEST_EQUAL(manager.GetFocusedAreaProgress().m_displayName, "District", ());
 
-  // Idle map-centre refresh at city-only centre must not steal sticky explicit focus.
   TEST(manager.RefreshFocusFromViewport(fx.cityOnlyCentre, std::nullopt, false, false, 16, fx.spaPath,
                                         fx.mapDataVersion),
        ());
   TEST_EQUAL(manager.GetFocusedAreaProgress().m_displayName, "District", ());
+  CleanupFocusFx(fx);
+}
+
+UNIT_TEST(FocusEngine_Manager_CityScaleRefreshUsesCitySummary)
+{
+  auto fx = MakeFocusFx("sp039_city_zoom_refresh");
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  TEST(manager.RefreshFocusFromViewport(fx.districtCentre, std::nullopt, false, false, 10, fx.spaPath,
+                                        fx.mapDataVersion),
+       ());
+  auto p = manager.GetFocusedAreaProgress();
+  TEST(p.m_hasFocus, ());
+  TEST(p.m_citySummary, ());
+  TEST_EQUAL(p.m_displayName, "City", ());
   CleanupFocusFx(fx);
 }
 
