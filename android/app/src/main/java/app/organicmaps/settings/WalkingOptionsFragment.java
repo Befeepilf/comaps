@@ -61,7 +61,7 @@ public class WalkingOptionsFragment extends Fragment
         new ToggleRoutingOptionListener(RoadType.Paved, root, Router.Pedestrian);
     pavedBtn.setOnCheckedChangeListener(pavedBtnListener);
 
-    StreetExplorationPreferBinder.bind(root);
+    StreetExplorationPreferBinder.bindWithAvoid(this, root);
   }
 
   @Override
@@ -70,7 +70,7 @@ public class WalkingOptionsFragment extends Fragment
     super.onResume();
     View view = getView();
     if (view != null)
-      StreetExplorationPreferBinder.bind(view);
+      StreetExplorationPreferBinder.bindWithAvoid(this, view);
   }
 
   private record

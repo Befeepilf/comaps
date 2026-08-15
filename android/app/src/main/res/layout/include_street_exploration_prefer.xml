@@ -30,6 +30,36 @@
       android:layout_height="match_parent"/>
   </LinearLayout>
   <LinearLayout
+    android:id="@+id/street_exploration_avoid_container"
+    android:orientation="horizontal"
+    android:minHeight="@dimen/height_block_base"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingEnd="@dimen/margin_half"
+    android:paddingStart="@dimen/margin_base"
+    android:visibility="gone">
+    <com.google.android.material.imageview.ShapeableImageView
+      android:layout_width="24dp"
+      android:layout_height="24dp"
+      android:layout_marginEnd="@dimen/margin_base_plus"
+      android:layout_marginTop="@dimen/margin_half_plus"
+      app:srcCompat="@drawable/ic_layers"
+      app:tint="?iconTint" />
+    <com.google.android.material.textview.MaterialTextView
+      android:text="@string/avoid_explored_streets"
+      android:textAppearance="?android:attr/textAppearanceMedium"
+      android:layout_width="0dp"
+      android:layout_weight="1"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_vertical"
+      android:textColor="?android:attr/textColorPrimary"/>
+    <com.google.android.material.materialswitch.MaterialSwitch
+      android:id="@+id/avoid_explored_streets_btn"
+      android:layout_width="wrap_content"
+      android:padding="@dimen/margin_half_double_plus"
+      android:layout_height="match_parent"/>
+  </LinearLayout>
+  <LinearLayout
     android:id="@+id/street_exploration_strength_container"
     android:orientation="vertical"
     android:layout_width="match_parent"
