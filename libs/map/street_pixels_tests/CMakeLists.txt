@@ -12,6 +12,7 @@ set(SRC
   ever_live_tests.cpp
   explorer_pro_tests.cpp
   exploration_multiplier_tests.cpp
+  exploration_weight_lookup_tests.cpp
   focused_area_badge_tests.cpp
   focus_selection_engine_tests.cpp
   interrupted_session_tests.cpp
