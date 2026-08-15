@@ -121,5 +121,6 @@
       android:padding="@dimen/margin_half_double_plus"
       android:layout_height="match_parent"/>
   </LinearLayout>
+  <include layout="@layout/include_street_exploration_prefer"/>
 </LinearLayout>
 </androidx.core.widget.NestedScrollView>
