@@ -792,7 +792,8 @@ extension CarPlayService {
          .pointsInDifferentMWM:
       titleVariants = ["\(L("dialog_routing_download_files_carplay"))"]
     case .internalError,
-         .intermediatePointNotFound:
+         .intermediatePointNotFound,
+         .avoidExploredNoRoute:
       titleVariants = ["\(L("dialog_routing_system_error_carplay"))"]
     case .noError,
          .cancelled,
