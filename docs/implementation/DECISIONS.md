@@ -222,7 +222,9 @@ which this decision overrides.
 **Decision.** The **Avoid explored streets** option ships in public Android V1,
 with an explicit fallback offer when no fully unexplored route exists.
 
-**Status.** Accepted.
+**Status.** Accepted. The specific fallback-offer pair in Consequences is
+**superseded by SPD-042**. Avoid remaining in public Android V1, and never
+silently degrading, remain Accepted.
 
 **Context.** Today only a soft preference exists: `ApplyStreetExplorationMultiplier`
 scales segment weight by `1 + strength * 9 * exploredRatio`, capped near 10×,
@@ -236,12 +238,14 @@ declined: routing for curiosity rather than efficiency is a defining feature.
 - Avoid mode must never silently degrade to prefer mode. When a strictly
   unexplored route is impossible, the user is explicitly offered "allow the
   minimum necessary explored connection" or "return to normal routing".
+  **Superseded by SPD-042:** V1 fallback is an explicit switch to Prefer with
+  the strength seekbar; there is no min-connection search.
 - Failure modes (disconnected unexplored components, extreme detours,
   mid-navigation instability as the user explores) are product-visible states
   requiring designed handling, not silent fallbacks.
 
 **Related documents.** Product spec §17.3, §31, §34 ("Routing"); audit §12,
-spike 7.
+spike 7; SPD-042.
 
 ---
 
@@ -1210,6 +1214,192 @@ JSON would break version checks or silently EOL maps. Product-owner lock D14
 
 ---
 
+## SPD-040 — Routing uses the personal explored set including imported pixels
+
+**Decision.** Prefer-unexplored and Avoid routing weights use
+`df::StreetPixel::IsExplored()` — the personal explored set, including
+imported-only cells. `IsEverLive()` is unused for routing. Competition
+isolation is unchanged: imported exploration never affects recency, ownership,
+eligibility, or weekly ranking.
+
+**Status.** Accepted. Closes OQ-2 for V1.
+
+**Context.** Product-owner lock R1 (2026-08-15) via SP-055. Spec §17.2 talks
+about unvisited pixels on the personal map. Imported GPX turns pixels green
+and counts for personal completion (SPD-026, §29.2). Treating imported-green
+streets as unexplored for routing would contradict the map. Audit §12 already
+framed this as personal routing vs competition. Current
+`GetSegmentExplorationWeightMultiplier` already uses `IsExplored()`.
+
+**Consequences.**
+
+- OQ-2 is struck for V1.
+- SP-056/057 tests treat imported-only cells the same as live-explored cells
+  for weights and Avoid exclusion.
+- Phase 8 must not infer competition eligibility from routing weights.
+
+**Related documents.** Product spec §17.2, §29.2; SPD-015, SPD-026; OQ-2;
+SP-055; `phases/phase-06-exploration-aware-routing.md`.
+
+---
+
+## SPD-041 — Walk/bike Prefer and Avoid options; keep the strength seekbar
+
+**Decision.** Exploration routing options on walking and cycling surfaces are
+**Prefer unexplored** and **Avoid explored**, mutually exclusive. Neither
+selected is ordinary (standard) routing. The existing 0–100 **strength
+seekbar** stays in V1 and applies to Prefer (walk, bike, and the existing car
+Prefer control). A later replacement by max ETA or kilometre deviation from
+the optimal route is post-V1. Avoid is pedestrian and bicycle only; it does
+not apply to car routing. Car Prefer may remain on the driving-options
+surface.
+
+**Status.** Accepted.
+
+**Context.** Product-owner locks R2–R4 (2026-08-15) via SP-055. Spec §17.2–§17.3
+name Prefer and Avoid; they do not name a third “Standard” mode. The seekbar
+already exists on `DrivingOptionsFragment`. Product wants that abstract
+strength control on V1 rather than hiding it.
+
+**Consequences.**
+
+- SP-056 exposes Prefer + seekbar and the Avoid option (Avoid weights land in
+  SP-057) on `WalkingOptionsFragment` and `CyclingOptionsFragment`.
+- Persist Prefer vs Avoid vs neither; migrate `m_enabled == true` → Prefer.
+  Strength remains persisted.
+- Do not Pro-gate Prefer or Avoid (§29.1).
+
+**Related documents.** Product spec §17.2, §17.3, §29.1; SP-055; SP-056;
+`phases/phase-06-exploration-aware-routing.md`.
+
+---
+
+## SPD-042 — Avoid excludes fully explored edges; fallback is Prefer with strength
+
+**Decision.** V1 Avoid:
+
+1. **Edge test (R5).** Exclude an edge only when `exploredRatio == 1` (every
+   **matched** HEALPix sample on the segment is explored). Edges that still
+   have at least one unexplored matched sample remain usable. Unmatched
+   samples (no `.pix` hit) are not explored.
+2. **Algorithm (R12).** The strict pass uses **true exclusion** of those fully
+   explored edges, not a large finite penalty as the Avoid implementation.
+3. **No-route (R6).** If that pass finds no path, show a **clear no-route**
+   result (distinct from generic `RouteNotFound` / missing maps). Offer a
+   simple control that switches to **Prefer with the strength seekbar**.
+   Never auto-switch. Never silently keep Avoid while using Prefer weights.
+4. **No min-connection search (R7).** V1 does **not** implement “allow the
+   minimum necessary explored connection” as a second optimisation. Fallback
+   is Prefer with strength.
+5. **Warning (R8).** Show the §17.3 warning before Avoid is applied: “This
+   can produce very long routes or no available route.”
+
+**Status.** Accepted. Supersedes the fallback-offer pair in SPD-009
+consequences. Does not reopen whether Avoid ships in V1.
+
+**Context.** Product-owner locks R5–R8 and R12 (2026-08-15) via SP-055.
+Excluding every edge with any explored pixel (`exploredRatio > 0`) would
+often yield no route or extreme detours. Soft 10× Prefer is not Avoid.
+
+**Spec divergence (recorded, not silently resolved).**
+
+- Spec §17.3 describes avoiding edges **containing** explored pixels. V1
+  implements that as **fully explored** edges only (`exploredRatio == 1`).
+- Spec §17.3 / §31 offer “allow the minimum necessary explored connection”
+  (or “a small amount of explored routing”) and “return to normal routing.”
+  V1 offers an explicit switch to **Prefer with strength** instead.
+
+The product spec is not edited here. Phase 6 exit criteria follow this SPD.
+
+**Consequences.**
+
+- SP-057 implements exclusion at `exploredRatio == 1` and a distinct
+  no-route result.
+- SP-058 implements the warning, the no-route UI, and the Prefer+seekbar
+  switch. It does **not** implement a min-connection cost function.
+- Mixed-explored edges are weighted as ordinary (Avoid) or by the Prefer
+  multiplier (Prefer mode), never excluded.
+- SPD-009’s “never silently degrade to prefer” still holds: the switch is
+  an explicit user action.
+
+**Related documents.** Product spec §17.3, §31, §34; SPD-009; SP-055;
+SP-057; SP-058; `phases/phase-06-exploration-aware-routing.md`.
+
+---
+
+## SPD-043 — Mid-navigation Avoid does not abandon a followed path that turned green
+
+**Decision.** While **following** an Avoid route, newly explored pixels on
+the remaining followed geometry must **not** by themselves trigger a
+re-search that abandons that path. Off-route detection and user-requested
+recalculation may re-apply Avoid from the new position. If the strict pass
+then fails, show the SPD-042 Prefer+strength control — do not silently
+inject fully explored edges.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock R9 (2026-08-15) via SP-055. Audit §12 listed
+mid-navigation instability as a hard-Avoid risk.
+
+**Consequences.**
+
+- SP-059 implements follow-stability and off-route rebuild using SPD-042
+  fallback, not a min-connection retry.
+
+**Related documents.** Product spec §17.3; SPD-042; SP-055; SP-059;
+audit §12.
+
+---
+
+## SPD-044 — Routing-mode analytics are count-only
+
+**Decision.** Prefer-unexplored and Avoid usage are recorded as **counts
+only**: prefer-used, avoid-used, avoid-fallback-prefer. No origin,
+destination, geometry, pixel ids, or area ids. Implement a shared counter
+API. If no privacy-safe upload sink exists, keep counters local and residual
+**upload** to Phase 10. Do not send these events through Sentry.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock R10 (2026-08-15) via SP-055. SP-003 deferred
+product-analytics events. Phase 6 exit #6 still requires mode-usage
+measurement (spec §32.2).
+
+**Consequences.**
+
+- SP-060 implements the counters. Avoid-fallback-prefer increments when the
+  user takes the SPD-042 switch. There is no min-connection counter.
+
+**Related documents.** Product spec §32.2, §25.1, §34; SP-003; SP-055;
+SP-060.
+
+---
+
+## SPD-045 — Routing weights use the segment MWM’s `.pix` when installed
+
+**Decision.** Prefer and Avoid consult the `.pix` for the **segment’s MWM**
+when that file is installed, not only the overlay’s `m_countryId`. Missing
+`.pix` → unmatched samples → not explored (Prefer multiplier 1.0; Avoid
+does not exclude). Do not load extra leaves into the renderer overlay.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock R11 (2026-08-15) via SP-055. Today
+`GetSegmentExplorationWeightMultiplier` returns 1.0 when
+`mwmCountryName != m_countryId`, so cross-leaf routes silently ignore
+exploration.
+
+**Consequences.**
+
+- SP-056/057 replace the mismatch early-return with a per-segment leaf
+  lookup. Optional cache of recently used leaf maps is an implementation
+  detail; dropping weights to 1.0 is not.
+
+**Related documents.** SP-055; SP-056; SP-057;
+`phases/phase-06-exploration-aware-routing.md`.
+
+---
+
 ## 15. Recorded open questions (not decisions)
 
 These are carried from existing project documents. They are listed so they are
@@ -1219,7 +1409,7 @@ treated as authorisation.
 | Ref | Question | Source | Blocks |
 | --- | --- | --- | --- |
 | OQ-1 | The area-completion formula (§7), ownership-score formula (§22.4), and contested-state threshold (§22.9) are empty in the product spec. **Personal completion slice closed by SPD-026** (explored/total; live+imported). Ownership / contested remain open. | Product spec; audit §2, §22 | Phase 8 (ownership / contested). Phase 5 personal completion → SPD-026. |
-| OQ-2 | Does prefer-unexplored routing use the personal explored set including imported pixels, or live-only? **Phase 6 recommended lock R1 in SP-055: personal `IsExplored()` including imported; not Accepted.** | Audit §12, §27 Q4 | Phase 6 entry / SP-055. |
+| OQ-2 | ~~Does prefer-unexplored routing use the personal explored set including imported pixels, or live-only?~~ | Audit §12, §27 Q4 | **Closed by SPD-040** — personal `IsExplored()` including imported; `IsEverLive()` unused for routing. |
 | OQ-3 | Weekly leaderboard reset when a city's local time zone is unknown. | Audit §24 | Phase 8. |
 | OQ-4 | Nickname uniqueness: the spec says nicknames need not be unique, but the current backend enforces a unique `username`. | Product spec §20.4; backend `core/models.py` | Phase 8. |
 | OQ-5 | ~~Bridge and tunnel eligibility, and the motorway-with-explicit-bicycle-access case, after a tag-survival audit.~~ | Product spec §13.1; audit §6, §27 Q9 | **Closed by SP-020** — bridges include; tunnels exclude; motorway/motorway_link (incl. bridge) require `hwtag-yesbicycle`. |
