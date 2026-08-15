@@ -363,7 +363,7 @@ RouterResultCode IndexRouter::CalculateRoute(Checkpoints const & checkpoints, m2
       if (distanceToRoute <= kAdjustRangeM && distanceToFinish >= kMinDistanceToFinishM)
       {
         auto const code = AdjustRoute(checkpoints, startDirection, delegate, route);
-        if (code != RouterResultCode::RouteNotFound)
+        if (code != RouterResultCode::RouteNotFound && code != RouterResultCode::AvoidExploredNoRoute)
           return code;
 
         LOG(LWARNING, ("Can't adjust route, do full rebuild, prev start:", mercator::ToLatLon(m_lastRoute->GetStart()),
