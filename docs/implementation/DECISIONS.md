@@ -1219,7 +1219,7 @@ treated as authorisation.
 | Ref | Question | Source | Blocks |
 | --- | --- | --- | --- |
 | OQ-1 | The area-completion formula (§7), ownership-score formula (§22.4), and contested-state threshold (§22.9) are empty in the product spec. **Personal completion slice closed by SPD-026** (explored/total; live+imported). Ownership / contested remain open. | Product spec; audit §2, §22 | Phase 8 (ownership / contested). Phase 5 personal completion → SPD-026. |
-| OQ-2 | Does prefer-unexplored routing use the personal explored set including imported pixels, or live-only? | Audit §12, §27 Q4 | Phase 6 acceptance criteria. |
+| OQ-2 | Does prefer-unexplored routing use the personal explored set including imported pixels, or live-only? **Phase 6 recommended lock R1 in SP-055: personal `IsExplored()` including imported; not Accepted.** | Audit §12, §27 Q4 | Phase 6 entry / SP-055. |
 | OQ-3 | Weekly leaderboard reset when a city's local time zone is unknown. | Audit §24 | Phase 8. |
 | OQ-4 | Nickname uniqueness: the spec says nicknames need not be unique, but the current backend enforces a unique `username`. | Product spec §20.4; backend `core/models.py` | Phase 8. |
 | OQ-5 | ~~Bridge and tunnel eligibility, and the motorway-with-explicit-bicycle-access case, after a tag-survival audit.~~ | Product spec §13.1; audit §6, §27 Q9 | **Closed by SP-020** — bridges include; tunnels exclude; motorway/motorway_link (incl. bridge) require `hwtag-yesbicycle`. |

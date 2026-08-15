@@ -1,0 +1,110 @@
+# SP-059 — Mid-navigation stability when the route becomes explored
+
+**Phase:** 6 — Exploration-aware routing
+**Status:** Planned
+**Depends on:** SP-055 R9 Accepted; SP-057 engine; SP-058 so Avoid can be
+  followed
+**Unblocks:** SP-061 exit #5
+
+---
+
+## Objective
+
+Define and implement stable behaviour when the user explores streets that
+are part of the active Avoid (or Prefer) route during navigation, so the
+app does not thrash between recomputations.
+
+## Motivation
+
+Audit §12 lists mid-navigation instability as a hard-Avoid risk: as pixels
+turn green, strict exclusion would invalidate the remaining path and
+re-search. Spec §17.3 does not specify this case; SP-055 R9 is the lock.
+Without an implementation, exit criterion 5 cannot pass.
+
+## In-scope behavior
+
+- While **following** a route built under Avoid: newly explored pixels on
+  the **remaining followed geometry** do not trigger a strict re-search
+  that abandons that path (R9).
+- Off-route detection and user-requested recalculation **may** re-apply
+  Avoid from the new position. If the strict pass fails, use the SP-058
+  fallback offer; do not silently inject explored edges.
+- Prefer-following: keep today’s continuous recompute behaviour unless it
+  produces a loop; do not invent a freeze for Prefer without evidence.
+- Automated test: start following an Avoid route; mark remaining segments
+  explored; assert the followed polyline is not replaced by a pathological
+  new path in the same session without an off-route / explicit rebuild.
+- Document the locked behaviour in this work item’s evidence (and phase-06
+  if the wording still says “undefined”).
+
+## Out-of-scope behavior
+
+- Changing collection / interpolation (Phase 2).
+- Completing Avoid UI (SP-058) except consuming following-state.
+- Analytics (SP-060).
+- Car navigation.
+
+## Relevant product requirements
+
+- Spec §17.3 (no silent abandon of the selected **rule** — not the same as
+  freezing geometry forever).
+- SP-055 R9; audit §12 mid-navigation risk.
+- Phase 6 exit #5.
+
+## Relevant source files or symbols
+
+- `routing::RoutingSession` following / rebuild / off-route
+- `RoutingManager`
+- `IndexRouter` rebuild entry points
+- Street-pixel collection callbacks that currently do not notify routing
+
+## Implementation notes / constraints
+
+- Shared C++ owns the policy (SPD-002).
+- Need a way to know “this rebuild is because pixels changed” vs “user went
+  off-route”. If no signal exists, add a narrow one; do not disable all
+  recalculation.
+- Offline-only.
+
+## Acceptance criteria
+
+1. R9 is implemented and described in evidence.
+2. Automated case: exploring the remaining Avoid path does not by itself
+   replace the route.
+3. Off-route / explicit recalc still runs; Avoid-impossible uses SP-058
+   offer, not a silent explored route.
+4. No recompute loop under a synthetic “pixels turn green along the route”
+   sequence.
+
+## Required automated tests
+
+- Follow + paint remaining edges explored → same route.
+- Off-route rebuild still attempted (may use a session test double).
+
+## Required manual validation
+
+- Start Avoid navigation, walk the route, confirm no thrash. Device
+  residual → SP-061 / Phase 10.
+
+## Failure and rollback considerations
+
+- Do not freeze Avoid across off-route rebuilds (that would strand the
+  user).
+- Do not re-enable strict exclusion on every GPS tick.
+
+## Completion evidence
+
+| Field | Value |
+| --- | --- |
+| Branch | |
+| Test output | |
+| Policy as implemented | |
+| Manual validation | |
+| Accepted by | |
+| Accepted date | |
+
+## Discovered follow-up
+
+| Finding | Proposed disposition |
+| --- | --- |
+| (filled during implementation) | |

@@ -203,6 +203,11 @@ Validation:
 [`validation/SP-041-validation-plan.md`](validation/SP-041-validation-plan.md),
 [`validation/SP-041-evidence-log.md`](validation/SP-041-evidence-log.md).
 
+Phase 6 work-item planning (2026-08-15) may proceed in parallel: Phase 6
+depends on Phase 3 only, not on Phase 5. Coding SP-056+ stays gated on
+SP-054 + SP-055. See
+[`phases/phase-06-exploration-aware-routing.md`](phases/phase-06-exploration-aware-routing.md).
+
 ## 5. Release slices
 
 A release slice is a coherent build that can be handed to someone. Slices are
@@ -462,6 +467,22 @@ SP-033–SP-040 **Accepted** 2026-08-07. SP-041 exit evidence recorded (awaiting
 maintainer Phase 5 exit decision). Quantitative Spike 1 → Phase 10.
 SPD-026 locks personal completion.
 
-Detailed work items exist for Phases 1–5. Later phases are broken down after
-their entry criteria are met, and after any spike that phase depends on has a
-recorded outcome.
+| Order | ID | Title | Phase | Why first |
+| --- | --- | --- | --- | --- |
+| 54 | [SP-054](work-items/SP-054-routing-spike.md) | Spike: exploration-aware routing measurement | 6 | **Planned** — Spike 7 entry gate; avoid length/time vs standard + disconnected case |
+| 55 | [SP-055](work-items/SP-055-routing-architecture-decisions.md) | Routing architecture decisions | 6 | **Planned** — recommended R1–R12 (OQ-2, Avoid semantics, UI, analytics); not Accepted |
+| 56 | [SP-056](work-items/SP-056-prefer-unexplored-walk-bike.md) | Prefer-unexplored on walking and cycling surfaces | 6 | Planned — gated on SP-054 + SP-055 Group A |
+| 57 | [SP-057](work-items/SP-057-avoid-explored-engine.md) | Avoid-explored engine (strict pass + distinct no-route) | 6 | Planned — gated on R12 / SP-054 |
+| 58 | [SP-058](work-items/SP-058-avoid-fallback-and-warning.md) | Avoid warning, fallback offer, min-connection retry | 6 | Planned |
+| 59 | [SP-059](work-items/SP-059-mid-navigation-avoid-stability.md) | Mid-navigation stability when the route becomes explored | 6 | Planned |
+| 60 | [SP-060](work-items/SP-060-routing-mode-analytics.md) | Count-only routing-mode analytics | 6 | Planned — local counters; upload residual if no sink |
+| 61 | [SP-061](work-items/SP-061-phase6-end-to-end-validation.md) | Phase 6 end-to-end validation | 6 | Planned — exit gate |
+
+Phase 6 entry investigation (2026-08-15) recorded in
+[`phases/phase-06-exploration-aware-routing.md`](phases/phase-06-exploration-aware-routing.md).
+SP-054–061 **Planned**. OQ-2 and Spike 7 measurement are **not met**;
+recommended locks live in SP-055 and are not Accepted SPDs. Coding SP-056+
+does not start until SP-054 has a recorded outcome and SP-055 Group A is
+Accepted. Detailed work items exist for Phases 1–6. Later phases are broken
+down after their entry criteria are met, and after any spike that phase
+depends on has a recorded outcome.
