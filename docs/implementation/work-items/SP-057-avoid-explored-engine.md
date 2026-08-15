@@ -1,7 +1,7 @@
 # SP-057 — Avoid-explored engine (strict pass + distinct no-route)
 
 **Phase:** 6 — Exploration-aware routing
-**Status:** In review
+**Status:** Accepted
 **Branch:** `cursor/sp-057-avoid-engine-35cf`
 **Depends on:** SPD-040–042, SPD-045; SP-054 recorded; SP-056 mode model
   landed (or this item includes a minimal mode hook — prefer stacking after
@@ -112,8 +112,8 @@ can offer Prefer+strength.
 | Branch | `cursor/sp-057-avoid-engine-35cf` |
 | Test output | See below. |
 | Exclusion rule | `exploredRatio == 1` (SPD-042) |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-15 |
 
 ### Automated tests (executed 2026-08-15)
 
