@@ -1,8 +1,8 @@
 # SP-054 — Spike: exploration-aware routing measurement
 
 **Phase:** 6 — Exploration-aware routing
-**Status:** Planned
-**Branch:** (this planning branch until the spike runs)
+**Status:** In review
+**Branch:** `cursor/sp-054-routing-spike-35cf`
 **Depends on:** Phase 3 exit met; SPD-040–045 (algorithm shape locked)
 **Unblocks:** SP-056+ coding gate (measurement / residual)
 
@@ -112,18 +112,18 @@ or silently change production defaults.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Target (desktop / device) | |
-| MWM / city | |
-| OD description | |
+| Branch | `cursor/sp-054-routing-spike-35cf` |
+| Target (desktop / device) | Desktop synthetic graph harness (primary) |
+| MWM / city | Synthetic `kTestNumMwmId` 777; no city-scale MWM |
+| OD description | Connected vertices 0→4 over three alternatives; forced cut vertices 0→3 over two alternatives |
 | Explored-set used | `IsExplored()` (SPD-040) |
-| Standard length / time | |
-| Prefer (50) length / time | |
-| Prefer (100) length / time | |
-| Avoid exclusion (`ratio == 1`) length / time or NoPath | |
-| Forced no-route case | |
-| Pass / fail / residual vs &lt;2 s extra | |
-| Phase 10 residual | |
+| Standard length / time | Connected: 200 m, median 99 µs, p95 105 µs; forced cut: 200 m, median 83 µs, p95 87 µs |
+| Prefer (50) length / time | 300 m, median 108 µs, p95 114 µs, median extra +9 µs |
+| Prefer (100) length / time | 800 m, median 100 µs, p95 103 µs, median extra +1 µs |
+| Avoid exclusion (`ratio == 1`) length / time or NoPath | Connected: 300 m, median 85 µs, p95 88 µs, median extra -14 µs; detour +100 m / +50%; 0/101 NoPath |
+| Forced no-route case | Avoid: `NoPath` in 101/101 timed runs, median 58 µs, p95 60 µs, median extra -25 µs |
+| Pass / fail / residual vs &lt;2 s extra | Synthetic desktop pass: largest positive median and p95 extra +9 µs; city-scale residual remains |
+| Phase 10 residual | Installed city-scale MWM with per-leaf `.pix` lookups; device latency, storage behavior, and battery |
 | Accepted by | |
 | Accepted date | |
 
@@ -131,4 +131,6 @@ or silently change production defaults.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| (filled during the spike) | |
+| Synthetic provider lookup count was 6–16 per timed `FindPath`; the helper runs bidirectional and unidirectional A* | Measure production per-leaf `.pix` lookup and cache cost in Phase 10 |
+| Connected Avoid detoured 100 m / 50%; forced-cut Avoid returned `NoPath` deterministically | Carry both outcomes into SP-057 behavior validation without reopening SPD-042 |
+| City-scale MWM and device performance were not measured | Phase 10 residual |
