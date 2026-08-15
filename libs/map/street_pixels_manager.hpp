@@ -226,6 +226,7 @@ public:
   void SetStreetPixelsForTesting(std::vector<df::StreetPixel> pixels);
   void SetStreetPixelsOverlayForTesting(storage::CountryId const & countryId, std::vector<df::StreetPixel> pixels);
   void ClearLeafPixCacheForTesting();
+  void EvictLeafPixForTesting(storage::CountryId const & countryId);
   size_t MarkTrackPixelsForTesting(std::set<std::int64_t> const & pixelIds);
   size_t MarkImportedPixelsForTesting(std::set<std::int64_t> const & pixelIds);
   bool IsPixelExploredForTesting(std::int64_t pixelId) const;
