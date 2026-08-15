@@ -40,42 +40,42 @@ fully explored edges or clearly asks the user to switch to Prefer.
 
 ## Current code locations
 
-Re-verified 2026-08-15 against the working tree (Phase 6 entry).
+Re-verified 2026-08-15 against the working tree (Phase 6 entry; SP-056 rows updated after implementation).
 
 | Concern | Location | Observed state |
 | --- | --- | --- |
 | Weight hook | `libs/routing/street_exploration_for_routing.hpp` `IStreetExplorationWeights::GetSegmentWeightMultiplier` | Interface exists; multiplier only |
 | Multiplier application | `libs/routing/edge_estimator.cpp` `ApplyStreetExplorationMultiplier` | Applied for `Purpose::Weight` only, never ETA. Wired into **Pedestrian, Bicycle, and Car** estimators |
-| Multiplier formula | `StreetPixelsManager::GetSegmentExplorationWeightMultiplier` | `1.0 + strength * 9.0 * exploredRatio`. `strength` = `m_strength / kMaxStrength`. `exploredRatio` = explored / matched HEALPix samples on the segment. Max 10× at strength 100. Returns 1.0 when disabled, not Ready, no pixels, or **no matched samples** |
+| Multiplier formula | `StreetPixelsManager::GetSegmentExplorationWeightMultiplier` | `1.0 + strength * 9.0 * exploredRatio`. `strength` = `m_strength / kMaxStrength`. `exploredRatio` = explored / matched HEALPix samples on the segment. Max 10× at strength 100. Returns 1.0 when mode is not Prefer (Neither/Avoid), missing/corrupt/empty `{mwm}.pix`, or **no matched samples**. Overlay Ready no longer gates leaf lookup |
 | Explored-set query | same function, `sp->IsExplored()` | Uses the **personal explored bit**, including imported-only cells. Does **not** consult `IsEverLive()`. Phase 3 ever-live bit exists (`df::StreetPixel::IsEverLive`) and is unused by routing |
-| Single-MWM overlay | `StreetPixelsManager::m_countryId` | Overlay loads **one** country `.pix`. Adapter returns **1.0** when `mwmCountryName != m_countryId` (logged a few times). Cross-leaf routes silently ignore exploration |
-| Options | `routing::StreetExplorationRoutingOptions` | `m_enabled` + `m_strength` 0–100 (default 50). Persisted in settings. No Avoid mode, no vehicle-type scope |
-| Adapter | `libs/map/street_exploration_routing_adapter.cpp` | Bridges IndexRouter → `StreetPixelsManager` from `RoutingManager` for every non-ruler router |
-| Walk/bike options UI | `WalkingOptionsFragment`, `CyclingOptionsFragment` | **No** prefer/avoid controls. Ferry/dirty/steps/paved only |
-| Driving options UI | `DrivingOptionsFragment`, car `DrivingOptionsScreen` | Prefer toggle + strength seekbar (car screen: toggle only) |
-| Options host | `RoutingOptionsFragment` | Three tabs (walk / cycle / drive); prefer lives only on the drive tab |
+| Single-MWM overlay | `StreetPixelsManager::m_countryId` | Overlay still loads **one** country `.pix` for the renderer. Weight path: overlay hit if overlay country matches the segment MWM and the overlay span is non-empty; else mmap `{mwmCountryName}.pix` (successful-mmap LRU of 4). Overlay country mismatch no longer forces 1.0 (SPD-045) |
+| Options | `routing::StreetExplorationRoutingOptions` | `m_mode` Neither/Prefer/Avoid + `m_strength` 0–100 (default 50). Settings key `street_exploration_routing_mode` is source of truth; legacy `street_exploration_routing_enabled` dual-writes `"true"` iff Prefer. Avoid stored does not change weights until SP-057 |
+| Adapter | `libs/map/street_exploration_routing_adapter.cpp` | Bridges IndexRouter → `StreetPixelsManager` from `RoutingManager` for every non-ruler router. Already passes segment MWM name; no adapter change in SP-056 |
+| Walk/bike options UI | `WalkingOptionsFragment`, `CyclingOptionsFragment` | Prefer switch + strength seekbar via `include_street_exploration_prefer.xml`. Avoid **hidden** until SP-058 |
+| Driving options UI | `DrivingOptionsFragment`, car `DrivingOptionsScreen` | Prefer toggle + strength seekbar (car screen: toggle only). Prefer ON ↔ Prefer, OFF ↔ Neither. No Avoid row |
+| Options host | `RoutingOptionsFragment` | Three tabs (walk / cycle / drive); Prefer on all three. Rebuild detects `m_mode` + `m_strength` |
 | No-route UX | `ResultCodesHelper` / `MwmActivity.onDrivingOptionsBuildError` | Generic `RouteNotFound` and “unable to calc — open settings”. **No** avoid-specific result code or fallback offer |
 | Hard exclusion | — | **Not found** anywhere in `libs/`. Only continuous weight multiplication |
 | Analytics | — | **Not found.** SP-003 explicitly deferred product-analytics events. No count sink for §32.2 |
 | Feature flags | `explorer_pro::Capability` | GPX/track only. Prefer/avoid are free (§29.1); do not Pro-gate |
-| Arithmetic tests | `street_pixels_tests` `ExplorationMultiplier_*` | Formula only; not wired to the manager or a graph |
+| Arithmetic tests | `street_pixels_tests` `ExplorationMultiplier_*` plus `ExplorationWeight_*` | Formula helpers unchanged. Manager tests cover Prefer 10.0, Avoid→1.0, imported=live, overlay-mismatch leaf `.pix`, missing pix → 1.0 |
 | Graph / avoid tests | — | **Not found** |
 
 **Difference from the technical audit (2026-07-20):** Phase 3 landed the
 ever-live bit (SPD-015). Routing still uses `IsExplored()` only — the audit’s
 “same explored bit” description remains true for the weight path. Walk/cycle
-tabs exist now (`RoutingOptionsFragment`) but still omit prefer; the audit’s
-“driving-options surface only” UI gap is unchanged. The single-MWM
-`m_countryId` mismatch early-return was not called out in the 2026-07-25
-phase snapshot.
+tabs now expose Prefer + seekbar (SP-056); Avoid chrome remains hidden until
+SP-058, so the audit’s “driving-options surface only” snapshot is stale for
+Prefer. The single-MWM overlay remains renderer-only; weight lookup consults
+the segment MWM `.pix` when installed (SPD-045).
 
-**Difference from the product spec:** Prefer exists as a global soft
-multiplier, but V1 requires it on **walking and cycling** surfaces (§17.2,
-§34). Avoid-explored (§17.3, SPD-009) is absent. Strength slider is not in
-the spec; **SPD-041** keeps it for V1. **SPD-042** records two V1
-divergences: Avoid excludes only fully explored edges (`exploredRatio ==
-1`), and no-route fallback is Prefer+strength rather than the §17.3 /
-§31 min-connection pair.
+**Difference from the product spec:** Prefer is on walking and cycling
+surfaces (§17.2, §34) after SP-056. Avoid-explored (§17.3, SPD-009) is still
+absent as a selectable control (hidden until SP-058; weights 1.0 until
+SP-057). Strength slider is not in the spec; **SPD-041** keeps it for V1.
+**SPD-042** records two V1 divergences: Avoid excludes only fully explored
+edges (`exploredRatio == 1`), and no-route fallback is Prefer+strength
+rather than the §17.3 / §31 min-connection pair.
 
 ## Intended outcome
 
