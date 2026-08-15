@@ -65,6 +65,15 @@ public class CyclingOptionsFragment extends Fragment
     StreetExplorationPreferBinder.bind(root);
   }
 
+  @Override
+  public void onResume()
+  {
+    super.onResume();
+    View view = getView();
+    if (view != null)
+      StreetExplorationPreferBinder.bind(view);
+  }
+
   private record
       ToggleRoutingOptionListener(@NonNull RoadType mRoadType, @NonNull View mRoot, @NonNull Router mRouterType)
       implements CompoundButton.OnCheckedChangeListener {
