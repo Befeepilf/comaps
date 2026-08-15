@@ -166,10 +166,40 @@ outcome. This environment cannot complete the OD.
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-058-avoid-fallback-ux-35cf` |
-| Test output | |
+| Test output | See below. |
 | Manual validation | Device residual → SP-061 / Phase 10. This environment cannot complete the OD. |
 | Accepted by | |
 | Accepted date | |
+
+### Automated tests (executed 2026-08-15)
+
+```
+cd android && ./gradlew :sdk:testDebugUnitTest \
+  --tests app.organicmaps.sdk.routing.RoutingBuildErrorTest \
+  --tests app.organicmaps.sdk.routing.StreetExplorationRoutingOptionsTest \
+  -x externalNativeBuildDebug -x externalNativeBuildRelease \
+  -x configureCMakeDebug -x buildCMakeDebug --rerun-tasks
+```
+
+`BUILD SUCCESSFUL in 3s`
+
+- `RoutingBuildErrorTest`: **11/11 OK**, 0 failures, 0 errors
+- `StreetExplorationRoutingOptionsTest`: **5/5 OK**, 0 failures, 0 errors
+- Total: **16/16 OK**, 100% successful
+
+JUnit covers `preferFallback` and result-code mapping only. Production
+fallback path is `RoutingErrorDialogFragment` positive click →
+`preferFallback` → `SaveToSettings` (JNI) → `rebuildLastRoute()`.
+
+App Java compile (F-Droid debug, native CMake skipped):
+
+```
+cd android && ./gradlew :app:compileFdroidDebugJavaWithJavac \
+  -x externalNativeBuildDebug -x externalNativeBuildRelease \
+  -x configureCMakeDebug -x buildCMakeDebug
+```
+
+`BUILD SUCCESSFUL in 18s` (deprecation warnings only; no errors).
 
 ## Discovered follow-up
 
