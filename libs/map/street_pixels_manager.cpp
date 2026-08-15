@@ -1,3 +1,4 @@
+#include "base/string_utils.hpp"
 #include "base/assert.hpp"
 #include "base/file_name_utils.hpp"
 #include "base/logging.hpp"
@@ -18,6 +19,7 @@
 #include "indexer/feature_decl.hpp"
 #include "indexer/features_vector.hpp"
 
+#include "geometry/screenbase.hpp"
 #include "geometry/angles.hpp"
 #include "geometry/mercator.hpp"
 #include "geometry/parametrized_segment.hpp"
@@ -33,6 +35,7 @@
 #include "map/live_sample_acceptance_filter.hpp"
 #include "map/live_segment_interpolation.hpp"
 
+#include "street_pixels_areas/exploration_area_tap.hpp"
 #include "street_pixels_areas/area_completion_cache.hpp"
 #include "street_pixels_areas/area_overlay.hpp"
 #include "street_pixels_areas/areas_format.hpp"
@@ -1957,6 +1960,24 @@ bool StreetPixelsManager::HasExplorationAreaAtPoint(m2::PointD const & mercator,
   return street_pixels::LookupExplorationAreaAtPoint(file, policy, mercator) != nullptr;
 }
 
+std::optional<uint32_t> StreetPixelsManager::HitOverlayLabel(m2::PointD const & mercator, ScreenBase const & screen) const
+{
+  std::vector<street_pixels::AreaLabelHitTarget> labels;
+  {
+    std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+    labels.reserve(m_overlayLabels.size());
+    for (auto const & label : m_overlayLabels)
+    {
+      street_pixels::AreaLabelHitTarget target;
+      target.m_compactIndex = label.m_compactIndex;
+      target.m_labelPx = screen.GtoP(label.m_labelPoint);
+      target.m_halfSizePx = label.m_halfSizePx;
+      labels.push_back(target);
+    }
+  }
+  return street_pixels::HitExplorationAreaLabel(labels, screen.GtoP(mercator));
+}
+
 bool StreetPixelsManager::SelectFocusedAreaAtPoint(m2::PointD const & mercator, std::string const & spaPath,
                                                    int64_t mapDataVersion)
 {
@@ -2272,7 +2293,9 @@ void StreetPixelsManager::PushExplorationAreaOverlayUnlocked(street_pixels::SpaF
 
   auto geometries = street_pixels::BuildAreaOverlayGeometry(file, policy, fractions, nullptr);
   std::vector<df::ExplorationAreaOverlayItem> items;
+  std::vector<OverlayLabel> labels;
   items.reserve(geometries.size());
+  labels.reserve(geometries.size());
   for (auto & geom : geometries)
   {
     auto const style =
@@ -2293,7 +2316,20 @@ void StreetPixelsManager::PushExplorationAreaOverlayUnlocked(street_pixels::SpaF
     item.m_outlineColor =
         dp::Color(style.m_outline.m_r, style.m_outline.m_g, style.m_outline.m_b, style.m_outline.m_a);
     item.m_outlineWidthPx = style.m_outlineWidthPx;
+    if (!item.m_name.empty())
+    {
+      OverlayLabel label;
+      label.m_compactIndex = item.m_compactIndex;
+      label.m_labelPoint = item.m_labelPoint;
+      double const n = static_cast<double>(std::max<size_t>(1, strings::Utf8Length(item.m_name)));
+      label.m_halfSizePx = {std::max(24.0, n * 8.0), 20.0};
+      labels.push_back(label);
+    }
     items.push_back(std::move(item));
+  }
+  {
+    std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+    m_overlayLabels = std::move(labels);
   }
   m_drapeEngine.SafeCall(&df::DrapeEngine::UpdateExplorationAreaOverlay, std::move(items));
 }
@@ -2303,6 +2339,10 @@ void StreetPixelsManager::ClearPixels()
   LOG(LINFO, ("Clearing pixels and unmapping pix file"));
   m_drapeEngine.SafeCall(&df::DrapeEngine::ClearStreetPixels);
   m_drapeEngine.SafeCall(&df::DrapeEngine::ClearExplorationAreaOverlay);
+  {
+    std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+    m_overlayLabels.clear();
+  }
   {
     std::lock_guard<std::shared_mutex> lock(m_streetPixelsMutex);
     m_streetPixels = {};

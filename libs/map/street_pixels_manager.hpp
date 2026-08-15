@@ -48,6 +48,8 @@
 #include <unordered_map>
 #include <vector>
 
+class ScreenBase;
+
 namespace hp
 {
 T_Healpix_Base<std::int64_t> const & GetHealpixBase();
@@ -188,6 +190,7 @@ public:
   // Polygon hit-test at point → ExplicitSelect (not MapPan). Outside → clear focus.
   bool SelectFocusedAreaAtPoint(m2::PointD const & mercator, std::string const & spaPath, int64_t mapDataVersion);
   bool HasExplorationAreaAtPoint(m2::PointD const & mercator, std::string const & spaPath, int64_t mapDataVersion);
+  std::optional<uint32_t> HitOverlayLabel(m2::PointD const & mercator, ScreenBase const & screen) const;
   // Resolve §12.5 inputs from viewport/session and apply the engine.
   bool RefreshFocusFromViewport(m2::PointD const & mapCentre, std::optional<m2::PointD> const & userPos,
                                 bool recordingActive, bool followingMyPosition, int drawScale,
@@ -298,6 +301,14 @@ private:
   void PushExplorationAreaOverlayUnlocked(street_pixels::SpaFile const & file);
   void RefreshFocusedAreaFractionUnlocked();
   void ClearFocusedAreaUnlocked();
+
+  struct OverlayLabel
+  {
+    uint32_t m_compactIndex = 0;
+    m2::PointD m_labelPoint;
+    m2::PointD m_halfSizePx;
+  };
+  std::vector<OverlayLabel> m_overlayLabels;
 
   // Updates heuristic stats for each street in the explore radius. Needed for routing to prefer streets with more
   // unexplored pixels.

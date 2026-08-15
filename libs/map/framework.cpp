@@ -14,6 +14,7 @@
 
 #include "street_pixels_areas/exploration_area_tap.hpp"
 #include "street_pixels_areas/exploration_sidecar.hpp"
+#include "street_pixels_areas/area_overlay.hpp"
 
 #include "ge0/url_generator.hpp"
 
@@ -2234,23 +2235,27 @@ bool Framework::TryHandleExplorationAreaTap(place_page::Info const & info)
   tap.m_isTrack = info.IsTrack();
   tap.m_isMyPosition = info.IsMyPosition();
   tap.m_isRoutePoint = info.IsRoutePoint();
-  tap.m_isPointFeature = info.IsFeature() && info.IsPointType();
-  tap.m_isAreaLabel = info.IsFeature() && ftypes::IsPlaceChecker::Instance()(info.GetTypes());
+  tap.m_isPointFeature =
+      info.IsFeature() && info.IsPointType() && !ftypes::IsPlaceChecker::Instance()(info.GetTypes());
+  std::optional<uint32_t> labelIndex;
+  if (GetDrawScale() >= street_pixels::kAreaOverlayMinZoom)
+    labelIndex = manager.HitOverlayLabel(info.GetMercator(), m_currentModelView);
+  tap.m_isAreaLabel = labelIndex.has_value();
   auto const kind = street_pixels::ClassifyMapTap(tap);
-  if (kind != street_pixels::MapTapKind::AreaLabel)
+  if (!street_pixels::ShouldOpenExplorationDetail(kind, tap.m_isAreaLabel))
     return false;
 
   m2::PointD const mercator = info.GetMercator();
   std::string spaPath;
   int64_t mapDataVersion = 0;
-  bool hit = false;
-  if (ResolveExplorationSidecarAt(mercator, spaPath, mapDataVersion))
-    hit = manager.HasExplorationAreaAtPoint(mercator, spaPath, mapDataVersion);
-
-  if (!street_pixels::ShouldOpenExplorationDetail(kind, hit))
+  if (!ResolveExplorationSidecarAt(mercator, spaPath, mapDataVersion))
     return false;
 
-  return SelectStreetPixelsFocusAt(mercator);
+  storage::CountryId const country = m_infoGetter->GetRegionCountryId(mercator);
+  if (!manager.IsAreaCompletionCacheValid())
+    manager.RebuildAreaCompletionCache(country, spaPath, mapDataVersion);
+
+  return manager.SelectFocusedAreaExplicit(*labelIndex, spaPath);
 }
 
 RecordingSession & Framework::GetRecordingSession()
