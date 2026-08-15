@@ -91,7 +91,7 @@ geometrically and would miss unexplored cells.
 | Finding | Proposed disposition |
 | --- | --- |
 | Explicit tap sticky until recording/recentre/city zoom | Keeps badge map-centre refresh from stealing focus |
-| Place page + detail sheet both open on map tap | Fixed: reuse CoMaps POI overlay taps (`GetVisiblePOI`). Exploration sheet opens only when the tapped feature is a `place=*` area label and PIP hits a sidecar ring. Buildings, landuse, empty map, shops, bookmarks, my-position, and tracks keep the place page / CoMaps default. Label miss (no ring at the caption) falls through to the place page and does not clear focus. Search/bookmark `BuildInfo` sources are not intercepted. Device confirmation → SP-041 / Phase 10 |
+| Place page + detail sheet both open on map tap | Fixed: reuse CoMaps tap routing, but exploration opens only from Street Pixels overlay labels (`m_name` / `m_labelPoint` from SP-037). Shop POI / bookmark / my-position / track keep the place page even if they overlap a label AABB. Buildings and empty map no longer open the exploration sheet. Overlay-label miss falls through to the place page and does not clear focus. Search/bookmark `BuildInfo` sources are not intercepted. Device confirmation → SP-041 / Phase 10 |
 | Empty-map tap no longer opens the no-area sheet | SP-040 empty-state entry needs a path other than blank-map taps |
 | Device tap walk Helsinki | SP-041 / Phase 10 |
 | Empty-state UI polish for no-area | SP-040 |
