@@ -13,19 +13,23 @@ final class StreetExplorationPreferBinder
 
   static void bind(@NonNull View root)
   {
-    StreetExplorationRoutingOptions explorationOptions = StreetExplorationRoutingOptions.LoadFromSettings();
     View strengthContainer = root.findViewById(R.id.street_exploration_strength_container);
     MaterialSwitch preferUnexploredBtn = root.findViewById(R.id.prefer_unexplored_streets_btn);
     SeekBar strengthSeekBar = root.findViewById(R.id.street_exploration_strength_seekbar);
 
+    preferUnexploredBtn.setOnCheckedChangeListener(null);
+    strengthSeekBar.setOnSeekBarChangeListener(null);
+
+    StreetExplorationRoutingOptions explorationOptions = StreetExplorationRoutingOptions.LoadFromSettings();
     preferUnexploredBtn.setChecked(explorationOptions.isPreferEnabled());
     strengthSeekBar.setProgress((int) explorationOptions.m_strength);
     strengthContainer.setVisibility(explorationOptions.isPreferEnabled() ? View.VISIBLE : View.GONE);
 
     preferUnexploredBtn.setOnCheckedChangeListener((buttonView, isChecked) -> {
-      explorationOptions.m_mode = isChecked ? StreetExplorationRoutingOptions.MODE_PREFER
-                                            : StreetExplorationRoutingOptions.MODE_NEITHER;
-      StreetExplorationRoutingOptions.SaveToSettings(explorationOptions);
+      StreetExplorationRoutingOptions options = StreetExplorationRoutingOptions.LoadFromSettings();
+      options.m_mode = isChecked ? StreetExplorationRoutingOptions.MODE_PREFER
+                                 : StreetExplorationRoutingOptions.MODE_NEITHER;
+      StreetExplorationRoutingOptions.SaveToSettings(options);
       strengthContainer.setVisibility(isChecked ? View.VISIBLE : View.GONE);
     });
 
@@ -36,8 +40,9 @@ final class StreetExplorationPreferBinder
       {
         if (!fromUser)
           return;
-        explorationOptions.m_strength = progress;
-        StreetExplorationRoutingOptions.SaveToSettings(explorationOptions);
+        StreetExplorationRoutingOptions options = StreetExplorationRoutingOptions.LoadFromSettings();
+        options.m_strength = progress;
+        StreetExplorationRoutingOptions.SaveToSettings(options);
       }
 
       @Override
