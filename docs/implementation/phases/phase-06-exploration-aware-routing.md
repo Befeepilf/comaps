@@ -1,7 +1,7 @@
 # Phase 6 — Exploration-aware routing
 
-**Status:** Not started (phase-entry planning 2026-08-15; SPD-040–045
-locked; coding gated on SP-054 measurement)
+**Status:** In progress (SP-054 Accepted 2026-08-15 with city-scale residual;
+SPD-040–045 locked; coding starts at SP-056)
 **Depends on:** Phase 3
 **Blocks:** nothing; required for release
 
@@ -108,16 +108,17 @@ divergences: Avoid excludes only fully explored edges (`exploredRatio ==
 - Options model is `enabled` + `strength`, not Prefer / Avoid (SPD-041).
 - Routing weights ignore non-loaded MWM `.pix` files.
 - No product-analytics event pipeline (SP-003 out-of-scope leftover).
-- Spike 7 measurement **not recorded**.
+- Spike 7 measurement **recorded** (SP-054 desktop synthetic; city-scale /
+  device residual → Phase 10).
 - OQ-2 **closed by SPD-040**. Code already includes imported pixels via
   `IsExplored()`.
 
 ### Blocking unknowns (must not be guessed in coding items)
 
 Product/architecture locks **R1–R12** are Accepted as **SPD-040–045**
-(product-owner 2026-08-15). Coding SP-056+ does not start before SP-054 has
-a recorded outcome (or an explicit residual, same pattern as SP-033).
-SP-054 measures the locked algorithm; it does not re-open R5–R7.
+(product-owner 2026-08-15). Coding SP-056+ may start: SP-054 recorded a Spike 7 desktop synthetic
+outcome plus an explicit city-scale/device residual (SP-033 pattern).
+SP-054 measured the locked algorithm; it does not re-open R5–R7.
 
 | Ref | Question | Status | Lock |
 | --- | --- | --- | --- |
@@ -149,10 +150,9 @@ SP-054 measures the locked algorithm; it does not re-open R5–R7.
 | 7 | [SP-060](../work-items/SP-060-routing-mode-analytics.md) | Count-only routing-mode analytics |
 | 8 | [SP-061](../work-items/SP-061-phase6-end-to-end-validation.md) | Phase 6 end-to-end validation (**exit gate**) |
 
-Gate: **do not start SP-056+ product coding until SP-054 has a recorded
-outcome** (mirror Phase 4 SP-023/024 and Phase 5 SP-033/034). SP-055 locks
-are Accepted as SPD-040–045. SP-054 may proceed now, in parallel with
-Phase 5 review.
+Gate: SP-054 recorded outcome **met 2026-08-15** (desktop synthetic pass;
+city-scale MWM+`.pix` and device → Phase 10 residual). SP-055 locks are
+Accepted as SPD-040–045. SP-056+ product coding may proceed.
 
 ### Open questions
 
@@ -223,7 +223,8 @@ no-route frequency under `exploredRatio == 1`, and lookup cost.
   **Met 2026-08-15 — SPD-040.**
 - A routing measurement exists comparing avoid-mode route length against normal
   routing on real data, including a forced disconnected case.
-  **Not met** — SP-054.
+  **Met 2026-08-15 — SP-054** (desktop synthetic harness; city-scale MWM+`.pix`
+  and device residual → Phase 10).
 
 ## Exit criteria
 
