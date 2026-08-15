@@ -76,7 +76,7 @@ public class DrivingOptionsScreen extends BaseMapScreen
       }
     }
     if (mInitialStreetExplorationEnabled
-        != StreetExplorationRoutingOptions.LoadFromSettings().m_enabled)
+        != StreetExplorationRoutingOptions.LoadFromSettings().isPreferEnabled())
     {
       setResult(DRIVING_OPTIONS_RESULT_CHANGED);
     }
@@ -108,12 +108,13 @@ public class DrivingOptionsScreen extends BaseMapScreen
     final OnClickListener listener = () ->
     {
       StreetExplorationRoutingOptions options = StreetExplorationRoutingOptions.LoadFromSettings();
-      options.m_enabled = !options.m_enabled;
+      options.m_mode = options.isPreferEnabled() ? StreetExplorationRoutingOptions.MODE_NEITHER
+                                                 : StreetExplorationRoutingOptions.MODE_PREFER;
       StreetExplorationRoutingOptions.SaveToSettings(options);
       invalidate();
     };
     return Toggle.create(getCarContext(), R.string.prefer_unexplored_streets, listener,
-                        StreetExplorationRoutingOptions.LoadFromSettings().m_enabled);
+                        StreetExplorationRoutingOptions.LoadFromSettings().isPreferEnabled());
   }
 
   @NonNull
@@ -141,6 +142,6 @@ public class DrivingOptionsScreen extends BaseMapScreen
       mInitialDrivingOptionsState.put(drivingOption.roadType,
                                       RoutingOptions.hasOption(drivingOption.roadType, routerType));
     
-    mInitialStreetExplorationEnabled = StreetExplorationRoutingOptions.LoadFromSettings().m_enabled;
+    mInitialStreetExplorationEnabled = StreetExplorationRoutingOptions.LoadFromSettings().isPreferEnabled();
   }
 }
