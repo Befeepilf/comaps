@@ -37,7 +37,7 @@ std::string_view constexpr kModeKey = "street_exploration_routing_mode";
 std::string_view constexpr kEnabledKey = "street_exploration_routing_enabled";
 std::string_view constexpr kStrengthKey = "street_exploration_routing_strength";
 
-double constexpr kEps = 1e-12;
+double constexpr kWeightEps = 1e-12;
 double constexpr kSampleStepMeters = 15.0;
 double constexpr kLat = 60.17;
 double constexpr kLon = 24.94;
@@ -154,7 +154,7 @@ UNIT_TEST(ExplorationWeight_PreferFullyExploredMaxStrength)
   TEST(!ids.empty(), ());
   manager.SetStreetPixelsOverlayForTesting("A", PixelsForIds(ids, true, true));
   SaveExplorationMode(routing::StreetExplorationRoutingMode::Prefer, 100.0);
-  TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, "A", kLat, kLon, offset.first, offset.second), 10.0, kEps, ());
+  TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, "A", kLat, kLon, offset.first, offset.second), 10.0, kWeightEps, ());
 }
 
 UNIT_TEST(ExplorationWeight_PreferUnexploredIsOne)
@@ -166,7 +166,7 @@ UNIT_TEST(ExplorationWeight_PreferUnexploredIsOne)
   auto const ids = CollectSamplePixelIds(kLat, kLon, offset.first, offset.second);
   manager.SetStreetPixelsOverlayForTesting("A", PixelsForIds(ids, false, false));
   SaveExplorationMode(routing::StreetExplorationRoutingMode::Prefer, 100.0);
-  TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, "A", kLat, kLon, offset.first, offset.second), 1.0, kEps, ());
+  TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, "A", kLat, kLon, offset.first, offset.second), 1.0, kWeightEps, ());
 }
 
 UNIT_TEST(ExplorationWeight_NeitherIsOneWhenExplored)
@@ -178,7 +178,7 @@ UNIT_TEST(ExplorationWeight_NeitherIsOneWhenExplored)
   auto const ids = CollectSamplePixelIds(kLat, kLon, offset.first, offset.second);
   manager.SetStreetPixelsOverlayForTesting("A", PixelsForIds(ids, true, true));
   SaveExplorationMode(routing::StreetExplorationRoutingMode::Neither, 100.0);
-  TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, "A", kLat, kLon, offset.first, offset.second), 1.0, kEps, ());
+  TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, "A", kLat, kLon, offset.first, offset.second), 1.0, kWeightEps, ());
 }
 
 UNIT_TEST(ExplorationWeight_AvoidStoredDoesNotChangeMultiplier)
@@ -190,7 +190,7 @@ UNIT_TEST(ExplorationWeight_AvoidStoredDoesNotChangeMultiplier)
   auto const ids = CollectSamplePixelIds(kLat, kLon, offset.first, offset.second);
   manager.SetStreetPixelsOverlayForTesting("A", PixelsForIds(ids, true, true));
   SaveExplorationMode(routing::StreetExplorationRoutingMode::Avoid, 100.0);
-  TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, "A", kLat, kLon, offset.first, offset.second), 1.0, kEps, ());
+  TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, "A", kLat, kLon, offset.first, offset.second), 1.0, kWeightEps, ());
 }
 
 UNIT_TEST(ExplorationWeight_ImportedOnlyCountsLikeLive)
@@ -211,8 +211,8 @@ UNIT_TEST(ExplorationWeight_ImportedOnlyCountsLikeLive)
   TEST(manager.IsPixelEverLiveForTesting(ids.front()), ());
   double const live = QueryMultiplier(manager, "A", kLat, kLon, offset.first, offset.second);
 
-  TEST_ALMOST_EQUAL_ABS(imported, live, kEps, ());
-  TEST_ALMOST_EQUAL_ABS(imported, 10.0, kEps, ());
+  TEST_ALMOST_EQUAL_ABS(imported, live, kWeightEps, ());
+  TEST_ALMOST_EQUAL_ABS(imported, 10.0, kWeightEps, ());
 }
 
 UNIT_TEST(ExplorationWeight_OverlayCountryDiffersButSegmentPixInstalled)
@@ -242,9 +242,9 @@ UNIT_TEST(ExplorationWeight_OverlayCountryDiffersButSegmentPixInstalled)
   TEST(street_pixels_file::SaveRematchedUniverse(pixPath, universe, exploredEverLive, 1), ());
 
   SaveExplorationMode(routing::StreetExplorationRoutingMode::Prefer, 100.0);
-  TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, segmentCountry, kLat, kLon, offset.first, offset.second), 10.0, kEps,
+  TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, segmentCountry, kLat, kLon, offset.first, offset.second), 10.0, kWeightEps,
                         ());
-  TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, overlayCountry, kLat, kLon, offset.first, offset.second), 1.0, kEps,
+  TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, overlayCountry, kLat, kLon, offset.first, offset.second), 1.0, kWeightEps,
                         ());
   TEST(!manager.IsPixelExploredForTesting(ids.front()), ());
   TEST_EQUAL(static_cast<int>(manager.GetState().status),
@@ -261,7 +261,7 @@ UNIT_TEST(ExplorationWeight_MissingPixIsOne)
   manager.SetStreetPixelsOverlayForTesting("sp056_overlay", PixelsForIds(ids, true, true));
   manager.ClearLeafPixCacheForTesting();
   SaveExplorationMode(routing::StreetExplorationRoutingMode::Prefer, 100.0);
-  TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, "sp056_missing", kLat, kLon, offset.first, offset.second), 1.0, kEps,
+  TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, "sp056_missing", kLat, kLon, offset.first, offset.second), 1.0, kWeightEps,
                         ());
 }
 
@@ -283,5 +283,5 @@ UNIT_TEST(ExplorationWeight_HalfExploredMidStrength)
   SaveExplorationMode(routing::StreetExplorationRoutingMode::Prefer, 50.0);
   double const exploredRatio = static_cast<double>(exploredCount) / static_cast<double>(ids.size());
   double const expected = 1.0 + 0.5 * 9.0 * exploredRatio;
-  TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, "A", kLat, kLon, offset.first, offset.second), expected, kEps, ());
+  TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, "A", kLat, kLon, offset.first, offset.second), expected, kWeightEps, ());
 }
