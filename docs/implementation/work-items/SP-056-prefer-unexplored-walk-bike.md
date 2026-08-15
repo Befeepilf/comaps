@@ -1,7 +1,7 @@
 # SP-056 — Prefer-unexplored on walking and cycling surfaces
 
 **Phase:** 6 — Exploration-aware routing
-**Status:** In review
+**Status:** Accepted
 **Branch:** `cursor/sp-056-prefer-walk-bike-35cf`
 **Depends on:** SP-054 recorded outcome; SPD-040, SPD-041, SPD-045
 **Unblocks:** SP-057–061 (mode model and walk/bike reachability)
@@ -103,10 +103,10 @@ SPD-041 keeps the strength seekbar in V1.
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-056-prefer-walk-bike-35cf` |
-| Test output | See below. Not Accepted. |
+| Test output | See below. |
 | Manual validation | Device residual → SP-061 / Phase 10. No handset in this environment. |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-15 |
 
 ### Automated tests (executed 2026-08-15)
 
