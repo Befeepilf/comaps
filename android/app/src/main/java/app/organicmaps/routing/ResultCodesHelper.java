@@ -93,6 +93,10 @@ public class ResultCodesHelper
       titleRes = R.string.dialog_routing_download_and_build_cross_route;
       messages.add(resources.getString(R.string.dialog_routing_download_cross_route));
       break;
+    case ResultCodes.AVOID_EXPLORED_NO_ROUTE:
+      titleRes = R.string.dialog_routing_avoid_explored_no_route_title;
+      messages.add(resources.getString(R.string.dialog_routing_avoid_explored_no_route_message));
+      break;
     }
 
     StringBuilder builder = new StringBuilder();
