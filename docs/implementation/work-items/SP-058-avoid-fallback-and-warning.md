@@ -1,7 +1,8 @@
 # SP-058 — Avoid warning, no-route UX, and Prefer+strength fallback
 
 **Phase:** 6 — Exploration-aware routing
-**Status:** Planned
+**Status:** In progress
+**Branch:** `cursor/sp-058-avoid-fallback-ux-35cf`
 **Depends on:** SPD-041, SPD-042; SP-056 walk/bike surface; SP-057 distinct
   no-route signal
 **Unblocks:** SP-059 (follows an Avoid route); SP-061 exit #3–4
