@@ -13,6 +13,7 @@
 #include "routing/route.hpp"
 #include "routing/segment.hpp"
 #include "routing/single_vehicle_world_graph.hpp"
+#include "routing/street_exploration_for_routing.hpp"
 #include "routing/transit_graph_loader.hpp"
 
 #include "routing_common/num_mwm_id.hpp"
@@ -23,6 +24,7 @@
 
 #include <map>
 #include <memory>
+#include <utility>
 #include <vector>
 
 #include "3party/ankerl/unordered_dense.h"
@@ -152,8 +154,11 @@ class WeightedEdgeEstimator final : public EdgeEstimator
 public:
   // maxSpeedKMpH doesn't matter, but should be greater then any road speed in all tests.
   // offroadSpeedKMpH doesn't matter, but should be > 0 and <= maxSpeedKMpH.
-  explicit WeightedEdgeEstimator(std::map<Segment, double> const & segmentWeights)
-    : EdgeEstimator(VehicleType::Count, 1e10 /* maxSpeedKMpH */, 1.0 /* offroadSpeedKMpH */)
+  explicit WeightedEdgeEstimator(
+      std::map<Segment, double> const & segmentWeights, std::shared_ptr<NumMwmIds> numMwmIds = nullptr,
+      std::shared_ptr<IStreetExplorationWeights const> streetExploration = nullptr)
+    : EdgeEstimator(VehicleType::Count, 1e10 /* maxSpeedKMpH */, 1.0 /* offroadSpeedKMpH */,
+                    nullptr, std::move(numMwmIds), std::move(streetExploration))
     , m_segmentWeights(segmentWeights)
   {}
 
@@ -182,7 +187,8 @@ public:
   using Edge = std::pair<Vertex, Vertex>;
 
   // Creates an empty graph on |numVertices| vertices.
-  TestIndexGraphTopology(uint32_t numVertices);
+  explicit TestIndexGraphTopology(
+      uint32_t numVertices, std::shared_ptr<IStreetExplorationWeights const> streetExploration = nullptr);
 
   // Adds a weighted directed edge to the graph. Multi-edges are not supported.
   // *NOTE* The edges are added lazily, i.e. edge requests are only stored here
@@ -232,7 +238,10 @@ private:
   // Builder builds a graph from edge requests.
   struct Builder
   {
-    explicit Builder(uint32_t numVertices) : m_numVertices(numVertices) {}
+    explicit Builder(uint32_t numVertices, std::shared_ptr<IStreetExplorationWeights const> streetExploration)
+      : m_numVertices(numVertices)
+      , m_streetExploration(std::move(streetExploration))
+    {}
     std::unique_ptr<SingleVehicleWorldGraph> PrepareIndexGraph();
     void BuildJoints();
     void BuildGraphFromRequests(std::vector<EdgeRequest> const & requests);
@@ -240,6 +249,7 @@ private:
     void SetCurrentTimeGetter(std::function<time_t()> const & getter) { m_currentTimeGetter = getter; }
 
     uint32_t const m_numVertices;
+    std::shared_ptr<IStreetExplorationWeights const> m_streetExploration;
     std::map<Edge, double> m_edgeWeights;
     std::map<Segment, double> m_segmentWeights;
     std::map<Segment, Edge> m_segmentToEdge;
@@ -254,6 +264,7 @@ private:
 
   std::function<time_t()> m_currentTimeGetter;
   uint32_t const m_numVertices;
+  std::shared_ptr<IStreetExplorationWeights const> m_streetExploration;
   std::vector<EdgeRequest> m_edgeRequests;
 };
 

@@ -1,16 +1,20 @@
 # Phase 6 — Exploration-aware routing
 
-**Status:** Not started
+**Status:** Not started (phase-entry planning 2026-08-15; SPD-040–045
+locked; coding gated on SP-054 measurement)
 **Depends on:** Phase 3
 **Blocks:** nothing; required for release
+
+Phase 5 review may continue in parallel. Phase 6 does **not** depend on
+Phase 5 (roadmap §4.1). Do not wait for SP-041 acceptance to start SP-054/055.
 
 ---
 
 ## Objective
 
 Let the map optimise for curiosity. Expose prefer-unexplored routing for
-walking and cycling, and add a hard avoid-explored mode that either produces a
-strictly unexplored route or explicitly asks the user what to do instead.
+walking and cycling, and add a hard avoid-explored mode that excludes
+fully explored edges or clearly asks the user to switch to Prefer.
 
 ## Product-spec references
 
@@ -36,113 +40,199 @@ strictly unexplored route or explicitly asks the user what to do instead.
 
 ## Current code locations
 
-Verified 2026-07-25 against the working tree.
+Re-verified 2026-08-15 against the working tree (Phase 6 entry).
 
 | Concern | Location | Observed state |
 | --- | --- | --- |
-| Weight hook | `libs/routing/street_exploration_for_routing.hpp` `IStreetExplorationWeights::GetSegmentWeightMultiplier` | Interface exists |
-| Multiplier application | `libs/routing/edge_estimator.cpp` `ApplyStreetExplorationMultiplier` | Applied only for `Purpose::Weight`, never for ETA |
-| Multiplier formula | `libs/map/street_pixels_manager.cpp` | `1.0 + strength * 9.0 * exploredRatio`, where `strength` is `m_strength / kMaxStrength` and `exploredRatio` is the explored fraction of HEALPix samples matched along the segment. Maximum 10×. Returns 1.0 when no pixels match. |
-| Options | `libs/routing/routing_options.hpp` `StreetExplorationRoutingOptions` | Enabled flag plus strength 0–100 |
-| Adapter | `libs/map/street_exploration_routing_adapter.cpp` | Bridges the router to `StreetPixelsManager` |
-| Android UI | `DrivingOptionsFragment` and the car-screen toggle | Present, but on the driving-options surface |
-| Router | `libs/routing/` IndexRouter with `PedestrianModel` and `BicycleModel` | Present |
-| Hard exclusion | — | **Not found anywhere in `libs/`.** Only continuous weight multiplication. |
+| Weight hook | `libs/routing/street_exploration_for_routing.hpp` `IStreetExplorationWeights::GetSegmentWeightMultiplier` | Interface exists; multiplier only |
+| Multiplier application | `libs/routing/edge_estimator.cpp` `ApplyStreetExplorationMultiplier` | Applied for `Purpose::Weight` only, never ETA. Wired into **Pedestrian, Bicycle, and Car** estimators |
+| Multiplier formula | `StreetPixelsManager::GetSegmentExplorationWeightMultiplier` | `1.0 + strength * 9.0 * exploredRatio`. `strength` = `m_strength / kMaxStrength`. `exploredRatio` = explored / matched HEALPix samples on the segment. Max 10× at strength 100. Returns 1.0 when disabled, not Ready, no pixels, or **no matched samples** |
+| Explored-set query | same function, `sp->IsExplored()` | Uses the **personal explored bit**, including imported-only cells. Does **not** consult `IsEverLive()`. Phase 3 ever-live bit exists (`df::StreetPixel::IsEverLive`) and is unused by routing |
+| Single-MWM overlay | `StreetPixelsManager::m_countryId` | Overlay loads **one** country `.pix`. Adapter returns **1.0** when `mwmCountryName != m_countryId` (logged a few times). Cross-leaf routes silently ignore exploration |
+| Options | `routing::StreetExplorationRoutingOptions` | `m_enabled` + `m_strength` 0–100 (default 50). Persisted in settings. No Avoid mode, no vehicle-type scope |
+| Adapter | `libs/map/street_exploration_routing_adapter.cpp` | Bridges IndexRouter → `StreetPixelsManager` from `RoutingManager` for every non-ruler router |
+| Walk/bike options UI | `WalkingOptionsFragment`, `CyclingOptionsFragment` | **No** prefer/avoid controls. Ferry/dirty/steps/paved only |
+| Driving options UI | `DrivingOptionsFragment`, car `DrivingOptionsScreen` | Prefer toggle + strength seekbar (car screen: toggle only) |
+| Options host | `RoutingOptionsFragment` | Three tabs (walk / cycle / drive); prefer lives only on the drive tab |
+| No-route UX | `ResultCodesHelper` / `MwmActivity.onDrivingOptionsBuildError` | Generic `RouteNotFound` and “unable to calc — open settings”. **No** avoid-specific result code or fallback offer |
+| Hard exclusion | — | **Not found** anywhere in `libs/`. Only continuous weight multiplication |
+| Analytics | — | **Not found.** SP-003 explicitly deferred product-analytics events. No count sink for §32.2 |
+| Feature flags | `explorer_pro::Capability` | GPX/track only. Prefer/avoid are free (§29.1); do not Pro-gate |
+| Arithmetic tests | `street_pixels_tests` `ExplorationMultiplier_*` | Formula only; not wired to the manager or a graph |
+| Graph / avoid tests | — | **Not found** |
 
-**Difference from the technical audit:** none. The audit's description matches
-the working tree exactly.
+**Difference from the technical audit (2026-07-20):** Phase 3 landed the
+ever-live bit (SPD-015). Routing still uses `IsExplored()` only — the audit’s
+“same explored bit” description remains true for the weight path. Walk/cycle
+tabs exist now (`RoutingOptionsFragment`) but still omit prefer; the audit’s
+“driving-options surface only” UI gap is unchanged. The single-MWM
+`m_countryId` mismatch early-return was not called out in the 2026-07-25
+phase snapshot.
+
+**Difference from the product spec:** Prefer exists as a global soft
+multiplier, but V1 requires it on **walking and cycling** surfaces (§17.2,
+§34). Avoid-explored (§17.3, SPD-009) is absent. Strength slider is not in
+the spec; **SPD-041** keeps it for V1. **SPD-042** records two V1
+divergences: Avoid excludes only fully explored edges (`exploredRatio ==
+1`), and no-route fallback is Prefer+strength rather than the §17.3 /
+§31 min-connection pair.
 
 ## Intended outcome
 
 - Prefer-unexplored reachable from the walking and cycling route surfaces, not
-  only from driving options.
-- Avoid-explored implemented, with the spec's warning copy shown before use.
-- When no strictly unexplored route exists, the user is explicitly offered
-  "allow the minimum necessary explored connection" or "return to normal
-  routing". Never a silent downgrade.
+  only from driving options, with the strength seekbar (SPD-041).
+- Avoid-explored implemented: true exclusion of edges with
+  `exploredRatio == 1`, with the spec's warning copy shown before use
+  (SPD-042).
+- When no route exists under that rule, the user sees a clear no-route
+  result and a control that switches to Prefer with the strength seekbar.
+  Never a silent downgrade (SPD-042; SPD-009 silent-degrade ban still
+  holds).
 - Behaviour defined for the case where the user explores a street that is part
-  of the active avoid-explored route.
+  of the active avoid-explored route (SPD-043).
 
 ## Dependencies
 
-- Phase 3, for the live-versus-imported source flag, so that OQ-2 can be
-  answered concretely rather than in principle.
+- Phase 3 exit **met** (2026-08-03). Ever-live vs imported is queryable, so
+  OQ-2 can be locked as a product decision rather than a storage question.
+- Phase 5 is **not** a prerequisite. Area polygons are unused by routing
+  weights.
 
-## Proposed work-item breakdown
+## Phase-entry investigation (2026-08-15)
 
-Not yet decomposed. Likely shape:
+### Confirmed gaps
 
-1. Expose prefer-unexplored on the pedestrian and bicycle route surfaces.
-2. Add a hard-avoid weighting mode behind a feature flag, starting with a very
-   large finite penalty.
-3. No-route detection and the explicit fallback offer.
-4. The "allow the minimum necessary explored connection" path.
-5. Mid-navigation behaviour when the route becomes explored.
-6. Warning copy and analytics events.
+- Prefer UI is on the **vehicle** tab / car screen, not walk/bike.
+- Avoid mode, distinct no-route signal, fallback offer, and pre-use warning
+  are absent.
+- Options model is `enabled` + `strength`, not Prefer / Avoid (SPD-041).
+- Routing weights ignore non-loaded MWM `.pix` files.
+- No product-analytics event pipeline (SP-003 out-of-scope leftover).
+- Spike 7 measurement **not recorded**.
+- OQ-2 **closed by SPD-040**. Code already includes imported pixels via
+  `IsExplored()`.
 
-**Marked for phase-specific Plan Mode investigation.** Whether a large finite
-penalty is sufficient, or true edge exclusion is needed, depends on measured
-route quality. Decompose after the routing measurement exists.
+### Blocking unknowns (must not be guessed in coding items)
+
+Product/architecture locks **R1–R12** are Accepted as **SPD-040–045**
+(product-owner 2026-08-15). Coding SP-056+ does not start before SP-054 has
+a recorded outcome (or an explicit residual, same pattern as SP-033).
+SP-054 measures the locked algorithm; it does not re-open R5–R7.
+
+| Ref | Question | Status | Lock |
+| --- | --- | --- | --- |
+| OQ-2 | Personal explored set including imported, or live-only? | **Closed** | **SPD-040** — `IsExplored()` including imported |
+| R-UI | Walk/bike surface and mode names | **Closed** | **SPD-041** — Prefer / Avoid on walk and cycle tabs; neither = standard |
+| R-strength | Keep 0–100 seekbar? | **Closed** | **SPD-041** — keep seekbar on Prefer; ETA/km cap is post-V1 |
+| R-vehicle | Does Avoid apply to car? | **Closed** | **SPD-041** — Avoid pedestrian+bicycle only; car Prefer may remain |
+| R-strict | Any explored pixel, or fully explored? | **Closed** | **SPD-042** — exclude iff `exploredRatio == 1` |
+| R-fallback | Distinct no-route vs generic `RouteNotFound` | **Closed** | **SPD-042** — clear no-route; button to Prefer+seekbar; never auto-switch |
+| R-min | Min explored segments / distance / pixels? | **Closed** | **SPD-042** — skip; fallback is Prefer with strength |
+| R-warn | When is §17.3 warning shown? | **Closed** | **SPD-042** — before Avoid is applied |
+| R-nav | Re-apply Avoid on every recompute, or freeze? | **Closed** | **SPD-043** — do not abandon followed path that turned green; off-route uses SPD-042 fallback |
+| R-analytics | No event sink exists | **Closed** (upload residual) | **SPD-044** — count-only; avoid-fallback-prefer; Phase 10 upload if no sink |
+| R-cross-leaf | Silent 1.0 on `m_countryId` mismatch | **Closed** | **SPD-045** — query the segment MWM’s `.pix` when installed |
+| R-algo | Large finite penalty vs true exclusion | **Closed** | **SPD-042** — true exclusion of fully explored edges |
+| R-copy | §17.3 vs §31 fallback wording | **Closed** (spec divergence) | **SPD-042** — Prefer+strength, not min-connection / return-to-normal |
+| R-cost | Per-segment lookup on long country routes | **Open (measure)** | SP-054; residual slow paths → Phase 10 rather than dropping Avoid |
+
+### Work-item breakdown
+
+| Order | ID | Title |
+| --- | --- | --- |
+| 1 | [SP-054](../work-items/SP-054-routing-spike.md) | Spike: exploration-aware routing measurement (**entry gate**) |
+| 2 | [SP-055](../work-items/SP-055-routing-architecture-decisions.md) | Routing architecture decisions (**entry gate** for coding) |
+| 3 | [SP-056](../work-items/SP-056-prefer-unexplored-walk-bike.md) | Prefer-unexplored on walking and cycling surfaces |
+| 4 | [SP-057](../work-items/SP-057-avoid-explored-engine.md) | Avoid-explored engine (strict pass + distinct no-route) |
+| 5 | [SP-058](../work-items/SP-058-avoid-fallback-and-warning.md) | Avoid warning, no-route UX, Prefer+strength fallback |
+| 6 | [SP-059](../work-items/SP-059-mid-navigation-avoid-stability.md) | Mid-navigation stability when the route becomes explored |
+| 7 | [SP-060](../work-items/SP-060-routing-mode-analytics.md) | Count-only routing-mode analytics |
+| 8 | [SP-061](../work-items/SP-061-phase6-end-to-end-validation.md) | Phase 6 end-to-end validation (**exit gate**) |
+
+Gate: **do not start SP-056+ product coding until SP-054 has a recorded
+outcome** (mirror Phase 4 SP-023/024 and Phase 5 SP-033/034). SP-055 locks
+are Accepted as SPD-040–045. SP-054 may proceed now, in parallel with
+Phase 5 review.
+
+### Open questions
+
+OQ-2 is closed (SPD-040). Remaining: SP-054 numbers for detour ratio,
+no-route frequency under `exploredRatio == 1`, and lookup cost.
 
 ## Data and migration concerns
 
-- No new persisted data is expected. Routing options already persist through
-  `StreetExplorationRoutingOptions`.
-- The per-segment pixel lookup cost is already paid by prefer mode; avoid mode
-  reuses it.
-- If OQ-2 resolves toward live-only routing weights, the adapter needs the
-  Phase 3 source flag on the query path, which may change lookup cost.
+- Options already persist via `StreetExplorationRoutingOptions`. Reshaping to
+  Prefer / Avoid / neither (SP-056, SPD-041) needs a backward-compatible
+  settings migration: existing `m_enabled == true` → Prefer; `false` →
+  neither. Strength stays persisted.
+- No new exploration files. Avoid reuses the `.pix` explored bit.
+- R1 is Accepted (SPD-040): adapter keeps `IsExplored()`.
+- SPD-045 may mmap additional leaf `.pix` files during a route; do not load
+  them into the renderer overlay.
 
 ## Privacy and security implications
 
-- Routing is entirely on device and offline. Nothing here uploads.
+- Routing is entirely on device and offline. Nothing here uploads tracks.
 - Routing history is explicitly local-only under spec §25.1.
 - Analytics for routing mode usage must be counts only, with no origin,
-  destination, or geometry.
+  destination, geometry, or pixel ids (R10). Do not send routes to Sentry.
 
 ## Automated testing strategy
 
-- Multiplier arithmetic: fully unexplored yields 1.0, fully explored at maximum
-  strength yields 10.0, half explored yields the midpoint, no matched pixels
-  yields 1.0.
-- Avoid mode on a fixture graph where an unexplored route exists: it is chosen.
-- Avoid mode on a fixture graph where no unexplored route exists: no route is
-  returned silently; the fallback state is signalled.
-- The minimum-explored-connection fallback returns a route that uses the fewest
-  explored segments available on the fixture.
-- Route stability: recomputing with an additional explored segment does not
-  produce a pathological result.
-- Regression: existing `routing_tests` and `routing_common_tests` still pass.
+- Multiplier arithmetic: fully unexplored yields 1.0, fully explored at
+  maximum strength yields 10.0, half explored yields the midpoint, no matched
+  pixels yields 1.0 (existing `ExplorationMultiplier_*`; keep).
+- Prefer on a fixture graph: an unexplored alternative is chosen when the
+  practicality bound still holds; disabled mode matches standard.
+- Avoid on a fixture graph where an unexplored (not fully explored) route
+  exists: it is chosen; fully explored edges (`exploredRatio == 1`) are
+  unused; mixed edges may be used.
+- Avoid on a fixture graph where every path uses a fully explored edge: a
+  **distinct** no-route state is signalled; not silent `RouteNotFound`.
+- Prefer fallback is an explicit mode switch, not a min-connection search.
+- Imported-only vs ever-live cells: routing follows SPD-040.
+- Cross-leaf: a segment whose MWM `.pix` is installed is weighted even when
+  the overlay `m_countryId` is a different leaf.
+- Route stability: exploring the followed remaining path does not produce a
+  pathological recompute loop (SP-059).
+- Regression: `routing_tests`, `routing_common_tests`, and
+  `street_pixels_tests` still pass. Do not require
+  `routing_integration_tests` (world dataset / `REQUIRE_SERVER`) for the
+  unit gate.
 
 ## Manual validation strategy
 
 - Plan walking and cycling routes in a partly explored area and confirm
   prefer-unexplored visibly changes the route without making it absurd.
-- Plan a route in a fully explored area with avoid-explored on and confirm the
-  fallback offer appears with the specified warning.
-- Accept "allow the minimum necessary explored connection" and confirm the
-  resulting route is sensible.
-- Choose "return to normal routing" and confirm the mode is clearly no longer
-  active.
+- Plan a route whose remaining paths are fully explored, with Avoid on, and
+  confirm the no-route result and the control that switches to Prefer with
+  the strength seekbar.
+- Confirm Avoid remains selected until that control is used (no silent
+  downgrade).
 - Start navigation under avoid-explored, explore part of the route, and confirm
   the app does not thrash between recomputations.
 - Confirm route computation time stays acceptable in both modes.
+- Device residual (no handset in this environment) → Phase 10, same honesty
+  pattern as SP-014 / SP-041.
 
 ## Entry criteria
 
-- Phase 3 exit criteria met.
+- Phase 3 exit criteria met. **Met 2026-08-03.**
 - OQ-2 has been answered and recorded as a decision: does prefer-unexplored use
   the personal explored set including imported pixels, or live-only?
+  **Met 2026-08-15 — SPD-040.**
 - A routing measurement exists comparing avoid-mode route length against normal
   routing on real data, including a forced disconnected case.
+  **Not met** — SP-054.
 
 ## Exit criteria
 
 1. Prefer-unexplored is reachable and functional for walking and cycling.
-2. Avoid-explored is implemented and, when a strictly unexplored route exists,
-   produces one.
-3. When no such route exists, the user sees the spec's explanation and both
-   offered options. The selected rule is never silently abandoned.
+2. Avoid-explored is implemented and, when a route exists that does not use
+   fully explored edges (`exploredRatio == 1`), produces one.
+3. When no such route exists, the user sees a clear no-route result and a
+   control that switches to Prefer with the strength seekbar. The selected
+   rule is never silently abandoned (SPD-042).
 4. The warning in spec §17.3 is shown before avoid mode is used.
 5. Mid-navigation behaviour when the route becomes explored is defined,
    implemented, and observed to be stable.
@@ -158,20 +248,19 @@ route quality. Decompose after the routing measurement exists.
   not a V1 requirement.
 - Making avoid-explored a paid feature. Spec §29.1 lists it as free.
 - Car routing changes. The existing driving-options surface may keep its
-  toggle, but V1 targets walking and cycling.
+  prefer toggle (SPD-041); V1 targets walking and cycling.
+- A min-connection second search (SPD-042 / R7).
+- Replacing the strength seekbar with max ETA or km deviation (post-V1).
+- Pro capability flags for prefer/avoid.
+- A new analytics backend or Sentry route events.
+- Country/world exploration percentages, competition, GPX (Phases 7–9).
 
 ## Known uncertainties
 
-- Whether a very large finite penalty is behaviourally sufficient, or true edge
-  exclusion is needed. Only measurement can decide.
-- What "the minimum necessary explored connection" means algorithmically:
-  minimising explored segment count, explored distance, or explored pixel
-  count.
-- Whether recomputation during navigation should re-apply avoid mode at all, or
-  freeze the route once started.
-- Whether prefer-unexplored should live on the driving-options surface,
-  alongside it, or on a dedicated exploration-routing surface.
-- Per-segment pixel lookup cost on long routes across large countries.
-- Whether imported pixels should influence routing (OQ-2). The product's
-  position is that imported exploration is real personal exploration, which
-  argues for including it; that has not been decided.
+R1–R12 are locked (SPD-040–045). Remaining:
+
+- SP-054 numbers for detour ratio, no-route frequency under
+  `exploredRatio == 1`, and lookup cost.
+- Whether SPD-045 full per-leaf `.pix` mmap is too heavy on a long
+  multi-leaf walk — measure; if needed, cache recently used leaf maps, do
+  not silently drop weights.
