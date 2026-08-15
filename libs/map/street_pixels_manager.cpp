@@ -158,6 +158,82 @@ void CollectExploredAscendingWithCentres(street_pixels_file::ExploredEverLiveMap
     centres.push_back(MercatorCentreForHealpixNest(id));
   }
 }
+
+struct OpenedPixMmap
+{
+  std::unique_ptr<MmapReader> reader;
+  std::span<df::StreetPixel> pixels;
+};
+
+std::optional<OpenedPixMmap> OpenPixMmapReader(std::string const & path, MmapReader::Advice advice, bool writable)
+{
+  auto const probe = street_pixels_file::ProbeFile(path);
+  if (probe.kind != street_pixels_file::FileKind::HeaderedV1 &&
+      probe.kind != street_pixels_file::FileKind::HeaderedV2)
+  {
+    return std::nullopt;
+  }
+
+  try
+  {
+    auto reader = std::make_unique<MmapReader>(path, advice, writable);
+    if (reader->Size() < street_pixels_file::kHeaderSize ||
+        ((reader->Size() - street_pixels_file::kHeaderSize) % sizeof(df::StreetPixel)) != 0)
+    {
+      return std::nullopt;
+    }
+
+    auto const header = street_pixels_file::ReadHeader(reader->Data());
+    bool const supportedVersion = header.formatVersion == street_pixels_file::kFormatVersionV1 ||
+                                  header.formatVersion == street_pixels_file::kFormatVersionV2;
+    if (header.magic != street_pixels_file::kMagic || !supportedVersion ||
+        (header.flags & street_pixels_file::kFlagsHasHeaderBit) == 0)
+    {
+      return std::nullopt;
+    }
+
+    size_t const entryCount =
+        static_cast<size_t>((reader->Size() - street_pixels_file::kHeaderSize) / sizeof(df::StreetPixel));
+    auto * const body = reinterpret_cast<df::StreetPixel *>(reader->Data() + street_pixels_file::kHeaderSize);
+    return OpenedPixMmap{std::move(reader), std::span<df::StreetPixel>(body, entryCount)};
+  }
+  catch (Reader::Exception const &)
+  {
+    return std::nullopt;
+  }
+}
+
+df::StreetPixel const * FindStreetPixelInSpan(std::span<df::StreetPixel const> pixels, std::int64_t pixelId)
+{
+  auto const it = std::lower_bound(pixels.begin(), pixels.end(), pixelId,
+                                   [](df::StreetPixel const & p, std::int64_t id) { return p.GetPixelId() < id; });
+  if (it != pixels.end() && it->GetPixelId() == pixelId)
+    return &(*it);
+  return nullptr;
+}
+
+double ExplorationWeightFromSpan(std::span<df::StreetPixel const> pixels,
+                                 std::unordered_set<std::int64_t> const & seenHealpix, double strength)
+{
+  size_t matched = 0;
+  size_t exploredMatched = 0;
+  for (auto const pixelId : seenHealpix)
+  {
+    df::StreetPixel const * const sp = FindStreetPixelInSpan(pixels, pixelId);
+    if (sp == nullptr)
+      continue;
+    ++matched;
+    if (sp->IsExplored())
+      ++exploredMatched;
+  }
+  if (matched == 0)
+    return 1.0;
+
+  double const exploredRatio = static_cast<double>(exploredMatched) / static_cast<double>(matched);
+  double constexpr kMaxExplorationPenalty = 9.0;
+  return 1.0 + (strength / routing::StreetExplorationRoutingOptions::kMaxStrength) * kMaxExplorationPenalty *
+                   exploredRatio;
+}
 }  // namespace
 
 StreetPixelsManager::StreetPixelsManager(DataSource const & dataSource) : m_dataSource(dataSource) {}
@@ -335,6 +411,23 @@ void StreetPixelsManager::SetStreetPixelsForTesting(std::vector<df::StreetPixel>
   m_mmapReader.reset();
   m_streetPixels = m_testStreetPixelsStorage;
   m_exploredPixelCount = CountExploredPixels(m_streetPixels);
+}
+
+void StreetPixelsManager::SetStreetPixelsOverlayForTesting(storage::CountryId const & countryId,
+                                                           std::vector<df::StreetPixel> pixels)
+{
+  SetStreetPixelsForTesting(std::move(pixels));
+  {
+    std::lock_guard<std::mutex> lock(m_countryIdMutex);
+    m_countryId = countryId;
+  }
+  ChangeState({true, StreetPixelsStatus::Ready});
+}
+
+void StreetPixelsManager::ClearLeafPixCacheForTesting()
+{
+  std::lock_guard<std::mutex> lock(m_leafPixMutex);
+  m_leafPixLru.clear();
 }
 
 size_t StreetPixelsManager::MarkImportedPixelsForTesting(std::set<std::int64_t> const & pixelIds)
@@ -593,35 +686,18 @@ void StreetPixelsManager::LoadStreetPixelsFromFile(storage::CountryId const & co
   case street_pixels_file::FileKind::HeaderedV2: break;
   }
 
-  std::unique_ptr<MmapReader> mmapReader =
-      std::make_unique<MmapReader>(filePath, MmapReader::Advice::Sequential, true);
-  if (mmapReader->Size() < street_pixels_file::kHeaderSize ||
-      ((mmapReader->Size() - street_pixels_file::kHeaderSize) % sizeof(df::StreetPixel)) != 0)
-  {
+  auto opened = OpenPixMmapReader(filePath, MmapReader::Advice::Sequential, true);
+  if (!opened)
     MYTHROW(street_pixels_file::CorruptStreetPixelsFile, ("Invalid headered street pixels size", filePath));
-  }
 
-  auto const header = street_pixels_file::ReadHeader(mmapReader->Data());
-  bool const supportedVersion = header.formatVersion == street_pixels_file::kFormatVersionV1 ||
-                                header.formatVersion == street_pixels_file::kFormatVersionV2;
-  if (header.magic != street_pixels_file::kMagic || !supportedVersion ||
-      (header.flags & street_pixels_file::kFlagsHasHeaderBit) == 0)
-  {
-    MYTHROW(street_pixels_file::CorruptStreetPixelsFile, ("Invalid street pixels header after open", filePath));
-  }
-
-  size_t const entryCount =
-      static_cast<size_t>((mmapReader->Size() - street_pixels_file::kHeaderSize) / sizeof(df::StreetPixel));
-  auto * const body = reinterpret_cast<df::StreetPixel *>(mmapReader->Data() + street_pixels_file::kHeaderSize);
-  std::span<df::StreetPixel> const streetPixels(body, entryCount);
-  LOG(LINFO, ("Mapped", streetPixels.size(), "pixels for", countryId));
-
-  size_t const exploredCount = CountExploredPixels(streetPixels);
+  auto const header = street_pixels_file::ReadHeader(opened->reader->Data());
+  LOG(LINFO, ("Mapped", opened->pixels.size(), "pixels for", countryId));
+  size_t const exploredCount = CountExploredPixels(opened->pixels);
 
   {
     std::lock_guard<std::shared_mutex> lock(m_streetPixelsMutex);
-    m_mmapReader = std::move(mmapReader);
-    m_streetPixels = streetPixels;
+    m_mmapReader = std::move(opened->reader);
+    m_streetPixels = opened->pixels;
     m_exploredPixelCount = exploredCount;
     m_pixMapDataVersion = header.mapDataVersion;
   }
@@ -654,6 +730,7 @@ void StreetPixelsManager::CleanupStreetPixels(storage::CountryId const & country
 {
   GetPlatform().RunTask(Platform::Thread::Background, [this, countryId]()
   {
+    EvictLeafPix(countryId);
     std::lock_guard<std::mutex> pixLock(m_pixFileMutex);
     CleanupStreetPixelsUnlocked(countryId);
   });
@@ -661,6 +738,7 @@ void StreetPixelsManager::CleanupStreetPixels(storage::CountryId const & country
 
 void StreetPixelsManager::CleanupStreetPixelsForTesting(storage::CountryId const & countryId)
 {
+  EvictLeafPix(countryId);
   std::lock_guard<std::mutex> pixLock(m_pixFileMutex);
   CleanupStreetPixelsUnlocked(countryId);
 }
@@ -1198,27 +1276,6 @@ double StreetPixelsManager::GetSegmentExplorationWeightMultiplier(std::string co
   if (!options.IsPreferEnabled())
     return 1.0;
 
-  if (GetState().status != StreetPixelsStatus::Ready)
-    return 1.0;
-
-  {
-    std::lock_guard<std::mutex> lock(m_countryIdMutex);
-    if (m_countryId != mwmCountryName)
-    {
-      static std::atomic<unsigned> s_countryMismatchLogs{0};
-      if (++s_countryMismatchLogs <= 8U)
-        LOG(LINFO,
-            ("StreetExploration country mismatch", "segmentMwm", mwmCountryName, "streetPixelsLoadedFor", m_countryId));
-      return 1.0;
-    }
-  }
-
-  {
-    std::shared_lock<std::shared_mutex> lock(m_streetPixelsMutex);
-    if (m_streetPixels.empty())
-      return 1.0;
-  }
-
   uint32_t const j = segment.GetSegmentIdx();
   if (static_cast<size_t>(j) + 1 >= road.GetPointsCount())
     return 1.0;
@@ -1236,10 +1293,6 @@ double StreetPixelsManager::GetSegmentExplorationWeightMultiplier(std::string co
   std::unordered_set<std::int64_t> seenHealpix;
   seenHealpix.reserve(samples.size() * 10);
 
-  size_t matched = 0;
-  size_t exploredMatched = 0;
-  size_t pixSpan = 0;
-
   for (auto const & pt : samples)
   {
     auto const latlon = mercator::ToLatLon(pt);
@@ -1250,29 +1303,72 @@ double StreetPixelsManager::GetSegmentExplorationWeightMultiplier(std::string co
     seenHealpix.insert(pixelId);
   }
 
+  bool overlayCountryMatch = false;
+  {
+    std::lock_guard<std::mutex> lock(m_countryIdMutex);
+    overlayCountryMatch = (m_countryId == mwmCountryName);
+  }
+
+  if (overlayCountryMatch)
   {
     std::shared_lock<std::shared_mutex> lock(m_streetPixelsMutex);
-    if (m_streetPixels.empty())
-      return 1.0;
-    pixSpan = m_streetPixels.size();
-    for (auto const & pixelId : seenHealpix)
+    if (!m_streetPixels.empty())
+      return ExplorationWeightFromSpan(m_streetPixels, seenHealpix, options.m_strength);
+  }
+
+  std::lock_guard<std::mutex> leafLock(m_leafPixMutex);
+  std::span<df::StreetPixel const> const leafPixels = LookupLeafPixUnlocked(mwmCountryName);
+  if (leafPixels.empty())
+    return 1.0;
+  return ExplorationWeightFromSpan(leafPixels, seenHealpix, options.m_strength);
+}
+
+std::optional<StreetPixelsManager::LeafPixMapping> StreetPixelsManager::TryOpenLeafPix(
+    storage::CountryId const & countryId) const
+{
+  std::string const path = GetPlatform().WritablePathForFile(countryId + ".pix");
+  std::lock_guard<std::mutex> pixLock(m_pixFileMutex);
+  auto opened = OpenPixMmapReader(path, MmapReader::Advice::Random, false);
+  if (!opened || opened->pixels.empty())
+  {
+    static std::atomic<unsigned> s_leafOpenLogs{0};
+    if (++s_leafOpenLogs <= 8U)
+      LOG(LINFO, ("StreetExploration leaf pix open failed", countryId));
+    return std::nullopt;
+  }
+
+  LeafPixMapping mapping;
+  mapping.countryId = countryId;
+  mapping.reader = std::move(opened->reader);
+  mapping.pixels = opened->pixels;
+  return mapping;
+}
+
+std::span<df::StreetPixel const> StreetPixelsManager::LookupLeafPixUnlocked(storage::CountryId const & countryId) const
+{
+  for (auto it = m_leafPixLru.begin(); it != m_leafPixLru.end(); ++it)
+  {
+    if (it->countryId == countryId)
     {
-      df::StreetPixel const * const sp = FindStreetPixel(pixelId);
-      if (sp == nullptr)
-        continue;
-      ++matched;
-      if (sp->IsExplored())
-        ++exploredMatched;
+      m_leafPixLru.splice(m_leafPixLru.begin(), m_leafPixLru, it);
+      return m_leafPixLru.front().pixels;
     }
   }
 
-  if (matched == 0)
-    return 1.0;
+  auto opened = TryOpenLeafPix(countryId);
+  if (!opened)
+    return {};
 
-  double const exploredRatio = static_cast<double>(exploredMatched) / static_cast<double>(matched);
-  double const strength = options.m_strength / routing::StreetExplorationRoutingOptions::kMaxStrength;
-  double constexpr kMaxExplorationPenalty = 9.0;
-  return 1.0 + strength * kMaxExplorationPenalty * exploredRatio;
+  m_leafPixLru.push_front(std::move(*opened));
+  if (m_leafPixLru.size() > kMaxLeafPixCache)
+    m_leafPixLru.pop_back();
+  return m_leafPixLru.front().pixels;
+}
+
+void StreetPixelsManager::EvictLeafPix(storage::CountryId const & countryId)
+{
+  std::lock_guard<std::mutex> lock(m_leafPixMutex);
+  m_leafPixLru.remove_if([&](LeafPixMapping const & mapping) { return mapping.countryId == countryId; });
 }
 
 bool IsExplorableFeature(feature::GeomType geomType, feature::TypesHolder const & types)
@@ -1342,13 +1438,7 @@ bool StreetPixelsManager::IsExplorable(FeatureType & ft) const
 
 df::StreetPixel const * StreetPixelsManager::FindStreetPixel(std::int64_t pixelId) const
 {
-  auto first = m_streetPixels.begin();
-  auto last = m_streetPixels.end();
-  auto it = std::lower_bound(first, last, pixelId,
-                             [](df::StreetPixel const & p, std::int64_t id) { return p.GetPixelId() < id; });
-  if (it != last && it->GetPixelId() == pixelId)
-    return &(*it);
-  return nullptr;
+  return FindStreetPixelInSpan(m_streetPixels, pixelId);
 }
 
 df::StreetPixel * StreetPixelsManager::FindStreetPixel(std::int64_t pixelId)
