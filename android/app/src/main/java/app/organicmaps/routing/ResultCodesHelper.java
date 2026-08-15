@@ -8,6 +8,7 @@ import androidx.annotation.StringRes;
 import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
 import app.organicmaps.sdk.routing.ResultCodes;
+import app.organicmaps.sdk.routing.RoutingBuildError;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -114,17 +115,7 @@ public class ResultCodesHelper
 
   public static boolean isDownloadable(int resultCode, int missingCount)
   {
-    if (missingCount <= 0)
-      return false;
-
-    return switch (resultCode)
-    {
-      case ResultCodes.INCONSISTENT_MWM_ROUTE, ResultCodes.ROUTE_NOT_FOUND_REDRESS_ROUTE_ERROR,
-          ResultCodes.ROUTING_FILE_NOT_EXIST, ResultCodes.NEED_MORE_MAPS, ResultCodes.ROUTE_NOT_FOUND,
-          ResultCodes.FILE_TOO_OLD ->
-        true;
-      default -> false;
-    };
+    return RoutingBuildError.isDownloadable(resultCode, missingCount);
   }
 
   public static boolean isMoreMapsNeeded(int resultCode)
