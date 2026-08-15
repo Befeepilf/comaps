@@ -142,12 +142,12 @@ void TestTransitGraphLoader::AddGraph(NumMwmId mwmId, unique_ptr<TransitGraph> g
 }
 
 // WeightedEdgeEstimator --------------------------------------------------------------
-double WeightedEdgeEstimator::CalcSegmentWeight(Segment const & segment, RoadGeometry const & /* road */,
-                                                EdgeEstimator::Purpose /* purpose */) const
+double WeightedEdgeEstimator::CalcSegmentWeight(Segment const & segment, RoadGeometry const & road,
+                                                EdgeEstimator::Purpose purpose) const
 {
   auto const it = m_segmentWeights.find(segment);
   CHECK(it != m_segmentWeights.cend(), ());
-  return it->second;
+  return ApplyStreetExplorationMultiplier(purpose, segment, road, it->second);
 }
 
 double WeightedEdgeEstimator::GetUTurnPenalty(Purpose purpose) const
@@ -165,7 +165,11 @@ double WeightedEdgeEstimator::GetFerryLandingPenalty(Purpose purpose) const
 }
 
 // TestIndexGraphTopology --------------------------------------------------------------------------
-TestIndexGraphTopology::TestIndexGraphTopology(uint32_t numVertices) : m_numVertices(numVertices) {}
+TestIndexGraphTopology::TestIndexGraphTopology(
+    uint32_t numVertices, shared_ptr<IStreetExplorationWeights const> streetExploration)
+  : m_numVertices(numVertices)
+  , m_streetExploration(std::move(streetExploration))
+{}
 
 void TestIndexGraphTopology::AddDirectedEdge(Vertex from, Vertex to, double weight)
 {
@@ -275,7 +279,7 @@ bool TestIndexGraphTopology::FindPath(Vertex start, Vertex finish, double & path
   // and the only segment with segmentIdx |0|. It is a loop so direction does not matter.
   auto const finishSegment = Segment(kTestNumMwmId, finishFeatureId, 0 /* segmentIdx */, true /* forward */);
 
-  Builder builder(m_numVertices);
+  Builder builder(m_numVertices, m_streetExploration);
   builder.SetCurrentTimeGetter(m_currentTimeGetter);
   builder.BuildGraphFromRequests(edgeRequests);
   auto worldGraph = builder.PrepareIndexGraph();
@@ -338,7 +342,10 @@ void TestIndexGraphTopology::AddDirectedEdge(vector<EdgeRequest> & edgeRequests,
 unique_ptr<SingleVehicleWorldGraph> TestIndexGraphTopology::Builder::PrepareIndexGraph()
 {
   auto loader = make_unique<ZeroGeometryLoader>();
-  auto estimator = make_shared<WeightedEdgeEstimator>(m_segmentWeights);
+  shared_ptr<NumMwmIds> numMwmIds;
+  if (m_streetExploration)
+    numMwmIds = make_shared<NumMwmIds>();
+  auto estimator = make_shared<WeightedEdgeEstimator>(m_segmentWeights, std::move(numMwmIds), m_streetExploration);
 
   BuildJoints();
 
