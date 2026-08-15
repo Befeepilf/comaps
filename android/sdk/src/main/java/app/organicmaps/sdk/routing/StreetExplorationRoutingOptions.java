@@ -19,6 +19,11 @@ public class StreetExplorationRoutingOptions
 
   public boolean isAvoidEnabled() { return m_mode == MODE_AVOID; }
 
+  public static StreetExplorationRoutingOptions preferFallback(StreetExplorationRoutingOptions current)
+  {
+    return new StreetExplorationRoutingOptions(MODE_PREFER, current.m_strength);
+  }
+
   public static StreetExplorationRoutingOptions LoadFromSettings()
   {
     int mode = nativeGetMode();
