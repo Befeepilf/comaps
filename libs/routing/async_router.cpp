@@ -226,6 +226,7 @@ void AsyncRouter::LogCode(RouterResultCode code, double const elapsedSec)
     LOG(LWARNING, ("Route not found because of a redress route error"));
     break;
   case RouterResultCode::HasWarnings: LOG(LINFO, ("Route has warnings, elapsed seconds:", elapsedSec)); break;
+  case RouterResultCode::AvoidExploredNoRoute: LOG(LWARNING, ("No route under avoid-explored")); break;
   }
 }
 

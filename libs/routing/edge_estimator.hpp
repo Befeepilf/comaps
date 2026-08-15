@@ -66,6 +66,9 @@ public:
       DataSource * dataSourcePtr, std::shared_ptr<NumMwmIds> numMwmIds,
       std::shared_ptr<IStreetExplorationWeights const> streetExploration = nullptr);
 
+  bool IsAvoidExclusionActive() const;
+  bool IsSegmentExcluded(Segment const & segment, RoadGeometry const & road) const;
+
 protected:
   double ApplyStreetExplorationMultiplier(Purpose purpose, Segment const & segment, RoadGeometry const & road,
                                           double baseWeight) const;
@@ -87,6 +90,7 @@ private:
 
   double ComputeDefaultLeapWeightSpeed() const;
   double GetLeapWeightSpeed(NumMwmId mwmId);
+  bool AppliesAvoidExclusion() const;
   // double LoadLeapWeightSpeed(NumMwmId mwmId);
 };
 

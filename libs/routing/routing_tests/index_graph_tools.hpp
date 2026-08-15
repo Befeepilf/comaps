@@ -156,8 +156,9 @@ public:
   // offroadSpeedKMpH doesn't matter, but should be > 0 and <= maxSpeedKMpH.
   explicit WeightedEdgeEstimator(
       std::map<Segment, double> const & segmentWeights, std::shared_ptr<NumMwmIds> numMwmIds = nullptr,
-      std::shared_ptr<IStreetExplorationWeights const> streetExploration = nullptr)
-    : EdgeEstimator(VehicleType::Count, 1e10 /* maxSpeedKMpH */, 1.0 /* offroadSpeedKMpH */,
+      std::shared_ptr<IStreetExplorationWeights const> streetExploration = nullptr,
+      VehicleType vehicleType = VehicleType::Pedestrian)
+    : EdgeEstimator(vehicleType, 1e10 /* maxSpeedKMpH */, 1.0 /* offroadSpeedKMpH */,
                     nullptr, std::move(numMwmIds), std::move(streetExploration))
     , m_segmentWeights(segmentWeights)
   {}
@@ -188,7 +189,8 @@ public:
 
   // Creates an empty graph on |numVertices| vertices.
   explicit TestIndexGraphTopology(
-      uint32_t numVertices, std::shared_ptr<IStreetExplorationWeights const> streetExploration = nullptr);
+      uint32_t numVertices, std::shared_ptr<IStreetExplorationWeights const> streetExploration = nullptr,
+      VehicleType vehicleType = VehicleType::Pedestrian);
 
   // Adds a weighted directed edge to the graph. Multi-edges are not supported.
   // *NOTE* The edges are added lazily, i.e. edge requests are only stored here
@@ -238,9 +240,11 @@ private:
   // Builder builds a graph from edge requests.
   struct Builder
   {
-    explicit Builder(uint32_t numVertices, std::shared_ptr<IStreetExplorationWeights const> streetExploration)
+    explicit Builder(uint32_t numVertices, std::shared_ptr<IStreetExplorationWeights const> streetExploration,
+                     VehicleType vehicleType)
       : m_numVertices(numVertices)
       , m_streetExploration(std::move(streetExploration))
+      , m_vehicleType(vehicleType)
     {}
     std::unique_ptr<SingleVehicleWorldGraph> PrepareIndexGraph();
     void BuildJoints();
@@ -250,6 +254,7 @@ private:
 
     uint32_t const m_numVertices;
     std::shared_ptr<IStreetExplorationWeights const> m_streetExploration;
+    VehicleType m_vehicleType = VehicleType::Pedestrian;
     std::map<Edge, double> m_edgeWeights;
     std::map<Segment, double> m_segmentWeights;
     std::map<Segment, Edge> m_segmentToEdge;
@@ -265,6 +270,7 @@ private:
   std::function<time_t()> m_currentTimeGetter;
   uint32_t const m_numVertices;
   std::shared_ptr<IStreetExplorationWeights const> m_streetExploration;
+  VehicleType m_vehicleType = VehicleType::Pedestrian;
   std::vector<EdgeRequest> m_edgeRequests;
 };
 
