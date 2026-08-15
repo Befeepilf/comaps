@@ -26,10 +26,12 @@ bool StreetExplorationRoutingAdapter::IsAvoidExclusionActive() const
 }
 
 bool StreetExplorationRoutingAdapter::IsSegmentExcluded(routing::NumMwmIds const & numMwmIds,
-                                                        routing::NumMwmId mwmId, routing::Segment const &,
-                                                        routing::RoadGeometry const &) const
+                                                        routing::NumMwmId mwmId, routing::Segment const & segment,
+                                                        routing::RoadGeometry const & road) const
 {
   if (mwmId == routing::kFakeNumMwmId || !numMwmIds.ContainsFileForMwm(mwmId))
     return false;
-  return false;
+
+  std::string const & country = numMwmIds.GetFile(mwmId).GetName();
+  return m_streetPixelsManager.IsSegmentExcludedForAvoid(country, segment, road);
 }

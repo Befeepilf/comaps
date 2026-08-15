@@ -142,6 +142,12 @@ double QueryMultiplier(StreetPixelsManager & manager, std::string const & countr
   return manager.GetSegmentExplorationWeightMultiplier(country, MakeRealSegment(),
                                                        MakeSegmentRoad(lat0, lon0, lat1, lon1));
 }
+
+bool QueryExcluded(StreetPixelsManager & manager, std::string const & country, double lat0, double lon0,
+                   double lat1, double lon1)
+{
+  return manager.IsSegmentExcludedForAvoid(country, MakeRealSegment(), MakeSegmentRoad(lat0, lon0, lat1, lon1));
+}
 }  // namespace
 
 UNIT_TEST(ExplorationWeight_PreferFullyExploredMaxStrength)
@@ -193,6 +199,38 @@ UNIT_TEST(ExplorationWeight_AvoidStoredDoesNotChangeMultiplier)
   TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, "A", kLat, kLon, offset.first, offset.second), 1.0, kWeightEps, ());
 }
 
+UNIT_TEST(ExplorationWeight_AvoidExcludesFullyExplored)
+{
+  StreetExplorationRoutingOptionsGuard guard;
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  auto const offset = OffsetLatLonByMeters(kLat, kLon, 0.0, 20.0);
+  auto const ids = CollectSamplePixelIds(kLat, kLon, offset.first, offset.second);
+  manager.SetStreetPixelsOverlayForTesting("A", PixelsForIds(ids, true, true));
+  SaveExplorationMode(routing::StreetExplorationRoutingMode::Avoid, 100.0);
+  TEST(QueryExcluded(manager, "A", kLat, kLon, offset.first, offset.second), ());
+}
+
+UNIT_TEST(ExplorationWeight_AvoidDoesNotExcludeMixed)
+{
+  StreetExplorationRoutingOptionsGuard guard;
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  auto const offset = OffsetLatLonByMeters(kLat, kLon, 0.0, 80.0);
+  auto ids = CollectSamplePixelIds(kLat, kLon, offset.first, offset.second);
+  TEST_GREATER(ids.size(), 1, ());
+  std::sort(ids.begin(), ids.end());
+  size_t const exploredCount = ids.size() / 2;
+  std::vector<df::StreetPixel> pixels;
+  pixels.reserve(ids.size());
+  for (size_t i = 0; i < ids.size(); ++i)
+    pixels.push_back(MakeStreetPixel(ids[i], i < exploredCount, true));
+  manager.SetStreetPixelsOverlayForTesting("A", std::move(pixels));
+  SaveExplorationMode(routing::StreetExplorationRoutingMode::Avoid, 100.0);
+  TEST(!QueryExcluded(manager, "A", kLat, kLon, offset.first, offset.second), ());
+  TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, "A", kLat, kLon, offset.first, offset.second), 1.0, kWeightEps, ());
+}
+
 UNIT_TEST(ExplorationWeight_ImportedOnlyCountsLikeLive)
 {
   StreetExplorationRoutingOptionsGuard guard;
@@ -213,6 +251,27 @@ UNIT_TEST(ExplorationWeight_ImportedOnlyCountsLikeLive)
 
   TEST_ALMOST_EQUAL_ABS(imported, live, kWeightEps, ());
   TEST_ALMOST_EQUAL_ABS(imported, 10.0, kWeightEps, ());
+}
+
+UNIT_TEST(ExplorationWeight_AvoidImportedOnlyExcludesLikeLive)
+{
+  StreetExplorationRoutingOptionsGuard guard;
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  auto const offset = OffsetLatLonByMeters(kLat, kLon, 0.0, 20.0);
+  auto const ids = CollectSamplePixelIds(kLat, kLon, offset.first, offset.second);
+  SaveExplorationMode(routing::StreetExplorationRoutingMode::Avoid, 100.0);
+
+  manager.SetStreetPixelsOverlayForTesting("A", PixelsForIds(ids, true, false));
+  TEST(manager.IsPixelExploredForTesting(ids.front()), ());
+  TEST(!manager.IsPixelEverLiveForTesting(ids.front()), ());
+  TEST(QueryExcluded(manager, "A", kLat, kLon, offset.first, offset.second), ());
+  TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, "A", kLat, kLon, offset.first, offset.second), 1.0, kWeightEps, ());
+
+  manager.SetStreetPixelsOverlayForTesting("A", PixelsForIds(ids, true, true));
+  TEST(manager.IsPixelEverLiveForTesting(ids.front()), ());
+  TEST(QueryExcluded(manager, "A", kLat, kLon, offset.first, offset.second), ());
+  TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, "A", kLat, kLon, offset.first, offset.second), 1.0, kWeightEps, ());
 }
 
 UNIT_TEST(ExplorationWeight_OverlayCountryDiffersButSegmentPixInstalled)
@@ -246,6 +305,40 @@ UNIT_TEST(ExplorationWeight_OverlayCountryDiffersButSegmentPixInstalled)
                         ());
   TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, overlayCountry, kLat, kLon, offset.first, offset.second), 1.0, kWeightEps,
                         ());
+  TEST(!manager.IsPixelExploredForTesting(ids.front()), ());
+  TEST_EQUAL(static_cast<int>(manager.GetState().status),
+             static_cast<int>(StreetPixelsManager::StreetPixelsStatus::Ready), ());
+}
+
+UNIT_TEST(ExplorationWeight_AvoidUsesSegmentMwmPixWhenOverlayDiffers)
+{
+  StreetExplorationRoutingOptionsGuard guard;
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  auto const offset = OffsetLatLonByMeters(kLat, kLon, 0.0, 20.0);
+  auto const ids = CollectSamplePixelIds(kLat, kLon, offset.first, offset.second);
+  TEST(!ids.empty(), ());
+
+  std::string const overlayCountry = "sp057_overlay";
+  std::string const segmentCountry = "sp057_segment";
+  manager.SetStreetPixelsOverlayForTesting(overlayCountry, PixelsForIds(ids, false, false));
+
+  std::string const pixPath = GetPlatform().WritablePathForFile(segmentCountry + ".pix");
+  SCOPE_GUARD(cleanup, [&]()
+  {
+    FileWriter::DeleteFileX(pixPath);
+    manager.ClearLeafPixCacheForTesting();
+  });
+
+  std::set<int64_t> universe(ids.begin(), ids.end());
+  street_pixels_file::ExploredEverLiveMap exploredEverLive;
+  for (std::int64_t id : ids)
+    exploredEverLive[id] = true;
+  TEST(street_pixels_file::SaveRematchedUniverse(pixPath, universe, exploredEverLive, 1), ());
+
+  SaveExplorationMode(routing::StreetExplorationRoutingMode::Avoid, 100.0);
+  TEST(QueryExcluded(manager, segmentCountry, kLat, kLon, offset.first, offset.second), ());
+  TEST(!QueryExcluded(manager, overlayCountry, kLat, kLon, offset.first, offset.second), ());
   TEST(!manager.IsPixelExploredForTesting(ids.front()), ());
   TEST_EQUAL(static_cast<int>(manager.GetState().status),
              static_cast<int>(StreetPixelsManager::StreetPixelsStatus::Ready), ());

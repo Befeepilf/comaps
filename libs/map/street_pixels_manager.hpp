@@ -205,6 +205,9 @@ public:
   double GetSegmentExplorationWeightMultiplier(std::string const & mwmCountryName, routing::Segment const & segment,
                                                routing::RoadGeometry const & road) const;
 
+  bool IsSegmentExcludedForAvoid(std::string const & mwmCountryName, routing::Segment const & segment,
+                                 routing::RoadGeometry const & road) const;
+
   struct ExplorationDelta
   {
     std::string m_regionId;
@@ -270,6 +273,9 @@ private:
 
   void SegmentizeStreet(m2::PointD const & p1, m2::PointD const & p2,
                         std::function<void(m2::PointD const &, double)> const & callback) const;
+
+  double ExploredRatioForSegment(std::string const & mwmCountryName, routing::Segment const & segment,
+                                 routing::RoadGeometry const & road) const;
 
   std::int64_t ComputeGeometryHash(TrackInfo const & trackInfo);
   std::set<std::int64_t> ComputeTrackPixels(TrackInfo const & trackInfo) const;

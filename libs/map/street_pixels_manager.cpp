@@ -213,27 +213,33 @@ df::StreetPixel const * FindStreetPixelInSpan(std::span<df::StreetPixel const> p
   return nullptr;
 }
 
-double ExplorationWeightFromSpan(std::span<df::StreetPixel const> pixels,
-                                 std::unordered_set<std::int64_t> const & seenHealpix, double strength)
+struct ExploredMatchCounts
 {
   size_t matched = 0;
   size_t exploredMatched = 0;
+};
+
+ExploredMatchCounts CountExploredMatched(std::span<df::StreetPixel const> pixels,
+                                         std::unordered_set<std::int64_t> const & seenHealpix)
+{
+  ExploredMatchCounts counts;
   for (auto const pixelId : seenHealpix)
   {
     df::StreetPixel const * const sp = FindStreetPixelInSpan(pixels, pixelId);
     if (sp == nullptr)
       continue;
-    ++matched;
+    ++counts.matched;
     if (sp->IsExplored())
-      ++exploredMatched;
+      ++counts.exploredMatched;
   }
-  if (matched == 0)
-    return 1.0;
+  return counts;
+}
 
-  double const exploredRatio = static_cast<double>(exploredMatched) / static_cast<double>(matched);
-  double constexpr kMaxExplorationPenalty = 9.0;
-  return 1.0 + (strength / routing::StreetExplorationRoutingOptions::kMaxStrength) * kMaxExplorationPenalty *
-                   exploredRatio;
+double ExploredRatioOrZero(ExploredMatchCounts const & counts)
+{
+  if (counts.matched == 0)
+    return 0.0;
+  return static_cast<double>(counts.exploredMatched) / static_cast<double>(counts.matched);
 }
 }  // namespace
 
@@ -1282,17 +1288,38 @@ double StreetPixelsManager::GetSegmentExplorationWeightMultiplier(std::string co
                                                                   routing::Segment const & segment,
                                                                   routing::RoadGeometry const & road) const
 {
-  if (!segment.IsRealSegment() || !road.IsValid())
-    return 1.0;
-
   routing::StreetExplorationRoutingOptions const options =
       routing::StreetExplorationRoutingOptions::LoadFromSettings();
   if (!options.IsPreferEnabled())
     return 1.0;
 
+  double const exploredRatio = ExploredRatioForSegment(mwmCountryName, segment, road);
+  double constexpr kMaxExplorationPenalty = 9.0;
+  return 1.0 + (options.m_strength / routing::StreetExplorationRoutingOptions::kMaxStrength) *
+                   kMaxExplorationPenalty * exploredRatio;
+}
+
+bool StreetPixelsManager::IsSegmentExcludedForAvoid(std::string const & mwmCountryName,
+                                                    routing::Segment const & segment,
+                                                    routing::RoadGeometry const & road) const
+{
+  routing::StreetExplorationRoutingOptions const options =
+      routing::StreetExplorationRoutingOptions::LoadFromSettings();
+  if (!options.IsAvoidEnabled())
+    return false;
+  return ExploredRatioForSegment(mwmCountryName, segment, road) == 1.0;
+}
+
+double StreetPixelsManager::ExploredRatioForSegment(std::string const & mwmCountryName,
+                                                    routing::Segment const & segment,
+                                                    routing::RoadGeometry const & road) const
+{
+  if (!segment.IsRealSegment() || !road.IsValid())
+    return 0.0;
+
   uint32_t const j = segment.GetSegmentIdx();
   if (static_cast<size_t>(j) + 1 >= road.GetPointsCount())
-    return 1.0;
+    return 0.0;
 
   m2::PointD const pFrom = mercator::FromLatLon(road.GetPoint(j));
   m2::PointD const pTo = mercator::FromLatLon(road.GetPoint(j + 1));
@@ -1327,14 +1354,14 @@ double StreetPixelsManager::GetSegmentExplorationWeightMultiplier(std::string co
   {
     std::shared_lock<std::shared_mutex> lock(m_streetPixelsMutex);
     if (!m_streetPixels.empty())
-      return ExplorationWeightFromSpan(m_streetPixels, seenHealpix, options.m_strength);
+      return ExploredRatioOrZero(CountExploredMatched(m_streetPixels, seenHealpix));
   }
 
   std::lock_guard<std::mutex> leafLock(m_leafPixMutex);
   std::span<df::StreetPixel const> const leafPixels = LookupLeafPixUnlocked(mwmCountryName);
   if (leafPixels.empty())
-    return 1.0;
-  return ExplorationWeightFromSpan(leafPixels, seenHealpix, options.m_strength);
+    return 0.0;
+  return ExploredRatioOrZero(CountExploredMatched(leafPixels, seenHealpix));
 }
 
 std::optional<StreetPixelsManager::LeafPixMapping> StreetPixelsManager::TryOpenLeafPix(
