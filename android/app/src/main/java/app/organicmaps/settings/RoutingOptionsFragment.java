@@ -42,6 +42,7 @@ public class RoutingOptionsFragment extends BaseMwmToolbarFragment
 {
   public static final String BUNDLE_ROAD_TYPES = "road_types";
   public static final String BUNDLE_STREET_EXPLORATION_ENABLED = "street_exploration_enabled";
+  public static final String BUNDLE_STREET_EXPLORATION_MODE = "street_exploration_mode";
   public static final String BUNDLE_STREET_EXPLORATION_STRENGTH = "street_exploration_strength";
   @NonNull
   private Set<RoadType> mRoadTypes = Collections.emptySet();
@@ -66,13 +67,7 @@ public class RoutingOptionsFragment extends BaseMwmToolbarFragment
                    ? makeRouteTypes(savedInstanceState)
                    : RoutingOptions.getActiveRoadTypes(routerType);
             
-    mInitialStreetExplorationOptions = savedInstanceState != null
-                                        && savedInstanceState.containsKey(BUNDLE_STREET_EXPLORATION_ENABLED)
-                                       ? new StreetExplorationRoutingOptions(
-                                          savedInstanceState.getBoolean(BUNDLE_STREET_EXPLORATION_ENABLED),
-                                          savedInstanceState.getDouble(BUNDLE_STREET_EXPLORATION_STRENGTH)
-                                        )
-                                       : StreetExplorationRoutingOptions.LoadFromSettings();
+    mInitialStreetExplorationOptions = restoreStreetExplorationOptions(savedInstanceState);
 
     ViewPager2 viewPager = view.findViewById(R.id.route_options_view_pager);
     OptionsPagerAdapter pagerAdapter = new OptionsPagerAdapter(this);
@@ -172,8 +167,28 @@ public class RoutingOptionsFragment extends BaseMwmToolbarFragment
       savedRoadTypes.add(each.ordinal());
     }
     outState.putIntegerArrayList(BUNDLE_ROAD_TYPES, savedRoadTypes);
-    outState.putBoolean(BUNDLE_STREET_EXPLORATION_ENABLED, mInitialStreetExplorationOptions.m_enabled);
+    outState.putInt(BUNDLE_STREET_EXPLORATION_MODE, mInitialStreetExplorationOptions.m_mode);
     outState.putDouble(BUNDLE_STREET_EXPLORATION_STRENGTH, mInitialStreetExplorationOptions.m_strength);
+  }
+
+  @NonNull
+  private static StreetExplorationRoutingOptions restoreStreetExplorationOptions(@Nullable Bundle savedInstanceState)
+  {
+    if (savedInstanceState != null && savedInstanceState.containsKey(BUNDLE_STREET_EXPLORATION_MODE))
+    {
+      return new StreetExplorationRoutingOptions(
+          savedInstanceState.getInt(BUNDLE_STREET_EXPLORATION_MODE),
+          savedInstanceState.getDouble(BUNDLE_STREET_EXPLORATION_STRENGTH));
+    }
+    if (savedInstanceState != null && savedInstanceState.containsKey(BUNDLE_STREET_EXPLORATION_ENABLED))
+    {
+      int mode = savedInstanceState.getBoolean(BUNDLE_STREET_EXPLORATION_ENABLED)
+                     ? StreetExplorationRoutingOptions.MODE_PREFER
+                     : StreetExplorationRoutingOptions.MODE_NEITHER;
+      return new StreetExplorationRoutingOptions(
+          mode, savedInstanceState.getDouble(BUNDLE_STREET_EXPLORATION_STRENGTH));
+    }
+    return StreetExplorationRoutingOptions.LoadFromSettings();
   }
 
   private boolean areSettingsNotChanged()
@@ -183,7 +198,7 @@ public class RoutingOptionsFragment extends BaseMwmToolbarFragment
     StreetExplorationRoutingOptions currentExplorationOptions =
         StreetExplorationRoutingOptions.LoadFromSettings();
     return mRoadTypes.equals(lastActiveRoadTypes)
-           && mInitialStreetExplorationOptions.m_enabled == currentExplorationOptions.m_enabled
+           && mInitialStreetExplorationOptions.m_mode == currentExplorationOptions.m_mode
            && mInitialStreetExplorationOptions.m_strength == currentExplorationOptions.m_strength;
   }
 

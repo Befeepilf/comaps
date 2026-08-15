@@ -75,12 +75,13 @@ public class DrivingOptionsFragment extends Fragment
     MaterialSwitch preferUnexploredBtn = root.findViewById(R.id.prefer_unexplored_streets_btn);
     SeekBar strengthSeekBar = root.findViewById(R.id.street_exploration_strength_seekbar);
 
-    preferUnexploredBtn.setChecked(explorationOptions.m_enabled);
+    preferUnexploredBtn.setChecked(explorationOptions.isPreferEnabled());
     strengthSeekBar.setProgress((int) explorationOptions.m_strength);
-    strengthContainer.setVisibility(explorationOptions.m_enabled ? View.VISIBLE : View.GONE);
+    strengthContainer.setVisibility(explorationOptions.isPreferEnabled() ? View.VISIBLE : View.GONE);
 
     preferUnexploredBtn.setOnCheckedChangeListener((buttonView, isChecked) -> {
-      explorationOptions.m_enabled = isChecked;
+      explorationOptions.m_mode = isChecked ? StreetExplorationRoutingOptions.MODE_PREFER
+                                            : StreetExplorationRoutingOptions.MODE_NEITHER;
       StreetExplorationRoutingOptions.SaveToSettings(explorationOptions);
       strengthContainer.setVisibility(isChecked ? View.VISIBLE : View.GONE);
     });

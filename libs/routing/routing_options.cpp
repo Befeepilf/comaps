@@ -9,6 +9,7 @@
 #include "base/string_utils.hpp"
 
 #include <sstream>
+#include <string_view>
 
 namespace routing
 {
@@ -118,20 +119,20 @@ void TrailRoutingOptions::SaveToSettings(TrailRoutingOptions const & settings)
   settings::Set("trail_preference", settings.m_trailPreference);
 }
 
-// StreetExplorationRoutingOptions ---------------------------------------------------------------------
+std::string_view constexpr kStreetExplorationRoutingMode = "street_exploration_routing_mode";
+std::string_view constexpr kStreetExplorationRoutingEnabled = "street_exploration_routing_enabled";
+std::string_view constexpr kStreetExplorationRoutingStrength = "street_exploration_routing_strength";
+
+std::string_view constexpr kStreetExplorationModeNeither = "neither";
+std::string_view constexpr kStreetExplorationModePrefer = "prefer";
+std::string_view constexpr kStreetExplorationModeAvoid = "avoid";
 
 StreetExplorationRoutingOptions StreetExplorationRoutingOptions::LoadFromSettings()
 {
   StreetExplorationRoutingOptions settings;
 
-  std::string enabledStr;
-  if (!settings::Get("street_exploration_routing_enabled", enabledStr))
-    settings.m_enabled = false;
-  else
-    settings.m_enabled = (enabledStr == "true");
-
   std::string strengthStr;
-  if (!settings::Get("street_exploration_routing_strength", strengthStr))
+  if (!settings::Get(kStreetExplorationRoutingStrength, strengthStr))
     settings.m_strength = kDefaultStrength;
   else
   {
@@ -141,13 +142,39 @@ StreetExplorationRoutingOptions StreetExplorationRoutingOptions::LoadFromSetting
     settings.m_strength = std::max(kMinStrength, std::min(kMaxStrength, strength));
   }
 
+  std::string modeStr;
+  if (settings::Get(kStreetExplorationRoutingMode, modeStr))
+  {
+    if (modeStr == kStreetExplorationModePrefer)
+      settings.m_mode = StreetExplorationRoutingMode::Prefer;
+    else if (modeStr == kStreetExplorationModeAvoid)
+      settings.m_mode = StreetExplorationRoutingMode::Avoid;
+    else
+      settings.m_mode = StreetExplorationRoutingMode::Neither;
+  }
+  else
+  {
+    std::string enabledStr;
+    if (settings::Get(kStreetExplorationRoutingEnabled, enabledStr) && enabledStr == "true")
+      settings.m_mode = StreetExplorationRoutingMode::Prefer;
+    else
+      settings.m_mode = StreetExplorationRoutingMode::Neither;
+  }
+
   return settings;
 }
 
 void StreetExplorationRoutingOptions::SaveToSettings(StreetExplorationRoutingOptions const & settings)
 {
-  settings::Set("street_exploration_routing_enabled", settings.m_enabled);
-  settings::Set("street_exploration_routing_strength", settings.m_strength);
+  std::string_view modeStr = kStreetExplorationModeNeither;
+  if (settings.m_mode == StreetExplorationRoutingMode::Prefer)
+    modeStr = kStreetExplorationModePrefer;
+  else if (settings.m_mode == StreetExplorationRoutingMode::Avoid)
+    modeStr = kStreetExplorationModeAvoid;
+
+  settings::Set(kStreetExplorationRoutingMode, std::string(modeStr));
+  settings::Set(kStreetExplorationRoutingEnabled, settings.m_mode == StreetExplorationRoutingMode::Prefer);
+  settings::Set(kStreetExplorationRoutingStrength, settings.m_strength);
 }
 
 // RoutingOptionsClassifier ---------------------------------------------------------------------------
@@ -259,6 +286,18 @@ string DebugPrint(RoutingOptions::Option type)
   case RoutingOptions::Option::Paved: return "paved";
   case RoutingOptions::Option::Usual: return "usual";
   case RoutingOptions::Option::Max: return "max";
+  }
+
+  UNREACHABLE();
+}
+
+string DebugPrint(StreetExplorationRoutingMode mode)
+{
+  switch (mode)
+  {
+  case StreetExplorationRoutingMode::Neither: return "neither";
+  case StreetExplorationRoutingMode::Prefer: return "prefer";
+  case StreetExplorationRoutingMode::Avoid: return "avoid";
   }
 
   UNREACHABLE();

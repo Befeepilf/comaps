@@ -68,12 +68,20 @@ struct TrailRoutingOptions
   static constexpr double kDefaultTrailPreference = 50.0;
 };
 
+enum class StreetExplorationRoutingMode : uint8_t
+{
+  Neither = 0,
+  Prefer = 1,
+  Avoid = 2,
+};
+
 struct StreetExplorationRoutingOptions
 {
-  bool m_enabled = false;
-
-  /// \brief Strength from 0.0 (no effect) to 100.0 (maximum preference for unexplored streets)
+  StreetExplorationRoutingMode m_mode = StreetExplorationRoutingMode::Neither;
   double m_strength = 50.0;
+
+  bool IsPreferEnabled() const { return m_mode == StreetExplorationRoutingMode::Prefer; }
+  bool IsAvoidEnabled() const { return m_mode == StreetExplorationRoutingMode::Avoid; }
 
   static StreetExplorationRoutingOptions LoadFromSettings();
   static void SaveToSettings(StreetExplorationRoutingOptions const & settings);
@@ -99,6 +107,7 @@ RoutingOptions::Option ChooseMainRoutingOption(RoutingOptions options, bool isCa
 
 std::string DebugPrint(RoutingOptions const & routingOptions);
 std::string DebugPrint(RoutingOptions::Option type);
+std::string DebugPrint(StreetExplorationRoutingMode mode);
 
 /// Options guard for debugging/tests.
 class RoutingOptionSetter
