@@ -498,6 +498,7 @@ char const *kRenderAltitudeImagesQueueLabel = "mapsme.mwmrouter.renderAltitudeIm
     case routing::RouterResultCode::TransitRouteNotFoundNoNetwork:
     case routing::RouterResultCode::TransitRouteNotFoundTooLongPedestrian:
     case routing::RouterResultCode::RouteNotFoundRedressRouteError:
+    case routing::RouterResultCode::AvoidExploredNoRoute:
       [[MWMAlertViewController activeAlertController] presentAlert:code];
       [[MWMNavigationDashboardManager sharedManager] onRouteError:L(@"routing_planning_error")];
       break;
