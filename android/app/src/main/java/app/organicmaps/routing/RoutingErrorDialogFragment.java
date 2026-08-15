@@ -16,6 +16,9 @@ import androidx.fragment.app.FragmentManager;
 import app.organicmaps.R;
 import app.organicmaps.downloader.MapManagerHelper;
 import app.organicmaps.sdk.downloader.CountryItem;
+import app.organicmaps.sdk.routing.ResultCodes;
+import app.organicmaps.sdk.routing.RoutingController;
+import app.organicmaps.sdk.routing.StreetExplorationRoutingOptions;
 import app.organicmaps.util.UiUtils;
 import com.google.android.material.textview.MaterialTextView;
 
@@ -51,6 +54,8 @@ public class RoutingErrorDialogFragment extends BaseRoutingErrorDialogFragment
     builder.setNegativeButton(resHolder.getCancelBtnResId(), null);
     if (ResultCodesHelper.isDownloadable(mResultCode, mMissingMaps.size()))
       builder.setPositiveButton(R.string.download, null);
+    else if (mResultCode == ResultCodes.AVOID_EXPLORED_NO_ROUTE)
+      builder.setPositiveButton(R.string.dialog_routing_avoid_explored_prefer_button, null);
 
     mNeedMoreMaps = ResultCodesHelper.isMoreMapsNeeded(mResultCode);
     if (mNeedMoreMaps)
@@ -128,7 +133,19 @@ public class RoutingErrorDialogFragment extends BaseRoutingErrorDialogFragment
     if (button == null)
       return;
 
-    button.setOnClickListener(v -> startDownload());
+    if (mResultCode == ResultCodes.AVOID_EXPLORED_NO_ROUTE)
+    {
+      button.setOnClickListener(v -> {
+        StreetExplorationRoutingOptions current = StreetExplorationRoutingOptions.LoadFromSettings();
+        StreetExplorationRoutingOptions next = StreetExplorationRoutingOptions.preferFallback(current);
+        StreetExplorationRoutingOptions.SaveToSettings(next);
+        mCancelled = false;
+        dismiss();
+        RoutingController.get().rebuildLastRoute();
+      });
+    }
+    else
+      button.setOnClickListener(v -> startDownload());
   }
 
   @Override
