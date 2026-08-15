@@ -1,7 +1,7 @@
 # SP-057 — Avoid-explored engine (strict pass + distinct no-route)
 
 **Phase:** 6 — Exploration-aware routing
-**Status:** In progress
+**Status:** In review
 **Branch:** `cursor/sp-057-avoid-engine-35cf`
 **Depends on:** SPD-040–042, SPD-045; SP-054 recorded; SP-056 mode model
   landed (or this item includes a minimal mode hook — prefer stacking after
@@ -109,14 +109,52 @@ can offer Prefer+strength.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Test output | |
+| Branch | `cursor/sp-057-avoid-engine-35cf` |
+| Test output | See below. |
 | Exclusion rule | `exploredRatio == 1` (SPD-042) |
 | Accepted by | |
 | Accepted date | |
+
+### Automated tests (executed 2026-08-15)
+
+Build:
+
+```
+./tools/unix/build_omim.sh -d -p /workspace routing_tests
+./tools/unix/build_omim.sh -d -p /workspace street_pixels_tests
+```
+
+Both succeeded (Debug Clang, Ninja, `-p /workspace` → `/workspace/omim-build-debug`).
+
+Filtered:
+
+```
+./omim-build-debug/routing_tests --data_path=data --user_resource_path=data --filter="StreetExplorationAvoid_|ConvertResult_|ToString_AvoidExploredNoRoute|StreetExplorationRoutingSpike"
+./omim-build-debug/street_pixels_tests --data_path=data --user_resource_path=data --filter="ExplorationWeight_Avoid|ExplorationMultiplier_"
+```
+
+- Filtered `routing_tests`: **10/10 OK**, All tests passed
+  (`StreetExplorationRoutingSpike_*` 3/3; `StreetExplorationAvoid_*` 4/4; `ConvertResult_*` 2/2; `ToString_AvoidExploredNoRoute` 1/1)
+- Filtered `street_pixels_tests`: **9/9 OK**, All tests passed
+  (`ExplorationMultiplier_*` 4/4 unchanged; `ExplorationWeight_Avoid*` 5/5 including `AvoidStoredDoesNotChangeMultiplier` still 1.0)
+
+Full suites:
+
+```
+./omim-build-debug/routing_tests --data_path=data --user_resource_path=data
+./omim-build-debug/street_pixels_tests --data_path=data --user_resource_path=data
+```
+
+- `routing_tests`: **292/292 OK**, All tests passed
+- `street_pixels_tests`: **222/222 OK**, All tests passed
+
+Android: `ANDROID_HOME` is set (`/home/ubuntu/Android/Sdk`). Full Gradle assemble was not in the required gate. `values-en/strings.xml` is a symlink to `values/strings.xml`; English strings live in that one file.
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| (filled during implementation) | |
+| Spec §17.3 talks about avoiding edges containing explored pixels; SPD-042 locks V1 at `exploredRatio == 1` only. Implemented SPD-042. Spec not edited. | Product / spec follow-up; not this item |
+| Spec §17.3 / §31 offer min-connection or return-to-normal; SPD-042 replaces that with Prefer+strength. No second search here. | SP-058 UX only |
+| Technical audit Spike 7 suggested a large finite penalty first; SPD-042 locks true exclusion. Implemented true skip, not inf/max weights. | None |
+| `isDrivingOptionsBuildError()` can steal the Avoid no-route dialog when ferry/toll/etc. are on, showing the driving-options settings prompt instead of the Avoid strings. Engine code remains distinct. | SP-058 |
