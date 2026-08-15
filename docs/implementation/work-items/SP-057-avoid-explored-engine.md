@@ -2,9 +2,9 @@
 
 **Phase:** 6 — Exploration-aware routing
 **Status:** Planned
-**Depends on:** SP-055 Group A Accepted; SP-054 recorded (R12); SP-056 mode
-  model landed (or this item includes a minimal mode hook if SP-056 is not
-  yet merged — prefer stacking after SP-056)
+**Depends on:** SPD-040–042, SPD-045; SP-054 recorded; SP-056 mode model
+  landed (or this item includes a minimal mode hook — prefer stacking after
+  SP-056)
 **Unblocks:** SP-058 fallback UX; SP-059; SP-061 exit #2
 
 ---
@@ -12,53 +12,54 @@
 ## Objective
 
 Implement hard Avoid in the shared routing core: when Avoid is selected for
-pedestrian or bicycle, the strict pass uses only edges with no matched
-explored pixels, or returns a **distinct** no-route result. Never silently
-degrade to Prefer or Standard.
+pedestrian or bicycle, the strict pass excludes edges with
+`exploredRatio == 1`, or returns a **distinct** no-route result. Never
+silently degrade to Prefer.
 
 ## Motivation
 
-SPD-009 and spec §17.3 require Avoid in V1. Today only a ≤10× soft
-multiplier exists. A large penalty without a distinct failure still hides
-explored edges inside a “successful” route. The engine must make
-impossibility visible so SP-058 can offer the spec pair.
+SPD-009 and spec §17.3 require Avoid in V1. SPD-042 locks exclusion at
+fully explored edges only, so mixed edges remain usable. A large penalty
+without a distinct failure still hides fully explored edges inside a
+“successful” route. The engine must make impossibility visible so SP-058
+can offer Prefer+strength.
 
 ## In-scope behavior
 
-- Avoid mode on pedestrian and bicycle estimators only (R2). Car remains
-  Prefer-or-off.
-- Strict pass per R5 + R12: exclude (or equivalent true skip) edges with
-  `exploredRatio > 0`. Unmatched samples are not explored.
-- If no path: new `RouterResultCode` (JNI-mirrored; `ResultCodes` Java).
-  Must not reuse generic `RouteNotFound` as the Avoid-impossible signal.
-- Weight / exclusion query uses R1 (`IsExplored()`).
-- R11: segment-MWM `.pix` lookup when installed; missing file → not
+- Avoid mode on pedestrian and bicycle estimators only (SPD-041). Car
+  remains Prefer-or-off.
+- Strict pass (SPD-042): exclude (true skip) edges with
+  `exploredRatio == 1`. Mixed edges (`0 < ratio < 1`) remain. Unmatched
+  samples are not explored.
+- If no path: new `RouterResultCode` (JNI-mirrored). Must not reuse generic
+  `RouteNotFound` as the Avoid-impossible signal.
+- Weight / exclusion query uses SPD-040 (`IsExplored()`).
+- SPD-045: segment-MWM `.pix` lookup when installed; missing file → not
   explored. Do not load extra leaves into the drape overlay.
-- Fixture-graph tests in `routing_tests` and/or `street_pixels_tests`:
-  unexplored path exists → it is used and explored edges are not;
-  unexplored path absent → distinct code, no silent route.
+- Fixture-graph tests: a path that only needs mixed/unexplored edges is
+  chosen and fully explored edges are unused; when every path needs a fully
+  explored edge → distinct code, no silent route.
 - Production defaults: Avoid still needs SP-058 UI to be selectable; this
   item may expose a C++/JNI mode that Android wires in SP-058.
 
 ## Out-of-scope behavior
 
-- Fallback dialog and min-connection retry (SP-058).
+- Fallback dialog and Prefer switch (SP-058).
 - Pre-use warning copy (SP-058).
-- Mid-navigation freeze policy (SP-059) beyond not inventing a recompute
-  loop in the estimator.
+- Min-connection second search (rejected, SPD-042).
+- Mid-navigation freeze policy (SP-059).
 - Walk/bike toggle chrome (SP-056 / SP-058).
 - Analytics (SP-060).
 - True “infinite weight” without a no-path signal.
 
 ## Relevant product requirements
 
-- Spec §17.3, §31, §34 Routing; SPD-009.
-- SP-055 R1, R2, R5, R6, R11, R12.
+- Spec §17.3, §31, §34 Routing; SPD-009; SPD-040; SPD-041; SPD-042;
+  SPD-045.
 
 ## Relevant source files or symbols
 
-- `IStreetExplorationWeights` (may need an avoid/exclude query or a
-  multiplier of +inf / skip — additive extension preferred)
+- `IStreetExplorationWeights` (additive exclude query preferred)
 - `EdgeEstimator::ApplyStreetExplorationMultiplier`
 - `IndexRouter` / A-star `NoPath` → `RouterResultCode`
 - `routing_callbacks.hpp` enum (JNI mirror warning in-file)
@@ -69,27 +70,26 @@ impossibility visible so SP-058 can offer the spec pair.
 ## Implementation notes / constraints
 
 - Prefer additive hooks beside `IStreetExplorationWeights` over rewriting
-  IndexRouter. If IndexRouter must distinguish Avoid-NoPath from other
-  NoPath, say so in the PR: the result code is a product requirement (R6).
-- ETA must remain unmultiplied (today’s `Purpose::Weight` only).
-- Offline-only. No network for weights.
-- Do not Pro-gate.
+  IndexRouter. Distinguishing Avoid-NoPath from other NoPath is a product
+  requirement (SPD-042).
+- ETA must remain unmultiplied (`Purpose::Weight` only).
+- Offline-only. Do not Pro-gate.
 
 ## Acceptance criteria
 
-1. Fixture: unexplored route exists → Avoid chooses it; explored edges
-   unused.
-2. Fixture: no unexplored route → distinct result; no route returned as
-   success.
+1. Fixture: a route exists that avoids fully explored edges → Avoid chooses
+   it; `exploredRatio == 1` edges unused; mixed edges may be used.
+2. Fixture: every path uses a fully explored edge → distinct result; no
+   route returned as success.
 3. Car / vehicle router does not apply Avoid exclusion.
-4. R1: imported-only explored cells are avoided the same as live.
-5. R11: installed `.pix` for the segment MWM is used.
+4. SPD-040: imported-only explored cells count toward `exploredRatio`.
+5. SPD-045: installed `.pix` for the segment MWM is used.
 6. `routing_tests` / `street_pixels_tests` named in the PR pass.
 
 ## Required automated tests
 
-- Connected unexplored alternative.
-- Disconnected unexplored graph → distinct code.
+- Mixed-edge path kept; fully explored edge excluded.
+- All-paths fully explored → distinct code.
 - Prefer mode still uses the soft multiplier (regression).
 - Car estimator does not exclude on Avoid (or Avoid cannot be active).
 
@@ -100,9 +100,9 @@ impossibility visible so SP-058 can offer the spec pair.
 ## Failure and rollback considerations
 
 - Do not implement Avoid as “Prefer at strength 100”.
+- Do not exclude on `exploredRatio > 0`.
 - Do not map Avoid-NoPath onto generic `RouteNotFound`.
-- If R12 was revised after SP-054, implement the Accepted R12, not this
-  file’s default.
+- Do not add a min-connection cost pass.
 
 ## Completion evidence
 
@@ -110,7 +110,7 @@ impossibility visible so SP-058 can offer the spec pair.
 | --- | --- |
 | Branch | |
 | Test output | |
-| R12 implemented as | |
+| Exclusion rule | `exploredRatio == 1` (SPD-042) |
 | Accepted by | |
 | Accepted date | |
 

@@ -2,7 +2,7 @@
 
 **Phase:** 6 — Exploration-aware routing
 **Status:** Planned
-**Depends on:** SP-055 R10 Accepted; SP-056/058 mode changes exist to hook
+**Depends on:** SPD-044; SP-056/058 mode changes exist to hook
 **Unblocks:** SP-061 exit #6
 
 ---
@@ -24,8 +24,7 @@ Phase 10 rather than sending routes to Sentry.
 - Shared counter API (names, not coordinates) for at least:
   - prefer used (route built under Prefer)
   - avoid used (route built under Avoid strict pass)
-  - avoid-fallback-min-connection
-  - avoid-fallback-normal
+  - avoid-fallback-prefer (user took the SPD-042 switch)
 - Increment from the routing success / fallback-choice paths (not from
   every GPS tick).
 - Persistence optional; in-memory + process-lifetime is enough for V1 if
@@ -46,7 +45,7 @@ Phase 10 rather than sending routes to Sentry.
 ## Relevant product requirements
 
 - Spec §32.2, §32 (no raw GPS), §25.1, §34 analytics.
-- SP-003 (events were deferred); SP-055 R10.
+- SP-003 (events were deferred); SPD-044.
 
 ## Relevant source files or symbols
 
@@ -62,7 +61,7 @@ Phase 10 rather than sending routes to Sentry.
 
 ## Acceptance criteria
 
-1. The four counters exist and increment on the specified actions.
+1. The three counters exist and increment on the specified actions.
 2. Tests prove the recorded event has no location fields.
 3. Upload path is either privacy-safe and documented, or explicitly
    residualled to Phase 10.

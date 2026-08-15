@@ -147,7 +147,7 @@ roadmap tracks.
 | 3 | Phase 2 exit criteria met. | Per-pixel ever-live vs imported-only bit and map-data version persisted; map updates rematch explored HEALPix identifiers instead of deleting them; path sampling unified at 15 m (SPD-019); migration is crash-safe and recoverable; reconciliation covered by automated tests. |
 | 4 | Phase 3 exit criteria met; the area-pipeline spike has a recorded outcome. | Country-configured administrative polygons available to the client for at least one full country; deterministic pixel-to-area assignment; settlement fallback works; assignment is reproducible for a fixed map-data and policy version. |
 | 5 | Phase 4 exit criteria met. | Focused-area behaviour matches the spec; area and city completion percentages are correct for the installed map version; area selection and completed-area visual state work; rendering performance validated at city scale. |
-| 6 | Phase 3 exit criteria met; routing spike outcome recorded. | Prefer-unexplored exposed for walking and cycling; avoid-explored implemented with an explicit fallback offer; no silent abandonment of the selected rule. |
+| 6 | Phase 3 exit criteria met; routing spike outcome recorded. | Prefer-unexplored exposed for walking and cycling (with strength seekbar); avoid-explored excludes fully explored edges and falls back via an explicit Prefer switch; no silent abandonment of the selected rule. |
 | 7 | Phase 5 exit criteria met. | 25/50/100 milestones fire once per area per threshold; completion card generated with no route, home, live location, or per-visit timestamp; share action is explicit. |
 | 8 | Phase 4 exit criteria met; competition formulas resolved in `DECISIONS.md`. | Opt-in consent recorded with policy version and timestamp; aggregate-only uploads batched with delay and jitter; ownership, eligibility, decay, unclaimed and contested states work; weekly city leaderboard excludes imports; sparse-area anonymity enforced server-side; profile deletion works. |
 | 9 | Phase 3 exit criteria met; Phase 1 feature-flag foundation in place. | GPX import marks pixels `imported` and never touches recency or competition queues; export gated by build flag plus entitlement; public builds present no non-functional purchase action. |
@@ -204,8 +204,8 @@ Validation:
 [`validation/SP-041-evidence-log.md`](validation/SP-041-evidence-log.md).
 
 Phase 6 work-item planning (2026-08-15) may proceed in parallel: Phase 6
-depends on Phase 3 only, not on Phase 5. Coding SP-056+ stays gated on
-SP-054 + SP-055. See
+depends on Phase 3 only, not on Phase 5. SPD-040–045 are recorded. Coding
+SP-056+ stays gated on SP-054 measurement. See
 [`phases/phase-06-exploration-aware-routing.md`](phases/phase-06-exploration-aware-routing.md).
 
 ## 5. Release slices
@@ -469,20 +469,20 @@ SPD-026 locks personal completion.
 
 | Order | ID | Title | Phase | Why first |
 | --- | --- | --- | --- | --- |
-| 54 | [SP-054](work-items/SP-054-routing-spike.md) | Spike: exploration-aware routing measurement | 6 | **Planned** — Spike 7 entry gate; avoid length/time vs standard + disconnected case |
-| 55 | [SP-055](work-items/SP-055-routing-architecture-decisions.md) | Routing architecture decisions | 6 | **Planned** — recommended R1–R12 (OQ-2, Avoid semantics, UI, analytics); not Accepted |
-| 56 | [SP-056](work-items/SP-056-prefer-unexplored-walk-bike.md) | Prefer-unexplored on walking and cycling surfaces | 6 | Planned — gated on SP-054 + SP-055 Group A |
-| 57 | [SP-057](work-items/SP-057-avoid-explored-engine.md) | Avoid-explored engine (strict pass + distinct no-route) | 6 | Planned — gated on R12 / SP-054 |
-| 58 | [SP-058](work-items/SP-058-avoid-fallback-and-warning.md) | Avoid warning, fallback offer, min-connection retry | 6 | Planned |
+| 54 | [SP-054](work-items/SP-054-routing-spike.md) | Spike: exploration-aware routing measurement | 6 | **Planned** — Spike 7 entry gate; Avoid exclusion at `exploredRatio == 1` vs standard/Prefer |
+| 55 | [SP-055](work-items/SP-055-routing-architecture-decisions.md) | Routing architecture decisions | 6 | **In review** — SPD-040–045 (OQ-2 closed; Prefer/Avoid; seekbar; fully-explored exclusion; Prefer fallback) |
+| 56 | [SP-056](work-items/SP-056-prefer-unexplored-walk-bike.md) | Prefer-unexplored on walking and cycling surfaces | 6 | Planned — gated on SP-054; seekbar kept (SPD-041) |
+| 57 | [SP-057](work-items/SP-057-avoid-explored-engine.md) | Avoid-explored engine (strict pass + distinct no-route) | 6 | Planned — exclude `exploredRatio == 1` (SPD-042) |
+| 58 | [SP-058](work-items/SP-058-avoid-fallback-and-warning.md) | Avoid warning, no-route UX, Prefer+strength fallback | 6 | Planned — no min-connection search (SPD-042) |
 | 59 | [SP-059](work-items/SP-059-mid-navigation-avoid-stability.md) | Mid-navigation stability when the route becomes explored | 6 | Planned |
 | 60 | [SP-060](work-items/SP-060-routing-mode-analytics.md) | Count-only routing-mode analytics | 6 | Planned — local counters; upload residual if no sink |
 | 61 | [SP-061](work-items/SP-061-phase6-end-to-end-validation.md) | Phase 6 end-to-end validation | 6 | Planned — exit gate |
 
 Phase 6 entry investigation (2026-08-15) recorded in
 [`phases/phase-06-exploration-aware-routing.md`](phases/phase-06-exploration-aware-routing.md).
-SP-054–061 **Planned**. OQ-2 and Spike 7 measurement are **not met**;
-recommended locks live in SP-055 and are not Accepted SPDs. Coding SP-056+
-does not start until SP-054 has a recorded outcome and SP-055 Group A is
-Accepted. Detailed work items exist for Phases 1–6. Later phases are broken
-down after their entry criteria are met, and after any spike that phase
-depends on has a recorded outcome.
+SP-054 **Planned**. SP-055 **In review** (SPD-040–045 recorded; OQ-2 closed).
+SP-056–061 **Planned**. Spike 7 measurement is **not met**. Coding SP-056+
+does not start until SP-054 has a recorded outcome. Detailed work items
+exist for Phases 1–6. Later phases are broken down after their entry
+criteria are met, and after any spike that phase depends on has a recorded
+outcome.
