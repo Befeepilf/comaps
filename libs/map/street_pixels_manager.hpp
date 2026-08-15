@@ -38,6 +38,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <list>
 #include <mutex>
 #include <optional>
 #include <shared_mutex>
@@ -223,6 +224,9 @@ public:
   void SetVibrationHandler(VibrationHandler const & handler);
 
   void SetStreetPixelsForTesting(std::vector<df::StreetPixel> pixels);
+  void SetStreetPixelsOverlayForTesting(storage::CountryId const & countryId, std::vector<df::StreetPixel> pixels);
+  void ClearLeafPixCacheForTesting();
+  void EvictLeafPixForTesting(storage::CountryId const & countryId);
   size_t MarkTrackPixelsForTesting(std::set<std::int64_t> const & pixelIds);
   size_t MarkImportedPixelsForTesting(std::set<std::int64_t> const & pixelIds);
   bool IsPixelExploredForTesting(std::int64_t pixelId) const;
@@ -327,6 +331,21 @@ private:
   size_t GetPixelIndexWhileLocked(df::StreetPixel const * ptr) const;
 
   mutable std::mutex m_pixFileMutex;
+
+  struct LeafPixMapping
+  {
+    storage::CountryId countryId;
+    std::unique_ptr<MmapReader> reader;
+    std::span<df::StreetPixel const> pixels;
+  };
+
+  static constexpr size_t kMaxLeafPixCache = 4;
+  mutable std::mutex m_leafPixMutex;
+  mutable std::list<LeafPixMapping> m_leafPixLru;
+
+  std::optional<LeafPixMapping> TryOpenLeafPix(storage::CountryId const & countryId) const;
+  std::span<df::StreetPixel const> LookupLeafPixUnlocked(storage::CountryId const & countryId) const;
+  void EvictLeafPix(storage::CountryId const & countryId);
 
   std::optional<RematchFractionChange> m_pendingRematchFractionChange;
   mutable std::mutex m_pendingRematchFractionMutex;

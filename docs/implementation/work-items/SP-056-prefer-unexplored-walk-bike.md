@@ -1,7 +1,8 @@
 # SP-056 — Prefer-unexplored on walking and cycling surfaces
 
 **Phase:** 6 — Exploration-aware routing
-**Status:** Planned
+**Status:** In review
+**Branch:** `cursor/sp-056-prefer-walk-bike-35cf`
 **Depends on:** SP-054 recorded outcome; SPD-040, SPD-041, SPD-045
 **Unblocks:** SP-057–061 (mode model and walk/bike reachability)
 
@@ -101,14 +102,67 @@ SPD-041 keeps the strength seekbar in V1.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Test output | |
-| Manual validation | |
+| Branch | `cursor/sp-056-prefer-walk-bike-35cf` |
+| Test output | See below. Not Accepted. |
+| Manual validation | Device residual → SP-061 / Phase 10. No handset in this environment. |
 | Accepted by | |
 | Accepted date | |
+
+### Automated tests (executed 2026-08-15)
+
+Build:
+
+```
+./tools/unix/build_omim.sh -d -p /workspace routing_tests
+./tools/unix/build_omim.sh -d -p /workspace street_pixels_tests
+```
+
+Both succeeded (street_pixels_tests required host `autoconf`/`libomp-dev` to configure libsharp; not a product change).
+
+Filtered:
+
+```
+./tools/unix/run_tests.sh -b /workspace/omim-build-debug -f "ExplorationMultiplier_|StreetExplorationRoutingOptions_|ExplorationWeight_"
+```
+
+Result: **2 / 2 passed** (`street_pixels_tests` + `routing_tests`).
+
+- `ExplorationMultiplier_*`: 4/4 OK (unchanged formula helpers)
+- `ExplorationWeight_*`: 9/9 OK (overlay Prefer 10.0 / unexplored 1.0 / Neither 1.0 / Avoid 1.0 / imported=live 10.0 / SPD-045 leaf `.pix` 10.0 / missing pix 1.0 / half-explored mid-strength / leaf LRU eviction after `.pix` replace)
+- `StreetExplorationRoutingOptions_*`: 10/10 OK (default Neither, enabled→Prefer migration, dual-write enabled false for Avoid, mode key wins, invalid mode, strength clamp)
+
+Re-run after review fixes (binder reload; rematch leaf eviction): same filtered command, **2 / 2 passed**.
+
+Full suites:
+
+```
+./omim-build-debug/routing_tests --data_path=data --user_resource_path=data
+./omim-build-debug/street_pixels_tests --data_path=data --user_resource_path=data
+```
+
+- `routing_tests`: **285/285 OK**, All tests passed
+- `street_pixels_tests`: **218/218 OK**, All tests passed (includes `ExplorationWeight_LeafPixEvictedAfterFileReplace`)
+
+Android compile residual: `./gradlew -Pandroidauto=true :app:compileDebugJavaWithJavac` failed — plugin `com.android.application:8.13.2` unresolved and SDK has no `platforms`/`build-tools`. No instrumented tests added.
+
+### Manual validation residual
+
+Device, not this environment (same honesty as SP-014 / SP-041):
+
+1. Plan a walk in a partly explored area. Walk tab: Prefer on → route changes; seekbar → route changes; Prefer off → ordinary routing; seekbar hidden when off.
+2. Repeat for bike.
+3. Car tab: Prefer toggle + seekbar still work. No Avoid row.
+4. Confirm Avoid is not visible on walk/bike.
+5. Offline: Prefer still recomputes from local `.pix`.
+
+Full device matrix → **SP-061 / Phase 10**.
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| (filled during implementation) | |
+| `RoutingPlanController` still only inflates road-type chips, not Prefer. When only Prefer is on, `hasAnyOptions` is true but the banner can open with an empty chip list | Pre-existing gap; Prefer banner chips in a later item, not SP-056 |
+| Leaf mmap LRU holds up to 4 successful `{country}.pix` mappings; city-scale RSS on multi-leaf walks is unmeasured | Phase 10 residual (same class as SP-054 lookup cost) |
+| Avoid is stored and dual-written (`enabled=false`) but hidden in UI | By design until SP-058; weights stay 1.0 until SP-057 |
+| ViewPager offscreen tabs captured a stale Prefer+strength object | Fixed in this item: reload on bind/`onResume` |
+| Rematch/`Save` left the leaf mmap LRU on the old inode | Fixed in this item: evict after pix rewrite, outside `m_pixFileMutex` |

@@ -61,6 +61,17 @@ public class CyclingOptionsFragment extends Fragment
     CompoundButton.OnCheckedChangeListener pavedBtnListener =
         new ToggleRoutingOptionListener(RoadType.Paved, root, Router.Bicycle);
     pavedBtn.setOnCheckedChangeListener(pavedBtnListener);
+
+    StreetExplorationPreferBinder.bind(root);
+  }
+
+  @Override
+  public void onResume()
+  {
+    super.onResume();
+    View view = getView();
+    if (view != null)
+      StreetExplorationPreferBinder.bind(view);
   }
 
   private record
