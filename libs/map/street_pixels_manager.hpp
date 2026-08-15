@@ -191,7 +191,8 @@ public:
   // Resolve §12.5 inputs from viewport/session and apply the engine.
   bool RefreshFocusFromViewport(m2::PointD const & mapCentre, std::optional<m2::PointD> const & userPos,
                                 bool recordingActive, bool followingMyPosition, int drawScale,
-                                std::string const & spaPath, int64_t mapDataVersion);
+                                std::string const & spaPath, int64_t mapDataVersion,
+                                storage::CountryId const & countryId = {});
 
   void OnUpdateCurrentCountry(storage::CountryId const & countryId, storage::LocalFilePtr const & localFile);
 
@@ -330,6 +331,7 @@ private:
   bool m_explicitFocusSticky = false;
   mutable std::mutex m_focusedAreaMutex;
 
+  mutable std::mutex m_focusCacheMutex;
   std::string m_cachedFocusSpaPath;
   int64_t m_cachedFocusSpaVersion = 0;
   bool m_cachedFocusSpaValid = false;
