@@ -648,21 +648,38 @@ double EdgeEstimator::ApplyStreetExplorationMultiplier(Purpose purpose, Segment 
   return baseWeight * mult;
 }
 
+bool EdgeEstimator::AppliesAvoidExclusion() const
+{
+  return m_vehicleType == VehicleType::Pedestrian || m_vehicleType == VehicleType::Bicycle;
+}
+
+bool EdgeEstimator::IsAvoidExclusionActive() const
+{
+  return AppliesAvoidExclusion() && m_streetExploration && m_streetExploration->IsAvoidExclusionActive();
+}
+
+bool EdgeEstimator::IsSegmentExcluded(Segment const & segment, RoadGeometry const & road) const
+{
+  if (!IsAvoidExclusionActive() || !m_numMwmIds)
+    return false;
+  return m_streetExploration->IsSegmentExcluded(*m_numMwmIds, segment.GetMwmId(), segment, road);
+}
+
 // PedestrianEstimator -----------------------------------------------------------------------------
 class PedestrianEstimator final : public EdgeEstimator
 {
 public:
-  PedestrianEstimator(double maxWeightSpeedKMpH, SpeedKMpH const & offroadSpeedKMpH,
+  PedestrianEstimator(VehicleType vehicleType, double maxWeightSpeedKMpH, SpeedKMpH const & offroadSpeedKMpH,
                       std::shared_ptr<NumMwmIds> numMwmIds,
                       std::shared_ptr<IStreetExplorationWeights const> streetExploration)
-    : EdgeEstimator(VehicleType::Pedestrian, maxWeightSpeedKMpH, offroadSpeedKMpH, nullptr, std::move(numMwmIds),
+    : EdgeEstimator(vehicleType, maxWeightSpeedKMpH, offroadSpeedKMpH, nullptr, std::move(numMwmIds),
                     std::move(streetExploration))
   {}
 
-  PedestrianEstimator(double maxWeightSpeedKMpH, SpeedKMpH const & offroadSpeedKMpH,
+  PedestrianEstimator(VehicleType vehicleType, double maxWeightSpeedKMpH, SpeedKMpH const & offroadSpeedKMpH,
                       TrailRoutingOptions const & trailOptions, std::shared_ptr<NumMwmIds> numMwmIds,
                       std::shared_ptr<IStreetExplorationWeights const> streetExploration)
-    : EdgeEstimator(VehicleType::Pedestrian, maxWeightSpeedKMpH, offroadSpeedKMpH, nullptr, std::move(numMwmIds),
+    : EdgeEstimator(vehicleType, maxWeightSpeedKMpH, offroadSpeedKMpH, nullptr, std::move(numMwmIds),
                     std::move(streetExploration))
   {}
 
@@ -923,7 +940,7 @@ shared_ptr<EdgeEstimator> EdgeEstimator::Create(VehicleType vehicleType, double 
   case VehicleType::Transit:
   {
     TrailRoutingOptions trailOptions = TrailRoutingOptions::LoadFromSettings();
-    return make_shared<PedestrianEstimator>(maxWeighSpeedKMpH, offroadSpeedKMpH, trailOptions, numMwmIds,
+    return make_shared<PedestrianEstimator>(vehicleType, maxWeighSpeedKMpH, offroadSpeedKMpH, trailOptions, numMwmIds,
                                             streetExploration);
   }
   case VehicleType::Bicycle:

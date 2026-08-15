@@ -241,7 +241,8 @@ private:
   {
     switch (result)
     {
-    case AStarAlgorithm<Vertex, Edge, Weight>::Result::NoPath: return RouterResultCode::RouteNotFound;
+    case AStarAlgorithm<Vertex, Edge, Weight>::Result::NoPath:
+      return MapAStarNoPath(m_estimator && m_estimator->IsAvoidExclusionActive());
     case AStarAlgorithm<Vertex, Edge, Weight>::Result::Cancelled: return RouterResultCode::Cancelled;
     case AStarAlgorithm<Vertex, Edge, Weight>::Result::OK: return RouterResultCode::NoError;
     }

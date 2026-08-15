@@ -14,5 +14,9 @@ public:
 
   virtual double GetSegmentWeightMultiplier(NumMwmIds const & numMwmIds, NumMwmId mwmId, Segment const & segment,
                                             RoadGeometry const & road) const = 0;
+
+  virtual bool IsAvoidExclusionActive() const = 0;
+  virtual bool IsSegmentExcluded(NumMwmIds const & numMwmIds, NumMwmId mwmId, Segment const & segment,
+                                 RoadGeometry const & road) const = 0;
 };
 }  // namespace routing

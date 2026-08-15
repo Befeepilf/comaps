@@ -20,7 +20,7 @@ class Route;
 
 /// Routing possible statuses enumeration.
 /// \warning  this enum has JNI mirror!
-/// \see android/src/app/organicmaps/maps/routing/ResultCodesHelper.java
+/// \see android/sdk/src/main/java/app/organicmaps/sdk/routing/ResultCodes.java
 // TODO(bykoianko): Items become obsolete now should be removed from the enum.
 enum class RouterResultCode
 {
@@ -41,6 +41,7 @@ enum class RouterResultCode
   TransitRouteNotFoundTooLongPedestrian = 14,
   RouteNotFoundRedressRouteError = 15,
   HasWarnings = 16,
+  AvoidExploredNoRoute = 17,
 };
 
 enum class SessionState
@@ -111,6 +112,7 @@ inline std::string ToString(RouterResultCode code)
   case RouterResultCode::TransitRouteNotFoundTooLongPedestrian: return "TransitRouteNotFoundTooLongPedestrian";
   case RouterResultCode::RouteNotFoundRedressRouteError: return "RouteNotFoundRedressRouteError";
   case RouterResultCode::HasWarnings: return "HasWarnings";
+  case RouterResultCode::AvoidExploredNoRoute: return "AvoidExploredNoRoute";
   }
 
   std::string result = "Unknown RouterResultCode: " + std::to_string(static_cast<int>(code));
@@ -121,6 +123,11 @@ inline std::string ToString(RouterResultCode code)
 inline std::string DebugPrint(RouterResultCode code)
 {
   return ToString(code);
+}
+
+inline RouterResultCode MapAStarNoPath(bool avoidExclusionActive)
+{
+  return avoidExclusionActive ? RouterResultCode::AvoidExploredNoRoute : RouterResultCode::RouteNotFound;
 }
 
 // This define should be set to see the spread of A* waves on the map.

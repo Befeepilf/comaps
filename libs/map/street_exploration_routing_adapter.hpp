@@ -13,6 +13,10 @@ public:
                                     routing::Segment const & segment,
                                     routing::RoadGeometry const & road) const override;
 
+  bool IsAvoidExclusionActive() const override;
+  bool IsSegmentExcluded(routing::NumMwmIds const & numMwmIds, routing::NumMwmId mwmId,
+                         routing::Segment const & segment, routing::RoadGeometry const & road) const override;
+
 private:
   StreetPixelsManager & m_streetPixelsManager;
 };

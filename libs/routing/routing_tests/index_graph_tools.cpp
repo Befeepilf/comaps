@@ -166,9 +166,10 @@ double WeightedEdgeEstimator::GetFerryLandingPenalty(Purpose purpose) const
 
 // TestIndexGraphTopology --------------------------------------------------------------------------
 TestIndexGraphTopology::TestIndexGraphTopology(
-    uint32_t numVertices, shared_ptr<IStreetExplorationWeights const> streetExploration)
+    uint32_t numVertices, shared_ptr<IStreetExplorationWeights const> streetExploration, VehicleType vehicleType)
   : m_numVertices(numVertices)
   , m_streetExploration(std::move(streetExploration))
+  , m_vehicleType(vehicleType)
 {}
 
 void TestIndexGraphTopology::AddDirectedEdge(Vertex from, Vertex to, double weight)
@@ -279,7 +280,7 @@ bool TestIndexGraphTopology::FindPath(Vertex start, Vertex finish, double & path
   // and the only segment with segmentIdx |0|. It is a loop so direction does not matter.
   auto const finishSegment = Segment(kTestNumMwmId, finishFeatureId, 0 /* segmentIdx */, true /* forward */);
 
-  Builder builder(m_numVertices, m_streetExploration);
+  Builder builder(m_numVertices, m_streetExploration, m_vehicleType);
   builder.SetCurrentTimeGetter(m_currentTimeGetter);
   builder.BuildGraphFromRequests(edgeRequests);
   auto worldGraph = builder.PrepareIndexGraph();
@@ -345,7 +346,8 @@ unique_ptr<SingleVehicleWorldGraph> TestIndexGraphTopology::Builder::PrepareInde
   shared_ptr<NumMwmIds> numMwmIds;
   if (m_streetExploration)
     numMwmIds = make_shared<NumMwmIds>();
-  auto estimator = make_shared<WeightedEdgeEstimator>(m_segmentWeights, std::move(numMwmIds), m_streetExploration);
+  auto estimator = make_shared<WeightedEdgeEstimator>(m_segmentWeights, std::move(numMwmIds), m_streetExploration,
+                                                      m_vehicleType);
 
   BuildJoints();
 
