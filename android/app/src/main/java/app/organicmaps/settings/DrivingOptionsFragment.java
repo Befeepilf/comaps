@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
-import android.widget.SeekBar;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -15,7 +14,6 @@ import app.organicmaps.base.BaseMwmToolbarFragment;
 import app.organicmaps.sdk.Router;
 import app.organicmaps.sdk.routing.RoutingController;
 import app.organicmaps.sdk.routing.RoutingOptions;
-import app.organicmaps.sdk.routing.StreetExplorationRoutingOptions;
 import app.organicmaps.sdk.settings.RoadType;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import java.util.ArrayList;
@@ -69,40 +67,7 @@ public class DrivingOptionsFragment extends Fragment
         new ToggleRoutingOptionListener(RoadType.Paved, root, Router.Vehicle);
     pavedBtn.setOnCheckedChangeListener(pavedBtnListener);
 
-    StreetExplorationRoutingOptions explorationOptions = StreetExplorationRoutingOptions.LoadFromSettings();
-
-    View strengthContainer = root.findViewById(R.id.street_exploration_strength_container);
-    MaterialSwitch preferUnexploredBtn = root.findViewById(R.id.prefer_unexplored_streets_btn);
-    SeekBar strengthSeekBar = root.findViewById(R.id.street_exploration_strength_seekbar);
-
-    preferUnexploredBtn.setChecked(explorationOptions.isPreferEnabled());
-    strengthSeekBar.setProgress((int) explorationOptions.m_strength);
-    strengthContainer.setVisibility(explorationOptions.isPreferEnabled() ? View.VISIBLE : View.GONE);
-
-    preferUnexploredBtn.setOnCheckedChangeListener((buttonView, isChecked) -> {
-      explorationOptions.m_mode = isChecked ? StreetExplorationRoutingOptions.MODE_PREFER
-                                            : StreetExplorationRoutingOptions.MODE_NEITHER;
-      StreetExplorationRoutingOptions.SaveToSettings(explorationOptions);
-      strengthContainer.setVisibility(isChecked ? View.VISIBLE : View.GONE);
-    });
-
-    strengthSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
-    {
-      @Override
-      public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
-      {
-        if (!fromUser)
-          return;
-        explorationOptions.m_strength = progress;
-        StreetExplorationRoutingOptions.SaveToSettings(explorationOptions);
-      }
-
-      @Override
-      public void onStartTrackingTouch(SeekBar seekBar) {}
-
-      @Override
-      public void onStopTrackingTouch(SeekBar seekBar) {}
-    });
+    StreetExplorationPreferBinder.bind(root);
   }
 
   private record

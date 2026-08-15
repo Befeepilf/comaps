@@ -60,6 +60,8 @@ public class WalkingOptionsFragment extends Fragment
     CompoundButton.OnCheckedChangeListener pavedBtnListener =
         new ToggleRoutingOptionListener(RoadType.Paved, root, Router.Pedestrian);
     pavedBtn.setOnCheckedChangeListener(pavedBtnListener);
+
+    StreetExplorationPreferBinder.bind(root);
   }
 
   private record
