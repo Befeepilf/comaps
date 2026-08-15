@@ -97,6 +97,7 @@ Phase 4 `DisplayName` exists but is not wired to the badge.
 | Temporary map-centre `TryFocusAtPoint` / JNI refresh until §12.5 | Replace in SP-036 |
 | JNI spa path must use `ExplorationSidecarPathBesideMwm` for versioned installs | Fixed in review follow-up |
 | R8 stripped JNI-only `FocusedAreaProgress` ctor → `mid == null` SIGABRT on test/release | Fixed with `@Keep` |
+| Badge did not update on pan or GPS-fixed-inside-area | Android only rebound the badge on `StreetPixelsState` READY. Framework now feeds `RefreshFocusFromViewport` from viewport changes and location updates; Android listens to focused-area progress. Device confirmation → SP-041 / Phase 10 |
 | Badge hides when no focus / blank name (no-area stub) | SP-040 empty-state polish |
 | CoMaps Qt desktop has no Street Pixels badge chrome | Validated via `tools/focused_area_badge_desktop_demo`; product UI remains Android |
 | Helsinki on-device badge spot-check | SP-041 / Phase 10 |
