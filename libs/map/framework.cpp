@@ -2236,8 +2236,9 @@ bool Framework::TryHandleExplorationAreaTap(place_page::Info const & info)
   tap.m_isMyPosition = info.IsMyPosition();
   tap.m_isRoutePoint = info.IsRoutePoint();
   tap.m_isPointFeature = info.IsFeature() && info.IsPointType();
+  tap.m_isAreaLabel = info.IsFeature() && ftypes::IsPlaceChecker::Instance()(info.GetTypes());
   auto const kind = street_pixels::ClassifyMapTap(tap);
-  if (kind == street_pixels::MapTapKind::DiscreteObject)
+  if (kind != street_pixels::MapTapKind::AreaLabel)
     return false;
 
   m2::PointD const mercator = info.GetMercator();
@@ -2247,14 +2248,10 @@ bool Framework::TryHandleExplorationAreaTap(place_page::Info const & info)
   if (ResolveExplorationSidecarAt(mercator, spaPath, mapDataVersion))
     hit = manager.HasExplorationAreaAtPoint(mercator, spaPath, mapDataVersion);
 
-  if (!street_pixels::ShouldOpenExplorationDetail(kind, hit, info.IsFeature()))
+  if (!street_pixels::ShouldOpenExplorationDetail(kind, hit))
     return false;
 
-  if (hit)
-    SelectStreetPixelsFocusAt(mercator);
-  else
-    manager.ClearFocusedArea();
-  return true;
+  return SelectStreetPixelsFocusAt(mercator);
 }
 
 RecordingSession & Framework::GetRecordingSession()
