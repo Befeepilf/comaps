@@ -1,7 +1,7 @@
 # SP-054 — Spike: exploration-aware routing measurement
 
 **Phase:** 6 — Exploration-aware routing
-**Status:** In review
+**Status:** Accepted
 **Branch:** `cursor/sp-054-routing-spike-35cf`
 **Depends on:** Phase 3 exit met; SPD-040–045 (algorithm shape locked)
 **Unblocks:** SP-056+ coding gate (measurement / residual)
@@ -124,8 +124,8 @@ or silently change production defaults.
 | Forced no-route case | Avoid: `NoPath` in 101/101 timed runs, median 58 µs, p95 60 µs, median extra -25 µs |
 | Pass / fail / residual vs &lt;2 s extra | Synthetic desktop pass: largest positive median and p95 extra +9 µs; city-scale residual remains |
 | Phase 10 residual | Installed city-scale MWM with per-leaf `.pix` lookups; device latency, storage behavior, and battery |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-15 |
 
 ## Discovered follow-up
 
