@@ -53,6 +53,13 @@ public:
     return 1.0 + m_strength / 100.0 * 9.0 * GetRatio(segment);
   }
 
+  bool IsAvoidExclusionActive() const override { return m_mode == Mode::Avoid; }
+
+  bool IsSegmentExcluded(NumMwmIds const &, NumMwmId, Segment const & segment, RoadGeometry const &) const override
+  {
+    return IsExcluded(segment);
+  }
+
   bool IsExcluded(Segment const & segment) const { return GetRatio(segment) == 1.0; }
 
   void ResetLookupCount() const { m_lookupCount = 0; }

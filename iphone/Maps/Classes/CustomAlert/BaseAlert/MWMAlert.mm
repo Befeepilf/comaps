@@ -91,6 +91,8 @@
       return nil;
     case routing::RouterResultCode::IntermediatePointNotFound:
       return [MWMDefaultAlert intermediatePointNotFoundAlert];
+    case routing::RouterResultCode::AvoidExploredNoRoute:
+      return [MWMDefaultAlert routeNotFoundAlert];
   }
 }
 

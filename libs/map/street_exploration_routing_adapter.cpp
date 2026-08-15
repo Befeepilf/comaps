@@ -1,6 +1,7 @@
 #include "map/street_exploration_routing_adapter.hpp"
 #include "map/street_pixels_manager.hpp"
 
+#include "routing/routing_options.hpp"
 #include "routing/segment.hpp"
 
 StreetExplorationRoutingAdapter::StreetExplorationRoutingAdapter(StreetPixelsManager & streetPixelsManager)
@@ -17,4 +18,20 @@ double StreetExplorationRoutingAdapter::GetSegmentWeightMultiplier(routing::NumM
 
   std::string const & country = numMwmIds.GetFile(mwmId).GetName();
   return m_streetPixelsManager.GetSegmentExplorationWeightMultiplier(country, segment, road);
+}
+
+bool StreetExplorationRoutingAdapter::IsAvoidExclusionActive() const
+{
+  return routing::StreetExplorationRoutingOptions::LoadFromSettings().IsAvoidEnabled();
+}
+
+bool StreetExplorationRoutingAdapter::IsSegmentExcluded(routing::NumMwmIds const & numMwmIds,
+                                                        routing::NumMwmId mwmId, routing::Segment const & segment,
+                                                        routing::RoadGeometry const & road) const
+{
+  if (mwmId == routing::kFakeNumMwmId || !numMwmIds.ContainsFileForMwm(mwmId))
+    return false;
+
+  std::string const & country = numMwmIds.GetFile(mwmId).GetName();
+  return m_streetPixelsManager.IsSegmentExcludedForAvoid(country, segment, road);
 }

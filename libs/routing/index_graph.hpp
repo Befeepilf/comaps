@@ -187,6 +187,8 @@ private:
   bool IsAccessNoForSure(AccessPositionType const & accessPositionType, RouteWeight const & weight,
                          bool useAccessConditional) const;
 
+  bool IsStreetExplorationExcluded(Segment const & segment) const;
+
   std::shared_ptr<Geometry> m_geometry;
   std::shared_ptr<EdgeEstimator> m_estimator;
   RoadIndex m_roadIndex;

@@ -350,6 +350,9 @@ void IndexGraph::ReconstructJointSegment(astar::VertexData<JointSegment, RouteWe
     if (IsRestricted(parentJoint, parent.GetFeatureId(), firstChild.GetFeatureId(), isOutgoing, parents))
       continue;
 
+    if (IsStreetExplorationExcluded(firstChild))
+      continue;
+
     RouteWeight summaryWeight;
     // Check current JointSegment for bad road access between segments.
     RoadPoint rp = firstChild.GetRoadPoint(isOutgoing);
@@ -380,9 +383,18 @@ void IndexGraph::ReconstructJointSegment(astar::VertexData<JointSegment, RouteWe
     bool forward = currentPointId < lastPointId;
     Segment current = firstChild;
     Segment prev = parent;
+    bool excluded = false;
 
     do
     {
+      if (IsStreetExplorationExcluded(current))
+      {
+        if (prev != parent)
+          parentWeights.pop_back();
+        excluded = true;
+        break;
+      }
+
       RouteWeight const weight =
           CalculateEdgeWeight(EdgeEstimator::Purpose::Weight, isOutgoing, prev, current, weightTimeToParent);
 
@@ -397,6 +409,9 @@ void IndexGraph::ReconstructJointSegment(astar::VertexData<JointSegment, RouteWe
       currentPointId = increment(currentPointId);
     }
     while (currentPointId != lastPointId);
+
+    if (excluded)
+      continue;
 
     jointEdges.emplace_back(isOutgoing ? JointSegment(firstChild, prev) : JointSegment(prev, firstChild),
                             summaryWeight);
@@ -423,9 +438,17 @@ void IndexGraph::GetNeighboringEdge(astar::VertexData<Segment, RouteWeight> cons
   if (IsAccessNoForSure(rp, weightToFrom, useAccessConditional))
     return;
 
+  if (IsStreetExplorationExcluded(to))
+    return;
+
   auto const weight = CalculateEdgeWeight(EdgeEstimator::Purpose::Weight, isOutgoing, from, to, weightToFrom);
 
   edges.emplace_back(to, weight);
+}
+
+bool IndexGraph::IsStreetExplorationExcluded(Segment const & segment) const
+{
+  return m_estimator && m_estimator->IsSegmentExcluded(segment, GetRoadGeometry(segment.GetFeatureId()));
 }
 
 IndexGraph::PenaltyData IndexGraph::GetRoadPenaltyData(Segment const & segment) const
