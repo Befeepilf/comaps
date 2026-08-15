@@ -20,22 +20,8 @@ public class StreetPixelsManager
     void onStateChanged(boolean enabled, @NonNull StreetPixelsState.Status status, @NonNull String countryId);
   }
 
-  public interface FocusedAreaProgressCallback
-  {
-    void onFocusedAreaProgressChanged(@NonNull FocusedAreaProgress progress);
-  }
-
-  public interface ExplorationAreaTapCallback
-  {
-    void onExplorationAreaTapped(@NonNull FocusedAreaProgress progress);
-  }
-
   @NonNull
   private static final java.util.List<Callback> sCallbacks = new java.util.ArrayList<>();
-  @NonNull
-  private static final java.util.List<FocusedAreaProgressCallback> sProgressCallbacks = new java.util.ArrayList<>();
-  @NonNull
-  private static final java.util.List<ExplorationAreaTapCallback> sTapCallbacks = new java.util.ArrayList<>();
 
   public static void registerCallback(@NonNull Callback callback)
   {
@@ -51,40 +37,6 @@ public class StreetPixelsManager
     synchronized (sCallbacks)
     {
       sCallbacks.remove(callback);
-    }
-  }
-
-  public static void registerFocusedAreaProgressCallback(@NonNull FocusedAreaProgressCallback callback)
-  {
-    synchronized (sProgressCallbacks)
-    {
-      if (!sProgressCallbacks.contains(callback))
-        sProgressCallbacks.add(callback);
-    }
-  }
-
-  public static void unregisterFocusedAreaProgressCallback(@NonNull FocusedAreaProgressCallback callback)
-  {
-    synchronized (sProgressCallbacks)
-    {
-      sProgressCallbacks.remove(callback);
-    }
-  }
-
-  public static void registerExplorationAreaTapCallback(@NonNull ExplorationAreaTapCallback callback)
-  {
-    synchronized (sTapCallbacks)
-    {
-      if (!sTapCallbacks.contains(callback))
-        sTapCallbacks.add(callback);
-    }
-  }
-
-  public static void unregisterExplorationAreaTapCallback(@NonNull ExplorationAreaTapCallback callback)
-  {
-    synchronized (sTapCallbacks)
-    {
-      sTapCallbacks.remove(callback);
     }
   }
 
@@ -193,27 +145,5 @@ public class StreetPixelsManager
     {
       cb.onStateChanged(state.isEnabled(), state.getStatus(), state.getCountryId());
     }
-  }
-
-  static void notifyFocusedAreaProgress(@NonNull FocusedAreaProgress progress)
-  {
-    java.util.List<FocusedAreaProgressCallback> snapshot;
-    synchronized (sProgressCallbacks)
-    {
-      snapshot = new java.util.ArrayList<>(sProgressCallbacks);
-    }
-    for (FocusedAreaProgressCallback cb : snapshot)
-      cb.onFocusedAreaProgressChanged(progress);
-  }
-
-  static void notifyExplorationAreaTapped(@NonNull FocusedAreaProgress progress)
-  {
-    java.util.List<ExplorationAreaTapCallback> snapshot;
-    synchronized (sTapCallbacks)
-    {
-      snapshot = new java.util.ArrayList<>(sTapCallbacks);
-    }
-    for (ExplorationAreaTapCallback cb : snapshot)
-      cb.onExplorationAreaTapped(progress);
   }
 }

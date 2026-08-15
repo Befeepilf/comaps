@@ -5,6 +5,7 @@ import android.app.Application;
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 
+
 class OnStreetPixelsChangedListener
 {
   private StreetPixelsErrorDialogListener mListener;
@@ -24,20 +25,6 @@ class OnStreetPixelsChangedListener
       return;
 
     mListener.onStateChanged(state);
-  }
-
-  @Keep
-  @SuppressWarnings("unused")
-  public void onFocusedAreaProgressChanged(@NonNull FocusedAreaProgress progress)
-  {
-    StreetPixelsManager.notifyFocusedAreaProgress(progress);
-  }
-
-  @Keep
-  @SuppressWarnings("unused")
-  public void onExplorationAreaTapped(@NonNull FocusedAreaProgress progress)
-  {
-    StreetPixelsManager.notifyExplorationAreaTapped(progress);
   }
 
   public void attach(@NonNull StreetPixelsErrorDialogListener listener)

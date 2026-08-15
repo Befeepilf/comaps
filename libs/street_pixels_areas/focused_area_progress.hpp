@@ -21,14 +21,4 @@ struct FocusedAreaProgress
   std::string m_displayName;
   double m_fraction = 0.0;
 };
-
-inline bool operator==(FocusedAreaProgress const & lhs, FocusedAreaProgress const & rhs)
-{
-  return lhs.m_hasFocus == rhs.m_hasFocus && lhs.m_fractionValid == rhs.m_fractionValid &&
-         lhs.m_citySummary == rhs.m_citySummary && lhs.m_areaCompleted == rhs.m_areaCompleted &&
-         lhs.m_noExplorationArea == rhs.m_noExplorationArea && lhs.m_compactIndex == rhs.m_compactIndex &&
-         lhs.m_osmId == rhs.m_osmId && lhs.m_displayName == rhs.m_displayName && lhs.m_fraction == rhs.m_fraction;
-}
-
-inline bool operator!=(FocusedAreaProgress const & lhs, FocusedAreaProgress const & rhs) { return !(lhs == rhs); }
 }  // namespace street_pixels

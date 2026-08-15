@@ -12,9 +12,6 @@
 #include "map/track_mark.hpp"
 #include "map/user_mark.hpp"
 
-#include "street_pixels_areas/exploration_area_tap.hpp"
-#include "street_pixels_areas/exploration_sidecar.hpp"
-
 #include "ge0/url_generator.hpp"
 
 #include "platform/location.hpp"
@@ -225,8 +222,6 @@ void Framework::OnLocationUpdate(GpsInfo const & info)
     Refresh3dMode();
   }
   m_streetPixelsManager->OnLocationUpdate(rInfo);
-  if (m_streetPixelsManager->IsEnabled())
-    RefreshStreetPixelsFocusFromViewport();
 }
 
 void Framework::OnCompassUpdate(CompassInfo const & info)
@@ -391,9 +386,6 @@ void Framework::OnViewportChanged(ScreenBase const & screen)
   m_trafficManager.UpdateViewport(m_currentModelView);
   m_transitManager.UpdateViewport(m_currentModelView);
   m_isolinesManager.UpdateViewport(m_currentModelView);
-
-  if (m_streetPixelsManager && m_streetPixelsManager->IsEnabled())
-    RefreshStreetPixelsFocusFromViewport();
 
   if (m_viewportChangedFn != nullptr)
     m_viewportChangedFn(screen);
@@ -2154,105 +2146,6 @@ StreetPixelsManager const & Framework::GetStreetPixelsManager() const
   return *m_streetPixelsManager.get();
 }
 
-bool Framework::ResolveExplorationSidecarAt(m2::PointD const & pt, std::string & spaPath,
-                                            int64_t & mapDataVersion) const
-{
-  storage::CountryId const country = m_infoGetter->GetRegionCountryId(pt);
-  if (country.empty() || country == "World" || country == "WorldCoasts")
-    return false;
-
-  auto localFile = m_storage.GetLatestLocalFile(country);
-  if (localFile && localFile->OnDisk(MapFileType::Map))
-  {
-    spaPath = street_pixels::ExplorationSidecarPathBesideMwm(localFile->GetPath(MapFileType::Map));
-    mapDataVersion = localFile->GetVersion();
-    return true;
-  }
-
-  spaPath = street_pixels::ExplorationSidecarPath(GetPlatform().WritableDir(), country);
-  mapDataVersion = GetStreetPixelsManager().GetPixMapDataVersion();
-  return mapDataVersion != 0;
-}
-
-void Framework::RefreshStreetPixelsFocusFromViewport()
-{
-  auto & manager = GetStreetPixelsManager();
-  if (!manager.IsEnabled())
-    return;
-
-  m2::PointD const centre = GetViewportCenter();
-  std::string spaPath;
-  int64_t mapDataVersion = 0;
-  if (!ResolveExplorationSidecarAt(centre, spaPath, mapDataVersion))
-  {
-    manager.ClearFocusedArea();
-    return;
-  }
-
-  storage::CountryId const country = m_infoGetter->GetRegionCountryId(centre);
-  std::optional<m2::PointD> userPos = GetCurrentPosition();
-  bool const recordingActive = GetRecordingSession().IsRecording();
-  auto const mode = GetMyPositionMode();
-  bool const following =
-      mode == location::EMyPositionMode::Follow || mode == location::EMyPositionMode::FollowAndRotate;
-  manager.RefreshFocusFromViewport(centre, userPos, recordingActive, following, GetDrawScale(), spaPath,
-                                   mapDataVersion, country);
-}
-
-bool Framework::SelectStreetPixelsFocusAt(m2::PointD const & mercator)
-{
-  auto & manager = GetStreetPixelsManager();
-  if (!manager.IsEnabled())
-    return false;
-
-  std::string spaPath;
-  int64_t mapDataVersion = 0;
-  if (!ResolveExplorationSidecarAt(mercator, spaPath, mapDataVersion))
-  {
-    manager.ClearFocusedArea();
-    return false;
-  }
-
-  storage::CountryId const country = m_infoGetter->GetRegionCountryId(mercator);
-  if (!manager.IsAreaCompletionCacheValid())
-    manager.RebuildAreaCompletionCache(country, spaPath, mapDataVersion);
-
-  return manager.SelectFocusedAreaAtPoint(mercator, spaPath, mapDataVersion);
-}
-
-bool Framework::TryHandleExplorationAreaTap(place_page::Info const & info)
-{
-  if (info.GetBuildInfo().m_source != place_page::BuildInfo::Source::User)
-    return false;
-
-  auto & manager = GetStreetPixelsManager();
-  if (!manager.IsEnabled())
-    return false;
-
-  street_pixels::MapTapClassification tap;
-  tap.m_isBookmark = info.IsBookmark();
-  tap.m_isTrack = info.IsTrack();
-  tap.m_isMyPosition = info.IsMyPosition();
-  tap.m_isRoutePoint = info.IsRoutePoint();
-  tap.m_isPointFeature = info.IsFeature() && info.IsPointType();
-  tap.m_isAreaLabel = info.IsFeature() && ftypes::IsPlaceChecker::Instance()(info.GetTypes());
-  auto const kind = street_pixels::ClassifyMapTap(tap);
-  if (kind != street_pixels::MapTapKind::AreaLabel)
-    return false;
-
-  m2::PointD const mercator = info.GetMercator();
-  std::string spaPath;
-  int64_t mapDataVersion = 0;
-  bool hit = false;
-  if (ResolveExplorationSidecarAt(mercator, spaPath, mapDataVersion))
-    hit = manager.HasExplorationAreaAtPoint(mercator, spaPath, mapDataVersion);
-
-  if (!street_pixels::ShouldOpenExplorationDetail(kind, hit))
-    return false;
-
-  return SelectStreetPixelsFocusAt(mercator);
-}
-
 RecordingSession & Framework::GetRecordingSession()
 {
   ASSERT(m_recordingSession != nullptr, ("Recording session is not initialized."));
@@ -2434,13 +2327,6 @@ void Framework::OnTapEvent(place_page::BuildInfo const & buildInfo)
   {
     auto const prevTrackId = m_currentPlacePageInfo ? m_currentPlacePageInfo->GetTrackId() : kml::kInvalidTrackId;
     DeactivateHotelSearchMark();
-
-    if (TryHandleExplorationAreaTap(placePageInfo))
-    {
-      DeactivateMapSelection();
-      GetStreetPixelsManager().NotifyExplorationAreaTapped();
-      return;
-    }
 
     m_currentPlacePageInfo = placePageInfo;
 

@@ -91,8 +91,6 @@ public class MapButtonsController extends Fragment
   private final Observer<SearchWheel.SearchOption> mSearchOptionObserver = this::onSearchOptionChange;
   private final Observer<Integer> mRecordingSessionObserver = this::onRecordingSessionStateChanged;
   private final Observer<StreetPixelsState> mStreetPixelsStateObserver = this::updateExplorationBadge;
-  private final StreetPixelsManager.FocusedAreaProgressCallback mFocusedAreaProgressCallback =
-      this::bindExplorationBadgeFromProgress;
   private final Observer<Integer> mTopButtonMarginObserver = this::updateTopButtonsMargin;
 
   private LeftButton mLeftButton;
@@ -432,63 +430,38 @@ public class MapButtonsController extends Fragment
         FocusedAreaProgress progress =
             MwmApplication.from(ctx).getStreetPixelsManager().refreshFocusedAreaAtMapCenter(
                 countryId != null ? countryId : "");
-        applyExplorationBadge(progress);
-      }
-      else
-      {
-        Log.i("MapButtonsController", "updateExplorationBadge: CONTEXT IS NULL");
-      }
-    }
-    else
-    {
-      Log.i("MapButtonsController", "updateExplorationBadge: NOT_READY");
-      showButton(false, MapButtons.explorationBanner);
-    }
-  }
-
-  private void bindExplorationBadgeFromProgress(@NonNull FocusedAreaProgress progress)
-  {
-    StreetPixelsState state = mMapButtonsViewModel.getStreetPixelsState().getValue();
-    if (state != null && state.getStatus() == StreetPixelsState.Status.LOADING)
-      return;
-    if (state != null && state.getStatus() == StreetPixelsState.Status.NOT_READY)
-    {
-      showButton(false, MapButtons.explorationBanner);
-      return;
-    }
-    applyExplorationBadge(progress);
-  }
-
-  private void applyExplorationBadge(@NonNull FocusedAreaProgress progress)
-  {
-    Context ctx = getContext();
-    if (ctx == null || mExplorationBadge == null)
-      return;
-    if (progress.hasFocus && !TextUtils.isEmpty(progress.displayName))
-    {
-      if (progress.fractionValid)
-      {
-        if (progress.areaCompleted)
+        if (progress.hasFocus && !TextUtils.isEmpty(progress.displayName))
         {
-          mExplorationBadge.setText(progress.displayName + " • " +
-                                    ctx.getString(R.string.street_pixels_area_completed));
+          if (progress.fractionValid)
+          {
+            if (progress.areaCompleted)
+            {
+              mExplorationBadge.setText(progress.displayName + " • " +
+                                        ctx.getString(R.string.street_pixels_area_completed));
+            }
+            else
+            {
+              double percent = Math.round(progress.fraction * 100 * 10) / 10.0;
+              mExplorationBadge.setText(progress.displayName + " • " + percent + "%");
+            }
+          }
+          else
+          {
+            mExplorationBadge.setText(progress.displayName);
+          }
+          showButton(true, MapButtons.explorationBanner);
         }
         else
         {
-          double percent = Math.round(progress.fraction * 100 * 10) / 10.0;
-          mExplorationBadge.setText(progress.displayName + " • " + percent + "%");
+          mExplorationBadge.setText(R.string.street_pixels_no_exploration_area);
+          showButton(true, MapButtons.explorationBanner);
         }
+      } else {
+        Log.i("MapButtonsController", "updateExplorationBadge: CONTEXT IS NULL");
       }
-      else
-      {
-        mExplorationBadge.setText(progress.displayName);
-      }
-      showButton(true, MapButtons.explorationBanner);
-    }
-    else
-    {
-      mExplorationBadge.setText(R.string.street_pixels_no_exploration_area);
-      showButton(true, MapButtons.explorationBanner);
+    } else {
+      Log.i("MapButtonsController", "updateExplorationBadge: NOT_READY");
+      showButton(false, MapButtons.explorationBanner);
     }
   }
 
@@ -601,7 +574,6 @@ public class MapButtonsController extends Fragment
     mMapButtonsViewModel.getSearchOption().observe(activity, mSearchOptionObserver);
     mMapButtonsViewModel.getRecordingSessionState().observe(activity, mRecordingSessionObserver);
     mMapButtonsViewModel.getStreetPixelsState().observe(activity, mStreetPixelsStateObserver);
-    StreetPixelsManager.registerFocusedAreaProgressCallback(mFocusedAreaProgressCallback);
     mMapButtonsViewModel.getTopButtonsMarginTop().observe(activity, mTopButtonMarginObserver);
   }
 
@@ -643,7 +615,6 @@ public class MapButtonsController extends Fragment
     mMapButtonsViewModel.getMyPositionMode().removeObserver(mMyPositionModeObserver);
     mMapButtonsViewModel.getSearchOption().removeObserver(mSearchOptionObserver);
     mMapButtonsViewModel.getRecordingSessionState().removeObserver(mRecordingSessionObserver);
-    StreetPixelsManager.unregisterFocusedAreaProgressCallback(mFocusedAreaProgressCallback);
     mMapButtonsViewModel.getStreetPixelsState().removeObserver(mStreetPixelsStateObserver);
   }
 

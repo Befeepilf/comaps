@@ -230,8 +230,6 @@ public class MwmActivity extends BaseMwmFragmentActivity
   private ActivityResultLauncher<String[]> mLocationPermissionRequest;
   private boolean mLocationPermissionRequestedForRecording = false;
   private final RecordingSession.StateListener mRecordingSessionListener = this::onRecordingSessionStateChanged;
-  private final StreetPixelsManager.ExplorationAreaTapCallback mExplorationAreaTapCallback =
-      this::onExplorationAreaTapped;
 
   @SuppressWarnings("NotNullFieldNotInitialized")
   @NonNull
@@ -1235,18 +1233,6 @@ public class MwmActivity extends BaseMwmFragmentActivity
     Toast.makeText(this, getString(R.string.street_pixels_more_to_explore, countryName), Toast.LENGTH_LONG).show();
   }
 
-  private void onExplorationAreaTapped(@NonNull FocusedAreaProgress progress)
-  {
-    closePlacePage();
-    if (progress.hasFocus && !TextUtils.isEmpty(progress.displayName))
-    {
-      FocusedAreaDetailBottomSheet.show(getSupportFragmentManager(), progress.displayName, progress.fractionValid,
-                                        progress.fraction, progress.areaCompleted);
-      return;
-    }
-    FocusedAreaDetailBottomSheet.showEmpty(getSupportFragmentManager());
-  }
-
   private void onRecordingSessionStateChanged(@RecordingSession.State int previous, @RecordingSession.State int current)
   {
     mMapButtonsViewModel.setRecordingSessionState(current);
@@ -1325,7 +1311,6 @@ public class MwmActivity extends BaseMwmFragmentActivity
     RoutingController.get().attach(this);
     MwmApplication.from(getApplicationContext()).getIsolinesManager().attach(this::onIsolinesStateChanged);
     MwmApplication.from(getApplicationContext()).getStreetPixelsManager().attach(this::onStreetPixelsStateChanged);
-    StreetPixelsManager.registerExplorationAreaTapCallback(mExplorationAreaTapCallback);
     RecordingSession.registerListener(mRecordingSessionListener);
     mMapButtonsViewModel.setRecordingSessionState(RecordingSession.getState());
     LocationState.nativeSetListener(this);
@@ -1347,7 +1332,6 @@ public class MwmActivity extends BaseMwmFragmentActivity
       RoutingController.get().detach();
     }
     MwmApplication.from(getApplicationContext()).getIsolinesManager().detach();
-    StreetPixelsManager.unregisterExplorationAreaTapCallback(mExplorationAreaTapCallback);
     MwmApplication.from(getApplicationContext()).getStreetPixelsManager().detach();
     RecordingSession.unregisterListener(mRecordingSessionListener);
     mSearchController.detach();
@@ -1453,8 +1437,30 @@ public class MwmActivity extends BaseMwmFragmentActivity
   @Override
   public void onPlacePageActivated(@NonNull PlacePageData data)
   {
-    FocusedAreaDetailBottomSheet.dismissIfShowing(getSupportFragmentManager());
+    // This will open the place page
     mPlacePageViewModel.setMapObject((MapObject) data);
+
+    if (StreetPixelsManager.isEnabled() && data instanceof MapObject)
+    {
+      MapObject mapObject = (MapObject) data;
+      StreetPixelsState spState = mMapButtonsViewModel.getStreetPixelsState().getValue();
+      String countryId = spState != null ? spState.getCountryId() : "";
+      if (!TextUtils.isEmpty(countryId))
+      {
+        FocusedAreaProgress progress =
+            MwmApplication.from(this).getStreetPixelsManager().selectFocusedAreaAtLatLon(
+                mapObject.getLat(), mapObject.getLon(), countryId);
+        if (progress.hasFocus && !TextUtils.isEmpty(progress.displayName))
+        {
+          FocusedAreaDetailBottomSheet.show(getSupportFragmentManager(), progress.displayName,
+                                            progress.fractionValid, progress.fraction, progress.areaCompleted);
+        }
+        else
+        {
+          FocusedAreaDetailBottomSheet.showEmpty(getSupportFragmentManager());
+        }
+      }
+    }
   }
 
   @Override

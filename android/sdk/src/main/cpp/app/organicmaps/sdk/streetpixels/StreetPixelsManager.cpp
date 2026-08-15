@@ -18,37 +18,12 @@
 
 extern "C"
 {
-static jobject ToJavaFocusedAreaProgress(JNIEnv * env, street_pixels::FocusedAreaProgress const & progress)
-{
-  static jclass const progressClass =
-      jni::GetGlobalClassRef(env, "app/organicmaps/sdk/maplayer/streetpixels/FocusedAreaProgress");
-  static jmethodID const ctor = jni::GetConstructorID(env, progressClass, "(ZZZZZIJLjava/lang/String;D)V");
-  jni::TScopedLocalRef const jName(env, jni::ToJavaString(env, progress.m_displayName));
-  return env->NewObject(progressClass, ctor, static_cast<jboolean>(progress.m_hasFocus),
-                        static_cast<jboolean>(progress.m_fractionValid),
-                        static_cast<jboolean>(progress.m_citySummary),
-                        static_cast<jboolean>(progress.m_areaCompleted),
-                        static_cast<jboolean>(progress.m_noExplorationArea),
-                        static_cast<jint>(progress.m_compactIndex), static_cast<jlong>(progress.m_osmId),
-                        jName.get(), static_cast<jdouble>(progress.m_fraction));
-}
-
 static void StreetPixelsStateChanged(bool enabled, StreetPixelsManager::StreetPixelsStatus status,
                                      std::string countryId, std::shared_ptr<jobject> const & listener)
 {
   JNIEnv * env = jni::GetEnv();
   env->CallVoidMethod(*listener, jni::GetMethodID(env, *listener, "onStateChanged", "(ZILjava/lang/String;)V"),
                       static_cast<jboolean>(enabled), static_cast<jint>(status), jni::ToJavaString(env, countryId));
-}
-
-static void CallFocusedAreaCallback(std::shared_ptr<jobject> const & listener, char const * method,
-                                    street_pixels::FocusedAreaProgress const & progress)
-{
-  JNIEnv * env = jni::GetEnv();
-  jni::TScopedLocalRef const jProgress(env, ToJavaFocusedAreaProgress(env, progress));
-  env->CallVoidMethod(*listener, jni::GetMethodID(env, *listener, method,
-                                                 "(Lapp/organicmaps/sdk/maplayer/streetpixels/FocusedAreaProgress;)V"),
-                      jProgress.get());
 }
 
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeAddListener(
@@ -62,19 +37,6 @@ JNIEXPORT void JNICALL Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixe
         StreetPixelsStateChanged(enabled, status, countryId, globalListener);
     }
   );
-  auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
-  manager.SetFocusedAreaProgressListener(
-      [globalListener](street_pixels::FocusedAreaProgress const & progress)
-      {
-        GetPlatform().RunTask(Platform::Thread::Gui, [globalListener, progress]()
-        { CallFocusedAreaCallback(globalListener, "onFocusedAreaProgressChanged", progress); });
-      });
-  manager.SetExplorationAreaTapListener(
-      [globalListener](street_pixels::FocusedAreaProgress const & progress)
-      {
-        GetPlatform().RunTask(Platform::Thread::Gui, [globalListener, progress]()
-        { CallFocusedAreaCallback(globalListener, "onExplorationAreaTapped", progress); });
-      });
 }
 
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeRemoveListener(JNIEnv * env,
@@ -82,9 +44,6 @@ JNIEXPORT void JNICALL Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixe
 {
   CHECK(g_framework, ("Framework isn't created yet!"));
   g_framework->SetStreetPixelsListener(nullptr);
-  auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
-  manager.SetFocusedAreaProgressListener(nullptr);
-  manager.SetExplorationAreaTapListener(nullptr);
 }
 
 JNIEXPORT jboolean JNICALL
@@ -129,6 +88,21 @@ Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeTakePen
   return result;
 }
 
+static jobject ToJavaFocusedAreaProgress(JNIEnv * env, street_pixels::FocusedAreaProgress const & progress)
+{
+  static jclass const progressClass =
+      jni::GetGlobalClassRef(env, "app/organicmaps/sdk/maplayer/streetpixels/FocusedAreaProgress");
+  static jmethodID const ctor = jni::GetConstructorID(env, progressClass, "(ZZZZZIJLjava/lang/String;D)V");
+  jni::TScopedLocalRef const jName(env, jni::ToJavaString(env, progress.m_displayName));
+  return env->NewObject(progressClass, ctor, static_cast<jboolean>(progress.m_hasFocus),
+                        static_cast<jboolean>(progress.m_fractionValid),
+                        static_cast<jboolean>(progress.m_citySummary),
+                        static_cast<jboolean>(progress.m_areaCompleted),
+                        static_cast<jboolean>(progress.m_noExplorationArea),
+                        static_cast<jint>(progress.m_compactIndex), static_cast<jlong>(progress.m_osmId),
+                        jName.get(), static_cast<jdouble>(progress.m_fraction));
+}
+
 JNIEXPORT jobject JNICALL
 Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeGetFocusedAreaProgress(JNIEnv * env,
                                                                                               jclass clazz)
@@ -143,10 +117,37 @@ Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeRefresh
     JNIEnv * env, jclass clazz, jstring countryId)
 {
   CHECK(g_framework, ("Framework isn't created yet!"));
-  static_cast<void>(countryId);
   auto & native = *g_framework->NativeFramework();
-  native.RefreshStreetPixelsFocusFromViewport();
-  return ToJavaFocusedAreaProgress(env, native.GetStreetPixelsManager().GetFocusedAreaProgress());
+  auto & manager = native.GetStreetPixelsManager();
+  std::string const country = jni::ToNativeString(env, countryId);
+  if (country.empty())
+  {
+    manager.ClearFocusedArea();
+    return ToJavaFocusedAreaProgress(env, manager.GetFocusedAreaProgress());
+  }
+
+  std::string spaPath;
+  auto localFile = g_framework->GetStorage().GetLatestLocalFile(country);
+  if (localFile && localFile->OnDisk(MapFileType::Map))
+    spaPath = street_pixels::ExplorationSidecarPathBesideMwm(localFile->GetPath(MapFileType::Map));
+  else
+    spaPath = street_pixels::ExplorationSidecarPath(GetPlatform().WritableDir(), country);
+
+  int64_t const mapDataVersion = manager.GetPixMapDataVersion();
+  if (!manager.IsAreaCompletionCacheValid())
+    manager.RebuildAreaCompletionCache(country, spaPath, mapDataVersion);
+
+  m2::PointD const centre = g_framework->GetViewportCenter();
+  std::optional<m2::PointD> userPos = native.GetCurrentPosition();
+
+  bool const recordingActive = native.GetRecordingSession().IsRecording();
+  auto const mode = g_framework->GetMyPositionMode();
+  bool const following =
+      mode == location::EMyPositionMode::Follow || mode == location::EMyPositionMode::FollowAndRotate;
+  int const drawScale = native.GetDrawScale();
+
+  manager.RefreshFocusFromViewport(centre, userPos, recordingActive, following, drawScale, spaPath, mapDataVersion);
+  return ToJavaFocusedAreaProgress(env, manager.GetFocusedAreaProgress());
 }
 
 JNIEXPORT jobject JNICALL
@@ -154,9 +155,28 @@ Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeSelectF
     JNIEnv * env, jclass clazz, jdouble lat, jdouble lon, jstring countryId)
 {
   CHECK(g_framework, ("Framework isn't created yet!"));
-  static_cast<void>(countryId);
   auto & native = *g_framework->NativeFramework();
-  native.SelectStreetPixelsFocusAt(mercator::FromLatLon(lat, lon));
-  return ToJavaFocusedAreaProgress(env, native.GetStreetPixelsManager().GetFocusedAreaProgress());
+  auto & manager = native.GetStreetPixelsManager();
+  std::string const country = jni::ToNativeString(env, countryId);
+  if (country.empty())
+  {
+    manager.ClearFocusedArea();
+    return ToJavaFocusedAreaProgress(env, manager.GetFocusedAreaProgress());
+  }
+
+  std::string spaPath;
+  auto localFile = g_framework->GetStorage().GetLatestLocalFile(country);
+  if (localFile && localFile->OnDisk(MapFileType::Map))
+    spaPath = street_pixels::ExplorationSidecarPathBesideMwm(localFile->GetPath(MapFileType::Map));
+  else
+    spaPath = street_pixels::ExplorationSidecarPath(GetPlatform().WritableDir(), country);
+
+  int64_t const mapDataVersion = manager.GetPixMapDataVersion();
+  if (!manager.IsAreaCompletionCacheValid())
+    manager.RebuildAreaCompletionCache(country, spaPath, mapDataVersion);
+
+  m2::PointD const mercator = mercator::FromLatLon(lat, lon);
+  manager.SelectFocusedAreaAtPoint(mercator, spaPath, mapDataVersion);
+  return ToJavaFocusedAreaProgress(env, manager.GetFocusedAreaProgress());
 }
 }

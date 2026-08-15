@@ -22,8 +22,6 @@ set(SRC
   exploration_filter.hpp
   exploration_sidecar.cpp
   exploration_sidecar.hpp
-  exploration_area_tap.hpp
-  focused_area_progress.hpp
   focus_selection_engine.cpp
   focus_selection_engine.hpp
   sample_centres.cpp
