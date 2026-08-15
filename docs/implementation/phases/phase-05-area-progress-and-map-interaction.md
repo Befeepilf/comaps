@@ -1,6 +1,6 @@
 # Phase 5 — Area progress and map interaction
 
-**Status:** In progress (phase-entry planning 2026-08-07)
+**Status:** Exit criteria met 2026-08-15 (device + quantitative Spike 1 residuals → Phase 10)
 **Depends on:** Phase 4
 **Blocks:** Phases 7, 8
 
@@ -115,11 +115,12 @@ APIs the 2026-07-20 audit marked absent. Renderer shape matches the audit
 | 8 | [SP-040](../work-items/SP-040-completed-area-and-no-area-states.md) | Completed-area visual state and no-area empty state |
 | 9 | [SP-041](../work-items/SP-041-phase5-end-to-end-validation.md) | Phase 5 end-to-end validation (**exit gate**) |
 
-SP-033–SP-040 **Accepted** 2026-08-07. SP-041 exit validation evidence recorded
-(awaiting maintainer Phase 5 exit decision) — see
+SP-033–SP-040 **Accepted** 2026-08-07. SP-041 **Accepted** 2026-08-15 — Phase 5
+**exit criteria met** with residuals. Evidence:
 [`../validation/SP-041-evidence-log.md`](../validation/SP-041-evidence-log.md).
-Automated suites green (67/67 areas, 205/205 map). Device walks + Spike 1
-quantitative → Phase 10. Agent does **not** mark Phase 5 exit Met.
+Overlay-label tap routing (SP-037 labels + SP-038):
+[`../notes/SP-038-overlay-label-taps.md`](../notes/SP-038-overlay-label-taps.md).
+Device walks + quantitative Spike 1 → Phase 10.
 
 ### Open questions
 
@@ -191,7 +192,8 @@ quantitative → Phase 10. Agent does **not** mark Phase 5 exit Met.
 
 1. The primary badge shows the focused area's name and correct percentage.
 2. Focus behaviour matches all five rules in spec §12.5.
-3. Tapping an area focuses it and reveals its exact percentage.
+3. Tapping an area focuses it and reveals its exact percentage (overlay area
+   name label when drawn; not buildings or empty map).
 4. Area and city completion are correct for the installed map version.
 5. Completed areas have a distinct visual state that survives zoom changes.
 6. The no-area state is implemented and tested.
@@ -199,6 +201,33 @@ quantitative → Phase 10. Agent does **not** mark Phase 5 exit Met.
    or a level-of-detail strategy is implemented and re-measured (device
    residual → Phase 10 if measurement deferred).
 8. No country or world percentage is calculated or displayed.
+
+### Phase 5 exit (2026-08-15)
+
+**Status: Exit criteria met** 2026-08-15.
+
+Evidence:
+[`validation/SP-041-validation-plan.md`](../validation/SP-041-validation-plan.md),
+[`validation/SP-041-evidence-log.md`](../validation/SP-041-evidence-log.md).
+SP-033–SP-040 **Accepted** 2026-08-07; SP-041 **Accepted** 2026-08-15.
+Suites (2026-08-15, branch `cursor/area-overlay-label-taps-3365`):
+`street_pixels_areas_tests` **105/105**; `street_pixels_tests --filter=Focus`
+**18/18**. Overlay-label tap routing:
+[`notes/SP-038-overlay-label-taps.md`](../notes/SP-038-overlay-label-taps.md).
+
+Exit criteria 1–6 and 8: **Pass** (automated + Android signals) with device UI
+residuals. Exit 7: **Partial** (SP-033 qualitative OK; quantitative Spike 1 →
+Phase 10).
+
+**Residuals (do not block exit):**
+
+| ID | Summary | Disposition |
+| --- | --- | --- |
+| R1 | Device Helsinki Phase 5 walks (badge, focus, overlay-label tap, city zoom, completed, empty, no country/world UI) | Phase 10 |
+| R2 | Quantitative Spike 1 FPS/memory | Phase 10 (SP-033) |
+| R3 | Completed check glyph not drawn (`m_showCheck` reserved) | Polish / Phase 10 |
+| R4 | Overlay push still bakes Neighbourhood band colors | Optional retune |
+| R5 | Completion-date persistence | Phase 7 (SP-040) |
 
 ## Explicit non-goals
 
@@ -209,7 +238,8 @@ quantitative → Phase 10. Agent does **not** mark Phase 5 exit Met.
 - Competition overlays, boss information, and rankings. Phase 8.
 - Achievement or milestone history screens. Spec §18.5 excludes them.
 - Custom map themes and advanced heatmaps. Post-V1.
-- Street-pixel hit testing. Area selection uses polygons.
+- Street-pixel hit testing. Area selection for explicit tap uses overlay labels
+  (SP-037 / SP-038); polygon PIP is for focus engine inputs, not tap-anywhere.
 - Inventing a contested completion formula as Accepted SPD without maintainer
   confirmation (OQ-1 → SP-034).
 

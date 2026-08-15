@@ -97,7 +97,7 @@ every circle may fail Spike 1; SP-033 decides.
 | Quantitative Spike 1 still Phase 10; shading may need re-measure | SP-041 / Phase 10 residual |
 | City fill uses neighbourhood-baked alpha (not per-band rebuild) | Acceptable stub; SP-039 may retune |
 | Completed-area chrome beyond shading | SP-040 |
-| Tap hit-test on polygons | SP-038 |
+| Tap hit-test on polygons | **SP-038** — overlay label taps at `m_labelPoint` (not polygon-anywhere); see `notes/SP-038-overlay-label-taps.md` |
 | Initialized previously-null `m_drapeApiBuilder` in BackendRenderer | Latent fix bundled with overlay builder ctor |
 | Post-clip 96-vert index stride left holes/overlaps | Fixed: clip in §8.8 order, no stride after clip; see `notes/SP-037-overlay-geometry.md` |
 | Sentinel pixels had no overlay (outside neighbourhoods / OSM gaps) | Fixed: settlement leftover when assign column has sentinels (SPD-007) |

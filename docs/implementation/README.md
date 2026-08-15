@@ -2,7 +2,7 @@
 
 **Document status:** Living project index
 **Scope of this document:** Android public V1
-**Last structural update:** 2026-08-07
+**Last structural update:** 2026-08-15
 
 This file is the index for Street Pixels implementation work. It intentionally
 contains no implementation detail. Detail belongs in `phases/` and
@@ -80,7 +80,7 @@ V1 scope. Explorer Pro **purchasing** is not.
 | 2 | Recording and collection correctness | [`phases/phase-02-recording-and-collection-correctness.md`](phases/phase-02-recording-and-collection-correctness.md) | Complete (OEM screen-off residual → Phase 10) |
 | 3 | Exploration storage and map-update reconciliation | [`phases/phase-03-exploration-storage-and-reconciliation.md`](phases/phase-03-exploration-storage-and-reconciliation.md) | Complete (device-walk residual → Phase 10) |
 | 4 | Administrative-area pipeline | [`phases/phase-04-administrative-area-pipeline.md`](phases/phase-04-administrative-area-pipeline.md) | Exit criteria met (device residual → Phase 10) |
-| 5 | Area progress and map interaction | [`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md) | In progress (phase-entry planning 2026-08-07) |
+| 5 | Area progress and map interaction | [`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md) | Exit criteria met (device + Spike 1 quantitative residuals → Phase 10) |
 | 6 | Exploration-aware routing | [`phases/phase-06-exploration-aware-routing.md`](phases/phase-06-exploration-aware-routing.md) | Not started |
 | 7 | Milestones and share cards | [`phases/phase-07-milestones-and-share-cards.md`](phases/phase-07-milestones-and-share-cards.md) | Not started |
 | 8 | Competition | [`phases/phase-08-competition.md`](phases/phase-08-competition.md) | Not started |
@@ -155,7 +155,13 @@ roadmap tracks.
 
 ### 4.3 Current phase status
 
-**Active phase: Phase 5 — Area progress and map interaction.**
+**Phase 5 — Area progress and map interaction: exit criteria met** 2026-08-15.
+
+Residuals: device Helsinki walks + quantitative Spike 1 → Phase 10 (SP-041 R1/R2).
+Overlay-label tap routing recorded in
+[`notes/SP-038-overlay-label-taps.md`](notes/SP-038-overlay-label-taps.md).
+Evidence:
+[`validation/SP-041-evidence-log.md`](validation/SP-041-evidence-log.md).
 
 Phase 4 is **complete** (Exit criteria met 2026-08-07) with residuals: R3
 device walks → Phase 10; narrowed R1 production `.spa` shipping → **Phase 4
@@ -190,18 +196,15 @@ SP-043–048 — **not** Phase 5, **not** Phase 10 device work). Evidence:
 | SP-035 | **Accepted** 2026-08-07 — focused-area badge binding (map-centre stub → SP-036) |
 | SP-036 | **Accepted** 2026-08-07 — Focus-selection engine (§12.5) |
 | SP-037 | **Accepted** 2026-08-07 — Area boundary rendering and completion shading |
-| SP-038 | **Accepted** 2026-08-07 — Area tap selection and focused-area detail surface |
-| SP-039 | **Accepted** 2026-08-07 — City-scale aggregation and summary badge |
-| SP-040 | **Accepted** 2026-08-07 — Completed-area visual + no-area empty state |
-| SP-041 | Implemented, awaiting acceptance — Phase 5 end-to-end validation (**exit gate**) |
+| SP-038 | **Accepted** 2026-08-07 — overlay-label tap + detail sheet; sticky explicit focus; see `notes/SP-038-overlay-label-taps.md` |
+| SP-039 | **Accepted** 2026-08-07 — city rollup explored/total (not avg %) |
+| SP-040 | **Accepted** 2026-08-07 — §18.6 completed chrome + §31 empty |
+| SP-041 | **Accepted** 2026-08-15 — Phase 5 exit validation; exit criteria met; device/Spike1 → Phase 10 |
 
-**Next: maintainer acceptance of SP-041 / Phase 5 exit** (evidence recorded;
-device + Spike 1 quantitative residuals → Phase 10). Phase 5 entry
-investigation:
-[`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md).
-Validation:
-[`validation/SP-041-validation-plan.md`](validation/SP-041-validation-plan.md),
+**Phase 5 exit criteria met** 2026-08-15. SP-033–SP-041 **Accepted**. Evidence:
 [`validation/SP-041-evidence-log.md`](validation/SP-041-evidence-log.md).
+Phase file:
+[`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md).
 
 ## 5. Release slices
 
@@ -451,15 +454,18 @@ device for Phase 5 / Phase 10 Helsinki walks. Still **not** a Phase 5 exit gate
 | 35 | [SP-035](work-items/SP-035-primary-progress-badge-focused-area.md) | Primary progress badge bound to focused area | 5 | **Accepted** 2026-08-07 — DisplayName + SP-034 %; map-centre stub → SP-036 |
 | 36 | [SP-036](work-items/SP-036-focus-selection-engine.md) | Focus-selection engine (§12.5) | 5 | **Accepted** 2026-08-07 — five §12.5 rules + recording>pan; city zoom stub → SP-039 |
 | 37 | [SP-037](work-items/SP-037-area-boundary-rendering-and-shading.md) | Area boundary rendering and completion shading by zoom | 5 | **Accepted** 2026-08-07 — additive overlay; keep one-circle-per-cell (SP-033) |
-| 38 | [SP-038](work-items/SP-038-area-tap-selection-and-detail-surface.md) | Area tap selection and focused-area detail surface | 5 | **Accepted** 2026-08-07 — polygon PIP + detail sheet; sticky explicit focus |
+| 38 | [SP-038](work-items/SP-038-area-tap-selection-and-detail-surface.md) | Area tap selection and focused-area detail surface | 5 | **Accepted** 2026-08-07 — overlay-label taps (SP-037 labels); sticky explicit focus |
 | 39 | [SP-039](work-items/SP-039-city-scale-aggregation-and-summary-badge.md) | City-scale aggregation and summary badge | 5 | **Accepted** 2026-08-07 — city rollup explored/total (not avg %) |
 | 40 | [SP-040](work-items/SP-040-completed-area-and-no-area-states.md) | Completed-area visual state and no-area empty state | 5 | **Accepted** 2026-08-07 — §18.6 completed chrome + §31 empty |
-| 41 | [SP-041](work-items/SP-041-phase5-end-to-end-validation.md) | Phase 5 end-to-end validation | 5 | Implemented, awaiting acceptance — exit evidence; device/Spike1 → Phase 10 |
+| 41 | [SP-041](work-items/SP-041-phase5-end-to-end-validation.md) | Phase 5 end-to-end validation | 5 | **Accepted** 2026-08-15 — exit criteria met; device/Spike1 → Phase 10 |
 
-Phase 5 entry investigation (2026-08-07) recorded in
-[`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md).
-SP-033–SP-040 **Accepted** 2026-08-07. SP-041 exit evidence recorded (awaiting
-maintainer Phase 5 exit decision). Quantitative Spike 1 → Phase 10.
+Phase 5 **Exit criteria met** 2026-08-15. Residuals: device walks + quantitative
+Spike 1 → Phase 10. Investigation and validation:
+[`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md),
+[`validation/SP-041-validation-plan.md`](validation/SP-041-validation-plan.md),
+[`validation/SP-041-evidence-log.md`](validation/SP-041-evidence-log.md).
+Overlay-label taps:
+[`notes/SP-038-overlay-label-taps.md`](notes/SP-038-overlay-label-taps.md).
 SPD-026 locks personal completion.
 
 Detailed work items exist for Phases 1–5. Later phases are broken down after

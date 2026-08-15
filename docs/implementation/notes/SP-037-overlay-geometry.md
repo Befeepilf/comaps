@@ -38,6 +38,13 @@ simplify must preserve shared clipped edges.
 - Municipal leftover can still include **water** that sits inside the
   settlement OSM ring but has no street-pixel assignment.
 
+## Labels and taps (SP-038)
+
+Overlay names use `m_name` and `m_labelPoint` on each `AreaOverlayGeometry`
+item. SP-038 routes explicit user taps to those Street Pixels captions (pixel
+AABB hit-test), not CoMaps `GetVisiblePOI` or polygon-anywhere PIP. See
+[`SP-038-overlay-label-taps.md`](SP-038-overlay-label-taps.md).
+
 ## Tests
 
 `AreaOverlay_ClipNestedWinners`, `AreaOverlay_ClipPrefersConfiguredPriorityOverArea`,

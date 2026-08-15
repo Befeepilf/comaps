@@ -1,7 +1,7 @@
 # SP-041 — Phase 5 end-to-end validation
 
 **Phase:** 5 — Area progress and map interaction
-**Status:** Implemented, awaiting acceptance
+**Status:** Accepted 2026-08-15
 **Branch:** `cursor/sp-041-phase5-validation-191e`
 **Depends on:** SP-033–040 implemented (or explicitly residualled)
 **Notes:** Exit gate. Device residual → Phase 10 pattern (same as SP-014 / SP-022 / SP-031).
@@ -96,4 +96,4 @@ performance (or recorded residual).
 | Completed check glyph not drawn | Polish residual R3 |
 | Overlay Neighbourhood-baked push | Optional retune R4 |
 | Completion-date persistence | Phase 7 (R5) |
-| Phase 5 exit Met? | Maintainer decision — agent does not self-accept |
+| Phase 5 exit Met? | **Met** 2026-08-15 — residuals R1–R5 → Phase 10 / Phase 7 |

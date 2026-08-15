@@ -95,3 +95,4 @@ geometrically and would miss unexplored cells.
 | Empty-map tap no longer opens the no-area sheet | SP-040 empty-state entry needs a path other than blank-map taps |
 | Device tap walk Helsinki | SP-041 / Phase 10 |
 | Empty-state UI polish for no-area | SP-040 |
+| Overlay-label tap routing (post SP-037 labels) | Recorded in `notes/SP-038-overlay-label-taps.md`; branch `cursor/area-overlay-label-taps-3365` |
