@@ -2190,16 +2190,13 @@ void Framework::RefreshStreetPixelsFocusFromViewport()
   }
 
   storage::CountryId const country = m_infoGetter->GetRegionCountryId(centre);
-  if (!manager.IsAreaCompletionCacheValid())
-    manager.RebuildAreaCompletionCache(country, spaPath, mapDataVersion);
-
   std::optional<m2::PointD> userPos = GetCurrentPosition();
   bool const recordingActive = GetRecordingSession().IsRecording();
   auto const mode = GetMyPositionMode();
   bool const following =
       mode == location::EMyPositionMode::Follow || mode == location::EMyPositionMode::FollowAndRotate;
   manager.RefreshFocusFromViewport(centre, userPos, recordingActive, following, GetDrawScale(), spaPath,
-                                   mapDataVersion);
+                                   mapDataVersion, country);
 }
 
 bool Framework::SelectStreetPixelsFocusAt(m2::PointD const & mercator)
@@ -2239,6 +2236,8 @@ bool Framework::TryHandleExplorationAreaTap(place_page::Info const & info)
   tap.m_isRoutePoint = info.IsRoutePoint();
   tap.m_isPointFeature = info.IsFeature() && info.IsPointType();
   auto const kind = street_pixels::ClassifyMapTap(tap);
+  if (kind == street_pixels::MapTapKind::DiscreteObject)
+    return false;
 
   m2::PointD const mercator = info.GetMercator();
   std::string spaPath;

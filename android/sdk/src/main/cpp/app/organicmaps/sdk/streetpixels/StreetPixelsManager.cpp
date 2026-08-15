@@ -65,10 +65,16 @@ JNIEXPORT void JNICALL Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixe
   auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
   manager.SetFocusedAreaProgressListener(
       [globalListener](street_pixels::FocusedAreaProgress const & progress)
-      { CallFocusedAreaCallback(globalListener, "onFocusedAreaProgressChanged", progress); });
+      {
+        GetPlatform().RunTask(Platform::Thread::Gui, [globalListener, progress]()
+        { CallFocusedAreaCallback(globalListener, "onFocusedAreaProgressChanged", progress); });
+      });
   manager.SetExplorationAreaTapListener(
       [globalListener](street_pixels::FocusedAreaProgress const & progress)
-      { CallFocusedAreaCallback(globalListener, "onExplorationAreaTapped", progress); });
+      {
+        GetPlatform().RunTask(Platform::Thread::Gui, [globalListener, progress]()
+        { CallFocusedAreaCallback(globalListener, "onExplorationAreaTapped", progress); });
+      });
 }
 
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeRemoveListener(JNIEnv * env,
