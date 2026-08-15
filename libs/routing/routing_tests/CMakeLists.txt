@@ -39,6 +39,7 @@ set(SRC
   routing_options_tests.cpp
   routing_session_test.cpp
   speed_cameras_tests.cpp
+  street_exploration_routing_spike_test.cpp
   tools.cpp
   tools.hpp
   turns_generator_test.cpp
