@@ -813,7 +813,8 @@ void StreetPixelsManager::RematchStreetPixelsOnMapUpdate(storage::CountryId cons
 {
   GetPlatform().RunTask(Platform::Thread::Background, [this, countryId, localFile]()
   {
-    SCOPE_GUARD(evictLeaf, [this, countryId]() { EvictLeafPix(countryId); });
+    auto const evictLeafFn = [this, countryId]() { EvictLeafPix(countryId); };
+    SCOPE_GUARD(evictLeaf, evictLeafFn);
     std::lock_guard<std::mutex> pixLock(m_pixFileMutex);
     if (!localFile || !localFile->OnDisk(MapFileType::Map))
     {
@@ -1837,7 +1838,8 @@ void StreetPixelsManager::OnUpdateCurrentCountry(storage::CountryId const & coun
 
   GetPlatform().RunTask(Platform::Thread::Background, [this, countryId, localFile]()
   {
-    SCOPE_GUARD(evictLeaf, [this, countryId]() { EvictLeafPix(countryId); });
+    auto const evictLeafFn = [this, countryId]() { EvictLeafPix(countryId); };
+    SCOPE_GUARD(evictLeaf, evictLeafFn);
     std::lock_guard<std::mutex> pixLock(m_pixFileMutex);
     ClearPixels();
     if (countryId.empty() || !localFile || !localFile->OnDisk(MapFileType::Map))
