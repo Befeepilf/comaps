@@ -3,6 +3,7 @@
 #include "base/file_name_utils.hpp"
 #include "base/logging.hpp"
 #include "base/math.hpp"
+#include "base/scope_guard.hpp"
 #include "base/src_point.hpp"
 
 #include "coding/mmap_reader.hpp"
@@ -430,6 +431,11 @@ void StreetPixelsManager::ClearLeafPixCacheForTesting()
   m_leafPixLru.clear();
 }
 
+void StreetPixelsManager::EvictLeafPixForTesting(storage::CountryId const & countryId)
+{
+  EvictLeafPix(countryId);
+}
+
 size_t StreetPixelsManager::MarkImportedPixelsForTesting(std::set<std::int64_t> const & pixelIds)
 {
   return MarkExploredPixelIds(pixelIds, 0.0);
@@ -718,6 +724,7 @@ void StreetPixelsManager::SaveStreetPixelsToFile(std::set<std::int64_t> const & 
   std::string const filePath = GetPlatform().WritablePathForFile(countryId + ".pix");
   if (!street_pixels_file::SaveUnexploredIds(filePath, streetPixels, mapDataVersion))
     MYTHROW(street_pixels_file::StreetPixelsFileException, ("Failed to save street pixels file", filePath));
+  EvictLeafPix(countryId);
 }
 
 std::int64_t StreetPixelsManager::GetPixMapDataVersion() const
@@ -806,6 +813,7 @@ void StreetPixelsManager::RematchStreetPixelsOnMapUpdate(storage::CountryId cons
 {
   GetPlatform().RunTask(Platform::Thread::Background, [this, countryId, localFile]()
   {
+    SCOPE_GUARD(evictLeaf, [this, countryId]() { EvictLeafPix(countryId); });
     std::lock_guard<std::mutex> pixLock(m_pixFileMutex);
     if (!localFile || !localFile->OnDisk(MapFileType::Map))
     {
@@ -849,8 +857,13 @@ bool StreetPixelsManager::RematchStreetPixelsWithNewUniverseForTesting(storage::
                                                                     std::set<std::int64_t> const & newIds,
                                                                     std::int64_t mapDataVersion)
 {
-  std::lock_guard<std::mutex> pixLock(m_pixFileMutex);
-  return RematchStreetPixelsWithNewUniverseUnlocked(countryId, newIds, mapDataVersion);
+  bool ok = false;
+  {
+    std::lock_guard<std::mutex> pixLock(m_pixFileMutex);
+    ok = RematchStreetPixelsWithNewUniverseUnlocked(countryId, newIds, mapDataVersion);
+  }
+  EvictLeafPix(countryId);
+  return ok;
 }
 
 std::optional<StreetPixelsManager::RematchFractionChange> StreetPixelsManager::TakePendingRematchFractionChange(
@@ -1824,6 +1837,7 @@ void StreetPixelsManager::OnUpdateCurrentCountry(storage::CountryId const & coun
 
   GetPlatform().RunTask(Platform::Thread::Background, [this, countryId, localFile]()
   {
+    SCOPE_GUARD(evictLeaf, [this, countryId]() { EvictLeafPix(countryId); });
     std::lock_guard<std::mutex> pixLock(m_pixFileMutex);
     ClearPixels();
     if (countryId.empty() || !localFile || !localFile->OnDisk(MapFileType::Map))

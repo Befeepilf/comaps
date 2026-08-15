@@ -285,3 +285,46 @@ UNIT_TEST(ExplorationWeight_HalfExploredMidStrength)
   double const expected = 1.0 + 0.5 * 9.0 * exploredRatio;
   TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, "A", kLat, kLon, offset.first, offset.second), expected, kWeightEps, ());
 }
+
+UNIT_TEST(ExplorationWeight_LeafPixEvictedAfterFileReplace)
+{
+  StreetExplorationRoutingOptionsGuard guard;
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  auto const offset = OffsetLatLonByMeters(kLat, kLon, 0.0, 20.0);
+  auto const ids = CollectSamplePixelIds(kLat, kLon, offset.first, offset.second);
+  TEST(!ids.empty(), ());
+
+  std::string const overlayCountry = "sp056_overlay_evict";
+  std::string const segmentCountry = "sp056_segment_evict";
+  manager.SetStreetPixelsOverlayForTesting(overlayCountry, PixelsForIds(ids, false, false));
+
+  std::string const pixPath = GetPlatform().WritablePathForFile(segmentCountry + ".pix");
+  SCOPE_GUARD(cleanup, [&]()
+  {
+    FileWriter::DeleteFileX(pixPath);
+    manager.ClearLeafPixCacheForTesting();
+  });
+
+  std::set<int64_t> universe(ids.begin(), ids.end());
+  street_pixels_file::ExploredEverLiveMap exploredEverLive;
+  for (std::int64_t id : ids)
+    exploredEverLive[id] = true;
+  TEST(street_pixels_file::SaveRematchedUniverse(pixPath, universe, exploredEverLive, 1), ());
+
+  SaveExplorationMode(routing::StreetExplorationRoutingMode::Prefer, 100.0);
+  TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, segmentCountry, kLat, kLon, offset.first, offset.second), 10.0,
+                        kWeightEps, ());
+
+  street_pixels_file::ExploredEverLiveMap unexplored;
+  TEST(street_pixels_file::SaveRematchedUniverse(pixPath, universe, unexplored, 2), ());
+  TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, segmentCountry, kLat, kLon, offset.first, offset.second), 10.0,
+                        kWeightEps, ());
+
+  manager.EvictLeafPixForTesting(segmentCountry);
+  TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, segmentCountry, kLat, kLon, offset.first, offset.second), 1.0,
+                        kWeightEps, ());
+  TEST_ALMOST_EQUAL_ABS(QueryMultiplier(manager, overlayCountry, kLat, kLon, offset.first, offset.second), 1.0,
+                        kWeightEps, ());
+  TEST(!manager.IsPixelExploredForTesting(ids.front()), ());
+}
