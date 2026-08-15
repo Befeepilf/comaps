@@ -17,8 +17,8 @@ unilaterally.
 ## Motivation
 
 SP-054–060 each validate locally. Exit needs combined evidence: Prefer on
-walk/bike, Avoid strict pass, warning + fallback pair, mid-nav stability,
-count-only analytics, and routing regression suites.
+walk/bike, Avoid strict pass, warning + Prefer+strength fallback, mid-nav
+stability, count-only analytics, and routing regression suites.
 
 ## In-scope behavior
 
@@ -29,9 +29,10 @@ count-only analytics, and routing regression suites.
 - Re-run relevant automated suites; record counts. Minimum:
   `street_pixels_tests` (including multiplier / avoid fixtures added in
   this phase), `routing_tests`, `routing_common_tests`.
-- Manual: walk and bike Prefer; Avoid with a possible unexplored route;
-  Avoid with an impossible route and both fallback choices; mid-nav walk
-  along an Avoid route; confirm no location in analytics payloads.
+- Manual: walk and bike Prefer (including seekbar); Avoid with a possible
+  route that skips fully explored edges; Avoid with an impossible route and
+  the Prefer+seekbar control; mid-nav walk along an Avoid route; confirm no
+  location in analytics payloads.
 - Device residual honesty if no handset: Phase 10; do not fabricate.
 - Confirm car did not gain Avoid (R2) and §17.4 modes were not added.
 
@@ -48,7 +49,7 @@ count-only analytics, and routing regression suites.
 
 - Phase 6 exit criteria 1–7.
 - Spec §17, §31, §32.2, §34 Routing.
-- SPD-009; SP-055 Accepted locks.
+- SPD-009; SPD-040–045.
 
 ## Relevant source files or symbols
 

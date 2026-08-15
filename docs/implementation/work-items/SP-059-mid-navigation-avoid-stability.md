@@ -2,8 +2,7 @@
 
 **Phase:** 6 — Exploration-aware routing
 **Status:** Planned
-**Depends on:** SP-055 R9 Accepted; SP-057 engine; SP-058 so Avoid can be
-  followed
+**Depends on:** SPD-043; SP-057 engine; SP-058 so Avoid can be followed
 **Unblocks:** SP-061 exit #5
 
 ---
@@ -28,7 +27,8 @@ Without an implementation, exit criterion 5 cannot pass.
   that abandons that path (R9).
 - Off-route detection and user-requested recalculation **may** re-apply
   Avoid from the new position. If the strict pass fails, use the SP-058
-  fallback offer; do not silently inject explored edges.
+  Prefer+strength control (SPD-042); do not silently inject fully explored
+  edges.
 - Prefer-following: keep today’s continuous recompute behaviour unless it
   produces a loop; do not invent a freeze for Prefer without evidence.
 - Automated test: start following an Avoid route; mark remaining segments
@@ -46,9 +46,8 @@ Without an implementation, exit criterion 5 cannot pass.
 
 ## Relevant product requirements
 
-- Spec §17.3 (no silent abandon of the selected **rule** — not the same as
-  freezing geometry forever).
-- SP-055 R9; audit §12 mid-navigation risk.
+- Spec §17.3 (no silent abandon of the selected **rule**).
+- SPD-042, SPD-043; audit §12 mid-navigation risk.
 - Phase 6 exit #5.
 
 ## Relevant source files or symbols
@@ -68,17 +67,18 @@ Without an implementation, exit criterion 5 cannot pass.
 
 ## Acceptance criteria
 
-1. R9 is implemented and described in evidence.
+1. SPD-043 is implemented and described in evidence.
 2. Automated case: exploring the remaining Avoid path does not by itself
    replace the route.
-3. Off-route / explicit recalc still runs; Avoid-impossible uses SP-058
-   offer, not a silent explored route.
+3. Off-route / explicit recalc still runs; Avoid-impossible uses the
+   SP-058 Prefer+seekbar control, not a silent fully-explored route.
 4. No recompute loop under a synthetic “pixels turn green along the route”
    sequence.
 
 ## Required automated tests
 
-- Follow + paint remaining edges explored → same route.
+- Follow + paint remaining edges fully explored (`exploredRatio == 1`) →
+  same route.
 - Off-route rebuild still attempted (may use a session test double).
 
 ## Required manual validation
