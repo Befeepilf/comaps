@@ -408,6 +408,8 @@
     <string name="dialog_routing_cant_build_route">Unable to create route</string>
     <string name="dialog_routing_avoid_explored_no_route_title">No route under Avoid explored streets</string>
     <string name="dialog_routing_avoid_explored_no_route_message">No route could be found without using fully explored streets.</string>
+    <string name="dialog_routing_avoid_explored_warning_message">This can produce very long routes or no available route.</string>
+    <string name="dialog_routing_avoid_explored_prefer_button">Switch to Prefer unexplored streets</string>
     <string name="dialog_routing_change_start_or_end">Please adjust your starting point or destination.</string>
     <string name="dialog_routing_change_start">Adjust starting point</string>
     <string name="dialog_routing_start_not_determined">Route was not created. Unable to locate starting point.</string>
@@ -775,6 +777,7 @@
     <string name="trail_preference_fastest">Fastest route</string>
     <string name="trail_preference_trails_only">Trails only</string>
     <string name="prefer_unexplored_streets">Prefer unexplored streets</string>
+    <string name="avoid_explored_streets">Avoid explored streets</string>
     <string name="street_exploration_strength">Exploration strength</string>
     <string name="street_exploration_strength_min">Fastest route</string>
     <string name="street_exploration_strength_max">Most exploration</string>
