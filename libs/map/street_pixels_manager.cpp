@@ -1195,7 +1195,7 @@ double StreetPixelsManager::GetSegmentExplorationWeightMultiplier(std::string co
 
   routing::StreetExplorationRoutingOptions const options =
       routing::StreetExplorationRoutingOptions::LoadFromSettings();
-  if (!options.m_enabled)
+  if (!options.IsPreferEnabled())
     return 1.0;
 
   if (GetState().status != StreetPixelsStatus::Ready)
