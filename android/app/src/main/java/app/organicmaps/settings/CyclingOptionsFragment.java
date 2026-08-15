@@ -62,7 +62,7 @@ public class CyclingOptionsFragment extends Fragment
         new ToggleRoutingOptionListener(RoadType.Paved, root, Router.Bicycle);
     pavedBtn.setOnCheckedChangeListener(pavedBtnListener);
 
-    StreetExplorationPreferBinder.bind(root);
+    StreetExplorationPreferBinder.bindWithAvoid(this, root);
   }
 
   @Override
@@ -71,7 +71,7 @@ public class CyclingOptionsFragment extends Fragment
     super.onResume();
     View view = getView();
     if (view != null)
-      StreetExplorationPreferBinder.bind(view);
+      StreetExplorationPreferBinder.bindWithAvoid(this, view);
   }
 
   private record
