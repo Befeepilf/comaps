@@ -208,10 +208,19 @@ UNIT_TEST(FocusEngine_Manager_IdlePanRefreshFollowsMapCentre)
   auto fx = MakeFocusFx("sp038_pan_centre");
   FrozenDataSource dataSource;
   StreetPixelsManager manager(dataSource);
+  TEST(!manager.CanSkipFocusRefresh(fx.districtCentre, 16, false, false), ());
   TEST(manager.RefreshFocusFromViewport(fx.districtCentre, std::nullopt, false, false, 16, fx.spaPath,
                                         fx.mapDataVersion),
        ());
   TEST_EQUAL(manager.GetFocusedAreaProgress().m_displayName, "District", ());
+  TEST(manager.CanSkipFocusRefresh(fx.districtCentre, 16, false, false), ());
+  TEST(!manager.CanSkipFocusRefresh(fx.cityOnlyCentre, 16, false, false), ());
+
+  TEST(!manager.RefreshFocusFromViewport(mercator::FromLatLon(70.0, 30.0), std::nullopt, false, false, 16, fx.spaPath,
+                                         fx.mapDataVersion),
+       ());
+  TEST(!manager.GetFocusedAreaProgress().m_hasFocus, ());
+  TEST(!manager.CanSkipFocusRefresh(mercator::FromLatLon(70.0, 30.0), 16, false, false), ());
 
   TEST(manager.RefreshFocusFromViewport(fx.cityOnlyCentre, std::nullopt, false, false, 16, fx.spaPath,
                                         fx.mapDataVersion),

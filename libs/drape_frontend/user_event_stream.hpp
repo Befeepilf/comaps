@@ -419,6 +419,7 @@ public:
     virtual void CorrectScalePoint(m2::PointD & pt1, m2::PointD & pt2) const = 0;
     virtual void OnScaleEnded() = 0;
     virtual void OnAnimatedScaleEnded() = 0;
+    virtual void OnMapIdle() {}
 
     virtual void OnTouchMapAction(TouchEvent::ETouchType touchType, bool isMapTouch) = 0;
 

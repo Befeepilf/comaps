@@ -197,6 +197,8 @@ public:
                                 bool recordingActive, bool followingMyPosition, int drawScale,
                                 std::string const & spaPath, int64_t mapDataVersion,
                                 storage::CountryId const & countryId = {});
+  bool CanSkipFocusRefresh(m2::PointD const & mapCentre, int drawScale, bool recordingActive,
+                           bool followingMyPosition);
 
   void OnUpdateCurrentCountry(storage::CountryId const & countryId, storage::LocalFilePtr const & localFile);
 
@@ -247,8 +249,7 @@ private:
 
   void ChangeState(StreetPixelsState newState);
   void NotifyFocusedAreaProgressIfChanged();
-  bool LoadFocusSidecar(std::string const & spaPath, int64_t mapDataVersion, street_pixels::SpaFile & file,
-                        street_pixels::CountryPolicy & policy);
+  bool LoadFocusSidecar(std::string const & spaPath, int64_t mapDataVersion);
 
   storage::CountryId m_countryId;
   mutable std::mutex m_countryIdMutex;
