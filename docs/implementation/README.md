@@ -474,7 +474,7 @@ SPD-026 locks personal completion.
 | 55 | [SP-055](work-items/SP-055-routing-architecture-decisions.md) | Routing architecture decisions | 6 | **In review** — SPD-040–045 (OQ-2 closed; Prefer/Avoid; seekbar; fully-explored exclusion; Prefer fallback) |
 | 56 | [SP-056](work-items/SP-056-prefer-unexplored-walk-bike.md) | Prefer-unexplored on walking and cycling surfaces | 6 | **Accepted** 2026-08-15 — Prefer + seekbar on walk/bike (SPD-041/045) |
 | 57 | [SP-057](work-items/SP-057-avoid-explored-engine.md) | Avoid-explored engine (strict pass + distinct no-route) | 6 | **Accepted** 2026-08-15 — exclude `exploredRatio == 1` (SPD-042) |
-| 58 | [SP-058](work-items/SP-058-avoid-fallback-and-warning.md) | Avoid warning, no-route UX, Prefer+strength fallback | 6 | **In progress** — no min-connection search (SPD-042) |
+| 58 | [SP-058](work-items/SP-058-avoid-fallback-and-warning.md) | Avoid warning, no-route UX, Prefer+strength fallback | 6 | **Accepted** 2026-08-16 — no min-connection search (SPD-042) |
 | 59 | [SP-059](work-items/SP-059-mid-navigation-avoid-stability.md) | Mid-navigation stability when the route becomes explored | 6 | Planned |
 | 60 | [SP-060](work-items/SP-060-routing-mode-analytics.md) | Count-only routing-mode analytics | 6 | Planned — local counters; upload residual if no sink |
 | 61 | [SP-061](work-items/SP-061-phase6-end-to-end-validation.md) | Phase 6 end-to-end validation | 6 | Planned — exit gate |

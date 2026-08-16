@@ -1,7 +1,7 @@
 # SP-058 — Avoid warning, no-route UX, and Prefer+strength fallback
 
 **Phase:** 6 — Exploration-aware routing
-**Status:** In progress
+**Status:** Accepted
 **Branch:** `cursor/sp-058-avoid-fallback-ux-35cf`
 **Depends on:** SPD-041, SPD-042; SP-056 walk/bike surface; SP-057 distinct
   no-route signal
@@ -168,8 +168,8 @@ outcome. This environment cannot complete the OD.
 | Branch | `cursor/sp-058-avoid-fallback-ux-35cf` |
 | Test output | See below. |
 | Manual validation | Device residual → SP-061 / Phase 10. This environment cannot complete the OD. |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-16 |
 
 ### Automated tests (executed 2026-08-15)
 
