@@ -1047,13 +1047,23 @@ bool UserEventStream::EndDrag(Touch const & t, bool cancelled)
   m_startDragOrg = m2::PointD::Zero();
   m_navigator.StopDrag(m2::PointD(t.m_location));
 
+  if (m_listener)
+    m_listener->OnMapIdle();
+
   if (!cancelled && m_kineticScrollEnabled && m_scroller.IsActive() &&
       m_kineticTimer.ElapsedMilliseconds() >= kKineticDelayMs)
   {
     drape_ptr<Animation> anim = m_scroller.CreateKineticAnimation(m_navigator.Screen());
     if (anim != nullptr)
+    {
+      anim->SetOnFinishAction([this](ref_ptr<Animation>)
+      {
+        if (m_listener)
+          m_listener->OnMapIdle();
+      });
       m_animationSystem.CombineAnimation(std::move(anim));
-    return false;
+      return false;
+    }
   }
 
   m_scroller.Cancel();

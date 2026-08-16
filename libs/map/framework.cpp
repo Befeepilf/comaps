@@ -393,9 +393,6 @@ void Framework::OnViewportChanged(ScreenBase const & screen)
   m_transitManager.UpdateViewport(m_currentModelView);
   m_isolinesManager.UpdateViewport(m_currentModelView);
 
-  if (m_streetPixelsManager && m_streetPixelsManager->IsEnabled())
-    RefreshStreetPixelsFocusFromViewport();
-
   if (m_viewportChangedFn != nullptr)
     m_viewportChangedFn(screen);
 }
@@ -1734,6 +1731,14 @@ void Framework::CreateDrapeEngine(ref_ptr<dp::GraphicsContextFactory> contextFac
     GetPlatform().RunTask(Platform::Thread::Gui,
                           [this, position, hasPosition]() { OnUserPositionChanged(position, hasPosition); });
   });
+  m_drapeEngine->SetMapIdleListener([this](ScreenBase const & screen)
+  {
+    GetPlatform().RunTask(Platform::Thread::Gui, [this, screen]()
+    {
+      if (m_streetPixelsManager && m_streetPixelsManager->IsEnabled())
+        RefreshStreetPixelsFocusFromPanEnd(screen);
+    });
+  });
 
   OnSize(params.m_surfaceWidth, params.m_surfaceHeight);
 
@@ -2178,11 +2183,28 @@ bool Framework::ResolveExplorationSidecarAt(m2::PointD const & pt, std::string &
 
 void Framework::RefreshStreetPixelsFocusFromViewport()
 {
+  RefreshStreetPixelsFocusAt(GetViewportCenter(), GetDrawScale(), false /* fromPanEnd */);
+}
+
+void Framework::RefreshStreetPixelsFocusFromPanEnd(ScreenBase const & screen)
+{
+  RefreshStreetPixelsFocusAt(screen.GetOrg(), df::GetDrawTileScale(screen), true /* fromPanEnd */);
+}
+
+void Framework::RefreshStreetPixelsFocusAt(m2::PointD const & centre, int drawScale, bool fromPanEnd)
+{
   auto & manager = GetStreetPixelsManager();
   if (!manager.IsEnabled())
     return;
 
-  m2::PointD const centre = GetViewportCenter();
+  bool const recordingActive = GetRecordingSession().IsRecording();
+  auto const mode = GetMyPositionMode();
+  bool const following =
+      !fromPanEnd &&
+      (mode == location::EMyPositionMode::Follow || mode == location::EMyPositionMode::FollowAndRotate);
+  if (manager.CanSkipFocusRefresh(centre, drawScale, recordingActive, following))
+    return;
+
   std::string spaPath;
   int64_t mapDataVersion = 0;
   if (!ResolveExplorationSidecarAt(centre, spaPath, mapDataVersion))
@@ -2193,12 +2215,8 @@ void Framework::RefreshStreetPixelsFocusFromViewport()
 
   storage::CountryId const country = m_infoGetter->GetRegionCountryId(centre);
   std::optional<m2::PointD> userPos = GetCurrentPosition();
-  bool const recordingActive = GetRecordingSession().IsRecording();
-  auto const mode = GetMyPositionMode();
-  bool const following =
-      mode == location::EMyPositionMode::Follow || mode == location::EMyPositionMode::FollowAndRotate;
-  manager.RefreshFocusFromViewport(centre, userPos, recordingActive, following, GetDrawScale(), spaPath,
-                                   mapDataVersion, country);
+  manager.RefreshFocusFromViewport(centre, userPos, recordingActive, following, drawScale, spaPath, mapDataVersion,
+                                   country);
 }
 
 bool Framework::SelectStreetPixelsFocusAt(m2::PointD const & mercator)
@@ -2214,10 +2232,6 @@ bool Framework::SelectStreetPixelsFocusAt(m2::PointD const & mercator)
     manager.ClearFocusedArea();
     return false;
   }
-
-  storage::CountryId const country = m_infoGetter->GetRegionCountryId(mercator);
-  if (!manager.IsAreaCompletionCacheValid())
-    manager.RebuildAreaCompletionCache(country, spaPath, mapDataVersion);
 
   return manager.SelectFocusedAreaAtPoint(mercator, spaPath, mapDataVersion);
 }
@@ -2251,10 +2265,6 @@ bool Framework::TryHandleExplorationAreaTap(place_page::Info const & info)
   int64_t mapDataVersion = 0;
   if (!ResolveExplorationSidecarAt(mercator, spaPath, mapDataVersion))
     return false;
-
-  storage::CountryId const country = m_infoGetter->GetRegionCountryId(mercator);
-  if (!manager.IsAreaCompletionCacheValid())
-    manager.RebuildAreaCompletionCache(country, spaPath, mapDataVersion);
 
   return manager.SelectFocusedAreaExplicit(*labelIndex, spaPath);
 }

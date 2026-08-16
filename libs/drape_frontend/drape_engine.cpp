@@ -105,6 +105,7 @@ DrapeEngine::DrapeEngine(Params && params)
       make_ref(m_requestedTiles), std::move(params.m_overlaysShowStatsCallback), params.m_allow3dBuildings,
       params.m_trafficEnabled, params.m_blockTapEvents, std::move(effects), params.m_onGraphicsContextInitialized,
       std::move(params.m_renderInjectionHandler));
+  frParams.m_mapIdleHandler = std::bind(&DrapeEngine::MapIdle, this, _1);
 
   BackendRenderer::Params brParams(params.m_apiVersion, frParams.m_commutator, frParams.m_oglContextFactory,
                                    frParams.m_texMng, params.m_model, params.m_model.UpdateCurrentCountryFn(),
@@ -507,6 +508,12 @@ void DrapeEngine::UserPositionChanged(m2::PointD const & position, bool hasPosit
     m_userPositionChangedHandler(position, hasPosition);
 }
 
+void DrapeEngine::MapIdle(ScreenBase const & screen)
+{
+  if (m_mapIdleHandler != nullptr)
+    m_mapIdleHandler(screen);
+}
+
 void DrapeEngine::ResizeImpl(int w, int h)
 {
   gui::DrapeGui::Instance().SetSurfaceSize(m2::PointF(w, h));
@@ -589,6 +596,11 @@ void DrapeEngine::SetTapEventInfoListener(TapEventInfoHandler && fn)
 void DrapeEngine::SetUserPositionListener(UserPositionChangedHandler && fn)
 {
   m_userPositionChangedHandler = std::move(fn);
+}
+
+void DrapeEngine::SetMapIdleListener(MapIdleHandler && fn)
+{
+  m_mapIdleHandler = std::move(fn);
 }
 
 void DrapeEngine::SelectObject(SelectionShape::ESelectedObject obj, m2::PointD const & pt, FeatureID const & featureId,
