@@ -91,4 +91,4 @@ Assignment determinism requires a policy version paired with map-data version
 | Healpix upstream `byteswap` ambiguous with C++23 `std::byteswap`; libsharp needs OpenMP at link | Local build unblocker in `3party/healpix/` (override header + OpenMP link + always-run custom target copy before compile). Not Street Pixels product scope; required for green `street_pixels_tests` link. Keep until upstream/submodule bump. |
 | Loader lives in `libs/street_pixels_config/` (not only `map`) so generator can link without map | Intentional; record for SP-026. No separate Java parser — Android ships JSON via assets symlink; rematch uses shared C++ (SPD-002). |
 | Directory assets symlink also packages `README.md` into the APK | Harmless (~3 KiB). Optionally switch to a file symlink of `country_policies.json` only in a later cleanup. |
-| | |
+| Client `FileReader(ResourcesDir() + country_policies.json)` fails on Android | `ResourcesDir` is the APK path; the JSON is in assets. Use `GetPlatform().GetReader(kCountryPoliciesRelativePath)`. Policy load failure → `UnconfiguredPolicy()`, do not abort sidecar load. Recorded 2026-08-17 (pan-end badge) |

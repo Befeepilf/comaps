@@ -59,6 +59,7 @@ All tests passed.
 | --- | --- | --- | --- | --- |
 | D1 | Google Pixel 3a | — | Finland / Helsinki | Deferred Phase 10 |
 | D2 | Aggressive OEM | — | — | Deferred Phase 10 |
+| D3 | Google Pixel 10a | Android (2026-08-17) | Finland / Helsinki | Spot-check only (H1a); full H1–H6 still Phase 10 |
 
 ## Scenario results
 
@@ -87,7 +88,8 @@ All tests passed.
 | G1 No country/world city | agent | **Pass** | CityCompletion_NoCountryWorldAggregate |
 | G2 No country choropleth | agent | **Pass** | AreaOverlay_NoCountryChoropleth |
 | G3 Badge binds area/city only | agent | **Pass** | FocusedAreaProgress; no country/world UI strings added in Phase 5 |
-| H1–H6 Device manual | D1 | **Residual** | Phase 10 — boundary/tap/zoom/completed/empty/no-country UI |
+| H1a Pan FPS + pan-end badge | D3 Pixel 10a | **Pass (spot)** | 2026-08-17 Helsinki, street-pixel layer on. Per-frame GUI focus from `OnViewportChanged` was ~10 FPS; map-idle focus restored smooth pan. Badge stayed empty until policy load used `GetReader` (not `FileReader(ResourcesDir)`). Pan-end `AreaCompletionCache::Build` on main ANR’d (~5–12 s, 6.07M universe); rebuild removed from GUI focus/tap. After cache exists, pan-end 2–6 ms. Not Spike 1 quantitative (F3). |
+| H1–H6 Device manual | D1 | **Residual** | Phase 10 — boundary/tap/zoom/completed/empty/no-country UI. H1a does not close this row |
 | I1 areas suite | agent | **Pass** | **67/67** |
 | I2 map suite | agent | **Pass** | **205/205** |
 | I3–I6 filters | agent | **Pass** | Focus 14; AreaCompletion 5; FocusedArea 6; City 3 |
@@ -116,6 +118,7 @@ All tests passed.
 | R3 | Completed check glyph not drawn in drape (`m_showCheck` reserved) | Polish / Phase 10 or small follow-up |
 | R4 | Overlay push still bakes Neighbourhood band colors (SP-037 stub) | Optional retune; not exit-blocking |
 | R5 | Completion-date persistence | Phase 7 (SP-040 explicit) |
+| R6 | First pan-end after country load may still copy sidecar on GUI (~150 ms); `AreaCompletionCache::Build` must stay off GUI | Keep rebuild on background country load only; do not put Build back on focus/tap |
 
 ## Phase 5 exit recommendation (agent)
 

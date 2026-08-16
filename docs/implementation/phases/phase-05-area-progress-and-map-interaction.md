@@ -59,6 +59,13 @@ Re-verified 2026-08-07 against the working tree (Phase 5 entry).
 APIs the 2026-07-20 audit marked absent. Renderer shape matches the audit
 (one circle per cell). Spike 1 performance measurement remains **undone**.
 
+**2026-08-17 (focus / pan, not a snapshot rewrite):** Focus is not refreshed
+from every `OnViewportChanged`. Drape `OnMapIdle` (finger-up, kinetic end,
+scale-end) plus location updates drive `RefreshStreetPixelsFocusFromPanEnd` /
+`RefreshStreetPixelsFocusFromViewport`. Country policy JSON is loaded with
+`GetPlatform().GetReader`. `AreaCompletionCache::Build` stays off the GUI
+thread.
+
 ## Intended outcome
 
 - A primary progress badge showing the focused area's name and personal
