@@ -1,7 +1,7 @@
 # Phase 6 — Exploration-aware routing
 
-**Status:** In progress (SP-054, SP-056, and SP-057 Accepted 2026-08-15;
-SPD-040–045 locked; SP-058 Avoid UX In progress)
+**Status:** In progress (SP-054–SP-058 Accepted 2026-08-15–16; SPD-040–045
+locked; SP-059 mid-nav stability Planned)
 **Depends on:** Phase 3
 **Blocks:** nothing; required for release
 
