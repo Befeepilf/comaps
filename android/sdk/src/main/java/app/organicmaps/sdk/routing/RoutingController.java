@@ -182,7 +182,7 @@ public class RoutingController
 
   private boolean isDrivingOptionsBuildError()
   {
-    return mLastResultCode != ResultCodes.NEED_MORE_MAPS && !isRulerRouterType() && RoutingOptions.hasAnyOptions(mLastRouterType);
+    return RoutingBuildError.isDrivingOptionsBuildError(mLastResultCode, isRulerRouterType(), RoutingOptions.hasAnyOptions(mLastRouterType));
   }
 
   private void setState(State newState)

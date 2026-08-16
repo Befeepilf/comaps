@@ -1,7 +1,8 @@
 # SP-058 — Avoid warning, no-route UX, and Prefer+strength fallback
 
 **Phase:** 6 — Exploration-aware routing
-**Status:** Planned
+**Status:** Accepted
+**Branch:** `cursor/sp-058-avoid-fallback-ux-35cf`
 **Depends on:** SPD-041, SPD-042; SP-056 walk/bike surface; SP-057 distinct
   no-route signal
 **Unblocks:** SP-059 (follows an Avoid route); SP-061 exit #3–4
@@ -84,12 +85,75 @@ action, so SPD-009’s ban on silent degrade still holds.
   download.
 - Mode after the fallback action is Prefer (shared settings test if the
   action is reachable from C++/JNI; otherwise document the Java path).
+- Production fallback path is `RoutingErrorDialogFragment` positive click →
+  `preferFallback` → `SaveToSettings` (JNI) → `rebuildLastRoute()`. JUnit
+  covers `preferFallback` only.
 
 ## Required manual validation
 
-- OD with every path fully explored: no-route appears; Prefer button
-  rebuilds under Prefer with seekbar. Walk and bike. Device residual →
-  SP-061 / Phase 10.
+Device residual → SP-061 / Phase 10. Record device, OS, build type, router, and
+outcome. This environment cannot complete the OD.
+
+### Setup
+
+1. Install a local map whose street graph you can saturate (small extract or a
+   fully explored neighborhood). Personal `.pix` must mark every matched sample
+   on every OD path as explored (`exploredRatio == 1` on all connecting edges).
+2. Airplane mode / offline. Confirm a walk and a bike route still build with
+   Prefer off (ordinary routing works).
+3. Strength seekbar at a known value (e.g. 50). Leave it there unless a step
+   says otherwise.
+
+### Walk — warning before Avoid
+
+4. Routing options → Walking tab. Prefer and Avoid both off. Seekbar hidden.
+5. Turn Avoid on. Warning appears with title “Avoid explored streets” and
+   body “This can produce very long routes or no available route.”
+6. Cancel / dismiss. Avoid is off. Mode unchanged (Neither). Seekbar hidden.
+   No rebuild under Avoid.
+7. Turn Prefer on. Seekbar visible. Turn Avoid on. Warning again (every time,
+   not once-ever). Cancel. Prefer still on, seekbar still visible, Avoid off.
+8. Turn Avoid on, confirm OK. Prefer off, seekbar hidden, Avoid on.
+
+### Walk — no-route and Prefer fallback
+
+9. Plan an OD where every connecting path is fully explored. Build a walking
+   route with Avoid on.
+10. Result is the Avoid no-route dialog:
+    title “No route under Avoid explored streets”
+    message “No route could be found without using fully explored streets.”
+    Positive: “Switch to Prefer unexplored streets”
+    Negative: Cancel.
+    This is not “Unable to calculate route” / Settings.
+11. With ferry (or another walk avoid-road option) also on, rebuild under
+    Avoid. Still the Avoid no-route dialog, not the driving-options settings
+    dialog. (SP-057 steal bug.)
+12. Tap Cancel on the no-route dialog. Avoid remains selected in Walking
+    options. Seekbar still hidden.
+13. Rebuild under Avoid; tap “Switch to Prefer unexplored streets”.
+    Dialog closes. Route recomputes immediately under Prefer. Options screen
+    does not have to open. Do not expect a seekbar inside the error dialog.
+14. Open Walking options: Prefer is on, Avoid is off, seekbar is visible,
+    strength still 50 (or whatever was set in step 3). Route is a Prefer
+    route, not Avoid exclusion.
+
+### Bike
+
+15. Repeat steps 4–8 on the Cycling tab (warning before apply; cancel leaves
+    mode unchanged; confirm clears Prefer and hides seekbar).
+16. Repeat steps 9–14 for a cycling OD with every path fully explored.
+
+### Driving / Android Auto (negative)
+
+17. Driving tab: Prefer + seekbar only. No Avoid row.
+18. Android Auto driving options: Prefer toggle only. No Avoid row. No Prefer
+    fallback button required on the car screen.
+
+### Must not happen
+
+19. Avoid never applies without the warning having been shown that time.
+20. No silent switch to Prefer, no automatic second search, no min-connection
+    pass, no download prompt for Avoid-impossible.
 
 ## Failure and rollback considerations
 
@@ -101,14 +165,44 @@ action, so SPD-009’s ban on silent degrade still holds.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Test output | |
-| Manual validation | |
-| Accepted by | |
-| Accepted date | |
+| Branch | `cursor/sp-058-avoid-fallback-ux-35cf` |
+| Test output | See below. |
+| Manual validation | Device residual → SP-061 / Phase 10. This environment cannot complete the OD. |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-16 |
+
+### Automated tests (executed 2026-08-15)
+
+```
+cd android && ./gradlew :sdk:testDebugUnitTest \
+  --tests app.organicmaps.sdk.routing.RoutingBuildErrorTest \
+  --tests app.organicmaps.sdk.routing.StreetExplorationRoutingOptionsTest \
+  -x externalNativeBuildDebug -x externalNativeBuildRelease \
+  -x configureCMakeDebug -x buildCMakeDebug --rerun-tasks
+```
+
+`BUILD SUCCESSFUL in 3s`
+
+- `RoutingBuildErrorTest`: **11/11 OK**, 0 failures, 0 errors
+- `StreetExplorationRoutingOptionsTest`: **5/5 OK**, 0 failures, 0 errors
+- Total: **16/16 OK**, 100% successful
+
+JUnit covers `preferFallback` and result-code mapping only. Production
+fallback path is `RoutingErrorDialogFragment` positive click →
+`preferFallback` → `SaveToSettings` (JNI) → `rebuildLastRoute()`.
+
+App Java compile (F-Droid debug, native CMake skipped):
+
+```
+cd android && ./gradlew :app:compileFdroidDebugJavaWithJavac \
+  -x externalNativeBuildDebug -x externalNativeBuildRelease \
+  -x configureCMakeDebug -x buildCMakeDebug
+```
+
+`BUILD SUCCESSFUL in 18s` (deprecation warnings only; no errors).
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| (filled during implementation) | |
+| SP-057 `isDrivingOptionsBuildError()` steal of Avoid no-route when ferry/toll/etc. are on | Fixed here: `RoutingBuildError.isDrivingOptionsBuildError` excludes `AVOID_EXPLORED_NO_ROUTE` |
