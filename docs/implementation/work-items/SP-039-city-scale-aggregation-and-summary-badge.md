@@ -91,5 +91,5 @@ double-counting pixels.
 | --- | --- |
 | Assignable∈settlement via first ring vertex containment | Provisional; true municipal rings + Phase 4 PIP; residual if geometry edge cases appear |
 | City fill still uses neighbourhood-baked overlay alpha | SP-037 stub; optional retune later |
-| City summary % missing when zooming street → city | Same READY-only badge bind as SP-035; viewport now re-runs §12.5 rule 5 (`IsCityScaleDrawScale`). Device city-zoom walk still SP-041 / Phase 10 |
+| City summary % missing when zooming street → city | Same READY-only badge bind as SP-035; map idle / scale-end re-runs §12.5 rule 5 (`IsCityScaleDrawScale`). Device city-zoom walk still SP-041 / Phase 10 |
 | Device city-zoom summary % walk | SP-041 / Phase 10 |

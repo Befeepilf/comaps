@@ -111,4 +111,5 @@ sufficient.
 | Finding | Proposed disposition |
 | --- | --- |
 | Rebuild scans full `.pix` universe (not incremental on collect) | Acceptable for V1; optimize later if city-scale rebuild is slow |
+| `AreaCompletionCache::Build` on the GUI thread ANRs at city scale | Helsinki sidecar ~6.07M assignments: pix ~200 ms + spa ~280 ms + **Build ~5–6 s**. Two pan-end rebuilds on main exceeded the 5 s input timeout (Pixel 10a, 2026-08-17). Do **not** call `RebuildAreaCompletionCache` from `RefreshFocusFromViewport`, `SelectStreetPixelsFocusAt`, or `TryHandleExplorationAreaTap`. Country load already builds on background; notify focused-area progress when that rebuild finishes. After the cache exists, pan-end PIP is 2–6 ms |
 | Quantitative Spike 1 still Phase 10 | SP-033 residual; does not block this item |

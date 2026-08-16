@@ -92,3 +92,7 @@ percentage changes look like lost progress. Spec §12.5 is the contract.
 | City-summary fraction currently settlement-area counts | SP-039 aggregate completion |
 | Explicit tap API ready; polygon hit-test not wired | SP-038 |
 | Helsinki device walk across boundary / recentre | SP-041 / Phase 10 |
+| Per-frame GUI `RefreshFocusFromViewport` from `OnViewportChanged` stalled pan (~10 FPS) even at max zoom | Do not run focus on every viewport frame. Refresh on map idle (finger-up / kinetic finish / scale-end) and on location updates. Spec §12.5 rule 2 is “may focus” the area under the map centre — idle is sufficient. Pixel 10a Helsinki pan confirmed smooth 2026-08-17 |
+| Pan-end `LoadFocusSidecar` used `FileReader(ResourcesDir() + country_policies.json)` | Fatal on Android (APK path, not assets). Overlay/tap already swallowed policy failure; pan-end treated it as fatal and cleared focus. Load via `GetPlatform().GetReader`; policy exception → `UnconfiguredPolicy()`, do not abort sidecar load. Pixel 10a Helsinki badge after pan confirmed 2026-08-17 |
+| `CanSkipFocusRefresh` 20 m skip returned true while unfocused | Skip only when `m_hasFocus`; otherwise pan-end never ran PIP after a miss. Covered by `FocusEngine_Manager_IdlePanRefreshFollowsMapCentre` |
+| First pan-end after country load rebuilt Helsinki `AreaCompletionCache` on the GUI thread | See SP-034. Focus/tap must not call `RebuildAreaCompletionCache`. Background country load already builds it; `NotifyFocusedAreaProgressIfChanged` after that rebuild so % appears when the cache finishes |
