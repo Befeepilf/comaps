@@ -317,6 +317,8 @@ public:
   StreetPixelsManager & GetStreetPixelsManager();
   StreetPixelsManager const & GetStreetPixelsManager() const;
   void RefreshStreetPixelsFocusFromViewport();
+  void RefreshStreetPixelsFocusFromPanEnd(ScreenBase const & screen);
+  void RefreshStreetPixelsFocusAt(m2::PointD const & centre, int drawScale, bool fromPanEnd);
   bool SelectStreetPixelsFocusAt(m2::PointD const & mercator);
 
   RecordingSession & GetRecordingSession();

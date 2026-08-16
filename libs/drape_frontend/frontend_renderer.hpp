@@ -108,6 +108,7 @@ public:
   using GraphicsReadyHandler = std::function<void()>;
   using TapEventInfoHandler = std::function<void(TapInfo const &)>;
   using UserPositionChangedHandler = std::function<void(m2::PointD const & pt, bool hasPosition)>;
+  using MapIdleHandler = std::function<void(ScreenBase const & screen)>;
 
   struct Params : BaseRenderer::Params
   {
@@ -140,6 +141,7 @@ public:
     ModelViewChangedHandler m_modelViewChangedHandler;
     TapEventInfoHandler m_tapEventHandler;
     UserPositionChangedHandler m_positionChangedHandler;
+    MapIdleHandler m_mapIdleHandler;
     ref_ptr<RequestedTiles> m_requestedTiles;
     OverlaysShowStatsCallback m_overlaysShowStatsCallback;
     bool m_allow3dBuildings;
@@ -254,6 +256,7 @@ private:
   void CorrectGlobalScalePoint(m2::PointD & pt) const override;
   void OnScaleEnded() override;
   void OnAnimatedScaleEnded() override;
+  void OnMapIdle() override;
   void OnTouchMapAction(TouchEvent::ETouchType touchType, bool isMapTouch) override;
   bool OnNewVisibleViewport(m2::RectD const & oldViewport, m2::RectD const & newViewport, bool needOffset,
                             m2::PointD & gOffset) override;
@@ -369,6 +372,7 @@ private:
   ModelViewChangedHandler m_modelViewChangedHandler;
   TapEventInfoHandler m_tapEventInfoHandler;
   UserPositionChangedHandler m_userPositionChangedHandler;
+  MapIdleHandler m_mapIdleHandler;
 
   ScreenBase m_lastReadedModelView;
   TTilesCollection m_notFinishedTiles;

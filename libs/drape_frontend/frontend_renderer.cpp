@@ -182,6 +182,7 @@ FrontendRenderer::FrontendRenderer(Params && params)
   , m_modelViewChangedHandler(std::move(params.m_modelViewChangedHandler))
   , m_tapEventInfoHandler(std::move(params.m_tapEventHandler))
   , m_userPositionChangedHandler(std::move(params.m_positionChangedHandler))
+  , m_mapIdleHandler(std::move(params.m_mapIdleHandler))
   , m_requestedTiles(params.m_requestedTiles)
   , m_maxGeneration(0)
   , m_maxUserMarksGeneration(0)
@@ -2166,6 +2167,7 @@ void FrontendRenderer::OnScaleEnded()
   PullToBoundArea(false /* randomPlace */, false /* applyZoom */);
   m_firstLaunchAnimationInterrupted = true;
   m_selectionTrackInfo.reset();
+  OnMapIdle();
 }
 
 void FrontendRenderer::OnAnimatedScaleEnded()
@@ -2174,6 +2176,13 @@ void FrontendRenderer::OnAnimatedScaleEnded()
   // PullToBoundArea(false /* randomPlace */, false /* applyZoom */);
   m_firstLaunchAnimationInterrupted = true;
   m_selectionTrackInfo.reset();
+  OnMapIdle();
+}
+
+void FrontendRenderer::OnMapIdle()
+{
+  if (m_mapIdleHandler)
+    m_mapIdleHandler(m_userEventStream.GetCurrentScreen());
 }
 
 void FrontendRenderer::OnTouchMapAction(TouchEvent::ETouchType touchType, bool isMapTouch)

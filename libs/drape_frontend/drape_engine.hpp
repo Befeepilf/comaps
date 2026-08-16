@@ -182,6 +182,8 @@ public:
   void SetTapEventInfoListener(TapEventInfoHandler && fn);
   using UserPositionChangedHandler = FrontendRenderer::UserPositionChangedHandler;
   void SetUserPositionListener(UserPositionChangedHandler && fn);
+  using MapIdleHandler = FrontendRenderer::MapIdleHandler;
+  void SetMapIdleListener(MapIdleHandler && fn);
 
   void SelectObject(SelectionShape::ESelectedObject obj, m2::PointD const & pt, FeatureID const & featureID,
                     bool isAnim, bool isGeometrySelectionAllowed, bool isSelectionShapeVisible);
@@ -280,6 +282,7 @@ private:
   void MyPositionModeChanged(location::EMyPositionMode mode, bool routingActive, bool shouldPersistMode);
   void TapEvent(TapInfo const & tapInfo);
   void UserPositionChanged(m2::PointD const & position, bool hasPosition);
+  void MapIdle(ScreenBase const & screen);
 
   void ResizeImpl(int w, int h);
   void RecacheGui(bool needResetOldGui);
@@ -302,6 +305,7 @@ private:
   ModelViewChangedHandler m_modelViewChangedHandler;
   TapEventInfoHandler m_tapEventInfoHandler;
   UserPositionChangedHandler m_userPositionChangedHandler;
+  MapIdleHandler m_mapIdleHandler;
 
   gui::TWidgetsInitInfo m_widgetsInfo;
   gui::TWidgetsLayoutInfo m_widgetsLayout;
