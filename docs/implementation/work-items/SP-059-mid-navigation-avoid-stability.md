@@ -1,7 +1,8 @@
 # SP-059 — Mid-navigation stability when the route becomes explored
 
 **Phase:** 6 — Exploration-aware routing
-**Status:** Planned
+**Status:** In progress
+**Branch:** `cursor/sp-059-mid-nav-avoid-35cf`
 **Depends on:** SPD-043; SP-057 engine; SP-058 so Avoid can be followed
 **Unblocks:** SP-061 exit #5
 
@@ -96,10 +97,10 @@ Without an implementation, exit criterion 5 cannot pass.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Test output | |
-| Policy as implemented | |
-| Manual validation | |
+| Branch | `cursor/sp-059-mid-nav-avoid-35cf` |
+| Test output | `routing_tests` 296/296 pass (2026-08-16); includes `AvoidFollowStability_*`, `TestTrafficRebuildSkippedWhileFollowingAvoidRoute`, `TestTrafficRebuildRunsWhenNotFollowingAvoidRoute` |
+| Policy as implemented | While following a route built under Avoid (`Route::WasBuiltUnderAvoid`), traffic-driven rebuilds are skipped so newly explored pixels on the remaining path do not trigger re-search. `AvoidFollowStabilityGate` suppresses strict exclusion when `RebuildRoute` is called with `applyAvoidExclusion=false`; off-route rebuilds from `RoutingManager::CheckLocationForRouting` pass `applyAvoidExclusion=true` so Avoid is re-applied from the new position (SP-058 Prefer+strength fallback on failure). Pixel collection does not trigger route rebuild; stability on-route follows from skipping traffic rebuild and not re-enabling exclusion without an explicit/off-route rebuild. |
+| Manual validation | Device residual → SP-061 / Phase 10 |
 | Accepted by | |
 | Accepted date | |
 
