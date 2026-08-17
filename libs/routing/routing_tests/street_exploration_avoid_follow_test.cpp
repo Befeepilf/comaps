@@ -91,6 +91,18 @@ UNIT_TEST(AvoidFollowStability_ResearchAfterPaintingRemainingAbandonsPath)
   TEST_ALMOST_EQUAL_ABS(length, 300.0, kLengthEpsilon, ());
   TEST_EQUAL(path, std::vector<TestIndexGraphTopology::Edge>({{0, 2}, {2, 4}}), ());
 
+  provider->SetRatios({
+      {MakeSegment(0), 1.0},
+      {MakeSegment(1), 1.0},
+      {MakeSegment(2), 1.0},
+      {MakeSegment(3), 1.0},
+      {MakeSegment(4), 0.0},
+      {MakeSegment(5), 0.0},
+  });
+  TEST(graph.FindPath(0, 4, length, path), ());
+  TEST_ALMOST_EQUAL_ABS(length, 800.0, kLengthEpsilon, ());
+  TEST_EQUAL(path, std::vector<TestIndexGraphTopology::Edge>({{0, 3}, {3, 4}}), ());
+
   provider->SetRatios(MakeAllExploredRatios());
   TEST(!graph.FindPath(0, 4, length, path), ());
   TEST_EQUAL(MapAStarNoPath(true), RouterResultCode::AvoidExploredNoRoute, ());
