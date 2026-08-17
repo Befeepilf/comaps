@@ -40,6 +40,7 @@ set(SRC
   routing_session_test.cpp
   speed_cameras_tests.cpp
   street_exploration_routing_options_tests.cpp
+  street_exploration_routing_analytics_tests.cpp
   street_exploration_routing_spike_test.cpp
   street_exploration_avoid_test.cpp
   street_exploration_avoid_follow_test.cpp
