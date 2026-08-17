@@ -18,6 +18,7 @@ import app.organicmaps.downloader.MapManagerHelper;
 import app.organicmaps.sdk.downloader.CountryItem;
 import app.organicmaps.sdk.routing.ResultCodes;
 import app.organicmaps.sdk.routing.RoutingController;
+import app.organicmaps.sdk.routing.StreetExplorationRoutingAnalytics;
 import app.organicmaps.sdk.routing.StreetExplorationRoutingOptions;
 import app.organicmaps.util.UiUtils;
 import com.google.android.material.textview.MaterialTextView;
@@ -136,6 +137,7 @@ public class RoutingErrorDialogFragment extends BaseRoutingErrorDialogFragment
     if (mResultCode == ResultCodes.AVOID_EXPLORED_NO_ROUTE)
     {
       button.setOnClickListener(v -> {
+        StreetExplorationRoutingAnalytics.recordAvoidFallbackPrefer();
         StreetExplorationRoutingOptions current = StreetExplorationRoutingOptions.LoadFromSettings();
         StreetExplorationRoutingOptions next = StreetExplorationRoutingOptions.preferFallback(current);
         StreetExplorationRoutingOptions.SaveToSettings(next);
