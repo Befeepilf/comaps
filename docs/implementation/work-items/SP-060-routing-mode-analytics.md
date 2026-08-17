@@ -88,7 +88,7 @@ Phase 10 rather than sending routes to Sentry.
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-060-routing-mode-analytics-35cf` |
-| Test output | |
+| Test output | `routing_tests` **306/306** pass (2026-08-17; was 296/296 before this item). Filtered 10/10: 9 `StreetExplorationRoutingAnalytics_*` + `TestAssignRouteIncrementsExplorationAnalytics`. `cd android && ./gradlew :app:compileFdroidDebugJavaWithJavac` → BUILD SUCCESSFUL (native CMake skipped). |
 | Sink (local / upload / residual) | local settings integers (`street_exploration_routing_analytics_*`); upload residual Phase 10. Not Sentry. |
 | Accepted by | |
 | Accepted date | |
