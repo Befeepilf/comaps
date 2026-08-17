@@ -1,4 +1,6 @@
 #include "map/street_exploration_routing_adapter.hpp"
+
+#include "routing/avoid_follow_stability.hpp"
 #include "map/street_pixels_manager.hpp"
 
 #include "routing/routing_options.hpp"
@@ -22,7 +24,9 @@ double StreetExplorationRoutingAdapter::GetSegmentWeightMultiplier(routing::NumM
 
 bool StreetExplorationRoutingAdapter::IsAvoidExclusionActive() const
 {
-  return routing::StreetExplorationRoutingOptions::LoadFromSettings().IsAvoidEnabled();
+  if (!routing::StreetExplorationRoutingOptions::LoadFromSettings().IsAvoidEnabled())
+    return false;
+  return routing::AvoidFollowStabilityGate::IsAvoidExclusionApplied();
 }
 
 bool StreetExplorationRoutingAdapter::IsSegmentExcluded(routing::NumMwmIds const & numMwmIds,

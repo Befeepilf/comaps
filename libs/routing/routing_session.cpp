@@ -3,6 +3,8 @@
 #include "routing/base/followed_polyline.hpp"
 #include "routing/following_info.hpp"
 #include "routing/route.hpp"
+#include "routing/avoid_follow_stability.hpp"
+#include "routing/routing_options.hpp"
 #include "routing/router_delegate.hpp"
 #include "routing/turns.hpp"
 #include "routing/vehicle_mask.hpp"
@@ -88,17 +90,20 @@ void RoutingSession::BuildRoute(Checkpoints const & checkpoints, uint32_t timeou
   m_routingRebuildAnnounceCount = 0;
 
   RebuildRoute(checkpoints.GetStart(), m_buildReadyCallback, m_needMoreMapsCallback, m_removeRouteCallback, timeoutSec,
-               SessionState::RouteBuilding, false /* adjust */);
+               SessionState::RouteBuilding, false /* adjust */, true /* applyAvoidExclusion */);
 }
 
 void RoutingSession::RebuildRoute(m2::PointD const & startPoint, ReadyCallback const & readyCallback,
                                   NeedMoreMapsCallback const & needMoreMapsCallback,
                                   RemoveRouteCallback const & removeRouteCallback, uint32_t timeoutSec,
-                                  SessionState routeRebuildingState, bool adjustToPrevRoute)
+                                  SessionState routeRebuildingState, bool adjustToPrevRoute, bool applyAvoidExclusion)
 {
   CHECK_THREAD_CHECKER(m_threadChecker, ());
   CHECK(m_router, ());
   SetState(routeRebuildingState);
+
+  StreetExplorationRoutingOptions const explorationOptions = StreetExplorationRoutingOptions::LoadFromSettings();
+  AvoidFollowStabilityGate::SetApplyAvoidExclusion(applyAvoidExclusion && explorationOptions.IsAvoidEnabled());
 
   ++m_routingRebuildCount;
   auto const & direction =
@@ -148,6 +153,9 @@ void RoutingSession::RemoveRoute()
 void RoutingSession::RebuildRouteOnTrafficUpdate()
 {
   CHECK_THREAD_CHECKER(m_threadChecker, ());
+  if (IsFollowing() && m_route->WasBuiltUnderAvoid())
+    return;
+
   m2::PointD startPoint;
 
   {
@@ -174,7 +182,7 @@ void RoutingSession::RebuildRouteOnTrafficUpdate()
 
   RebuildRoute(startPoint, m_rebuildReadyCallback, nullptr /* needMoreMapsCallback */,
                nullptr /* removeRouteCallback */, RouterDelegate::kNoTimeout, SessionState::RouteRebuilding,
-               false /* adjustToPrevRoute */);
+               false /* adjustToPrevRoute */, StreetExplorationRoutingOptions::LoadFromSettings().IsAvoidEnabled());
 }
 
 bool RoutingSession::IsActive() const
@@ -706,6 +714,7 @@ void RoutingSession::AssignRoute(std::shared_ptr<Route> const & route, RouterRes
   m_checkpoints.SetPointFrom(route->GetPoly().Front());
 
   route->SetRoutingSettings(m_routingSettings);
+  route->SetBuildExplorationMode(StreetExplorationRoutingOptions::LoadFromSettings().m_mode);
   m_route = route;
   m_speedCameraManager.Reset();
   m_speedCameraManager.SetRoute(m_route);

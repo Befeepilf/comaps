@@ -58,7 +58,8 @@ public:
   void BuildRoute(Checkpoints const & checkpoints, uint32_t timeoutSec);
   void RebuildRoute(m2::PointD const & startPoint, ReadyCallback const & readyCallback,
                     NeedMoreMapsCallback const & needMoreMapsCallback, RemoveRouteCallback const & removeRouteCallback,
-                    uint32_t timeoutSec, SessionState routeRebuildingState, bool adjustToPrevRoute);
+                    uint32_t timeoutSec, SessionState routeRebuildingState, bool adjustToPrevRoute,
+                    bool applyAvoidExclusion = true);
 
   m2::PointD GetStartPoint() const;
   m2::PointD GetEndPoint() const;
