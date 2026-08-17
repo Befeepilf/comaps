@@ -42,6 +42,7 @@ set(SRC
   street_exploration_routing_options_tests.cpp
   street_exploration_routing_spike_test.cpp
   street_exploration_avoid_test.cpp
+  street_exploration_avoid_follow_test.cpp
   tools.cpp
   tools.hpp
   turns_generator_test.cpp
