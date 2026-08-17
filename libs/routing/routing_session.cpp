@@ -4,6 +4,7 @@
 #include "routing/following_info.hpp"
 #include "routing/route.hpp"
 #include "routing/router_delegate.hpp"
+#include "routing/routing_options.hpp"
 #include "routing/turns.hpp"
 #include "routing/vehicle_mask.hpp"
 
@@ -100,6 +101,8 @@ void RoutingSession::RebuildRoute(m2::PointD const & startPoint, ReadyCallback c
   CHECK(m_router, ());
   SetState(routeRebuildingState);
 
+  m_inFlightExplorationMode = StreetExplorationRoutingOptions::LoadFromSettings().m_mode;
+
   ++m_routingRebuildCount;
   auto const & direction =
       m_routingSettings.m_useDirectionForRouteBuilding ? m_positionAccumulator.GetDirection() : m2::PointD::Zero();
@@ -148,6 +151,9 @@ void RoutingSession::RemoveRoute()
 void RoutingSession::RebuildRouteOnTrafficUpdate()
 {
   CHECK_THREAD_CHECKER(m_threadChecker, ());
+  if (IsFollowing() && IsOnRoute() && m_route->WasBuiltUnderAvoid())
+    return;
+
   m2::PointD startPoint;
 
   {
@@ -706,6 +712,7 @@ void RoutingSession::AssignRoute(std::shared_ptr<Route> const & route, RouterRes
   m_checkpoints.SetPointFrom(route->GetPoly().Front());
 
   route->SetRoutingSettings(m_routingSettings);
+  route->SetBuildExplorationMode(m_inFlightExplorationMode);
   m_route = route;
   m_speedCameraManager.Reset();
   m_speedCameraManager.SetRoute(m_route);

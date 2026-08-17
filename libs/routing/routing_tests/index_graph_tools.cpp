@@ -258,12 +258,11 @@ bool TestIndexGraphTopology::FindPath(Vertex start, Vertex finish, double & path
   CHECK_LESS(start, m_numVertices, ());
   CHECK_LESS(finish, m_numVertices, ());
 
+  pathWeight = 0.0;
+  pathEdges.clear();
+
   if (start == finish)
-  {
-    pathWeight = 0.0;
-    pathEdges.clear();
     return true;
-  }
 
   auto edgeRequests = m_edgeRequests;
   // Edges of the index graph are segments, so we need a loop at finish
