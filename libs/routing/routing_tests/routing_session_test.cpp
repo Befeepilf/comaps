@@ -7,9 +7,8 @@
 #include "routing/router.hpp"
 #include "routing/routing_callbacks.hpp"
 #include "routing/routing_helpers.hpp"
-#include "routing/routing_session.hpp"
-
 #include "routing/routing_options.hpp"
+#include "routing/routing_session.hpp"
 
 #include "platform/location.hpp"
 #include "platform/settings.hpp"
@@ -689,8 +688,14 @@ UNIT_CLASS_TEST(AsyncGuiThreadTestWithRoutingSession, TestTrafficRebuildSkippedW
     info.m_latitude = 2.;
     m_session->OnLocationPositionChanged(info);
     TEST_EQUAL(counter, 1, ());
+    TEST(m_session->IsFollowing(), ());
+    TEST(m_session->IsOnRoute(), ());
+    TEST(m_session->GetRouteForTests()->WasBuiltUnderAvoid(), ());
+    auto const followed = m_session->GetRouteForTests();
     m_session->OnTrafficInfoClear();
     TEST_EQUAL(counter, 1, ());
+    TEST(m_session->GetRouteForTests().get() == followed.get(), ());
+    TEST(m_session->IsFollowing(), ());
     checkSignal.Signal();
   });
   TEST(checkSignal.WaitUntil(steady_clock::now() + kRouteBuildingMaxDuration), ("Route checking timeout."));
@@ -738,6 +743,58 @@ UNIT_CLASS_TEST(AsyncGuiThreadTestWithRoutingSession, TestTrafficRebuildRunsWhen
   GetPlatform().RunTask(Platform::Thread::Gui, [&checkSignal, &counter]()
   {
     TEST_EQUAL(counter, 2, ());
+    checkSignal.Signal();
+  });
+  TEST(checkSignal.WaitUntil(steady_clock::now() + kRouteBuildingMaxDuration), ("Route checking timeout."));
+}
+
+UNIT_CLASS_TEST(AsyncGuiThreadTestWithRoutingSession, TestOffRouteRebuildStillRunsWhileFollowingAvoidRoute)
+{
+  RoutingSessionExplorationOptionsGuard guard;
+  StreetExplorationRoutingOptions options;
+  options.m_mode = StreetExplorationRoutingMode::Avoid;
+  StreetExplorationRoutingOptions::SaveToSettings(options);
+
+  size_t counter = 0;
+  TimedSignal buildSignal;
+  GetPlatform().RunTask(Platform::Thread::Gui, [&buildSignal, this, &counter]()
+  {
+    InitRoutingSession();
+    Route masterRoute("dummy", kTestRoute.begin(), kTestRoute.end(), 0 /* route id */);
+    FillSubroutesInfo(masterRoute, kTestTurns);
+    unique_ptr<DummyRouter> router = make_unique<DummyRouter>(masterRoute, RouterResultCode::NoError, counter);
+    m_session->SetRouter(std::move(router), nullptr);
+    m_session->SetRoutingCallbacks([&buildSignal](Route const &, RouterResultCode) { buildSignal.Signal(); },
+                                   nullptr /* rebuildReadyCallback */, nullptr /* needMoreMapsCallback */,
+                                   nullptr /* removeRouteCallback */);
+    m_session->BuildRoute(Checkpoints(kTestRoute.front(), kTestRoute.back()), RouterDelegate::kNoTimeout);
+  });
+  TEST(buildSignal.WaitUntil(steady_clock::now() + kRouteBuildingMaxDuration), ("Route was not built."));
+
+  TimedSignal rebuildSignal;
+  GetPlatform().RunTask(Platform::Thread::Gui, [&rebuildSignal, this, &counter]()
+  {
+    m_session->EnableFollowMode();
+    location::GpsInfo info;
+    info.m_horizontalAccuracy = 0.01;
+    info.m_verticalAccuracy = 0.01;
+    info.m_longitude = 0.;
+    info.m_latitude = 1.;
+    m_session->OnLocationPositionChanged(info);
+    TEST_EQUAL(counter, 1, ());
+    TEST(m_session->GetRouteForTests()->WasBuiltUnderAvoid(), ());
+    m_session->RebuildRoute(kTestRoute.front(), [&rebuildSignal](Route const &, RouterResultCode)
+    { rebuildSignal.Signal(); }, nullptr /* needMoreMapsCallback */, nullptr /* removeRouteCallback */,
+                            RouterDelegate::kNoTimeout, SessionState::RouteRebuilding, true /* adjust */);
+  });
+  TEST(rebuildSignal.WaitUntil(steady_clock::now() + kRouteBuildingMaxDuration), ("Route was not rebuilt."));
+
+  TimedSignal checkSignal;
+  GetPlatform().RunTask(Platform::Thread::Gui, [&checkSignal, this, &counter]()
+  {
+    TEST_EQUAL(counter, 2, ());
+    TEST(m_session->IsFollowing(), ());
+    TEST(m_session->GetRouteForTests()->WasBuiltUnderAvoid(), ());
     checkSignal.Signal();
   });
   TEST(checkSignal.WaitUntil(steady_clock::now() + kRouteBuildingMaxDuration), ("Route checking timeout."));
