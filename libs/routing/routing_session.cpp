@@ -5,6 +5,7 @@
 #include "routing/route.hpp"
 #include "routing/router_delegate.hpp"
 #include "routing/routing_options.hpp"
+#include "routing/street_exploration_routing_analytics.hpp"
 #include "routing/turns.hpp"
 #include "routing/vehicle_mask.hpp"
 
@@ -713,6 +714,7 @@ void RoutingSession::AssignRoute(std::shared_ptr<Route> const & route, RouterRes
 
   route->SetRoutingSettings(m_routingSettings);
   route->SetBuildExplorationMode(m_inFlightExplorationMode);
+  StreetExplorationRoutingAnalytics::RecordSuccessfulBuild(m_inFlightExplorationMode);
   m_route = route;
   m_speedCameraManager.Reset();
   m_speedCameraManager.SetRoute(m_route);

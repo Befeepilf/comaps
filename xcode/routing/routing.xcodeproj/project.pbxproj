@@ -226,6 +226,7 @@
 		833F71FB2E48DF27008F7617 /* road_penalty.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 833F71F92E48DF27008F7617 /* road_penalty.cpp */; };
 		833F71FD2E48E011008F7617 /* road_penalty_serialization.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 833F71FC2E48E010008F7617 /* road_penalty_serialization.hpp */; };
 		833F71FF2E48E02E008F7617 /* road_penalty_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 833F71FE2E48E02E008F7617 /* road_penalty_test.cpp */; };
+		A060B160C260D360E460F013 /* street_exploration_routing_analytics.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A060B160C260D360E460F012 /* street_exploration_routing_analytics.cpp */; };
 		A120B3531B4A7C1C002F3808 /* astar_algorithm.hpp in Headers */ = {isa = PBXBuildFile; fileRef = A120B3521B4A7C1C002F3808 /* astar_algorithm.hpp */; };
 		A1616E2B1B6B60AB003F078E /* router_delegate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1616E291B6B60AB003F078E /* router_delegate.cpp */; };
 		A1616E2C1B6B60AB003F078E /* router_delegate.hpp in Headers */ = {isa = PBXBuildFile; fileRef = A1616E2A1B6B60AB003F078E /* router_delegate.hpp */; };
@@ -526,6 +527,8 @@
 		833F71F92E48DF27008F7617 /* road_penalty.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = road_penalty.cpp; sourceTree = "<group>"; };
 		833F71FC2E48E010008F7617 /* road_penalty_serialization.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = road_penalty_serialization.hpp; sourceTree = "<group>"; };
 		833F71FE2E48E02E008F7617 /* road_penalty_test.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = road_penalty_test.cpp; sourceTree = "<group>"; };
+		A060B160C260D360E460F011 /* street_exploration_routing_analytics.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = street_exploration_routing_analytics.hpp; sourceTree = "<group>"; };
+		A060B160C260D360E460F012 /* street_exploration_routing_analytics.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = street_exploration_routing_analytics.cpp; sourceTree = "<group>"; };
 		A120B3521B4A7C1C002F3808 /* astar_algorithm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = astar_algorithm.hpp; sourceTree = "<group>"; };
 		A1616E291B6B60AB003F078E /* router_delegate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = router_delegate.cpp; sourceTree = "<group>"; };
 		A1616E2A1B6B60AB003F078E /* router_delegate.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = router_delegate.hpp; sourceTree = "<group>"; };
@@ -887,6 +890,8 @@
 				5610731A221ABF96008447B2 /* speed_camera_prohibition.cpp */,
 				44E557492136EEC800B01439 /* speed_camera_ser_des.hpp */,
 				44E5574B2136EED000B01439 /* speed_camera_ser_des.cpp */,
+				A060B160C260D360E460F011 /* street_exploration_routing_analytics.hpp */,
+				A060B160C260D360E460F012 /* street_exploration_routing_analytics.cpp */,
 				0C81E1521F02589800DC66DF /* traffic_stash.hpp */,
 				0C81E1511F02589800DC66DF /* traffic_stash.cpp */,
 				4065EA841F8260000094DEF3 /* transit_graph.hpp */,
@@ -1290,6 +1295,7 @@
 				0C090C871E4E276700D52AFD /* world_graph.cpp in Sources */,
 				44642D2E29CDA44700F8813A /* ruler_router.cpp in Sources */,
 				44C56C0B22296498006C2A1D /* routing_options.cpp in Sources */,
+				A060B160C260D360E460F013 /* street_exploration_routing_analytics.cpp in Sources */,
 				D526BA7A241FC5580076E0B0 /* guides_connections.cpp in Sources */,
 				ACAE44A427426EDB0054DD15 /* junction_visitor.cpp in Sources */,
 				0C5BC9D11E28FD4E0071BFDD /* index_road_graph.cpp in Sources */,

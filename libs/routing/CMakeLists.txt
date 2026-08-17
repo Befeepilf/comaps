@@ -164,6 +164,8 @@ set(SRC
   speed_camera_prohibition.cpp
   speed_camera_prohibition.hpp
   street_exploration_for_routing.hpp
+  street_exploration_routing_analytics.cpp
+  street_exploration_routing_analytics.hpp
   speed_camera_ser_des.cpp
   speed_camera_ser_des.hpp
   traffic_stash.cpp

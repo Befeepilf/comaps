@@ -9,6 +9,7 @@
 #include "routing/routing_helpers.hpp"
 #include "routing/routing_options.hpp"
 #include "routing/routing_session.hpp"
+#include "routing/street_exploration_routing_analytics.hpp"
 
 #include "platform/location.hpp"
 #include "platform/settings.hpp"
@@ -19,6 +20,7 @@
 #include "base/logging.hpp"
 
 #include <chrono>
+#include <cstdint>
 #include <initializer_list>
 #include <memory>
 #include <mutex>
@@ -35,9 +37,17 @@ public:
     m_hadMode = settings::Get("street_exploration_routing_mode", m_mode);
     m_hadEnabled = settings::Get("street_exploration_routing_enabled", m_enabled);
     m_hadStrength = settings::Get("street_exploration_routing_strength", m_strength);
+    m_hadPreferUsed = settings::Get(routing::StreetExplorationRoutingAnalytics::kPreferUsedKey, m_preferUsed);
+    m_hadAvoidUsed = settings::Get(routing::StreetExplorationRoutingAnalytics::kAvoidUsedKey, m_avoidUsed);
+    m_hadAvoidFallbackPrefer =
+        settings::Get(routing::StreetExplorationRoutingAnalytics::kAvoidFallbackPreferKey, m_avoidFallbackPrefer);
     settings::Delete("street_exploration_routing_mode");
     settings::Delete("street_exploration_routing_enabled");
     settings::Delete("street_exploration_routing_strength");
+    settings::Delete(routing::StreetExplorationRoutingAnalytics::kPreferUsedKey);
+    settings::Delete(routing::StreetExplorationRoutingAnalytics::kAvoidUsedKey);
+    settings::Delete(routing::StreetExplorationRoutingAnalytics::kAvoidFallbackPreferKey);
+    routing::StreetExplorationRoutingAnalytics::ResetForTesting();
   }
 
   ~RoutingSessionExplorationOptionsGuard()
@@ -45,21 +55,34 @@ public:
     settings::Delete("street_exploration_routing_mode");
     settings::Delete("street_exploration_routing_enabled");
     settings::Delete("street_exploration_routing_strength");
+    routing::StreetExplorationRoutingAnalytics::ResetForTesting();
     if (m_hadMode)
       settings::Set("street_exploration_routing_mode", m_mode);
     if (m_hadEnabled)
       settings::Set("street_exploration_routing_enabled", m_enabled);
     if (m_hadStrength)
       settings::Set("street_exploration_routing_strength", m_strength);
+    if (m_hadPreferUsed)
+      settings::Set(routing::StreetExplorationRoutingAnalytics::kPreferUsedKey, m_preferUsed);
+    if (m_hadAvoidUsed)
+      settings::Set(routing::StreetExplorationRoutingAnalytics::kAvoidUsedKey, m_avoidUsed);
+    if (m_hadAvoidFallbackPrefer)
+      settings::Set(routing::StreetExplorationRoutingAnalytics::kAvoidFallbackPreferKey, m_avoidFallbackPrefer);
   }
 
 private:
   bool m_hadMode = false;
   bool m_hadEnabled = false;
   bool m_hadStrength = false;
+  bool m_hadPreferUsed = false;
+  bool m_hadAvoidUsed = false;
+  bool m_hadAvoidFallbackPrefer = false;
   std::string m_mode;
   std::string m_enabled;
   std::string m_strength;
+  uint64_t m_preferUsed = 0;
+  uint64_t m_avoidUsed = 0;
+  uint64_t m_avoidFallbackPrefer = 0;
 };
 }  // namespace
 
@@ -798,5 +821,106 @@ UNIT_CLASS_TEST(AsyncGuiThreadTestWithRoutingSession, TestOffRouteRebuildStillRu
     checkSignal.Signal();
   });
   TEST(checkSignal.WaitUntil(steady_clock::now() + kRouteBuildingMaxDuration), ("Route checking timeout."));
+}
+
+UNIT_CLASS_TEST(AsyncGuiThreadTestWithRoutingSession, TestAssignRouteIncrementsExplorationAnalytics)
+{
+  RoutingSessionExplorationOptionsGuard guard;
+  StreetExplorationRoutingAnalytics::ResetForTesting();
+
+  StreetExplorationRoutingOptions prefer;
+  prefer.m_mode = StreetExplorationRoutingMode::Prefer;
+  StreetExplorationRoutingOptions::SaveToSettings(prefer);
+
+  size_t counter = 0;
+  TimedSignal buildSignal;
+  GetPlatform().RunTask(Platform::Thread::Gui, [&buildSignal, this, &counter]()
+  {
+    InitRoutingSession();
+    Route masterRoute("dummy", kTestRoute.begin(), kTestRoute.end(), 0 /* route id */);
+    FillSubroutesInfo(masterRoute, kTestTurns);
+    unique_ptr<DummyRouter> router = make_unique<DummyRouter>(masterRoute, RouterResultCode::NoError, counter);
+    m_session->SetRouter(std::move(router), nullptr);
+    m_session->SetRoutingCallbacks([&buildSignal](Route const &, RouterResultCode) { buildSignal.Signal(); },
+                                   nullptr /* rebuildReadyCallback */, nullptr /* needMoreMapsCallback */,
+                                   nullptr /* removeRouteCallback */);
+    m_session->BuildRoute(Checkpoints(kTestRoute.front(), kTestRoute.back()), RouterDelegate::kNoTimeout);
+  });
+  TEST(buildSignal.WaitUntil(steady_clock::now() + kRouteBuildingMaxDuration), ("Route was not built."));
+
+  {
+    StreetExplorationRoutingAnalyticsSnapshot const snapshot = StreetExplorationRoutingAnalytics::LoadSnapshot();
+    TEST_EQUAL(snapshot.m_preferUsed, 1, ());
+    TEST_EQUAL(snapshot.m_avoidUsed, 0, ());
+    TEST_EQUAL(snapshot.m_avoidFallbackPrefer, 0, ());
+  }
+
+  TimedSignal followSignal;
+  GetPlatform().RunTask(Platform::Thread::Gui, [&followSignal, this]()
+  {
+    m_session->EnableFollowMode();
+    location::GpsInfo info;
+    info.m_horizontalAccuracy = 0.01;
+    info.m_verticalAccuracy = 0.01;
+    info.m_longitude = 0.;
+    info.m_latitude = 1.;
+    m_session->OnLocationPositionChanged(info);
+    info.m_latitude = 2.;
+    m_session->OnLocationPositionChanged(info);
+    followSignal.Signal();
+  });
+  TEST(followSignal.WaitUntil(steady_clock::now() + kRouteBuildingMaxDuration), ("Route checking timeout."));
+
+  {
+    StreetExplorationRoutingAnalyticsSnapshot const snapshot = StreetExplorationRoutingAnalytics::LoadSnapshot();
+    TEST_EQUAL(snapshot.m_preferUsed, 1, ());
+    TEST_EQUAL(snapshot.m_avoidUsed, 0, ());
+    TEST_EQUAL(snapshot.m_avoidFallbackPrefer, 0, ());
+  }
+
+  TimedSignal failSignal;
+  GetPlatform().RunTask(Platform::Thread::Gui, [&failSignal, this, &counter]()
+  {
+    Route masterRoute("dummy", kTestRoute.begin(), kTestRoute.end(), 0 /* route id */);
+    FillSubroutesInfo(masterRoute, kTestTurns);
+    unique_ptr<DummyRouter> router =
+        make_unique<DummyRouter>(masterRoute, RouterResultCode::RouteNotFound, counter);
+    m_session->SetRouter(std::move(router), nullptr);
+    m_session->SetRoutingCallbacks(nullptr /* buildReadyCallback */, nullptr /* rebuildReadyCallback */,
+                                   nullptr /* needMoreMapsCallback */,
+                                   [&failSignal](RouterResultCode) { failSignal.Signal(); });
+    m_session->BuildRoute(Checkpoints(kTestRoute.front(), kTestRoute.back()), RouterDelegate::kNoTimeout);
+  });
+  TEST(failSignal.WaitUntil(steady_clock::now() + kRouteBuildingMaxDuration), ("Route was not built."));
+
+  {
+    StreetExplorationRoutingAnalyticsSnapshot const snapshot = StreetExplorationRoutingAnalytics::LoadSnapshot();
+    TEST_EQUAL(snapshot.m_preferUsed, 1, ());
+    TEST_EQUAL(snapshot.m_avoidUsed, 0, ());
+    TEST_EQUAL(snapshot.m_avoidFallbackPrefer, 0, ());
+  }
+
+  StreetExplorationRoutingOptions avoid;
+  avoid.m_mode = StreetExplorationRoutingMode::Avoid;
+  StreetExplorationRoutingOptions::SaveToSettings(avoid);
+
+  TimedSignal avoidSignal;
+  GetPlatform().RunTask(Platform::Thread::Gui, [&avoidSignal, this, &counter]()
+  {
+    Route masterRoute("dummy", kTestRoute.begin(), kTestRoute.end(), 0 /* route id */);
+    FillSubroutesInfo(masterRoute, kTestTurns);
+    unique_ptr<DummyRouter> router = make_unique<DummyRouter>(masterRoute, RouterResultCode::NoError, counter);
+    m_session->SetRouter(std::move(router), nullptr);
+    m_session->SetRoutingCallbacks([&avoidSignal](Route const &, RouterResultCode) { avoidSignal.Signal(); },
+                                   nullptr /* rebuildReadyCallback */, nullptr /* needMoreMapsCallback */,
+                                   nullptr /* removeRouteCallback */);
+    m_session->BuildRoute(Checkpoints(kTestRoute.front(), kTestRoute.back()), RouterDelegate::kNoTimeout);
+  });
+  TEST(avoidSignal.WaitUntil(steady_clock::now() + kRouteBuildingMaxDuration), ("Route was not built."));
+
+  StreetExplorationRoutingAnalyticsSnapshot const snapshot = StreetExplorationRoutingAnalytics::LoadSnapshot();
+  TEST_EQUAL(snapshot.m_preferUsed, 1, ());
+  TEST_EQUAL(snapshot.m_avoidUsed, 1, ());
+  TEST_EQUAL(snapshot.m_avoidFallbackPrefer, 0, ());
 }
 }  // namespace routing_session_test
