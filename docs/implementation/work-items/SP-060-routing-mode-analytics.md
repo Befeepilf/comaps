@@ -1,7 +1,8 @@
 # SP-060 — Count-only routing-mode analytics
 
 **Phase:** 6 — Exploration-aware routing
-**Status:** Planned
+**Status:** In progress
+**Branch:** `cursor/sp-060-routing-mode-analytics-35cf`
 **Depends on:** SPD-044; SP-056/058 mode changes exist to hook
 **Unblocks:** SP-061 exit #6
 
