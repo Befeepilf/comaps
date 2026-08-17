@@ -142,6 +142,8 @@ set(SRC
   routing_exceptions.hpp
   routing_helpers.cpp
   routing_helpers.hpp
+  avoid_follow_stability.cpp
+  avoid_follow_stability.hpp
   routing_options.cpp
   routing_options.hpp
   routing_result_graph.hpp

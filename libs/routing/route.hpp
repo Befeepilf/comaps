@@ -476,6 +476,9 @@ public:
 
   std::vector<RouteStepInfo> GetTurnsForDisplay(std::string const & locale) const;
 
+  void SetBuildExplorationMode(StreetExplorationRoutingMode mode) { m_buildExplorationMode = mode; }
+  bool WasBuiltUnderAvoid() const { return m_buildExplorationMode == StreetExplorationRoutingMode::Avoid; }
+
 private:
   friend std::string DebugPrint(Route const & r);
 
@@ -505,6 +508,7 @@ private:
 
   // Mwms which are crossed by the route where speed cameras are prohibited.
   std::vector<platform::CountryFile> m_speedCamPartlyProhibitedMwms;
+  StreetExplorationRoutingMode m_buildExplorationMode = StreetExplorationRoutingMode::Neither;
 };
 
 /// \returns true if |turn| is not equal to turns::CarDirection::None or
