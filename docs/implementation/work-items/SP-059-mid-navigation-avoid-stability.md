@@ -98,8 +98,8 @@ Without an implementation, exit criterion 5 cannot pass.
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-059-mid-nav-avoid-35cf` |
-| Test output | `routing_tests` 296/296 pass (2026-08-16); includes `AvoidFollowStability_*`, `TestTrafficRebuildSkippedWhileFollowingAvoidRoute`, `TestTrafficRebuildRunsWhenNotFollowingAvoidRoute` |
-| Policy as implemented | While following a route built under Avoid (`Route::WasBuiltUnderAvoid`), traffic-driven rebuilds are skipped so newly explored pixels on the remaining path do not trigger re-search. `AvoidFollowStabilityGate` suppresses strict exclusion when `RebuildRoute` is called with `applyAvoidExclusion=false`; off-route rebuilds from `RoutingManager::CheckLocationForRouting` pass `applyAvoidExclusion=true` so Avoid is re-applied from the new position (SP-058 Prefer+strength fallback on failure). Pixel collection does not trigger route rebuild; stability on-route follows from skipping traffic rebuild and not re-enabling exclusion without an explicit/off-route rebuild. |
+| Test output | `routing_tests` 296/296 pass (2026-08-17); includes `AvoidFollowStability_ResearchAfterPaintingRemainingAbandonsPath`, `TestTrafficRebuildSkippedWhileFollowingAvoidRoute`, `TestTrafficRebuildRunsWhenNotFollowingAvoidRoute`, `TestOffRouteRebuildStillRunsWhileFollowingAvoidRoute` |
+| Policy as implemented | While following **and on** a route built under Avoid (`Route::WasBuiltUnderAvoid`), traffic-driven rebuilds are skipped so newly explored pixels cannot invalidate the remaining path via re-search. Pixel collection does not notify routing. Off-route / explicit `RebuildRoute` still runs and re-applies Avoid from the new position (SP-058 Prefer+strength fallback on failure). A new search with exclusion off is not used for follow-stability: that would pick a different shortest path. Exploration mode is snapshotted at rebuild start (`m_inFlightExplorationMode`) so `WasBuiltUnderAvoid` matches the search that produced the route. |
 | Manual validation | Device residual → SP-061 / Phase 10 |
 | Accepted by | |
 | Accepted date | |
@@ -108,4 +108,5 @@ Without an implementation, exit criterion 5 cannot pass.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| (filled during implementation) | |
+| Pixel collection still does not notify routing. Follow-stability is skip-rebuild, not a pixel callback. | Keep; device walk residual → SP-061 / Phase 10 |
+| Re-search with Avoid exclusion off after remaining edges turn green would pick a different shortest path, so it cannot be used to “keep the same route”. | Documented; do not add an exclusion-off follow rebuild |

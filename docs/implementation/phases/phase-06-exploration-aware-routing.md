@@ -57,6 +57,7 @@ rows updated after those items; SP-058 rows updated in this item).
 | Options host | `RoutingOptionsFragment` | Three tabs (walk / cycle / drive); Prefer on all three. Rebuild detects `m_mode` + `m_strength` |
 | No-route UX | `ResultCodes.AVOID_EXPLORED_NO_ROUTE` / `RoutingErrorDialogFragment` | Prefer-fallback button. `isDrivingOptionsBuildError` excludes code 17 so ferry/toll cannot steal it |
 | Hard exclusion | `IndexGraph` / `EdgeEstimator::IsSegmentExcluded` | Skip when Avoid and `exploredRatio == 1` (SP-057). Distinct `AvoidExploredNoRoute` |
+| Mid-nav Avoid freeze | `RoutingSession::RebuildRouteOnTrafficUpdate` | Skip traffic rebuild while following **and on** a route `WasBuiltUnderAvoid`. Off-route / explicit `RebuildRoute` still re-applies Avoid. Pixel collection does not notify routing |
 | Analytics | — | **Not found.** SP-003 explicitly deferred product-analytics events. No count sink for §32.2 |
 | Feature flags | `explorer_pro::Capability` | GPX/track only. Prefer/avoid are free (§29.1); do not Pro-gate |
 | Arithmetic tests | `street_pixels_tests` `ExplorationMultiplier_*` plus `ExplorationWeight_*` | Formula helpers unchanged. Manager tests cover Prefer 10.0, Avoid→1.0, imported=live, overlay-mismatch leaf `.pix`, missing pix → 1.0 |
@@ -194,8 +195,9 @@ no-route frequency under `exploredRatio == 1`, and lookup cost.
 - Imported-only vs ever-live cells: routing follows SPD-040.
 - Cross-leaf: a segment whose MWM `.pix` is installed is weighted even when
   the overlay `m_countryId` is a different leaf.
-- Route stability: exploring the followed remaining path does not produce a
-  pathological recompute loop (SP-059).
+- Route stability: while following an Avoid route on-route, exploring the
+  remaining path does not re-search (traffic-driven rebuilds are skipped).
+  Off-route and explicit rebuild re-apply Avoid (SP-059).
 - Regression: `routing_tests`, `routing_common_tests`, and
   `street_pixels_tests` still pass. Do not require
   `routing_integration_tests` (world dataset / `REQUIRE_SERVER`) for the
