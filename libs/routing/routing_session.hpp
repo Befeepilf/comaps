@@ -5,6 +5,7 @@
 #include "routing/position_accumulator.hpp"
 #include "routing/router.hpp"
 #include "routing/routing_callbacks.hpp"
+#include "routing/routing_options.hpp"
 #include "routing/routing_settings.hpp"
 #include "routing/speed_camera_manager.hpp"
 #include "routing/turns_notification_manager.hpp"
@@ -58,8 +59,7 @@ public:
   void BuildRoute(Checkpoints const & checkpoints, uint32_t timeoutSec);
   void RebuildRoute(m2::PointD const & startPoint, ReadyCallback const & readyCallback,
                     NeedMoreMapsCallback const & needMoreMapsCallback, RemoveRouteCallback const & removeRouteCallback,
-                    uint32_t timeoutSec, SessionState routeRebuildingState, bool adjustToPrevRoute,
-                    bool applyAvoidExclusion = true);
+                    uint32_t timeoutSec, SessionState routeRebuildingState, bool adjustToPrevRoute);
 
   m2::PointD GetStartPoint() const;
   m2::PointD GetEndPoint() const;
@@ -202,6 +202,7 @@ private:
   std::shared_ptr<Route> m_route;
   SessionState m_state;
   bool m_isFollowing;
+  StreetExplorationRoutingMode m_inFlightExplorationMode = StreetExplorationRoutingMode::Neither;
   Checkpoints m_checkpoints;
 
   EdgeProj m_proj;
