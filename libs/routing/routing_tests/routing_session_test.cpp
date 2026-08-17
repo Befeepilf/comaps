@@ -9,7 +9,10 @@
 #include "routing/routing_helpers.hpp"
 #include "routing/routing_session.hpp"
 
+#include "routing/routing_options.hpp"
+
 #include "platform/location.hpp"
+#include "platform/settings.hpp"
 
 #include "geometry/point2d.hpp"
 #include "geometry/point_with_altitude.hpp"
@@ -22,6 +25,44 @@
 #include <mutex>
 #include <string>
 #include <vector>
+
+namespace
+{
+class RoutingSessionExplorationOptionsGuard
+{
+public:
+  RoutingSessionExplorationOptionsGuard()
+  {
+    m_hadMode = settings::Get("street_exploration_routing_mode", m_mode);
+    m_hadEnabled = settings::Get("street_exploration_routing_enabled", m_enabled);
+    m_hadStrength = settings::Get("street_exploration_routing_strength", m_strength);
+    settings::Delete("street_exploration_routing_mode");
+    settings::Delete("street_exploration_routing_enabled");
+    settings::Delete("street_exploration_routing_strength");
+  }
+
+  ~RoutingSessionExplorationOptionsGuard()
+  {
+    settings::Delete("street_exploration_routing_mode");
+    settings::Delete("street_exploration_routing_enabled");
+    settings::Delete("street_exploration_routing_strength");
+    if (m_hadMode)
+      settings::Set("street_exploration_routing_mode", m_mode);
+    if (m_hadEnabled)
+      settings::Set("street_exploration_routing_enabled", m_enabled);
+    if (m_hadStrength)
+      settings::Set("street_exploration_routing_strength", m_strength);
+  }
+
+private:
+  bool m_hadMode = false;
+  bool m_hadEnabled = false;
+  bool m_hadStrength = false;
+  std::string m_mode;
+  std::string m_enabled;
+  std::string m_strength;
+};
+}  // namespace
 
 namespace routing_session_test
 {
@@ -610,5 +651,95 @@ UNIT_CLASS_TEST(AsyncGuiThreadTestWithRoutingSession, TestRouteRebuildingError)
     vector<double> const latitudes = {0.003, 0.0035, 0.004};
     TestMovingByUpdatingLat(sessionStateTest, latitudes, info, *m_session);
   }
+}
+
+UNIT_CLASS_TEST(AsyncGuiThreadTestWithRoutingSession, TestTrafficRebuildSkippedWhileFollowingAvoidRoute)
+{
+  RoutingSessionExplorationOptionsGuard guard;
+  StreetExplorationRoutingOptions options;
+  options.m_mode = StreetExplorationRoutingMode::Avoid;
+  StreetExplorationRoutingOptions::SaveToSettings(options);
+
+  size_t counter = 0;
+  TimedSignal buildSignal;
+  GetPlatform().RunTask(Platform::Thread::Gui, [&buildSignal, this, &counter]()
+  {
+    InitRoutingSession();
+    Route masterRoute("dummy", kTestRoute.begin(), kTestRoute.end(), 0 /* route id */);
+    FillSubroutesInfo(masterRoute, kTestTurns);
+    unique_ptr<DummyRouter> router = make_unique<DummyRouter>(masterRoute, RouterResultCode::NoError, counter);
+    m_session->SetRouter(std::move(router), nullptr);
+    m_session->SetRoutingCallbacks([&buildSignal](Route const &, RouterResultCode) { buildSignal.Signal(); },
+                                   nullptr /* rebuildReadyCallback */, nullptr /* needMoreMapsCallback */,
+                                   nullptr /* removeRouteCallback */);
+    m_session->BuildRoute(Checkpoints(kTestRoute.front(), kTestRoute.back()), RouterDelegate::kNoTimeout);
+  });
+  TEST(buildSignal.WaitUntil(steady_clock::now() + kRouteBuildingMaxDuration), ("Route was not built."));
+
+  TimedSignal checkSignal;
+  GetPlatform().RunTask(Platform::Thread::Gui, [&checkSignal, this, &counter]()
+  {
+    m_session->EnableFollowMode();
+    location::GpsInfo info;
+    info.m_horizontalAccuracy = 0.01;
+    info.m_verticalAccuracy = 0.01;
+    info.m_longitude = 0.;
+    info.m_latitude = 1.;
+    m_session->OnLocationPositionChanged(info);
+    info.m_latitude = 2.;
+    m_session->OnLocationPositionChanged(info);
+    TEST_EQUAL(counter, 1, ());
+    m_session->OnTrafficInfoClear();
+    TEST_EQUAL(counter, 1, ());
+    checkSignal.Signal();
+  });
+  TEST(checkSignal.WaitUntil(steady_clock::now() + kRouteBuildingMaxDuration), ("Route checking timeout."));
+}
+
+UNIT_CLASS_TEST(AsyncGuiThreadTestWithRoutingSession, TestTrafficRebuildRunsWhenNotFollowingAvoidRoute)
+{
+  RoutingSessionExplorationOptionsGuard guard;
+
+  size_t counter = 0;
+  TimedSignal buildSignal;
+  GetPlatform().RunTask(Platform::Thread::Gui, [&buildSignal, this, &counter]()
+  {
+    InitRoutingSession();
+    Route masterRoute("dummy", kTestRoute.begin(), kTestRoute.end(), 0 /* route id */);
+    FillSubroutesInfo(masterRoute, kTestTurns);
+    unique_ptr<DummyRouter> router = make_unique<DummyRouter>(masterRoute, RouterResultCode::NoError, counter);
+    m_session->SetRouter(std::move(router), nullptr);
+    m_session->SetRoutingCallbacks([&buildSignal](Route const &, RouterResultCode) { buildSignal.Signal(); },
+                                   nullptr /* rebuildReadyCallback */, nullptr /* needMoreMapsCallback */,
+                                   nullptr /* removeRouteCallback */);
+    m_session->BuildRoute(Checkpoints(kTestRoute.front(), kTestRoute.back()), RouterDelegate::kNoTimeout);
+  });
+  TEST(buildSignal.WaitUntil(steady_clock::now() + kRouteBuildingMaxDuration), ("Route was not built."));
+
+  TimedSignal rebuildSignal;
+  GetPlatform().RunTask(Platform::Thread::Gui, [&rebuildSignal, this, &counter]()
+  {
+    m_session->EnableFollowMode();
+    location::GpsInfo info;
+    info.m_horizontalAccuracy = 0.01;
+    info.m_verticalAccuracy = 0.01;
+    info.m_longitude = 0.;
+    info.m_latitude = 1.;
+    m_session->OnLocationPositionChanged(info);
+    TEST_EQUAL(counter, 1, ());
+    m_session->SetRoutingCallbacks(nullptr /* buildReadyCallback */,
+                                   [&rebuildSignal](Route const &, RouterResultCode) { rebuildSignal.Signal(); },
+                                   nullptr /* needMoreMapsCallback */, nullptr /* removeRouteCallback */);
+    m_session->OnTrafficInfoClear();
+  });
+  TEST(rebuildSignal.WaitUntil(steady_clock::now() + kRouteBuildingMaxDuration), ("Route was not rebuilt."));
+
+  TimedSignal checkSignal;
+  GetPlatform().RunTask(Platform::Thread::Gui, [&checkSignal, &counter]()
+  {
+    TEST_EQUAL(counter, 2, ());
+    checkSignal.Signal();
+  });
+  TEST(checkSignal.WaitUntil(steady_clock::now() + kRouteBuildingMaxDuration), ("Route checking timeout."));
 }
 }  // namespace routing_session_test
