@@ -1,5 +1,4 @@
 #include "map/street_exploration_routing_adapter.hpp"
-
 #include "map/street_pixels_manager.hpp"
 
 #include "routing/routing_options.hpp"
