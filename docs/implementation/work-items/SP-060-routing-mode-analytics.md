@@ -87,9 +87,9 @@ Phase 10 rather than sending routes to Sentry.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
+| Branch | `cursor/sp-060-routing-mode-analytics-35cf` |
 | Test output | |
-| Sink (local / upload / residual) | |
+| Sink (local / upload / residual) | local settings integers (`street_exploration_routing_analytics_*`); upload residual Phase 10. Not Sentry. |
 | Accepted by | |
 | Accepted date | |
 
@@ -97,4 +97,6 @@ Phase 10 rather than sending routes to Sentry.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| No upload sink at planning time | Phase 10 residual unless a sink appears |
+| No privacy-safe upload sink | Phase 10 residual (do not send through Sentry) |
+| No in-app debug readout of counters | Optional residual → SP-061 / Phase 10 |
+| Android Auto toast path is not the SPD-042 switch | Out of scope; do not count as avoid-fallback-prefer |
