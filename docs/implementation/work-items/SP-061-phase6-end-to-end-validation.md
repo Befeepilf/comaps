@@ -1,7 +1,8 @@
 # SP-061 — Phase 6 end-to-end validation
 
 **Phase:** 6 — Exploration-aware routing
-**Status:** Planned
+**Status:** In progress
+**Branch:** `cursor/sp-061-phase6-validation-35cf`
 **Depends on:** SP-054–060 implemented or explicitly residualled
 **Notes:** Exit gate. Device residual → Phase 10 pattern (SP-014 / SP-041).
 
