@@ -1,7 +1,7 @@
 # Phase 6 — Exploration-aware routing
 
-**Status:** In progress (SP-054–SP-058 Accepted 2026-08-15–16; SPD-040–045
-locked; SP-059 mid-nav stability **In progress**)
+**Status:** In progress (SP-054–SP-059 Accepted 2026-08-15–17; SPD-040–045
+locked; SP-060 routing-mode analytics **In progress**)
 **Depends on:** Phase 3
 **Blocks:** nothing; required for release
 
@@ -58,7 +58,7 @@ rows updated after those items; SP-058 rows updated in this item).
 | No-route UX | `ResultCodes.AVOID_EXPLORED_NO_ROUTE` / `RoutingErrorDialogFragment` | Prefer-fallback button. `isDrivingOptionsBuildError` excludes code 17 so ferry/toll cannot steal it |
 | Hard exclusion | `IndexGraph` / `EdgeEstimator::IsSegmentExcluded` | Skip when Avoid and `exploredRatio == 1` (SP-057). Distinct `AvoidExploredNoRoute` |
 | Mid-nav Avoid freeze | `RoutingSession::RebuildRouteOnTrafficUpdate` | Skip traffic rebuild while following **and on** a route `WasBuiltUnderAvoid`. Off-route / explicit `RebuildRoute` still re-applies Avoid. Pixel collection does not notify routing |
-| Analytics | — | **Not found.** SP-003 explicitly deferred product-analytics events. No count sink for §32.2 |
+| Analytics | — | `routing::StreetExplorationRoutingAnalytics` in `libs/routing/street_exploration_routing_analytics.*`. Counts: prefer-used / avoid-used on successful `AssignRoute`; avoid-fallback-prefer on the Avoid no-route dialog click. Stored as uint64 in settings.ini. **Local-only; upload residual Phase 10. Not Sentry.** |
 | Feature flags | `explorer_pro::Capability` | GPX/track only. Prefer/avoid are free (§29.1); do not Pro-gate |
 | Arithmetic tests | `street_pixels_tests` `ExplorationMultiplier_*` plus `ExplorationWeight_*` | Formula helpers unchanged. Manager tests cover Prefer 10.0, Avoid→1.0, imported=live, overlay-mismatch leaf `.pix`, missing pix → 1.0 |
 | Graph / avoid tests | `libs/routing/routing_tests/street_exploration_avoid_test.cpp` | Exists (SP-057) |

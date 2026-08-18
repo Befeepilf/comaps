@@ -475,15 +475,16 @@ SPD-026 locks personal completion.
 | 56 | [SP-056](work-items/SP-056-prefer-unexplored-walk-bike.md) | Prefer-unexplored on walking and cycling surfaces | 6 | **Accepted** 2026-08-15 — Prefer + seekbar on walk/bike (SPD-041/045) |
 | 57 | [SP-057](work-items/SP-057-avoid-explored-engine.md) | Avoid-explored engine (strict pass + distinct no-route) | 6 | **Accepted** 2026-08-15 — exclude `exploredRatio == 1` (SPD-042) |
 | 58 | [SP-058](work-items/SP-058-avoid-fallback-and-warning.md) | Avoid warning, no-route UX, Prefer+strength fallback | 6 | **Accepted** 2026-08-16 — no min-connection search (SPD-042) |
-| 59 | [SP-059](work-items/SP-059-mid-navigation-avoid-stability.md) | Mid-navigation stability when the route becomes explored | 6 | **In progress** |
-| 60 | [SP-060](work-items/SP-060-routing-mode-analytics.md) | Count-only routing-mode analytics | 6 | Planned — local counters; upload residual if no sink |
+| 59 | [SP-059](work-items/SP-059-mid-navigation-avoid-stability.md) | Mid-navigation stability when the route becomes explored | 6 | **Accepted** 2026-08-17 — skip traffic rebuild while following Avoid (SPD-043) |
+| 60 | [SP-060](work-items/SP-060-routing-mode-analytics.md) | Count-only routing-mode analytics | 6 | **In progress** — local counters; upload residual if no sink |
 | 61 | [SP-061](work-items/SP-061-phase6-end-to-end-validation.md) | Phase 6 end-to-end validation | 6 | Planned — exit gate |
 
 Phase 6 entry investigation (2026-08-15) recorded in
 [`phases/phase-06-exploration-aware-routing.md`](phases/phase-06-exploration-aware-routing.md).
 SP-054 **Accepted** 2026-08-15. SP-055 **In review** (SPD-040–045 recorded;
 OQ-2 closed). SP-056 **Accepted** 2026-08-15. SP-057 **Accepted** 2026-08-15.
-SP-058 **Accepted** 2026-08-16. SP-059 **In progress**. SP-060–061 **Planned**. Spike 7 desktop synthetic is recorded;
+SP-058 **Accepted** 2026-08-16. SP-059 **Accepted** 2026-08-17. SP-060 **In progress**.
+SP-061 **Planned**. Spike 7 desktop synthetic is recorded;
 city-scale/device residual → Phase 10. Coding SP-056+ may proceed. Detailed
 work items exist for Phases 1–6. Later phases are broken down after their entry
 criteria are met, and after any spike that phase depends on has a recorded
