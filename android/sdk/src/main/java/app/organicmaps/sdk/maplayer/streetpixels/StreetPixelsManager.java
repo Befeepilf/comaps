@@ -35,6 +35,11 @@ public class StreetPixelsManager
     void onFirstGoalProgressChanged(@NonNull FirstGoalProgress progress);
   }
 
+  public interface AreaMilestonePresentationCallback
+  {
+    void onAreaMilestonePresentationChanged(@Nullable AreaMilestonePresentation presentation);
+  }
+
   @NonNull
   private static final java.util.List<Callback> sCallbacks = new java.util.ArrayList<>();
   @NonNull
@@ -43,6 +48,9 @@ public class StreetPixelsManager
   private static final java.util.List<ExplorationAreaTapCallback> sTapCallbacks = new java.util.ArrayList<>();
   @NonNull
   private static final java.util.List<FirstGoalProgressCallback> sFirstGoalCallbacks = new java.util.ArrayList<>();
+  @NonNull
+  private static final java.util.List<AreaMilestonePresentationCallback> sAreaMilestoneCallbacks =
+      new java.util.ArrayList<>();
 
   public static void registerCallback(@NonNull Callback callback)
   {
@@ -112,6 +120,23 @@ public class StreetPixelsManager
     }
   }
 
+  public static void registerAreaMilestonePresentationCallback(@NonNull AreaMilestonePresentationCallback callback)
+  {
+    synchronized (sAreaMilestoneCallbacks)
+    {
+      if (!sAreaMilestoneCallbacks.contains(callback))
+        sAreaMilestoneCallbacks.add(callback);
+    }
+  }
+
+  public static void unregisterAreaMilestonePresentationCallback(@NonNull AreaMilestonePresentationCallback callback)
+  {
+    synchronized (sAreaMilestoneCallbacks)
+    {
+      sAreaMilestoneCallbacks.remove(callback);
+    }
+  }
+
   public StreetPixelsManager()
   {
     mListener = new OnStreetPixelsChangedListener();
@@ -155,6 +180,9 @@ public class StreetPixelsManager
                                                                             @NonNull String countryId);
   @NonNull
   private static native FirstGoalProgress nativeGetFirstGoalProgress();
+  @Nullable
+  private static native AreaMilestonePresentation nativeGetCurrentAreaMilestonePresentation();
+  private static native void nativeAcknowledgeAreaMilestonePresentation();
 
   public void attach(@NonNull StreetPixelsErrorDialogListener listener)
   {
@@ -200,6 +228,17 @@ public class StreetPixelsManager
   public FirstGoalProgress getFirstGoalProgress()
   {
     return nativeGetFirstGoalProgress();
+  }
+
+  @Nullable
+  public AreaMilestonePresentation getCurrentAreaMilestonePresentation()
+  {
+    return nativeGetCurrentAreaMilestonePresentation();
+  }
+
+  public void acknowledgeAreaMilestonePresentation()
+  {
+    nativeAcknowledgeAreaMilestonePresentation();
   }
 
   @Nullable
@@ -258,5 +297,16 @@ public class StreetPixelsManager
     }
     for (FirstGoalProgressCallback cb : snapshot)
       cb.onFirstGoalProgressChanged(progress);
+  }
+
+  static void notifyAreaMilestonePresentation(@Nullable AreaMilestonePresentation presentation)
+  {
+    java.util.List<AreaMilestonePresentationCallback> snapshot;
+    synchronized (sAreaMilestoneCallbacks)
+    {
+      snapshot = new java.util.ArrayList<>(sAreaMilestoneCallbacks);
+    }
+    for (AreaMilestonePresentationCallback cb : snapshot)
+      cb.onAreaMilestonePresentationChanged(presentation);
   }
 }

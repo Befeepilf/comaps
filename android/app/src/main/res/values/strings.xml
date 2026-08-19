@@ -741,6 +741,11 @@
     <string name="street_pixels_area_completed">Completed</string>
     <string name="street_pixels_first_goal">Explore your first 100 m</string>
     <string name="street_pixels_first_goal_progress">Explore your first 100 m • %1$d/%2$d</string>
+    <string name="street_pixels_area_milestone_25">25% of %1$s explored</string>
+    <string name="street_pixels_area_milestone_50">Half of %1$s explored</string>
+    <string name="street_pixels_area_milestone_100">%1$s fully explored</string>
+    <string name="street_pixels_area_previously_completed">Previously completed</string>
+    <string name="street_pixels_completion_card_body">%1$s fully explored</string>
     <string name="layers_title">Map Styles and Layers</string>
     <string name="bookmarks_empty_list_title">This list is empty</string>
     <string name="bookmarks_empty_list_message">To save a place, tap a place on the map and then tap the star icon</string>
