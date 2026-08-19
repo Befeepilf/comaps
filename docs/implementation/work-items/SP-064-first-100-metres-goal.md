@@ -116,7 +116,7 @@ This is contextual onboarding, not an achievement system (§18.5).
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-064-first-100m-aee9` |
-| Test output | `street_pixels_tests --filter=FirstGoal` **6/6** |
+| Test output | `street_pixels_tests --filter=FirstGoal` **9/9** |
 | M2 count used | 10 newly explored live pixels (SPD-047) |
 | Manual validation | Device residual → SP-069 / Phase 10 |
 | Accepted by | |

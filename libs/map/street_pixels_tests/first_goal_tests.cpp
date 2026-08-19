@@ -182,3 +182,58 @@ UNIT_TEST(FirstGoal_CompleteDoesNotReturn)
   TEST_EQUAL(fixture.Session().Start(), RecordingSession::TransitionResult::Ok, ());
   TEST_EQUAL(fixture.Manager().GetFirstGoalProgress().m_state, street_pixels::FirstGoalState::Complete, ());
 }
+
+UNIT_TEST(FirstGoal_PersistsAcrossNewTracker)
+{
+  FirstGoalCleanup cleanup;
+  {
+    street_pixels::FirstGoalTracker tracker;
+    TEST(!tracker.AddNewlyExploredLivePixels(3), ());
+    TEST_EQUAL(tracker.Snapshot(true).m_collected, 3u, ());
+  }
+  {
+    street_pixels::FirstGoalTracker reloaded;
+    auto const progress = reloaded.Snapshot(true);
+    TEST_EQUAL(progress.m_state, street_pixels::FirstGoalState::InProgress, ());
+    TEST_EQUAL(progress.m_collected, 3u, ());
+  }
+
+  street_pixels::FirstGoalTracker::ClearPersistedForTesting();
+  {
+    street_pixels::FirstGoalTracker tracker;
+    TEST(tracker.AddNewlyExploredLivePixels(street_pixels::kFirstGoalLivePixelThreshold), ());
+  }
+  {
+    street_pixels::FirstGoalTracker reloaded;
+    TEST_EQUAL(reloaded.Snapshot(false).m_state, street_pixels::FirstGoalState::Complete, ());
+    TEST_EQUAL(reloaded.Snapshot(true).m_state, street_pixels::FirstGoalState::Complete, ());
+    TEST(!reloaded.AddNewlyExploredLivePixels(1), ());
+  }
+}
+
+UNIT_TEST(FirstGoal_LiveVisitOfImportedPixelsDoesNotAdvance)
+{
+  FirstGoalCleanup cleanup;
+  FirstGoalFixture fixture;
+  fixture.SetupUnexplored(3);
+  TEST_EQUAL(fixture.Session().Start(), RecordingSession::TransitionResult::Ok, ());
+  fixture.Manager().MarkImportedPixelsForTesting({fixture.PixelAt(0), fixture.PixelAt(1)});
+  TEST(fixture.Manager().IsPixelExploredForTesting(fixture.PixelAt(0)), ());
+  TEST(!fixture.Manager().IsPixelEverLiveForTesting(fixture.PixelAt(0)), ());
+
+  fixture.Collect(0);
+  fixture.Collect(1);
+  TEST(fixture.Manager().IsPixelEverLiveForTesting(fixture.PixelAt(0)), ());
+  TEST_EQUAL(fixture.Manager().GetFirstGoalProgress().m_collected, 0u, ());
+}
+
+UNIT_TEST(FirstGoal_SinglePulseCanComplete)
+{
+  FirstGoalCleanup cleanup;
+  street_pixels::FirstGoalTracker tracker;
+  TEST(tracker.AddNewlyExploredLivePixels(street_pixels::kFirstGoalLivePixelThreshold), ());
+  auto const done = tracker.Snapshot(true);
+  TEST_EQUAL(done.m_state, street_pixels::FirstGoalState::Complete, ());
+  TEST_EQUAL(done.m_collected, street_pixels::kFirstGoalLivePixelThreshold, ());
+  TEST(!tracker.AddNewlyExploredLivePixels(1), ());
+}
