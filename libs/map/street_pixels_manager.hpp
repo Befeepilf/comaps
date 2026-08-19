@@ -2,6 +2,7 @@
 
 #include "map/bookmark_manager.hpp"
 
+#include "map/area_milestone_presentation.hpp"
 #include "map/first_goal.hpp"
 #include "map/live_sample_acceptance_filter.hpp"
 #include "map/live_segment_interpolation.hpp"
@@ -245,6 +246,15 @@ public:
   void OnRecordingSessionStateChanged();
   void ResetFirstGoalForTesting();
 
+  using AreaMilestonePresentationChangedFn =
+      std::function<void(std::optional<street_pixels::AreaMilestonePresentation> const &)>;
+  using AreaMilestoneHapticFn = std::function<void(street_pixels::AreaMilestoneHapticEvent)>;
+  void SetAreaMilestonePresentationListener(AreaMilestonePresentationChangedFn const & fn);
+  void SetAreaMilestoneHapticHandler(AreaMilestoneHapticFn const & fn);
+  std::optional<street_pixels::AreaMilestonePresentation> GetCurrentAreaMilestonePresentation() const;
+  void AcknowledgeAreaMilestonePresentation();
+  void ResetAreaMilestonePresentationForTesting();
+
   void SetStreetPixelsForTesting(std::vector<df::StreetPixel> pixels);
   void SetStreetPixelsOverlayForTesting(storage::CountryId const & countryId, std::vector<df::StreetPixel> pixels);
   void ClearLeafPixCacheForTesting();
@@ -311,6 +321,9 @@ private:
   FirstGoalCompleteFn m_firstGoalCompleteHandler;
   street_pixels::FirstGoalTracker m_firstGoalTracker;
   street_pixels::FirstGoalProgress m_lastNotifiedFirstGoalProgress;
+  AreaMilestonePresentationChangedFn m_areaMilestonePresentationListener;
+  AreaMilestoneHapticFn m_areaMilestoneHapticHandler;
+  street_pixels::AreaMilestonePresenter m_areaMilestonePresenter;
   std::vector<df::StreetPixel> m_testStreetPixelsStorage;
 
   void TriggerCollectionVibration(size_t numNewlyExploredPixels);
@@ -333,6 +346,10 @@ private:
                                                     std::vector<std::int64_t> const & exploredAscending,
                                                     street_pixels::ExplorationAreaResolver const & resolver);
   void EvaluateAreaMilestonesUnlocked(int64_t nowSec);
+  void IngestPendingAreaMilestonePresentations(street_pixels::SpaFile const & file);
+  void NotifyAreaMilestonePresentationIfChanged(
+      std::optional<street_pixels::AreaMilestonePresentation> const & before);
+  void EmitAreaMilestoneHapticIfNeeded(std::optional<street_pixels::AreaMilestonePresentation> const & head);
   void PushExplorationAreaOverlayUnlocked(street_pixels::SpaFile const & file);
   void RefreshFocusedAreaFractionUnlocked();
   void ClearFocusedAreaUnlocked();

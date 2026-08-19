@@ -5,6 +5,8 @@
 **Date:** 2026-08-19
 **Locks (do not re-open):** SPD-050 (queue / following / city-summary), SPD-052 (anonymous first-person; §22.10 stub).
 
+Implemented on branch `cursor/sp-065-area-milestone-presentation-c417` (not Accepted).
+
 This note is the coding contract. Do not invent a second queue, a modal, a map screenshot, or a share sheet.
 
 ---

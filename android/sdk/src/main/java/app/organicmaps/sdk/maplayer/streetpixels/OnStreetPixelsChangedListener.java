@@ -4,6 +4,7 @@ import android.app.Application;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 class OnStreetPixelsChangedListener
 {
@@ -45,6 +46,13 @@ class OnStreetPixelsChangedListener
   public void onFirstGoalProgressChanged(@NonNull FirstGoalProgress progress)
   {
     StreetPixelsManager.notifyFirstGoalProgress(progress);
+  }
+
+  @Keep
+  @SuppressWarnings("unused")
+  public void onAreaMilestonePresentationChanged(@Nullable AreaMilestonePresentation presentation)
+  {
+    StreetPixelsManager.notifyAreaMilestonePresentation(presentation);
   }
 
   public void attach(@NonNull StreetPixelsErrorDialogListener listener)

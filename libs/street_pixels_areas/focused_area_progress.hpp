@@ -16,6 +16,7 @@ struct FocusedAreaProgress
   bool m_areaCompleted = false;
   // True after focus resolved to no exploration area (§31). Never invent a name.
   bool m_noExplorationArea = false;
+  bool m_previouslyCompleted = false;
   uint32_t m_compactIndex = 0;
   uint64_t m_osmId = 0;
   std::string m_displayName;
@@ -26,7 +27,8 @@ inline bool operator==(FocusedAreaProgress const & lhs, FocusedAreaProgress cons
 {
   return lhs.m_hasFocus == rhs.m_hasFocus && lhs.m_fractionValid == rhs.m_fractionValid &&
          lhs.m_citySummary == rhs.m_citySummary && lhs.m_areaCompleted == rhs.m_areaCompleted &&
-         lhs.m_noExplorationArea == rhs.m_noExplorationArea && lhs.m_compactIndex == rhs.m_compactIndex &&
+         lhs.m_noExplorationArea == rhs.m_noExplorationArea &&
+         lhs.m_previouslyCompleted == rhs.m_previouslyCompleted && lhs.m_compactIndex == rhs.m_compactIndex &&
          lhs.m_osmId == rhs.m_osmId && lhs.m_displayName == rhs.m_displayName && lhs.m_fraction == rhs.m_fraction;
 }
 

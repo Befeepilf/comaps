@@ -1,12 +1,12 @@
 # SP-065 — Area milestone presentation (25 / 50 / 100)
 
 **Phase:** 7 — Milestones and share cards
-**Status:** Planned
-**Branch:**
+**Status:** In review
+**Branch:** `cursor/sp-065-area-milestone-presentation-c417`
 **Depends on:** SP-062 M5 (queue / non-interrupt) and M7 (competition stub);
   SP-063 fired-state; SP-034/035 focused-area badge. SP-067 compositor may
   land after: 100% must offer a card surface, which SP-067 fills.
-**Notes:** Coding waits on OQ-13 / OQ-15 (draft SPD-050 / SPD-052).
+**Notes:** OQ-13 / OQ-15 are SPD-050 / SPD-052 Accepted (2026-08-19 via SP-062). Presentation queue is this item; SP-063 records fires only.
 **Unblocks:** SP-067 card surface; SP-069 exit #1, #2, #5
 
 ---
@@ -128,9 +128,9 @@ layer.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Test output | |
-| Manual validation | |
+| Branch | `cursor/sp-065-area-milestone-presentation-c417` |
+| Test output | `street_pixels_tests --filter=AreaMilestonePresentation` **14/14**; `street_pixels_areas_tests --filter=AreaMilestone` **8/8**; `street_pixels_tests --filter=AreaMilestone` **18/18**; `street_pixels_tests --filter=FocusedArea` **6/6** |
+| Manual validation | Device residual → SP-069 / Phase 10 |
 | Accepted by | |
 | Accepted date | |
 
@@ -138,4 +138,6 @@ layer.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| (filled during implementation) | |
+| Area-milestone haptic is a C++ handler stub (`SetAreaMilestoneHapticHandler`). | SP-066 implements waveforms and the foreground/recording/toggle predicate. |
+| 100% card is copy-only (title + body + Share chrome). | SP-067 fills the deny-list image. |
+| Share button is enabled with an empty click listener. | SP-068 opens `ACTION_SEND` and counts. |
