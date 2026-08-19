@@ -381,6 +381,7 @@ void StreetPixelsManager::SetExplorationListener(ExplorationListener const & lis
 void StreetPixelsManager::SetRecordingSession(RecordingSession const * session)
 {
   m_recordingSession = session;
+  NotifyFirstGoalProgressIfChanged();
 }
 
 void StreetPixelsManager::ResetSampleAcceptanceReference()
@@ -402,6 +403,51 @@ SampleRejectReason StreetPixelsManager::GetLastSampleRejectReason() const
 void StreetPixelsManager::SetVibrationHandler(VibrationHandler const & handler)
 {
   m_vibrationHandler = handler;
+}
+
+void StreetPixelsManager::SetFirstGoalProgressListener(FirstGoalProgressChangedFn const & fn)
+{
+  m_firstGoalProgressListener = fn;
+}
+
+void StreetPixelsManager::SetFirstGoalCompleteHandler(FirstGoalCompleteFn const & fn)
+{
+  m_firstGoalCompleteHandler = fn;
+}
+
+street_pixels::FirstGoalProgress StreetPixelsManager::GetFirstGoalProgress() const
+{
+  return m_firstGoalTracker.Snapshot(IsFirstGoalSessionActive());
+}
+
+void StreetPixelsManager::OnRecordingSessionStateChanged()
+{
+  NotifyFirstGoalProgressIfChanged();
+}
+
+void StreetPixelsManager::ResetFirstGoalForTesting()
+{
+  m_firstGoalTracker.ResetForTesting();
+  m_lastNotifiedFirstGoalProgress = {};
+  NotifyFirstGoalProgressIfChanged();
+}
+
+bool StreetPixelsManager::IsFirstGoalSessionActive() const
+{
+  if (m_recordingSession == nullptr)
+    return false;
+  auto const state = m_recordingSession->GetState();
+  return state == RecordingSession::State::Recording || state == RecordingSession::State::Paused;
+}
+
+void StreetPixelsManager::NotifyFirstGoalProgressIfChanged()
+{
+  auto const snapshot = GetFirstGoalProgress();
+  if (snapshot == m_lastNotifiedFirstGoalProgress)
+    return;
+  m_lastNotifiedFirstGoalProgress = snapshot;
+  if (m_firstGoalProgressListener)
+    m_firstGoalProgressListener(snapshot);
 }
 
 void StreetPixelsManager::SetStreetPixelsForTesting(std::vector<df::StreetPixel> pixels)
@@ -1743,6 +1789,15 @@ void StreetPixelsManager::OnLocationUpdate(location::GpsInfo const & info)
   }
 
   TriggerCollectionVibration(numNewlyExploredPixels);
+
+  if (numNewlyExploredPixels > 0)
+  {
+    bool const justCompleted =
+        m_firstGoalTracker.AddNewlyExploredLivePixels(static_cast<uint32_t>(numNewlyExploredPixels));
+    NotifyFirstGoalProgressIfChanged();
+    if (justCompleted && m_firstGoalCompleteHandler)
+      m_firstGoalCompleteHandler();
+  }
 }
 
 void StreetPixelsManager::UpdateStreetStats(double lat, double lon, size_t numNewlyExploredPixels)

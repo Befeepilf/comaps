@@ -12,6 +12,7 @@ set(SRC
   eligibility_tests.cpp
   ever_live_tests.cpp
   explorer_pro_tests.cpp
+  first_goal_tests.cpp
   exploration_multiplier_tests.cpp
   exploration_weight_lookup_tests.cpp
   focused_area_badge_tests.cpp
