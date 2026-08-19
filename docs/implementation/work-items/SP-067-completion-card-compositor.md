@@ -6,8 +6,8 @@
 **Depends on:** SP-062 M1 (render path), M6 (date opt-in), M7 (competition
   stub). SP-063 original 100% date. SP-065 100% surface. `ExplorationArea`
   rings and `DisplayName`.
-**Notes:** Coding waits on OQ-9 / OQ-14 (draft SPD-046 / SPD-051). Rasterise
-  only after M1 Accept.
+**Notes:** Coding waits on OQ-9 / OQ-14 / OQ-15 (draft SPD-046 / SPD-051 /
+  SPD-052). Rasterise only after M1 Accept.
 **Unblocks:** SP-068 share of a real image; SP-069 exit #4, #5
 
 ---

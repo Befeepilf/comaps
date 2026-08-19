@@ -166,15 +166,17 @@ The completion card is the only image this product produces for the outside
 world. Its exclusion list is a hard requirement, not a guideline.
 
 The card must not contain: raw GPS route, home location, live location,
-individual timestamps, or any other user's personal information. The stylised
-map is a boundary outline, not a trace of where the user walked.
+individual timestamps, or any other user's personal information. Proposed V1
+geometry (OQ-9, not Accepted): a boundary outline from `m_rings`. Spec §19.1
+also allows a non-screenshot stylised map. The image is not a trace of where
+the user walked.
 
 Additional considerations:
 
 - Anonymous sharing must work with no account and no nickname (spec §19.2).
-- The card is a screenshot-like artefact of the user's map. Verify no map
-  overlay leaks the user's current position marker or a recorded track into the
-  composition.
+- The card is composed off-map from permitted fields. Verify no live map
+  overlay leaks the user's current position marker or a recorded track into
+  the composition. Never capture Drape / `MapView`.
 - Analytics record that a card was generated and that a share was initiated.
   They do not record which area.
 
