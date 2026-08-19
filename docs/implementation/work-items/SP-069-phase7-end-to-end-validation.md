@@ -4,7 +4,8 @@
 **Status:** Planned
 **Depends on:** SP-062–068 implemented or explicitly residualled
 **Notes:** Exit gate. Device residual → Phase 10 pattern (SP-014 / SP-041 /
-  SP-061).
+  SP-061). Exit waits on Accepted locks (OQ-9–OQ-18 / draft SPD-046–055) or
+  explicit deferrals.
 
 ---
 

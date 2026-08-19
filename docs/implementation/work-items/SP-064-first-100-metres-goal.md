@@ -5,6 +5,8 @@
 **Branch:**
 **Depends on:** SP-062 M2 (pixel equivalent) and M8 (once per install).
   Recording session (SP-006) and live collection (SP-007/009/011).
+**Notes:** Coding waits on OQ-10 / OQ-16 (draft SPD-047 / SPD-053). Do not
+  encode 10 pixels until OQ-10 is locked.
 **Unblocks:** SP-065 presentation consistency; SP-066 first-goal haptic;
   SP-069 exit #3
 

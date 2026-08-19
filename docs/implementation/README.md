@@ -489,7 +489,7 @@ city-scale/device residual → Phase 10. Coding SP-056+ may proceed.
 
 | Order | ID | Title | Phase | Why first |
 | --- | --- | --- | --- | --- |
-| 62 | [SP-062](work-items/SP-062-milestone-share-architecture-decisions.md) | Milestone and share-card architecture decisions | 7 | Planned — entry gate (M1–M10; stylised-map path) |
+| 62 | [SP-062](work-items/SP-062-milestone-share-architecture-decisions.md) | Milestone and share-card architecture decisions | 7 | **In review** — M1–M10 proposed as OQ-9–OQ-18; not Accepted |
 | 63 | [SP-063](work-items/SP-063-milestone-state-tracking.md) | Milestone state tracking | 7 | Planned — fire-once + §27.4 date |
 | 64 | [SP-064](work-items/SP-064-first-100-metres-goal.md) | First-100-metres contextual goal | 7 | Planned — §10 steps 6 and 9 |
 | 65 | [SP-065](work-items/SP-065-area-milestone-presentation.md) | Area milestone presentation (25 / 50 / 100) | 7 | Planned — non-blocking, non-interrupting |
@@ -500,8 +500,10 @@ city-scale/device residual → Phase 10. Coding SP-056+ may proceed.
 
 Phase 7 work-item planning (2026-08-19) recorded in
 [`phases/phase-07-milestones-and-share-cards.md`](phases/phase-07-milestones-and-share-cards.md).
-SP-062–069 **Planned**. Coding SP-063+ waits on SP-062 locks. Phase 5 exit
-(SP-041) is still the product prerequisite for that coding. Detailed work
-items exist for Phases 1–7. Later phases are broken down after their entry
-criteria are met, and after any spike that phase depends on has a recorded
-outcome.
+SP-062 **In review** (M1–M10 proposed as OQ-9–OQ-18; not Accepted).
+SP-063–069 **Planned**. Phase 7 remains **Not started**; coding SP-063+
+waits on SP-062 locks. Stylised-map entry criterion remains **unmet** until
+the maintainer Accepts M1 / OQ-9. Phase 5 exit (SP-041) is still the
+product prerequisite for that coding. Detailed work items exist for
+Phases 1–7. Later phases are broken down after their entry criteria are
+met, and after any spike that phase depends on has a recorded outcome.

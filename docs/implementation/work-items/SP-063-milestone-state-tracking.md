@@ -6,6 +6,7 @@
 **Depends on:** SP-062 locks for store location, key (OSM id), re-fire
   policy, and 100% completion-date persistence. Phase 5 area completion
   cache (SP-034) as the percentage source.
+**Notes:** Coding waits on OQ-11 / OQ-12 (draft SPD-048 / SPD-049).
 **Unblocks:** SP-065–069 (fired-once and §27.4 survival). Not a
   prerequisite for SP-064 (install-scoped first-goal).
 
