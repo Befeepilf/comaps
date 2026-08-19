@@ -3,6 +3,8 @@ project(street_pixels_areas)
 set(SRC
   area_completion_cache.cpp
   area_completion_cache.hpp
+  area_milestone_store.cpp
+  area_milestone_store.hpp
   area_overlay.cpp
   area_overlay.hpp
   areas_format.hpp
@@ -60,6 +62,7 @@ target_link_libraries(${PROJECT_NAME}
     street_pixels_config
   PRIVATE
     cppjansson
+    sqlite
 )
 
 omim_add_test_subdirectory(street_pixels_areas_tests)

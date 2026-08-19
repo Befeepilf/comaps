@@ -37,6 +37,7 @@ import app.organicmaps.sdk.downloader.UpdateInfo;
 import app.organicmaps.sdk.location.RecordingSession;
 import app.organicmaps.location.RecordingSessionUiModel;
 import app.organicmaps.sdk.maplayer.isolines.IsolinesManager;
+import app.organicmaps.sdk.maplayer.streetpixels.FirstGoalProgress;
 import app.organicmaps.sdk.maplayer.streetpixels.FocusedAreaProgress;
 import app.organicmaps.sdk.maplayer.streetpixels.StreetPixelsManager;
 import app.organicmaps.sdk.maplayer.streetpixels.StreetPixelsState;
@@ -72,6 +73,8 @@ public class MapButtonsController extends Fragment
   @Nullable
   private ExtendedFloatingActionButton mExplorationBadge;
   @Nullable
+  private ExtendedFloatingActionButton mFirstGoalBadge;
+  @Nullable
   private ObjectAnimator mTrackRecordingBlinkAnimator;
 
   @Nullable
@@ -93,6 +96,8 @@ public class MapButtonsController extends Fragment
   private final Observer<StreetPixelsState> mStreetPixelsStateObserver = this::updateExplorationBadge;
   private final StreetPixelsManager.FocusedAreaProgressCallback mFocusedAreaProgressCallback =
       this::bindExplorationBadgeFromProgress;
+  private final StreetPixelsManager.FirstGoalProgressCallback mFirstGoalProgressCallback =
+      this::applyFirstGoalBadge;
   private final Observer<Integer> mTopButtonMarginObserver = this::updateTopButtonsMargin;
 
   private LeftButton mLeftButton;
@@ -223,6 +228,9 @@ public class MapButtonsController extends Fragment
                                           progress.fraction, progress.areaCompleted);
       });
     }
+    mFirstGoalBadge = mFrame.findViewById(R.id.first_goal_badge);
+    if (mFirstGoalBadge != null)
+      mButtonsMap.put(MapButtons.firstGoalBanner, mFirstGoalBadge);
   }
 
   private void applyLeftButton()
@@ -278,6 +286,9 @@ public class MapButtonsController extends Fragment
     case explorationBanner:
       UiUtils.showIf(show, buttonView);
       break;
+    case firstGoalBanner:
+      UiUtils.showIf(show, buttonView);
+      break;
     case trackRecordingStatus:
       UiUtils.showIf(show, buttonView);
       break;
@@ -292,6 +303,7 @@ public class MapButtonsController extends Fragment
     showButton(active, MapButtons.trackRecordingStatus);
     updateLeftButtonToggleState(active);
     updateTrackRecordingStatusAppearance(state);
+    refreshFirstGoalBadge();
   }
 
   private void updateTrackRecordingStatusAppearance(@RecordingSession.State int state)
@@ -492,6 +504,44 @@ public class MapButtonsController extends Fragment
     }
   }
 
+  private void refreshFirstGoalBadge()
+  {
+    Context ctx = getContext();
+    if (ctx == null)
+      return;
+    applyFirstGoalBadge(MwmApplication.from(ctx).getStreetPixelsManager().getFirstGoalProgress());
+  }
+
+  private void applyFirstGoalBadge(@NonNull FirstGoalProgress progress)
+  {
+    if (mFirstGoalBadge == null)
+      return;
+    if (progress.state == FirstGoalProgress.STATE_IN_PROGRESS)
+    {
+      mFirstGoalBadge.animate().cancel();
+      mFirstGoalBadge.setAlpha(1f);
+      mFirstGoalBadge.setText(
+          getString(R.string.street_pixels_first_goal_progress, progress.collected, progress.threshold));
+      showButton(true, MapButtons.firstGoalBanner);
+    }
+    else if (progress.state == FirstGoalProgress.STATE_COMPLETE && mFirstGoalBadge.getVisibility() == View.VISIBLE)
+    {
+      mFirstGoalBadge.setText(
+          getString(R.string.street_pixels_first_goal_progress, progress.threshold, progress.threshold));
+      mFirstGoalBadge.animate().alpha(0f).setDuration(250).withEndAction(() -> {
+        if (!isAdded() || mFirstGoalBadge == null)
+          return;
+        showButton(false, MapButtons.firstGoalBanner);
+        mFirstGoalBadge.setAlpha(1f);
+      }).start();
+    }
+    else
+    {
+      mFirstGoalBadge.animate().cancel();
+      showButton(false, MapButtons.firstGoalBanner);
+    }
+  }
+
   private boolean isBehindPlacePage(View v)
   {
     if (mPlacePageViewModel == null)
@@ -602,6 +652,7 @@ public class MapButtonsController extends Fragment
     mMapButtonsViewModel.getRecordingSessionState().observe(activity, mRecordingSessionObserver);
     mMapButtonsViewModel.getStreetPixelsState().observe(activity, mStreetPixelsStateObserver);
     StreetPixelsManager.registerFocusedAreaProgressCallback(mFocusedAreaProgressCallback);
+    StreetPixelsManager.registerFirstGoalProgressCallback(mFirstGoalProgressCallback);
     mMapButtonsViewModel.getTopButtonsMarginTop().observe(activity, mTopButtonMarginObserver);
   }
 
@@ -614,6 +665,7 @@ public class MapButtonsController extends Fragment
 
     @Nullable StreetPixelsState state = mMapButtonsViewModel.getStreetPixelsState().getValue();
     updateExplorationBadge(state);
+    refreshFirstGoalBadge();
 
     final WindowInsetUtils.PaddingInsetsListener insetsListener =
         new WindowInsetUtils.PaddingInsetsListener.Builder()
@@ -644,6 +696,9 @@ public class MapButtonsController extends Fragment
     mMapButtonsViewModel.getSearchOption().removeObserver(mSearchOptionObserver);
     mMapButtonsViewModel.getRecordingSessionState().removeObserver(mRecordingSessionObserver);
     StreetPixelsManager.unregisterFocusedAreaProgressCallback(mFocusedAreaProgressCallback);
+    StreetPixelsManager.unregisterFirstGoalProgressCallback(mFirstGoalProgressCallback);
+    if (mFirstGoalBadge != null)
+      mFirstGoalBadge.animate().cancel();
     mMapButtonsViewModel.getStreetPixelsState().removeObserver(mStreetPixelsStateObserver);
   }
 
@@ -693,6 +748,7 @@ public class MapButtonsController extends Fragment
     menu,
     help,
     explorationBanner,
+    firstGoalBanner,
     trackRecordingStatus
   }
 

@@ -30,12 +30,19 @@ public class StreetPixelsManager
     void onExplorationAreaTapped(@NonNull FocusedAreaProgress progress);
   }
 
+  public interface FirstGoalProgressCallback
+  {
+    void onFirstGoalProgressChanged(@NonNull FirstGoalProgress progress);
+  }
+
   @NonNull
   private static final java.util.List<Callback> sCallbacks = new java.util.ArrayList<>();
   @NonNull
   private static final java.util.List<FocusedAreaProgressCallback> sProgressCallbacks = new java.util.ArrayList<>();
   @NonNull
   private static final java.util.List<ExplorationAreaTapCallback> sTapCallbacks = new java.util.ArrayList<>();
+  @NonNull
+  private static final java.util.List<FirstGoalProgressCallback> sFirstGoalCallbacks = new java.util.ArrayList<>();
 
   public static void registerCallback(@NonNull Callback callback)
   {
@@ -88,6 +95,23 @@ public class StreetPixelsManager
     }
   }
 
+  public static void registerFirstGoalProgressCallback(@NonNull FirstGoalProgressCallback callback)
+  {
+    synchronized (sFirstGoalCallbacks)
+    {
+      if (!sFirstGoalCallbacks.contains(callback))
+        sFirstGoalCallbacks.add(callback);
+    }
+  }
+
+  public static void unregisterFirstGoalProgressCallback(@NonNull FirstGoalProgressCallback callback)
+  {
+    synchronized (sFirstGoalCallbacks)
+    {
+      sFirstGoalCallbacks.remove(callback);
+    }
+  }
+
   public StreetPixelsManager()
   {
     mListener = new OnStreetPixelsChangedListener();
@@ -129,6 +153,8 @@ public class StreetPixelsManager
   @NonNull
   private static native FocusedAreaProgress nativeSelectFocusedAreaAtLatLon(double lat, double lon,
                                                                             @NonNull String countryId);
+  @NonNull
+  private static native FirstGoalProgress nativeGetFirstGoalProgress();
 
   public void attach(@NonNull StreetPixelsErrorDialogListener listener)
   {
@@ -168,6 +194,12 @@ public class StreetPixelsManager
   public FocusedAreaProgress selectFocusedAreaAtLatLon(double lat, double lon, @NonNull String countryId)
   {
     return nativeSelectFocusedAreaAtLatLon(lat, lon, countryId);
+  }
+
+  @NonNull
+  public FirstGoalProgress getFirstGoalProgress()
+  {
+    return nativeGetFirstGoalProgress();
   }
 
   @Nullable
@@ -215,5 +247,16 @@ public class StreetPixelsManager
     }
     for (ExplorationAreaTapCallback cb : snapshot)
       cb.onExplorationAreaTapped(progress);
+  }
+
+  static void notifyFirstGoalProgress(@NonNull FirstGoalProgress progress)
+  {
+    java.util.List<FirstGoalProgressCallback> snapshot;
+    synchronized (sFirstGoalCallbacks)
+    {
+      snapshot = new java.util.ArrayList<>(sFirstGoalCallbacks);
+    }
+    for (FirstGoalProgressCallback cb : snapshot)
+      cb.onFirstGoalProgressChanged(progress);
   }
 }

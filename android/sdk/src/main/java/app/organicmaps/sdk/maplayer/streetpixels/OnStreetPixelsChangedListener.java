@@ -40,6 +40,13 @@ class OnStreetPixelsChangedListener
     StreetPixelsManager.notifyExplorationAreaTapped(progress);
   }
 
+  @Keep
+  @SuppressWarnings("unused")
+  public void onFirstGoalProgressChanged(@NonNull FirstGoalProgress progress)
+  {
+    StreetPixelsManager.notifyFirstGoalProgress(progress);
+  }
+
   public void attach(@NonNull StreetPixelsErrorDialogListener listener)
   {
     mListener = listener;

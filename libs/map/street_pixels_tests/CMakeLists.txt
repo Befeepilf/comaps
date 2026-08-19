@@ -3,6 +3,7 @@ project(street_pixels_tests)
 set(SRC
   archive_tests.cpp
   area_completion_manager_tests.cpp
+  area_milestone_manager_tests.cpp
   assignment_persist_tests.cpp
   backend_config_tests.cpp
   collection_gate_tests.cpp
@@ -11,6 +12,7 @@ set(SRC
   eligibility_tests.cpp
   ever_live_tests.cpp
   explorer_pro_tests.cpp
+  first_goal_tests.cpp
   exploration_multiplier_tests.cpp
   exploration_weight_lookup_tests.cpp
   focused_area_badge_tests.cpp

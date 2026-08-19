@@ -1,12 +1,12 @@
 # SP-063 — Milestone state tracking
 
 **Phase:** 7 — Milestones and share cards
-**Status:** Planned
-**Branch:**
+**Status:** In review
+**Branch:** `cursor/sp-063-milestone-state-aee9`
 **Depends on:** SP-062 locks for store location, key (OSM id), re-fire
   policy, and 100% completion-date persistence. Phase 5 area completion
   cache (SP-034) as the percentage source.
-**Notes:** Coding waits on OQ-11 / OQ-12 (draft SPD-048 / SPD-049).
+**Notes:** SPD-048 / SPD-049 Accepted 2026-08-19 via SP-062.
 **Unblocks:** SP-065–069 (fired-once and §27.4 survival). Not a
   prerequisite for SP-064 (install-scoped first-goal).
 
@@ -115,9 +115,9 @@ store, 25/50/100 would re-fire after every cache rebuild or map update.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Test output | |
-| Store location / key | |
+| Branch | `cursor/sp-063-milestone-state-aee9` |
+| Test output | `street_pixels_areas_tests` **113/113** (`AreaMilestone_*` 8/8); `street_pixels_tests --filter=AreaCompletion\|AreaMilestone` **15/15** |
+| Store location / key | `area_milestones.db` (SQLite WAL); OSM id + `fired_mask` + `completed_100_at` |
 | Accepted by | |
 | Accepted date | |
 
@@ -125,4 +125,7 @@ store, 25/50/100 would re-fire after every cache rebuild or map update.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| (filled during implementation) | |
+| `SCOPE_GUARD([stmt])` copied nullptr and never finalized statements. | Fixed in this item (`[&stmt]` + `sqlite3_close_v2`). |
+| City-summary vs area fire was implementation-only until tests. | Added `AreaMilestone_CitySummaryDoesNotWriteAreaFiredState`. |
+| Compact-index change vs OSM id was not tested. | Added `AreaMilestone_OsmIdStableAcrossCompactIndexChange`. |
+| Presentation queue / UI. | SP-065. |

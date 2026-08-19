@@ -381,6 +381,7 @@ void StreetPixelsManager::SetExplorationListener(ExplorationListener const & lis
 void StreetPixelsManager::SetRecordingSession(RecordingSession const * session)
 {
   m_recordingSession = session;
+  NotifyFirstGoalProgressIfChanged();
 }
 
 void StreetPixelsManager::ResetSampleAcceptanceReference()
@@ -402,6 +403,51 @@ SampleRejectReason StreetPixelsManager::GetLastSampleRejectReason() const
 void StreetPixelsManager::SetVibrationHandler(VibrationHandler const & handler)
 {
   m_vibrationHandler = handler;
+}
+
+void StreetPixelsManager::SetFirstGoalProgressListener(FirstGoalProgressChangedFn const & fn)
+{
+  m_firstGoalProgressListener = fn;
+}
+
+void StreetPixelsManager::SetFirstGoalCompleteHandler(FirstGoalCompleteFn const & fn)
+{
+  m_firstGoalCompleteHandler = fn;
+}
+
+street_pixels::FirstGoalProgress StreetPixelsManager::GetFirstGoalProgress() const
+{
+  return m_firstGoalTracker.Snapshot(IsFirstGoalSessionActive());
+}
+
+void StreetPixelsManager::OnRecordingSessionStateChanged()
+{
+  NotifyFirstGoalProgressIfChanged();
+}
+
+void StreetPixelsManager::ResetFirstGoalForTesting()
+{
+  m_firstGoalTracker.ResetForTesting();
+  m_lastNotifiedFirstGoalProgress = {};
+  NotifyFirstGoalProgressIfChanged();
+}
+
+bool StreetPixelsManager::IsFirstGoalSessionActive() const
+{
+  if (m_recordingSession == nullptr)
+    return false;
+  auto const state = m_recordingSession->GetState();
+  return state == RecordingSession::State::Recording || state == RecordingSession::State::Paused;
+}
+
+void StreetPixelsManager::NotifyFirstGoalProgressIfChanged()
+{
+  auto const snapshot = GetFirstGoalProgress();
+  if (snapshot == m_lastNotifiedFirstGoalProgress)
+    return;
+  m_lastNotifiedFirstGoalProgress = snapshot;
+  if (m_firstGoalProgressListener)
+    m_firstGoalProgressListener(snapshot);
 }
 
 void StreetPixelsManager::SetStreetPixelsForTesting(std::vector<df::StreetPixel> pixels)
@@ -1743,6 +1789,15 @@ void StreetPixelsManager::OnLocationUpdate(location::GpsInfo const & info)
   }
 
   TriggerCollectionVibration(numNewlyExploredPixels);
+
+  if (numNewlyExploredPixels > 0)
+  {
+    bool const justCompleted =
+        m_firstGoalTracker.AddNewlyExploredLivePixels(static_cast<uint32_t>(numNewlyExploredPixels));
+    NotifyFirstGoalProgressIfChanged();
+    if (justCompleted && m_firstGoalCompleteHandler)
+      m_firstGoalCompleteHandler();
+  }
 }
 
 void StreetPixelsManager::UpdateStreetStats(double lat, double lon, size_t numNewlyExploredPixels)
@@ -1912,6 +1967,53 @@ double StreetPixelsManager::GetAreaCompletionFraction(uint32_t compactIndex) con
 {
   std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
   return m_areaCompletionCache.GetFraction(compactIndex);
+}
+
+std::optional<street_pixels::AreaMilestoneRecord> StreetPixelsManager::GetAreaMilestoneRecord(uint64_t osmId) const
+{
+  return street_pixels::AreaMilestoneStore::Instance().Get(osmId);
+}
+
+std::optional<street_pixels::AreaMilestoneRecord> StreetPixelsManager::GetAreaMilestoneRecordByCompactIndex(
+    uint32_t compactIndex) const
+{
+  std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+  auto const counts = m_areaCompletionCache.Get(compactIndex);
+  if (!counts || counts->m_osmId == 0)
+    return std::nullopt;
+  return street_pixels::AreaMilestoneStore::Instance().Get(counts->m_osmId);
+}
+
+std::vector<street_pixels::AreaMilestoneCrossing> StreetPixelsManager::ConsumePendingAreaMilestoneCrossings()
+{
+  return street_pixels::AreaMilestoneStore::Instance().ConsumePendingCrossings();
+}
+
+bool StreetPixelsManager::WasAreaPreviouslyCompletedBelow100(uint32_t compactIndex) const
+{
+  std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+  auto const counts = m_areaCompletionCache.Get(compactIndex);
+  if (!counts || counts->m_osmId == 0)
+    return false;
+  return street_pixels::AreaMilestoneStore::Instance().WasPreviouslyCompletedBelow100(
+      counts->m_osmId, street_pixels::AreaCompletionFraction(*counts));
+}
+
+void StreetPixelsManager::ConfigureAreaMilestoneStoreForTesting(std::string const & dbPath)
+{
+  street_pixels::AreaMilestoneStore::Instance().Reopen(dbPath);
+}
+
+void StreetPixelsManager::EvaluateAreaMilestonesUnlocked(int64_t nowSec)
+{
+  street_pixels::AreaCompletionCache cacheSnapshot;
+  {
+    std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+    if (!m_areaCompletionCache.IsValid())
+      return;
+    cacheSnapshot = m_areaCompletionCache;
+  }
+  street_pixels::AreaMilestoneStore::Instance().EvaluateAndRecordFires(cacheSnapshot, nowSec);
 }
 
 std::optional<street_pixels::AreaCompletionCounts> StreetPixelsManager::GetCityCompletion(
@@ -2483,6 +2585,8 @@ bool StreetPixelsManager::RebuildAreaCompletionCacheFromLoadedUnlocked(
     m_areaCompletionCache = std::move(built);
     m_cityCompletionCache = std::move(cityBuilt);
   }
+
+  EvaluateAreaMilestonesUnlocked(static_cast<int64_t>(base::Timer::LocalTime()));
 
   base::Timer overlayTimer;
   PushExplorationAreaOverlayUnlocked(resolver.GetFile());

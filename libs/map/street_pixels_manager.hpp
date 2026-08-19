@@ -2,6 +2,7 @@
 
 #include "map/bookmark_manager.hpp"
 
+#include "map/first_goal.hpp"
 #include "map/live_sample_acceptance_filter.hpp"
 #include "map/live_segment_interpolation.hpp"
 
@@ -28,6 +29,7 @@
 #include "storage/storage.hpp"
 
 #include "street_pixels_areas/area_completion_cache.hpp"
+#include "street_pixels_areas/area_milestone_store.hpp"
 #include "street_pixels_areas/areas_types.hpp"
 #include "street_pixels_areas/city_completion_cache.hpp"
 #include "street_pixels_areas/exploration_area_resolver.hpp"
@@ -174,6 +176,13 @@ public:
   bool RebuildAreaCompletionCache(storage::CountryId const & countryId, std::string const & spaPath,
                                   int64_t mapDataVersion);
 
+  std::optional<street_pixels::AreaMilestoneRecord> GetAreaMilestoneRecord(uint64_t osmId) const;
+  std::optional<street_pixels::AreaMilestoneRecord> GetAreaMilestoneRecordByCompactIndex(
+      uint32_t compactIndex) const;
+  std::vector<street_pixels::AreaMilestoneCrossing> ConsumePendingAreaMilestoneCrossings();
+  bool WasAreaPreviouslyCompletedBelow100(uint32_t compactIndex) const;
+  void ConfigureAreaMilestoneStoreForTesting(std::string const & dbPath);
+
   // Focused-area progress for the primary badge (SP-035 / SP-036 §12.5).
   street_pixels::FocusedAreaProgress GetFocusedAreaProgress() const;
   void ClearFocusedArea();
@@ -227,6 +236,14 @@ public:
 
   using VibrationHandler = std::function<void(size_t newlyExplored)>;
   void SetVibrationHandler(VibrationHandler const & handler);
+
+  using FirstGoalProgressChangedFn = std::function<void(street_pixels::FirstGoalProgress const &)>;
+  using FirstGoalCompleteFn = std::function<void()>;
+  void SetFirstGoalProgressListener(FirstGoalProgressChangedFn const & fn);
+  void SetFirstGoalCompleteHandler(FirstGoalCompleteFn const & fn);
+  street_pixels::FirstGoalProgress GetFirstGoalProgress() const;
+  void OnRecordingSessionStateChanged();
+  void ResetFirstGoalForTesting();
 
   void SetStreetPixelsForTesting(std::vector<df::StreetPixel> pixels);
   void SetStreetPixelsOverlayForTesting(storage::CountryId const & countryId, std::vector<df::StreetPixel> pixels);
@@ -290,9 +307,15 @@ private:
   LiveSegmentInterpolation m_segmentInterpolation;
   uint64_t m_filterSessionId = 0;
   VibrationHandler m_vibrationHandler;
+  FirstGoalProgressChangedFn m_firstGoalProgressListener;
+  FirstGoalCompleteFn m_firstGoalCompleteHandler;
+  street_pixels::FirstGoalTracker m_firstGoalTracker;
+  street_pixels::FirstGoalProgress m_lastNotifiedFirstGoalProgress;
   std::vector<df::StreetPixel> m_testStreetPixelsStorage;
 
   void TriggerCollectionVibration(size_t numNewlyExploredPixels);
+  void NotifyFirstGoalProgressIfChanged();
+  bool IsFirstGoalSessionActive() const;
   size_t MarkExploredPixelIds(std::set<std::int64_t> const & pixelIds, double eventTimeSec);
 
   bool RematchStreetPixelsWithNewUniverseUnlocked(storage::CountryId const & countryId,
@@ -309,6 +332,7 @@ private:
   bool RebuildAreaCompletionCacheFromLoadedUnlocked(std::vector<std::int64_t> const & universeAscending,
                                                     std::vector<std::int64_t> const & exploredAscending,
                                                     street_pixels::ExplorationAreaResolver const & resolver);
+  void EvaluateAreaMilestonesUnlocked(int64_t nowSec);
   void PushExplorationAreaOverlayUnlocked(street_pixels::SpaFile const & file);
   void RefreshFocusedAreaFractionUnlocked();
   void ClearFocusedAreaUnlocked();

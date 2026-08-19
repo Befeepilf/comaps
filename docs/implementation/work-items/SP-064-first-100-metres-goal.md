@@ -1,12 +1,12 @@
 # SP-064 — First-100-metres contextual goal
 
 **Phase:** 7 — Milestones and share cards
-**Status:** Planned
-**Branch:**
+**Status:** Accepted
+**Branch:** `cursor/sp-064-first-100m-aee9`
 **Depends on:** SP-062 M2 (pixel equivalent) and M8 (once per install).
   Recording session (SP-006) and live collection (SP-007/009/011).
-**Notes:** Coding waits on OQ-10 / OQ-16 (draft SPD-047 / SPD-053). Do not
-  encode 10 pixels until OQ-10 is locked.
+**Notes:** SPD-047 / SPD-053 Accepted 2026-08-19 via SP-062. Threshold is
+  10 newly explored live pixels.
 **Unblocks:** SP-065 presentation consistency; SP-066 first-goal haptic;
   SP-069 exit #3
 
@@ -25,13 +25,9 @@ This is contextual onboarding, not an achievement system (§18.5).
 
 ## In-scope behavior
 
-- Shared C++ progress for the first-goal window. The **count rule is
-  SP-062 M2 after maintainer lock**, not this item. Recommended (not
-  decided): 10 new live pixels. Product must also lock (a) newly explored
-  cells only vs (b) cells whose `IsEverLive` becomes set (imported→live
-  flip). Import-only writes do not count. Do **not** reuse
-  `numNewlyExploredPixels` unless M2 is locked to (a) — that counter
-  ignores imported→live flips.
+- Shared C++ progress for the first-goal window. **Count rule is SPD-047:**
+  10 newly explored live pixels (`numNewlyExploredPixels`), not `IsEverLive`
+  flips. Import-only writes do not count.
 - Appear when the first recording session starts, if the goal is not yet
   complete. Incomplete progress indicator. Incomplete progress **persists
   across later recording sessions** until M2 (M8 is once per install, not
@@ -81,8 +77,7 @@ This is contextual onboarding, not an achievement system (§18.5).
 
 - Collection already gated on active non-paused recording (SP-007). Do not
   add a second collection path.
-- Count rule waits on Accepted M2. Do not treat the recommended 10-pixel
-  figure or the imported→live flip as decided in this item.
+- Count rule is SPD-047 (10 newly explored live pixels).
 - Offline. No network. No analytics area id.
 
 ## Acceptance criteria
@@ -120,15 +115,16 @@ This is contextual onboarding, not an achievement system (§18.5).
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Test output | |
-| M2 count used | |
-| Manual validation | |
-| Accepted by | |
-| Accepted date | |
+| Branch | `cursor/sp-064-first-100m-aee9` |
+| Test output | `street_pixels_tests --filter=FirstGoal` **9/9** |
+| M2 count used | 10 newly explored live pixels (SPD-047) |
+| Manual validation | Device residual → SP-069 / Phase 10 |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-19 |
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| (filled during implementation) | |
+| First-goal complete haptic is a handler stub (`SetFirstGoalCompleteHandler`). | SP-066 implements the pattern and foreground/toggle predicate. |
+| Android first-goal chip sits under the focused-area banner in `map_exploration_banner.xml`. | Keep; do not replace the area % badge. |
