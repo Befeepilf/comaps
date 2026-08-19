@@ -20,9 +20,4 @@ public class FirstGoalProgress
     this.collected = collected;
     this.threshold = threshold;
   }
-
-  public boolean isVisible()
-  {
-    return state == STATE_IN_PROGRESS;
-  }
 }
