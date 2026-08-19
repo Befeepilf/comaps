@@ -92,39 +92,43 @@ AreaMilestoneStore::AreaMilestoneStore(std::string dbPath)
 
 AreaMilestoneStore::~AreaMilestoneStore()
 {
-  if (m_db)
-    sqlite3_close(m_db);
+  CloseDb();
+}
+
+void AreaMilestoneStore::CloseDb() const
+{
+  if (!m_db)
+    return;
+  sqlite3_close_v2(m_db);
+  m_db = nullptr;
 }
 
 void AreaMilestoneStore::Reopen(std::string const & dbPath)
 {
   std::lock_guard<std::mutex> lock(m_mutex);
-  if (m_db)
-  {
-    sqlite3_close(m_db);
-    m_db = nullptr;
-  }
+  CloseDb();
   m_dbPath = dbPath;
   m_pendingCrossings.clear();
   EnsureOpen();
 }
 
-bool AreaMilestoneStore::EnsureOpen()
+bool AreaMilestoneStore::EnsureOpen() const
 {
   if (m_db)
     return true;
-  if (sqlite3_open_v2(m_dbPath.c_str(), &m_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr) != SQLITE_OK)
+  sqlite3 * db = nullptr;
+  if (sqlite3_open_v2(m_dbPath.c_str(), &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr) != SQLITE_OK)
   {
-    LOG(LERROR, ("Can't open area milestone database:", m_dbPath, "reason:", sqlite3_errmsg(m_db)));
-    sqlite3_close(m_db);
-    m_db = nullptr;
+    LOG(LERROR, ("Can't open area milestone database:", m_dbPath, "reason:", sqlite3_errmsg(db)));
+    sqlite3_close_v2(db);
     return false;
   }
+  m_db = db;
   InitSchema();
   return true;
 }
 
-void AreaMilestoneStore::InitSchema()
+void AreaMilestoneStore::InitSchema() const
 {
   ASSERT(m_db, ());
   sqlite3_exec(m_db, "PRAGMA journal_mode=WAL;", nullptr, nullptr, nullptr);
@@ -146,7 +150,7 @@ std::optional<AreaMilestoneRecord> AreaMilestoneStore::LoadRecord(uint64_t osmId
 {
   ASSERT(m_db, ());
   sqlite3_stmt * stmt = nullptr;
-  SCOPE_GUARD(finalize, [stmt]()
+  SCOPE_GUARD(finalize, [&stmt]()
   {
     if (stmt)
       sqlite3_finalize(stmt);
@@ -172,7 +176,7 @@ bool AreaMilestoneStore::UpsertRecord(uint64_t osmId, uint8_t firedMask,
 {
   ASSERT(m_db, ());
   sqlite3_stmt * stmt = nullptr;
-  SCOPE_GUARD(finalize, [stmt]()
+  SCOPE_GUARD(finalize, [&stmt]()
   {
     if (stmt)
       sqlite3_finalize(stmt);
@@ -208,7 +212,8 @@ std::vector<AreaMilestoneCrossing> AreaMilestoneStore::EvaluateAndRecordFires(Ar
   if (!cache.IsValid() || !EnsureOpen())
     return newCrossings;
 
-  sqlite3_exec(m_db, "BEGIN IMMEDIATE TRANSACTION;", nullptr, nullptr, nullptr);
+  if (sqlite3_exec(m_db, "BEGIN IMMEDIATE TRANSACTION;", nullptr, nullptr, nullptr) != SQLITE_OK)
+    return newCrossings;
 
   for (auto const & row : cache.Rows())
   {
@@ -244,7 +249,11 @@ std::vector<AreaMilestoneCrossing> AreaMilestoneStore::EvaluateAndRecordFires(Ar
     }
   }
 
-  sqlite3_exec(m_db, "COMMIT;", nullptr, nullptr, nullptr);
+  if (sqlite3_exec(m_db, "COMMIT;", nullptr, nullptr, nullptr) != SQLITE_OK)
+  {
+    sqlite3_exec(m_db, "ROLLBACK;", nullptr, nullptr, nullptr);
+    return {};
+  }
   SortCrossings(newCrossings);
   AppendPendingCrossings(newCrossings);
   return newCrossings;
@@ -261,22 +270,27 @@ std::vector<AreaMilestoneCrossing> AreaMilestoneStore::ConsumePendingCrossings()
 std::optional<AreaMilestoneRecord> AreaMilestoneStore::Get(uint64_t osmId) const
 {
   std::lock_guard<std::mutex> lock(m_mutex);
-  if (!m_db)
+  if (!EnsureOpen())
     return std::nullopt;
   return LoadRecord(osmId);
 }
 
-bool AreaMilestoneStore::WasPreviouslyCompletedBelow100(uint64_t osmId, double currentFraction) const
+bool AreaMilestoneStore::WasPreviouslyCompletedUnlocked(uint64_t osmId, double currentFraction) const
 {
-  std::lock_guard<std::mutex> lock(m_mutex);
-  if (!m_db)
-    return false;
   auto const record = LoadRecord(osmId);
   if (!record)
     return false;
   if ((record->m_firedMask & kAreaMilestoneMask100) == 0)
     return false;
   return currentFraction < kThreshold100;
+}
+
+bool AreaMilestoneStore::WasPreviouslyCompletedBelow100(uint64_t osmId, double currentFraction) const
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  if (!EnsureOpen())
+    return false;
+  return WasPreviouslyCompletedUnlocked(osmId, currentFraction);
 }
 
 std::vector<uint64_t> AreaMilestoneStore::ListAreasPreviouslyCompletedNowBelow(
@@ -286,11 +300,15 @@ std::vector<uint64_t> AreaMilestoneStore::ListAreasPreviouslyCompletedNowBelow(
   if (!cache.IsValid())
     return result;
 
+  std::lock_guard<std::mutex> lock(m_mutex);
+  if (!EnsureOpen())
+    return result;
+
   for (auto const & row : cache.Rows())
   {
     if (row.m_total == 0 || row.m_osmId == 0)
       continue;
-    if (WasPreviouslyCompletedBelow100(row.m_osmId, AreaCompletionFraction(row)))
+    if (WasPreviouslyCompletedUnlocked(row.m_osmId, AreaCompletionFraction(row)))
       result.push_back(row.m_osmId);
   }
   return result;
