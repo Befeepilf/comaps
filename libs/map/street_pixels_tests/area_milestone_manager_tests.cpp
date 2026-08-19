@@ -30,7 +30,12 @@ namespace
 {
 std::string AmPath(std::string const & name) { return base::JoinPath(GetPlatform().WritableDir(), name); }
 
-void AmRemove(std::string const & path) { Platform::RemoveFileIfExists(path); }
+void AmRemove(std::string const & path)
+{
+  Platform::RemoveFileIfExists(path);
+  Platform::RemoveFileIfExists(path + "-wal");
+  Platform::RemoveFileIfExists(path + "-shm");
+}
 
 std::vector<m2::PointD> AmLonLatBox(double west, double south, double east, double north)
 {
@@ -155,6 +160,7 @@ UNIT_TEST(AreaMilestoneManager_FiresOnRebuild)
   auto record = manager.GetAreaMilestoneRecord(10);
   TEST(record.has_value(), ());
   TEST((record->m_firedMask & street_pixels::kAreaMilestoneMask100) != 0, ());
+  TEST(!manager.GetAreaMilestoneRecord(8).has_value(), ());
 
   auto crossings = manager.ConsumePendingAreaMilestoneCrossings();
   TEST_EQUAL(crossings.size(), 3, ());
