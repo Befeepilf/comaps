@@ -1,7 +1,7 @@
 # SP-062 — Milestone and share-card architecture decisions
 
 **Phase:** 7 — Milestones and share cards
-**Status:** In review
+**Status:** Accepted
 **Branch:** `cursor/phase-07-work-items-aee9`
 **Depends on:** Phase 5 exit (SP-041) for coding of SP-063+; this item is
   docs / `DECISIONS.md` only and may run while SP-041 awaits acceptance.
@@ -245,8 +245,8 @@ Local settings uint64. Upload residual Phase 10. Not Sentry. Do not add
 | 100 m conversion | **Proposed** — 10 new live pixels from §10 step 10; recommend (a) newly explored only |
 | Store | **Proposed** — new local sqlite keyed by OSM id + threshold |
 | Re-fire | **Proposed** — does not re-fire |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-19 |
 
 ## Discovered follow-up
 
