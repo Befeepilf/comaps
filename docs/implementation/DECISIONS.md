@@ -1406,6 +1406,9 @@ These are carried from existing project documents. They are listed so they are
 not lost. None of them is decided here, and nothing in this section may be
 treated as authorisation.
 
+Phase 7 M1–M10 proposals from SP-062 (2026-08-19) are recorded as OQ-9–OQ-18.
+They are not decisions. Maintainer lock promotes each to SPD-046–055.
+
 | Ref | Question | Source | Blocks |
 | --- | --- | --- | --- |
 | OQ-1 | The area-completion formula (§7), ownership-score formula (§22.4), and contested-state threshold (§22.9) are empty in the product spec. **Personal completion slice closed by SPD-026** (explored/total; live+imported). Ownership / contested remain open. | Product spec; audit §2, §22 | Phase 8 (ownership / contested). Phase 5 personal completion → SPD-026. |
@@ -1416,6 +1419,16 @@ treated as authorisation.
 | OQ-6 | Whether the in-progress friends feature is retained in Street Pixels builds. Friends exist in Android and in `comaps_backend` but are a product non-goal for V1. | Product spec §6; audit §15, §27 Q7 | Phase 1 (what a public build exposes) and Phase 8. |
 | OQ-7 | Production API base URL, hosting region, and data-retention policy. | Audit §27 Q6 | Phase 8, and partially Phase 1 (SP-004). |
 | OQ-8 | ~~Whether HEALPix `nside` stays at 1048576 after rendering measurement.~~ | Audit §27 Q8 | **Closed for V1 by SPD-017** — `nside = 1048576` locked. |
+| OQ-9 | Phase 7 M1 compositor (draft SPD-046). How is the stylised map on the completion card rendered? Proposal: rings-only outline from `ExplorationArea::m_rings` (outers), never a live Drape / `MapView` screenshot. Not a decision. | SP-062 (2026-08-19) | Phase 7 (entry criterion; SP-067). |
+| OQ-10 | Phase 7 M2 100 m conversion (draft SPD-047). What is “approximately 100 metres of new live street pixels”? Also (a) newly explored vs (b) `IsEverLive` flip. Recommendation: (a) and 10 pixels from spec §10 step 10. Not a decision. | SP-062 (2026-08-19); spec §10 steps 9–10 | Phase 7 (SP-064). |
+| OQ-11 | Phase 7 M3 store OSM id (draft SPD-048). Where does milestone fired-state (and original 100% date) live, and what is the stable key? Proposal: new local sqlite keyed by OSM id + threshold. Not a decision. | SP-062 (2026-08-19) | Phase 7 (SP-063). |
+| OQ-12 | Phase 7 M4 no re-fire (draft SPD-049). After a map update drops then restores a threshold, does the milestone re-fire? Proposal: does not re-fire; fired-state and original date survive rematch / policy / `.spa` refetch. Not a decision. | SP-062 (2026-08-19); spec §27.4 | Phase 7 (SP-063). |
+| OQ-13 | Phase 7 M5 queue / no interrupt following (draft SPD-050). Several areas cross thresholds in one update / session? Proposal: queue; one at a time; 100% > 50% > 25%; never interrupt `IsRoutingFollowing`. Not a decision. | SP-062 (2026-08-19); spec §18.4 | Phase 7 (SP-065). |
+| OQ-14 | Phase 7 M6 date opt-in default off (draft SPD-051). Completion date on the card by default? Proposal: store always; card shows only if share-time opt-in, default off. Alternative: omit date from V1 card. Not a decision. | SP-062 (2026-08-19); spec §19.1 | Phase 7 (SP-067 / SP-068). |
+| OQ-15 | Phase 7 M7 competition stub (draft SPD-052). Competition line on the card? Proposal: card works with no profile/nickname; stub for §22.10; Phase 8 fills. Not a decision. | SP-062 (2026-08-19); spec §19.2, §22.10 | Phase 7 (SP-065 / SP-067); Phase 8 fills copy. |
+| OQ-16 | Phase 7 M8 first-100 m once per install (draft SPD-053). First-100 m lifetime? Proposal: once per install; incomplete persists across sessions until complete. Not a decision. | SP-062 (2026-08-19); spec §10 steps 6 and 9 | Phase 7 (SP-064). |
+| OQ-17 | Phase 7 M9 haptics predicate (draft SPD-054). Pulse iff recording ∧ foreground ∧ toggle (default on)? One collection pulse per update; stronger patterns for first-100 m / 50% / 100%. Not a decision. | SP-062 (2026-08-19); spec §28.1–§28.4 | Phase 7 (SP-066). |
+| OQ-18 | Phase 7 M10 growth analytics (draft SPD-055). Count-only: card generated, share initiated; no area id; local settings uint64; upload residual Phase 10. Not a decision. | SP-062 (2026-08-19); spec §32.4 | Phase 7 (SP-068). |
 
 When one of these is answered, add a new `SPD-NNN` entry above and strike the
 row here with a reference to it.

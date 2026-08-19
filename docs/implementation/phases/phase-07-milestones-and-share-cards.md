@@ -1,6 +1,8 @@
 # Phase 7 — Milestones and share cards
 
-**Status:** Not started
+**Status:** Not started (work items SP-062–069 created 2026-08-19; coding
+gated on SP-062 locks; SP-062 is **In review** with M1–M10 proposed, not
+Accepted)
 **Depends on:** Phase 5
 **Blocks:** nothing; required for release
 
@@ -36,21 +38,33 @@ accomplishment without exposing where the user lives or where they went.
 
 ## Current code locations
 
-Verified 2026-07-25 against the working tree.
+Re-verified 2026-08-19 against the working tree (Phase 7 work-item planning).
+SP-062 re-verify (2026-08-19) confirmed this table. Extras in
+[`notes/SP-062-milestone-share-architecture.md`](../notes/SP-062-milestone-share-architecture.md):
+`qt/screenshoter.*` is desktop QA, not a card path;
+`Framework::EnterForeground` does not notify Street Pixels.
 
 | Concern | Location | Observed state |
 | --- | --- | --- |
-| Haptic on collection | `libs/map/street_pixels_manager.cpp` `OnLocationUpdate` | Vibration fires from the collection path. Not conditioned on foreground state, and today not conditioned on a session either. |
-| Haptics setting | — | No single "Exploration haptics" toggle found |
-| Milestones | — | Not found |
-| Share compositor | — | Not found. Generic bookmark and track sharing exists via the KML and GPX pipeline. |
-| Completion date storage | — | Not found |
-| Progress badge | `android/app/.../MwmActivity.java` map buttons | Present but not area-scoped and not milestone-aware |
+| Collection haptic | `StreetPixelsManager::TriggerCollectionVibration` from `OnLocationUpdate` | Fires after live collection. Session-gated as a **side effect of SP-007** (`IsRecording()` early return). **Not** foreground-gated. When `numNewlyExploredPixels > 1`, `VibratePattern` pulses **once per pixel** (up to 10) — contradicts spec §28.2. Optional `m_vibrationHandler` used by tests. |
+| Platform vibrate | `libs/platform/vibration.cpp` → Android `Utils.vibrate` / `vibratePattern` | Desktop is a no-op. |
+| Foreground signal | `OrganicMaps.nativeOnTransit` → `Framework::EnterForeground` / `EnterBackground` | Exists. Street Pixels collection / haptic path does not consult it. |
+| Haptics setting | `prefs_interface.xml` and related | **No** “Exploration haptics” toggle. |
+| Area completion % | `AreaCompletionCache`, `StreetPixelsManager::GetAreaCompletion` | Explored/total including imported (SPD-026). Invalidated on collect/import/rematch. **No** fired-once state, **no** original 100% date. |
+| Focused-area badge | `FocusedAreaProgress` + `MapButtonsController.mExplorationBadge` | Name + % + `m_areaCompleted` (SP-035/036/040). **Not** milestone-aware. Not a first-100 m chip. |
+| Completed chrome | SP-040 / `area_overlay` styles | Distinct completed visual (§18.6). No 25/50/100 celebration, no card surface. |
+| Area geometry | `ExplorationArea::m_rings` | Mercator outer rings available offline — candidate for a boundary-outline card (SP-062 M1). |
+| Share | `SharingUtils`, bookmark/track KML/GPX | Generic file/text share. **No** neighbourhood card compositor. |
+| Milestone / card / first-goal | — | **Not found.** |
+| Growth analytics | `StreetExplorationRoutingAnalytics` (Phase 6) | Count-only routing counters only. No card-generated / share-initiated events. |
+| Routing-following | `RoutingManager::IsRoutingFollowing` | Exists; milestone UI must not interrupt it. |
 
-**Difference from the technical audit:** none material. Note that the haptic
-path is currently reachable outside a recording session, which Phase 2 fixes as
-a side effect of the collection gate; the foreground condition in spec §28.1 is
-this phase's responsibility.
+**Difference from the technical audit (2026-07-20):** Phase 2 gated collection
+(and therefore vibration) on an active recording session — the audit/phase
+note that haptics were reachable outside a session is **stale**. The
+foreground condition, one-pulse-per-update rule, settings toggle, milestones,
+and compositor remain absent. Phase 5 delivered area-scoped % and completed
+chrome the 2026-07-25 snapshot marked missing for the badge.
 
 ## Intended outcome
 
@@ -71,24 +85,65 @@ this phase's responsibility.
   card must work fully without competition, so this is not a blocking
   dependency.
 
-## Proposed work-item breakdown
+## Phase-entry investigation (2026-08-19)
 
-Not yet decomposed. Likely shape:
+### Confirmed gaps
 
-1. Milestone state tracking: which thresholds have fired for which area, and
-   local persistence.
-2. First-100-metres contextual goal.
-3. Milestone presentation at 25%, 50%, and 100%, including the non-blocking and
-   non-interrupting rules.
-4. Haptics policy: foreground plus recording condition, one pulse per
-   collecting update, milestone patterns, settings toggle.
-5. Completion-card compositor.
-6. Share flow and growth analytics.
+- No per-area fired-once store and no original 100% date (§18.5 / §27.4).
+- No first-100 m onboarding badge (§10 steps 6 and 9).
+- No 25/50/100 celebration UI. Completed chrome exists (SP-040) but does not
+  fire a card or share action.
+- Haptics: still not foreground-gated; multi-pixel updates vibrate per pixel;
+  no settings toggle.
+- No completion-card model or compositor. `SharingUtils` would share a track
+  if reused naively.
+- No growth counters for card generated / share initiated.
 
-**Marked for phase-specific Plan Mode investigation.** Card composition needs a
-decision about whether the stylised map is rendered through Drape, drawn from
-polygon geometry directly, or composed on the Android side. That cannot be
-settled from source inspection alone.
+### Blocking unknowns (must not be guessed in coding items)
+
+Recorded as **M1–M10** in
+[`SP-062`](../work-items/SP-062-milestone-share-architecture-decisions.md),
+proposed as **OQ-9–OQ-18** (draft SPD-046–055) in `DECISIONS.md` §15.
+Coding SP-063+ waits on those locks (Accepted SPDs or an explicit maintainer
+deferral). M1 / OQ-9 is also the remaining Phase 7 **entry** criterion
+(**unmet**).
+
+Recommended positions (not Accepted until SP-062 / maintainer):
+
+| Ref | Question | Recommended lock |
+| --- | --- | --- |
+| M1 | Stylised map on the card | Recommended deny-list-safe path: off-map from `m_rings` (outers); never a Drape screenshot. Spec also allows a non-screenshot stylised map. |
+| M2 | ~100 m in pixels | Recommended: 10 new live pixels from §10 step 10 (30 ≈ 300 m). Not geodesic 100 m. Also lock newly-explored vs imported→live flip. |
+| M3 | Fired-state store | New local store keyed by OSM id + threshold; date beside it |
+| M4 | Re-fire after rematch | Does not re-fire; date survives |
+| M5 | Several areas in one session | Queue; never interrupt following; 100% > 50% > 25% |
+| M6 | Date on the card | Stored always; privacy recommendation: shown only if opted in at share time (SP-068). Spec “optional” ≠ a required toggle. |
+| M7 | Competition line | Stub; card works with no nickname; Phase 8 fills §22.10 |
+| M8 | First-100 m lifetime | Once per install |
+| M9 | Haptics predicate | Recording ∧ foreground ∧ toggle; one pulse per update |
+| M10 | Growth analytics | Count-only; no area id; Phase 10 upload residual |
+
+### Work-item breakdown
+
+| Order | ID | Title |
+| --- | --- | --- |
+| 1 | [SP-062](../work-items/SP-062-milestone-share-architecture-decisions.md) | Architecture decisions (**entry gate** for coding) |
+| 2 | [SP-063](../work-items/SP-063-milestone-state-tracking.md) | Milestone state tracking |
+| 3 | [SP-064](../work-items/SP-064-first-100-metres-goal.md) | First-100-metres contextual goal |
+| 4 | [SP-065](../work-items/SP-065-area-milestone-presentation.md) | Area milestone presentation (25 / 50 / 100) |
+| 5 | [SP-066](../work-items/SP-066-exploration-haptics-policy.md) | Exploration haptics policy |
+| 6 | [SP-067](../work-items/SP-067-completion-card-compositor.md) | Completion-card compositor |
+| 7 | [SP-068](../work-items/SP-068-share-flow-and-growth-analytics.md) | Share flow and growth analytics |
+| 8 | [SP-069](../work-items/SP-069-phase7-end-to-end-validation.md) | Phase 7 end-to-end validation (**exit gate**) |
+
+Gate: SP-062 must lock M1–M10 (or record maintainer deferrals) before SP-063+
+coding. Phase 5 exit (SP-041) remains the product dependency for coding that
+consumes area % / completed chrome; SP-062 itself is docs-only and may run
+while SP-041 awaits acceptance.
+
+No dedicated compositor spike unless SP-062 finds that source inspection
+cannot choose a deny-list-safe path. Privacy argues against a live-map
+screenshot without a prototype.
 
 ## Data and migration concerns
 
@@ -111,15 +166,17 @@ The completion card is the only image this product produces for the outside
 world. Its exclusion list is a hard requirement, not a guideline.
 
 The card must not contain: raw GPS route, home location, live location,
-individual timestamps, or any other user's personal information. The stylised
-map is a boundary outline, not a trace of where the user walked.
+individual timestamps, or any other user's personal information. Proposed V1
+geometry (OQ-9, not Accepted): a boundary outline from `m_rings`. Spec §19.1
+also allows a non-screenshot stylised map. The image is not a trace of where
+the user walked.
 
 Additional considerations:
 
 - Anonymous sharing must work with no account and no nickname (spec §19.2).
-- The card is a screenshot-like artefact of the user's map. Verify no map
-  overlay leaks the user's current position marker or a recorded track into the
-  composition.
+- The card is composed off-map from permitted fields. Verify no live map
+  overlay leaks the user's current position marker or a recorded track into
+  the composition. Never capture Drape / `MapView`.
 - Analytics record that a card was generated and that a share was initiated.
   They do not record which area.
 
@@ -143,9 +200,10 @@ Additional considerations:
   block, and does not interrupt active navigation.
 - Generate the card and inspect the image for anything on the exclusion list.
 - Generate the card with competition disabled and confirm the first-person copy.
-- Generate the card with competition enabled in both the leading and
-  not-leading cases, and confirm the copy matches spec §22.10 and does not
-  imply the completion was invalid.
+- Competition-on leading / not-leading copy (§22.10) is **Phase 8**. If
+  competition is absent, record it as a residual here; do not block Phase 7
+  exit on live §22.10 sentences. The stub must still avoid implying that
+  personal completion was invalid.
 - Confirm the share sheet does not open until the user taps Share.
 - Confirm haptics behave correctly with the screen off, in the background, and
   with the toggle off.
@@ -154,6 +212,11 @@ Additional considerations:
 
 - Phase 5 exit criteria met.
 - A decision exists on how the stylised map on the card is rendered.
+  **Unmet** until the maintainer Accepts M1 / OQ-9 (draft SPD-046).
+  Proposals: [`SP-062`](../work-items/SP-062-milestone-share-architecture-decisions.md)
+  drafts and
+  [`notes/SP-062-milestone-share-architecture.md`](../notes/SP-062-milestone-share-architecture.md).
+  Do not treat the rings-only recommendation as Accepted.
 
 ## Exit criteria
 
@@ -182,15 +245,16 @@ Additional considerations:
 
 ## Known uncertainties
 
-- How the stylised area map is rendered, and whether it can be produced without
-  a visible map screenshot.
-- What "the equivalent of approximately 100 metres of new live street pixels"
-  converts to in pixel count, given the fixed HEALPix cell size.
-- Whether milestone state belongs in `street_stats.db` or a settings-like
-  store.
-- Whether a milestone should re-fire after a map update drops and restores an
-  area above a threshold.
-- How the celebration behaves if several areas cross thresholds during one
-  session.
-- Whether the completion date should be shown by default or opted into, since
-  it is a weak temporal signal about the user.
+Tracked as **M1–M10** in SP-062. Proposed as **OQ-9–OQ-18** (draft
+SPD-046–055) in `DECISIONS.md` §15. **Not Accepted.**
+
+- M1 / OQ-9 — stylised map render path (Phase 7 entry criterion; **unmet**).
+- M2 / OQ-10 — 100 m → new-live-pixel count.
+- M3 / OQ-11 — fired-state store and key.
+- M4 / OQ-12 — re-fire after map update.
+- M5 / OQ-13 — several areas in one session.
+- M6 / OQ-14 — completion date on the card by default vs opt-in.
+- M7 / OQ-15 — competition line stub vs Phase 8.
+- M8 / OQ-16 — first-100 m once per install.
+- M9 / OQ-17 — haptics predicate (foreground, one pulse, toggle).
+- M10 / OQ-18 — growth analytics sink (local + Phase 10 residual).

@@ -2,7 +2,7 @@
 
 **Document status:** Living project index
 **Scope of this document:** Android public V1
-**Last structural update:** 2026-08-07
+**Last structural update:** 2026-08-19
 
 This file is the index for Street Pixels implementation work. It intentionally
 contains no implementation detail. Detail belongs in `phases/` and
@@ -485,7 +485,25 @@ SP-054 **Accepted** 2026-08-15. SP-055 **In review** (SPD-040–045 recorded;
 OQ-2 closed). SP-056 **Accepted** 2026-08-15. SP-057 **Accepted** 2026-08-15.
 SP-058 **Accepted** 2026-08-16. SP-059 **Accepted** 2026-08-17. SP-060 **In progress**.
 SP-061 **Planned**. Spike 7 desktop synthetic is recorded;
-city-scale/device residual → Phase 10. Coding SP-056+ may proceed. Detailed
-work items exist for Phases 1–6. Later phases are broken down after their entry
-criteria are met, and after any spike that phase depends on has a recorded
-outcome.
+city-scale/device residual → Phase 10. Coding SP-056+ may proceed.
+
+| Order | ID | Title | Phase | Why first |
+| --- | --- | --- | --- | --- |
+| 62 | [SP-062](work-items/SP-062-milestone-share-architecture-decisions.md) | Milestone and share-card architecture decisions | 7 | **In review** — M1–M10 proposed as OQ-9–OQ-18; not Accepted |
+| 63 | [SP-063](work-items/SP-063-milestone-state-tracking.md) | Milestone state tracking | 7 | Planned — fire-once + §27.4 date |
+| 64 | [SP-064](work-items/SP-064-first-100-metres-goal.md) | First-100-metres contextual goal | 7 | Planned — §10 steps 6 and 9 |
+| 65 | [SP-065](work-items/SP-065-area-milestone-presentation.md) | Area milestone presentation (25 / 50 / 100) | 7 | Planned — non-blocking, non-interrupting |
+| 66 | [SP-066](work-items/SP-066-exploration-haptics-policy.md) | Exploration haptics policy | 7 | Planned — foreground + one pulse + toggle |
+| 67 | [SP-067](work-items/SP-067-completion-card-compositor.md) | Completion-card compositor | 7 | Planned — deny-list model + outline image |
+| 68 | [SP-068](work-items/SP-068-share-flow-and-growth-analytics.md) | Share flow and growth analytics | 7 | Planned — explicit share; count-only |
+| 69 | [SP-069](work-items/SP-069-phase7-end-to-end-validation.md) | Phase 7 end-to-end validation | 7 | Planned — exit gate |
+
+Phase 7 work-item planning (2026-08-19) recorded in
+[`phases/phase-07-milestones-and-share-cards.md`](phases/phase-07-milestones-and-share-cards.md).
+SP-062 **In review** (M1–M10 proposed as OQ-9–OQ-18; not Accepted).
+SP-063–069 **Planned**. Phase 7 remains **Not started**; coding SP-063+
+waits on SP-062 locks. Stylised-map entry criterion remains **unmet** until
+the maintainer Accepts M1 / OQ-9. Phase 5 exit (SP-041) is still the
+product prerequisite for that coding. Detailed work items exist for
+Phases 1–7. Later phases are broken down after their entry criteria are
+met, and after any spike that phase depends on has a recorded outcome.
