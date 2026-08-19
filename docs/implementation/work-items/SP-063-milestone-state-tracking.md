@@ -116,7 +116,7 @@ store, 25/50/100 would re-fire after every cache rebuild or map update.
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-063-milestone-state-aee9` |
-| Test output | `street_pixels_areas_tests` **84/84** (`AreaMilestone_*` 6/6); `street_pixels_tests --filter=AreaCompletion\|AreaMilestone` **15/15** |
+| Test output | `street_pixels_areas_tests` **111/111** (`AreaMilestone_*` 6/6); `street_pixels_tests --filter=AreaCompletion\|AreaMilestone` **15/15** |
 | Store location / key | `area_milestones.db` (SQLite WAL); OSM id + `fired_mask` + `completed_100_at` |
 | Accepted by | |
 | Accepted date | |
