@@ -116,7 +116,7 @@ store, 25/50/100 would re-fire after every cache rebuild or map update.
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-063-milestone-state-aee9` |
-| Test output | `street_pixels_areas_tests` **111/111** (`AreaMilestone_*` 6/6); `street_pixels_tests --filter=AreaCompletion\|AreaMilestone` **15/15** |
+| Test output | `street_pixels_areas_tests` **113/113** (`AreaMilestone_*` 8/8); `street_pixels_tests --filter=AreaCompletion\|AreaMilestone` **15/15** |
 | Store location / key | `area_milestones.db` (SQLite WAL); OSM id + `fired_mask` + `completed_100_at` |
 | Accepted by | |
 | Accepted date | |
@@ -125,4 +125,7 @@ store, 25/50/100 would re-fire after every cache rebuild or map update.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| (filled during implementation) | |
+| `SCOPE_GUARD([stmt])` copied nullptr and never finalized statements. | Fixed in this item (`[&stmt]` + `sqlite3_close_v2`). |
+| City-summary vs area fire was implementation-only until tests. | Added `AreaMilestone_CitySummaryDoesNotWriteAreaFiredState`. |
+| Compact-index change vs OSM id was not tested. | Added `AreaMilestone_OsmIdStableAcrossCompactIndexChange`. |
+| Presentation queue / UI. | SP-065. |

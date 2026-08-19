@@ -6,7 +6,6 @@
 #include <mutex>
 #include <optional>
 #include <string>
-#include <string>
 #include <vector>
 
 struct sqlite3;
@@ -74,14 +73,16 @@ public:
   void Reopen(std::string const & dbPath);
 
 private:
-  bool EnsureOpen();
-  void InitSchema();
+  bool EnsureOpen() const;
+  void CloseDb() const;
+  void InitSchema() const;
   std::optional<AreaMilestoneRecord> LoadRecord(uint64_t osmId) const;
+  bool WasPreviouslyCompletedUnlocked(uint64_t osmId, double currentFraction) const;
   bool UpsertRecord(uint64_t osmId, uint8_t firedMask, std::optional<int64_t> completed100At);
   void AppendPendingCrossings(std::vector<AreaMilestoneCrossing> const & crossings);
 
   std::string m_dbPath;
-  sqlite3 * m_db = nullptr;
+  mutable sqlite3 * m_db = nullptr;
   mutable std::mutex m_mutex;
   std::vector<AreaMilestoneCrossing> m_pendingCrossings;
 };

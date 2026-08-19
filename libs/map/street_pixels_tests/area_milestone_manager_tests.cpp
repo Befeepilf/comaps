@@ -1,7 +1,6 @@
 #include "testing/testing.hpp"
 
 #include "map/street_pixels_file.hpp"
-#include "map/street_pixels_file.hpp"
 #include "map/street_pixels_manager.hpp"
 
 #include "map/street_pixels_tests/street_pixels_test_helpers.hpp"
