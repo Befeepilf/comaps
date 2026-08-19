@@ -1,7 +1,7 @@
 # SP-064 — First-100-metres contextual goal
 
 **Phase:** 7 — Milestones and share cards
-**Status:** In review
+**Status:** Accepted
 **Branch:** `cursor/sp-064-first-100m-aee9`
 **Depends on:** SP-062 M2 (pixel equivalent) and M8 (once per install).
   Recording session (SP-006) and live collection (SP-007/009/011).
@@ -119,8 +119,8 @@ This is contextual onboarding, not an achievement system (§18.5).
 | Test output | `street_pixels_tests --filter=FirstGoal` **9/9** |
 | M2 count used | 10 newly explored live pixels (SPD-047) |
 | Manual validation | Device residual → SP-069 / Phase 10 |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-19 |
 
 ## Discovered follow-up
 
