@@ -57,7 +57,9 @@ bool FirstGoalTracker::AddNewlyExploredLivePixels(uint32_t count)
   LoadUnlocked();
   if (m_complete)
     return false;
-  uint32_t const next = m_collected + count;
+  uint32_t const room = kFirstGoalLivePixelThreshold - m_collected;
+  uint32_t const add = count > room ? room : count;
+  uint32_t const next = m_collected + add;
   if (next >= kFirstGoalLivePixelThreshold)
   {
     m_collected = kFirstGoalLivePixelThreshold;

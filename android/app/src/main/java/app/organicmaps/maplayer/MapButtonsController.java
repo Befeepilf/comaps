@@ -520,16 +520,17 @@ public class MapButtonsController extends Fragment
     {
       mFirstGoalBadge.animate().cancel();
       mFirstGoalBadge.setAlpha(1f);
-      if (progress.collected > 0)
-        mFirstGoalBadge.setText(getString(R.string.street_pixels_first_goal_progress, progress.collected));
-      else
-        mFirstGoalBadge.setText(R.string.street_pixels_first_goal);
+      mFirstGoalBadge.setText(
+          getString(R.string.street_pixels_first_goal_progress, progress.collected, progress.threshold));
       showButton(true, MapButtons.firstGoalBanner);
     }
     else if (progress.state == FirstGoalProgress.STATE_COMPLETE && mFirstGoalBadge.getVisibility() == View.VISIBLE)
     {
-      mFirstGoalBadge.setText(getString(R.string.street_pixels_first_goal_progress, progress.threshold));
+      mFirstGoalBadge.setText(
+          getString(R.string.street_pixels_first_goal_progress, progress.threshold, progress.threshold));
       mFirstGoalBadge.animate().alpha(0f).setDuration(250).withEndAction(() -> {
+        if (!isAdded() || mFirstGoalBadge == null)
+          return;
         showButton(false, MapButtons.firstGoalBanner);
         mFirstGoalBadge.setAlpha(1f);
       }).start();
@@ -696,6 +697,8 @@ public class MapButtonsController extends Fragment
     mMapButtonsViewModel.getRecordingSessionState().removeObserver(mRecordingSessionObserver);
     StreetPixelsManager.unregisterFocusedAreaProgressCallback(mFocusedAreaProgressCallback);
     StreetPixelsManager.unregisterFirstGoalProgressCallback(mFirstGoalProgressCallback);
+    if (mFirstGoalBadge != null)
+      mFirstGoalBadge.animate().cancel();
     mMapButtonsViewModel.getStreetPixelsState().removeObserver(mStreetPixelsStateObserver);
   }
 
