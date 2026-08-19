@@ -5,6 +5,7 @@
 #include "street_pixels_areas/area_completion_cache.hpp"
 #include "street_pixels_areas/area_milestone_store.hpp"
 #include "street_pixels_areas/areas_writer.hpp"
+#include "street_pixels_areas/city_completion_cache.hpp"
 #include "street_pixels_areas/exploration_area_resolver.hpp"
 #include "street_pixels_areas/exploration_sidecar.hpp"
 
@@ -12,6 +13,7 @@
 
 #include "base/file_name_utils.hpp"
 
+#include <algorithm>
 #include <string>
 
 namespace
@@ -22,6 +24,13 @@ using namespace street_pixels::test_helpers;
 std::string MilestoneDbPath(std::string const & leaf)
 {
   return base::JoinPath(GetPlatform().WritableDir(), leaf + ".db");
+}
+
+void RemoveMilestoneDb(std::string const & path)
+{
+  Platform::RemoveFileIfExists(path);
+  Platform::RemoveFileIfExists(path + "-wal");
+  Platform::RemoveFileIfExists(path + "-shm");
 }
 
 struct MilestoneFixture
@@ -113,7 +122,7 @@ MilestoneFixture MakeEmptyDistrictFixture(std::string const & leaf)
 UNIT_TEST(AreaMilestone_FireOncePerThreshold)
 {
   auto const dbPath = MilestoneDbPath("sp063_fire_once");
-  Platform::RemoveFileIfExists(dbPath);
+  RemoveMilestoneDb(dbPath);
 
   auto fx = MakeTwoPixelDistrictFixture("sp063_fire_once_spa");
   AreaMilestoneStore store(dbPath);
@@ -142,14 +151,14 @@ UNIT_TEST(AreaMilestone_FireOncePerThreshold)
   TEST(record->m_completed100At.has_value(), ());
   TEST_EQUAL(*record->m_completed100At, 1002, ());
 
-  Platform::RemoveFileIfExists(dbPath);
+  RemoveMilestoneDb(dbPath);
   RemoveIfExists(fx.m_path);
 }
 
 UNIT_TEST(AreaMilestone_TripleCrossOneUpdate)
 {
   auto const dbPath = MilestoneDbPath("sp063_triple");
-  Platform::RemoveFileIfExists(dbPath);
+  RemoveMilestoneDb(dbPath);
 
   auto fx = MakeDistrictCityFixture("sp063_triple_spa");
   AreaMilestoneStore store(dbPath);
@@ -161,14 +170,14 @@ UNIT_TEST(AreaMilestone_TripleCrossOneUpdate)
   TEST_EQUAL(crossings[1].m_threshold, AreaMilestoneThreshold::P50, ());
   TEST_EQUAL(crossings[2].m_threshold, AreaMilestoneThreshold::P25, ());
 
-  Platform::RemoveFileIfExists(dbPath);
+  RemoveMilestoneDb(dbPath);
   RemoveIfExists(fx.m_path);
 }
 
 UNIT_TEST(AreaMilestone_NoRefireAfterDrop)
 {
   auto const dbPath = MilestoneDbPath("sp063_norefire");
-  Platform::RemoveFileIfExists(dbPath);
+  RemoveMilestoneDb(dbPath);
 
   auto fx = MakeDistrictCityFixture("sp063_norefire_spa");
   AreaMilestoneStore store(dbPath);
@@ -186,15 +195,18 @@ UNIT_TEST(AreaMilestone_NoRefireAfterDrop)
   TEST(record->m_completed100At.has_value(), ());
   TEST_EQUAL(*record->m_completed100At, 3000, ());
   TEST(store.WasPreviouslyCompletedBelow100(10, 0.0), ());
+  auto const below = store.ListAreasPreviouslyCompletedNowBelow(partial);
+  TEST_EQUAL(below.size(), 1, ());
+  TEST_EQUAL(below[0], 10u, ());
 
-  Platform::RemoveFileIfExists(dbPath);
+  RemoveMilestoneDb(dbPath);
   RemoveIfExists(fx.m_path);
 }
 
 UNIT_TEST(AreaMilestone_ZeroTotalDoesNotFire)
 {
   auto const dbPath = MilestoneDbPath("sp063_zero");
-  Platform::RemoveFileIfExists(dbPath);
+  RemoveMilestoneDb(dbPath);
 
   auto fx = MakeEmptyDistrictFixture("sp063_zero_spa");
   AreaMilestoneStore store(dbPath);
@@ -204,14 +216,14 @@ UNIT_TEST(AreaMilestone_ZeroTotalDoesNotFire)
   TEST_EQUAL(crossings.size(), 0, ());
   TEST(!store.Get(10).has_value(), ());
 
-  Platform::RemoveFileIfExists(dbPath);
+  RemoveMilestoneDb(dbPath);
   RemoveIfExists(fx.m_path);
 }
 
 UNIT_TEST(AreaMilestone_ConsumePendingCrossings)
 {
   auto const dbPath = MilestoneDbPath("sp063_pending");
-  Platform::RemoveFileIfExists(dbPath);
+  RemoveMilestoneDb(dbPath);
 
   auto fx = MakeDistrictCityFixture("sp063_pending_spa");
   AreaMilestoneStore store(dbPath);
@@ -222,14 +234,14 @@ UNIT_TEST(AreaMilestone_ConsumePendingCrossings)
   TEST_EQUAL(pending.size(), 3, ());
   TEST_EQUAL(store.ConsumePendingCrossings().size(), 0, ());
 
-  Platform::RemoveFileIfExists(dbPath);
+  RemoveMilestoneDb(dbPath);
   RemoveIfExists(fx.m_path);
 }
 
 UNIT_TEST(AreaMilestone_OsmIdStableAcrossCacheRebuild)
 {
   auto const dbPath = MilestoneDbPath("sp063_osm");
-  Platform::RemoveFileIfExists(dbPath);
+  RemoveMilestoneDb(dbPath);
 
   auto fx = MakeDistrictCityFixture("sp063_osm_spa");
   AreaMilestoneStore store(dbPath);
@@ -248,6 +260,77 @@ UNIT_TEST(AreaMilestone_OsmIdStableAcrossCacheRebuild)
   TEST(record.has_value(), ());
   TEST((record->m_firedMask & kAreaMilestoneMask100) != 0, ());
 
-  Platform::RemoveFileIfExists(dbPath);
+  RemoveMilestoneDb(dbPath);
+  RemoveIfExists(fx.m_path);
+}
+
+UNIT_TEST(AreaMilestone_OsmIdStableAcrossCompactIndexChange)
+{
+  auto const dbPath = MilestoneDbPath("sp063_compact");
+  RemoveMilestoneDb(dbPath);
+
+  auto fx = MakeDistrictCityFixture("sp063_compact_spa");
+  AreaMilestoneStore store(dbPath);
+
+  auto cache = BuildDistrictCityCache(fx, {10});
+  auto const districtBefore = cache.Get(0);
+  TEST(districtBefore.has_value(), ());
+  TEST_EQUAL(districtBefore->m_osmId, 10u, ());
+  TEST_EQUAL(districtBefore->m_compactIndex, 0u, ());
+
+  auto crossings = store.EvaluateAndRecordFires(cache, 7000);
+  TEST_EQUAL(crossings.size(), 3, ());
+  TEST_EQUAL(crossings[0].m_compactIndex, 0u, ());
+
+  std::reverse(fx.m_areas.begin(), fx.m_areas.end());
+  fx.m_params.m_mapDataVersion = 342;
+  RemoveIfExists(fx.m_path);
+  WriteExplorationSidecar(fx.m_path, fx.m_areas, fx.m_samples, fx.m_policy, fx.m_params);
+
+  auto rebuilt = BuildDistrictCityCache(fx, {10});
+  auto const districtAfter = rebuilt.Get(1);
+  TEST(districtAfter.has_value(), ());
+  TEST_EQUAL(districtAfter->m_osmId, 10u, ());
+  TEST_EQUAL(districtAfter->m_compactIndex, 1u, ());
+  TEST_EQUAL(rebuilt.Get(0)->m_osmId, 8u, ());
+
+  crossings = store.EvaluateAndRecordFires(rebuilt, 7001);
+  TEST_EQUAL(crossings.size(), 0, ());
+
+  auto record = store.Get(10);
+  TEST(record.has_value(), ());
+  TEST((record->m_firedMask & kAreaMilestoneMask100) != 0, ());
+  TEST_EQUAL(*record->m_completed100At, 7000, ());
+
+  RemoveMilestoneDb(dbPath);
+  RemoveIfExists(fx.m_path);
+}
+
+UNIT_TEST(AreaMilestone_CitySummaryDoesNotWriteAreaFiredState)
+{
+  auto const dbPath = MilestoneDbPath("sp063_city");
+  RemoveMilestoneDb(dbPath);
+
+  auto fx = MakeDistrictCityFixture("sp063_city_spa");
+  AreaMilestoneStore store(dbPath);
+
+  auto cache = BuildDistrictCityCache(fx, {10});
+  TEST_EQUAL(cache.GetFraction(0), 1.0, ());
+  TEST_EQUAL(cache.GetFraction(1), 0.0, ());
+
+  auto resolver = ExplorationAreaResolver::TryLoad(fx.m_path, fx.m_universe, fx.m_params.m_mapDataVersion,
+                                                   fx.m_params.m_policyVersion);
+  TEST(resolver.has_value(), ());
+  auto cityCache = CityCompletionCache::Build(resolver->GetFile(), cache);
+  TEST(cityCache.IsValid(), ());
+  TEST_EQUAL(cityCache.GetFraction(1), 0.5, ());
+
+  auto crossings = store.EvaluateAndRecordFires(cache, 8000);
+  TEST_EQUAL(crossings.size(), 3, ());
+  for (auto const & crossing : crossings)
+    TEST_EQUAL(crossing.m_osmId, 10u, ());
+  TEST(!store.Get(8).has_value(), ());
+
+  RemoveMilestoneDb(dbPath);
   RemoveIfExists(fx.m_path);
 }
