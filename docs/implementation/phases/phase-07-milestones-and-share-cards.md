@@ -1,7 +1,8 @@
 # Phase 7 — Milestones and share cards
 
 **Status:** Not started (work items SP-062–069 created 2026-08-19; coding
-gated on SP-062 locks)
+gated on SP-062 locks; SP-062 is **In review** with M1–M10 proposed, not
+Accepted)
 **Depends on:** Phase 5
 **Blocks:** nothing; required for release
 
@@ -38,6 +39,10 @@ accomplishment without exposing where the user lives or where they went.
 ## Current code locations
 
 Re-verified 2026-08-19 against the working tree (Phase 7 work-item planning).
+SP-062 re-verify (2026-08-19) confirmed this table. Extras in
+[`notes/SP-062-milestone-share-architecture.md`](../notes/SP-062-milestone-share-architecture.md):
+`qt/screenshoter.*` is desktop QA, not a card path;
+`Framework::EnterForeground` does not notify Street Pixels.
 
 | Concern | Location | Observed state |
 | --- | --- | --- |
@@ -97,9 +102,11 @@ chrome the 2026-07-25 snapshot marked missing for the badge.
 ### Blocking unknowns (must not be guessed in coding items)
 
 Recorded as **M1–M10** in
-[`SP-062`](../work-items/SP-062-milestone-share-architecture-decisions.md).
+[`SP-062`](../work-items/SP-062-milestone-share-architecture-decisions.md),
+proposed as **OQ-9–OQ-18** (draft SPD-046–055) in `DECISIONS.md` §15.
 Coding SP-063+ waits on those locks (Accepted SPDs or an explicit maintainer
-deferral). M1 is also the remaining Phase 7 **entry** criterion.
+deferral). M1 / OQ-9 is also the remaining Phase 7 **entry** criterion
+(**unmet**).
 
 Recommended positions (not Accepted until SP-062 / maintainer):
 
@@ -203,6 +210,11 @@ Additional considerations:
 
 - Phase 5 exit criteria met.
 - A decision exists on how the stylised map on the card is rendered.
+  **Unmet** until the maintainer Accepts M1 / OQ-9 (draft SPD-046).
+  Proposals: [`SP-062`](../work-items/SP-062-milestone-share-architecture-decisions.md)
+  drafts and
+  [`notes/SP-062-milestone-share-architecture.md`](../notes/SP-062-milestone-share-architecture.md).
+  Do not treat the rings-only recommendation as Accepted.
 
 ## Exit criteria
 
@@ -231,16 +243,16 @@ Additional considerations:
 
 ## Known uncertainties
 
-Tracked as **M1–M10** in SP-062 (recommended positions recorded; not Accepted
-until maintainer lock):
+Tracked as **M1–M10** in SP-062. Proposed as **OQ-9–OQ-18** (draft
+SPD-046–055) in `DECISIONS.md` §15. **Not Accepted.**
 
-- M1 — stylised map render path (Phase 7 entry criterion).
-- M2 — 100 m → new-live-pixel count.
-- M3 — fired-state store and key.
-- M4 — re-fire after map update.
-- M5 — several areas in one session.
-- M6 — completion date on the card by default vs opt-in.
-- M7 — competition line stub vs Phase 8.
-- M8 — first-100 m once per install.
-- M9 — haptics predicate (foreground, one pulse, toggle).
-- M10 — growth analytics sink (local + Phase 10 residual).
+- M1 / OQ-9 — stylised map render path (Phase 7 entry criterion; **unmet**).
+- M2 / OQ-10 — 100 m → new-live-pixel count.
+- M3 / OQ-11 — fired-state store and key.
+- M4 / OQ-12 — re-fire after map update.
+- M5 / OQ-13 — several areas in one session.
+- M6 / OQ-14 — completion date on the card by default vs opt-in.
+- M7 / OQ-15 — competition line stub vs Phase 8.
+- M8 / OQ-16 — first-100 m once per install.
+- M9 / OQ-17 — haptics predicate (foreground, one pulse, toggle).
+- M10 / OQ-18 — growth analytics sink (local + Phase 10 residual).

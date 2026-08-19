@@ -8,6 +8,7 @@
   `OrganicMaps.nativeOnTransit` → `Framework::EnterForeground/Background`.
   First-goal / 50% / 100% **events** from SP-064 and SP-065 (waveforms may
   land after those items; the predicate and collection pulse do not wait).
+**Notes:** Coding waits on OQ-17 (draft SPD-054).
 **Unblocks:** SP-069 exit #7; first-goal / 50% / 100% stronger patterns
 
 ---

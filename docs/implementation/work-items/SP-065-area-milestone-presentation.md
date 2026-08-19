@@ -6,6 +6,7 @@
 **Depends on:** SP-062 M5 (queue / non-interrupt) and M7 (competition stub);
   SP-063 fired-state; SP-034/035 focused-area badge. SP-067 compositor may
   land after: 100% must offer a card surface, which SP-067 fills.
+**Notes:** Coding waits on OQ-13 / OQ-15 (draft SPD-050 / SPD-052).
 **Unblocks:** SP-067 card surface; SP-069 exit #1, #2, #5
 
 ---

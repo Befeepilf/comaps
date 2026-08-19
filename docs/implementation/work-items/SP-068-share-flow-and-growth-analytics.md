@@ -5,6 +5,7 @@
 **Branch:**
 **Depends on:** SP-067 card image/model; SP-062 M10; SPD-044 local-counter
   pattern (SP-060).
+**Notes:** Coding waits on OQ-14 / OQ-18 (draft SPD-051 / SPD-055).
 **Unblocks:** SP-069 exit #6 and #9
 
 ---
