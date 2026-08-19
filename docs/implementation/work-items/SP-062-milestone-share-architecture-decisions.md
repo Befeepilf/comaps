@@ -122,18 +122,22 @@ map screenshot. V1 share image composed off-map from
 `ExplorationArea::m_rings` (outers only). Shared card model in `libs/`;
 Android or headless rasteriser given only that model. Never capture Drape /
 `MapView`; never draw explored HEALPix, route, home, live location, track,
-or position marker. `area_overlay` stays in-app. City-summary does not fire
-area 25/50/100 or a city share card.
+or position marker. Do not use MWM / country id as the title. Do not put
+lat/lon, `geo:`, or ge0 URLs on the card. No individual timestamps and no
+other users’ personal information. `area_overlay` stays in-app.
+City-summary does not fire area 25/50/100 or a city share card.
 
 **Status.** Proposed — awaiting maintainer lock.
 
 ### Draft SPD-047 (M2 / OQ-10)
 
-**Decision.** First-100 m is 10 new live pixels (not geodesic 100 m), from
-§10 step 10. Also lock (a) newly explored only (today's
-`numNewlyExploredPixels`) vs (b) `IsEverLive` flip. Recommendation: (a).
-Import-only never counts. Do not encode in SP-064 until Accepted. 25 m
-pulse can complete in one update.
+**Decision.** Proposed V1 first-100 m counts newly explored cells only
+(today’s `numNewlyExploredPixels`), not `IsEverLive` flips; the threshold is
+10 new live pixels (from §10 step 10: 30 ≈ 300 m) unless the maintainer
+picks otherwise. This is not geodesic 100 m and not a HEALPix-area formula.
+Import-only writes never count. (a) vs (b) remains a product choice until
+Accept. Do not encode the count in SP-064 until Accepted. A 25 m collection
+pulse can complete the goal in one update.
 
 **Status.** Proposed — awaiting maintainer lock.
 

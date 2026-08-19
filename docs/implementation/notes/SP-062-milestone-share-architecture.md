@@ -244,7 +244,7 @@ Reported, not resolved.
 
 | Tension | Spec | Code / decisions / audit | Notes |
 | --- | --- | --- | --- |
-| ~100 m vs 30 px ≈ 300 m vs 25 m radius | §10 step 9 ≈ 100 m; step 10: 30 new live pixels ≈ 300 m | `kExploreRadiusMeters = 25`; one update can collect many cells | 10-pixel reading follows step 10; geodesic 100 m and 25 m pulse disagree. Not picked. |
+| ~100 m vs 30 px ≈ 300 m vs 25 m radius | §10 step 9 ≈ 100 m; step 10: 30 new live pixels ≈ 300 m; §32.1 lists **First 10 pixels collected** and **First 100 metres explored** as separate activation metrics | `kExploreRadiusMeters = 25`; one update can collect many cells | 10-pixel reading follows step 10; geodesic 100 m, 25 m pulse, and §32.1’s two distinct events disagree. Extra evidence for 10 px, and a reason **not** to treat 10 px ≡ 100 m as already locked. |
 | 10 m vs 15 m sampling | §14 / eligible-geometry sampling ≈ 10 m | SPD-019: 15 m live/track/derivation | Conscious V1 divergence. Affects “metres of pixels” intuition, not the 10-pixel proposal. |
 | new live vs `IsEverLive` flip | §10 step 9 “new live street pixels” | `numNewlyExploredPixels` only on `!IsExplored()`; imported→live flip does not increment | (a) vs (b) must lock. Recommend (a). |
 | stylized map or outline vs rings-only | §19.1 “Stylized map or boundary outline” | Rings exist; no neighbourhood compositor; overlay is in-app | Outline branch recommended. Stylised non-outline map would need a spike. |
