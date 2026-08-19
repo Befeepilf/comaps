@@ -514,6 +514,7 @@ Framework::Framework(FrameworkParams const & params, bool loadMaps)
   m_recordingSession->SetStateListener([this](RecordingSession::State previous, RecordingSession::State current)
   {
     ApplyRecordingPauseResumeEffects(previous, current, &GpsTracker::Instance(), m_streetPixelsManager.get());
+    m_streetPixelsManager->OnRecordingSessionStateChanged();
     if (m_recordingSessionPlatformListener)
       m_recordingSessionPlatformListener(previous, current);
   });

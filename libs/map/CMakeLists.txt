@@ -25,6 +25,8 @@ set(SRC
   backend_config.hpp
   explorer_pro.cpp
   explorer_pro.hpp
+  first_goal.cpp
+  first_goal.hpp
   live_sample_acceptance_filter.cpp
   live_sample_acceptance_filter.hpp
   live_segment_interpolation.cpp

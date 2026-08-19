@@ -2,6 +2,7 @@
 
 #include "map/bookmark_manager.hpp"
 
+#include "map/first_goal.hpp"
 #include "map/live_sample_acceptance_filter.hpp"
 #include "map/live_segment_interpolation.hpp"
 
@@ -236,6 +237,14 @@ public:
   using VibrationHandler = std::function<void(size_t newlyExplored)>;
   void SetVibrationHandler(VibrationHandler const & handler);
 
+  using FirstGoalProgressChangedFn = std::function<void(street_pixels::FirstGoalProgress const &)>;
+  using FirstGoalCompleteFn = std::function<void()>;
+  void SetFirstGoalProgressListener(FirstGoalProgressChangedFn const & fn);
+  void SetFirstGoalCompleteHandler(FirstGoalCompleteFn const & fn);
+  street_pixels::FirstGoalProgress GetFirstGoalProgress() const;
+  void OnRecordingSessionStateChanged();
+  void ResetFirstGoalForTesting();
+
   void SetStreetPixelsForTesting(std::vector<df::StreetPixel> pixels);
   void SetStreetPixelsOverlayForTesting(storage::CountryId const & countryId, std::vector<df::StreetPixel> pixels);
   void ClearLeafPixCacheForTesting();
@@ -298,9 +307,15 @@ private:
   LiveSegmentInterpolation m_segmentInterpolation;
   uint64_t m_filterSessionId = 0;
   VibrationHandler m_vibrationHandler;
+  FirstGoalProgressChangedFn m_firstGoalProgressListener;
+  FirstGoalCompleteFn m_firstGoalCompleteHandler;
+  street_pixels::FirstGoalTracker m_firstGoalTracker;
+  street_pixels::FirstGoalProgress m_lastNotifiedFirstGoalProgress;
   std::vector<df::StreetPixel> m_testStreetPixelsStorage;
 
   void TriggerCollectionVibration(size_t numNewlyExploredPixels);
+  void NotifyFirstGoalProgressIfChanged();
+  bool IsFirstGoalSessionActive() const;
   size_t MarkExploredPixelIds(std::set<std::int64_t> const & pixelIds, double eventTimeSec);
 
   bool RematchStreetPixelsWithNewUniverseUnlocked(storage::CountryId const & countryId,

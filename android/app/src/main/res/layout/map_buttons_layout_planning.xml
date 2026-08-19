@@ -46,7 +46,7 @@
     app:layout_constraintTop_toTopOf="parent" />
   <include
     layout="@layout/map_exploration_banner"
-    android:id="@+id/exploration_percentage"
+    android:id="@+id/exploration_banner_group"
     android:layout_width="0dp"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="@dimen/margin_base"

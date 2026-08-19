@@ -7,6 +7,8 @@
 #include "street_pixels_areas/focus_selection_engine.hpp"
 #include "street_pixels_areas/focused_area_progress.hpp"
 
+#include "map/first_goal.hpp"
+
 #include "platform/local_country_file.hpp"
 #include "platform/location.hpp"
 #include "platform/platform.hpp"
@@ -39,6 +41,26 @@ static void StreetPixelsStateChanged(bool enabled, StreetPixelsManager::StreetPi
   JNIEnv * env = jni::GetEnv();
   env->CallVoidMethod(*listener, jni::GetMethodID(env, *listener, "onStateChanged", "(ZILjava/lang/String;)V"),
                       static_cast<jboolean>(enabled), static_cast<jint>(status), jni::ToJavaString(env, countryId));
+}
+
+static jobject ToJavaFirstGoalProgress(JNIEnv * env, street_pixels::FirstGoalProgress const & progress)
+{
+  static jclass const progressClass =
+      jni::GetGlobalClassRef(env, "app/organicmaps/sdk/maplayer/streetpixels/FirstGoalProgress");
+  static jmethodID const ctor = jni::GetConstructorID(env, progressClass, "(III)V");
+  return env->NewObject(progressClass, ctor, static_cast<jint>(progress.m_state),
+                        static_cast<jint>(progress.m_collected), static_cast<jint>(progress.m_threshold));
+}
+
+static void CallFirstGoalCallback(std::shared_ptr<jobject> const & listener,
+                                  street_pixels::FirstGoalProgress const & progress)
+{
+  JNIEnv * env = jni::GetEnv();
+  jni::TScopedLocalRef const jProgress(env, ToJavaFirstGoalProgress(env, progress));
+  env->CallVoidMethod(*listener,
+                      jni::GetMethodID(env, *listener, "onFirstGoalProgressChanged",
+                                       "(Lapp/organicmaps/sdk/maplayer/streetpixels/FirstGoalProgress;)V"),
+                      jProgress.get());
 }
 
 static void CallFocusedAreaCallback(std::shared_ptr<jobject> const & listener, char const * method,
@@ -75,6 +97,12 @@ JNIEXPORT void JNICALL Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixe
         GetPlatform().RunTask(Platform::Thread::Gui, [globalListener, progress]()
         { CallFocusedAreaCallback(globalListener, "onExplorationAreaTapped", progress); });
       });
+  manager.SetFirstGoalProgressListener(
+      [globalListener](street_pixels::FirstGoalProgress const & progress)
+      {
+        GetPlatform().RunTask(Platform::Thread::Gui, [globalListener, progress]()
+        { CallFirstGoalCallback(globalListener, progress); });
+      });
 }
 
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeRemoveListener(JNIEnv * env,
@@ -85,6 +113,7 @@ JNIEXPORT void JNICALL Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixe
   auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
   manager.SetFocusedAreaProgressListener(nullptr);
   manager.SetExplorationAreaTapListener(nullptr);
+  manager.SetFirstGoalProgressListener(nullptr);
 }
 
 JNIEXPORT jboolean JNICALL
@@ -158,5 +187,14 @@ Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeSelectF
   auto & native = *g_framework->NativeFramework();
   native.SelectStreetPixelsFocusAt(mercator::FromLatLon(lat, lon));
   return ToJavaFocusedAreaProgress(env, native.GetStreetPixelsManager().GetFocusedAreaProgress());
+}
+
+JNIEXPORT jobject JNICALL
+Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeGetFirstGoalProgress(JNIEnv * env,
+                                                                                              jclass clazz)
+{
+  CHECK(g_framework, ("Framework isn't created yet!"));
+  auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
+  return ToJavaFirstGoalProgress(env, manager.GetFirstGoalProgress());
 }
 }
