@@ -1,8 +1,6 @@
 # Phase 7 — Milestones and share cards
 
-**Status:** Not started (work items SP-062–069 created 2026-08-19; coding
-gated on SP-062 locks; SP-062 is **In review** with M1–M10 proposed, not
-Accepted)
+**Status:** In progress (SP-062 Accepted 2026-08-19; SP-063+ coding underway)
 **Depends on:** Phase 5
 **Blocks:** nothing; required for release
 
@@ -212,11 +210,7 @@ Additional considerations:
 
 - Phase 5 exit criteria met.
 - A decision exists on how the stylised map on the card is rendered.
-  **Unmet** until the maintainer Accepts M1 / OQ-9 (draft SPD-046).
-  Proposals: [`SP-062`](../work-items/SP-062-milestone-share-architecture-decisions.md)
-  drafts and
-  [`notes/SP-062-milestone-share-architecture.md`](../notes/SP-062-milestone-share-architecture.md).
-  Do not treat the rings-only recommendation as Accepted.
+  **Met** — maintainer Accepted M1 / OQ-9 as **SPD-046** (2026-08-19 via SP-062).
 
 ## Exit criteria
 
