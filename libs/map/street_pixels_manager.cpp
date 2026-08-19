@@ -1914,6 +1914,53 @@ double StreetPixelsManager::GetAreaCompletionFraction(uint32_t compactIndex) con
   return m_areaCompletionCache.GetFraction(compactIndex);
 }
 
+std::optional<street_pixels::AreaMilestoneRecord> StreetPixelsManager::GetAreaMilestoneRecord(uint64_t osmId) const
+{
+  return street_pixels::AreaMilestoneStore::Instance().Get(osmId);
+}
+
+std::optional<street_pixels::AreaMilestoneRecord> StreetPixelsManager::GetAreaMilestoneRecordByCompactIndex(
+    uint32_t compactIndex) const
+{
+  std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+  auto const counts = m_areaCompletionCache.Get(compactIndex);
+  if (!counts || counts->m_osmId == 0)
+    return std::nullopt;
+  return street_pixels::AreaMilestoneStore::Instance().Get(counts->m_osmId);
+}
+
+std::vector<street_pixels::AreaMilestoneCrossing> StreetPixelsManager::ConsumePendingAreaMilestoneCrossings()
+{
+  return street_pixels::AreaMilestoneStore::Instance().ConsumePendingCrossings();
+}
+
+bool StreetPixelsManager::WasAreaPreviouslyCompletedBelow100(uint32_t compactIndex) const
+{
+  std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+  auto const counts = m_areaCompletionCache.Get(compactIndex);
+  if (!counts || counts->m_osmId == 0)
+    return false;
+  return street_pixels::AreaMilestoneStore::Instance().WasPreviouslyCompletedBelow100(
+      counts->m_osmId, street_pixels::AreaCompletionFraction(*counts));
+}
+
+void StreetPixelsManager::ConfigureAreaMilestoneStoreForTesting(std::string const & dbPath)
+{
+  street_pixels::AreaMilestoneStore::Instance().Reopen(dbPath);
+}
+
+void StreetPixelsManager::EvaluateAreaMilestonesUnlocked(int64_t nowSec)
+{
+  street_pixels::AreaCompletionCache cacheSnapshot;
+  {
+    std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+    if (!m_areaCompletionCache.IsValid())
+      return;
+    cacheSnapshot = m_areaCompletionCache;
+  }
+  street_pixels::AreaMilestoneStore::Instance().EvaluateAndRecordFires(cacheSnapshot, nowSec);
+}
+
 std::optional<street_pixels::AreaCompletionCounts> StreetPixelsManager::GetCityCompletion(
     uint32_t settlementCompactIndex) const
 {
@@ -2483,6 +2530,8 @@ bool StreetPixelsManager::RebuildAreaCompletionCacheFromLoadedUnlocked(
     m_areaCompletionCache = std::move(built);
     m_cityCompletionCache = std::move(cityBuilt);
   }
+
+  EvaluateAreaMilestonesUnlocked(static_cast<int64_t>(base::Timer::LocalTime()));
 
   base::Timer overlayTimer;
   PushExplorationAreaOverlayUnlocked(resolver.GetFile());
