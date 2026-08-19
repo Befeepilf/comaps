@@ -28,6 +28,7 @@
 #include "storage/storage.hpp"
 
 #include "street_pixels_areas/area_completion_cache.hpp"
+#include "street_pixels_areas/area_milestone_store.hpp"
 #include "street_pixels_areas/areas_types.hpp"
 #include "street_pixels_areas/city_completion_cache.hpp"
 #include "street_pixels_areas/exploration_area_resolver.hpp"
@@ -174,6 +175,13 @@ public:
   bool RebuildAreaCompletionCache(storage::CountryId const & countryId, std::string const & spaPath,
                                   int64_t mapDataVersion);
 
+  std::optional<street_pixels::AreaMilestoneRecord> GetAreaMilestoneRecord(uint64_t osmId) const;
+  std::optional<street_pixels::AreaMilestoneRecord> GetAreaMilestoneRecordByCompactIndex(
+      uint32_t compactIndex) const;
+  std::vector<street_pixels::AreaMilestoneCrossing> ConsumePendingAreaMilestoneCrossings();
+  bool WasAreaPreviouslyCompletedBelow100(uint32_t compactIndex) const;
+  void ConfigureAreaMilestoneStoreForTesting(std::string const & dbPath);
+
   // Focused-area progress for the primary badge (SP-035 / SP-036 §12.5).
   street_pixels::FocusedAreaProgress GetFocusedAreaProgress() const;
   void ClearFocusedArea();
@@ -309,6 +317,7 @@ private:
   bool RebuildAreaCompletionCacheFromLoadedUnlocked(std::vector<std::int64_t> const & universeAscending,
                                                     std::vector<std::int64_t> const & exploredAscending,
                                                     street_pixels::ExplorationAreaResolver const & resolver);
+  void EvaluateAreaMilestonesUnlocked(int64_t nowSec);
   void PushExplorationAreaOverlayUnlocked(street_pixels::SpaFile const & file);
   void RefreshFocusedAreaFractionUnlocked();
   void ClearFocusedAreaUnlocked();
