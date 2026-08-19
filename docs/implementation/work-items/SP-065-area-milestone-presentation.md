@@ -80,7 +80,7 @@ layer.
 - `street_pixels::DisplayName`
 - `Framework.nativeIsRoutingActive` / `RoutingManager::IsRoutingFollowing`
 - SP-040 completed overlay style
-- No milestone presentation symbol (2026-08-19)
+- `street_pixels::AreaMilestonePresenter` / JNI `AreaMilestonePresentation`
 
 ## Implementation notes / constraints
 

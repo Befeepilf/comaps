@@ -1,27 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Widget.Material3.CardView.Elevated"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="@dimen/margin_half"
-    android:visibility="gone">
-  <com.google.android.material.textview.MaterialTextView
-      android:id="@+id/area_completion_card_title"
+    android:visibility="gone"
+    app:cardBackgroundColor="?cardBackground"
+    app:cardCornerRadius="@dimen/margin_half"
+    app:cardElevation="@dimen/margin_quarter"
+    app:contentPadding="@dimen/margin_half">
+  <LinearLayout
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:textAppearance="@style/MwmTextAppearance.Headline6" />
-  <com.google.android.material.textview.MaterialTextView
-      android:id="@+id/area_completion_card_body"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="@dimen/margin_quarter"
-      android:textAppearance="@style/MwmTextAppearance.Body3" />
-  <com.google.android.material.button.MaterialButton
-      android:id="@+id/area_completion_card_share"
-      style="@style/Widget.Material3.Button.TextButton"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="@dimen/margin_half"
-      android:text="@string/share" />
-</LinearLayout>
+      android:orientation="vertical">
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/area_completion_card_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/MwmTextAppearance.Headline6" />
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/area_completion_card_body"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_quarter"
+        android:textAppearance="@style/MwmTextAppearance.Body3" />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/area_completion_card_share"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_half"
+        android:text="@string/share" />
+  </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
