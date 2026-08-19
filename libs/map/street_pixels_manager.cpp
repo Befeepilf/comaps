@@ -432,6 +432,69 @@ void StreetPixelsManager::ResetFirstGoalForTesting()
   NotifyFirstGoalProgressIfChanged();
 }
 
+void StreetPixelsManager::SetAreaMilestonePresentationListener(AreaMilestonePresentationChangedFn const & fn)
+{
+  m_areaMilestonePresentationListener = fn;
+}
+
+void StreetPixelsManager::SetAreaMilestoneHapticHandler(AreaMilestoneHapticFn const & fn)
+{
+  m_areaMilestoneHapticHandler = fn;
+}
+
+std::optional<street_pixels::AreaMilestonePresentation> StreetPixelsManager::GetCurrentAreaMilestonePresentation() const
+{
+  return m_areaMilestonePresenter.Peek();
+}
+
+void StreetPixelsManager::AcknowledgeAreaMilestonePresentation()
+{
+  auto const before = m_areaMilestonePresenter.Peek();
+  m_areaMilestonePresenter.Acknowledge();
+  NotifyAreaMilestonePresentationIfChanged(before);
+}
+
+void StreetPixelsManager::ResetAreaMilestonePresentationForTesting()
+{
+  m_areaMilestonePresenter.ResetForTesting();
+}
+
+void StreetPixelsManager::IngestPendingAreaMilestonePresentations(street_pixels::SpaFile const & file)
+{
+  auto const before = m_areaMilestonePresenter.Peek();
+  auto const crossings = ConsumePendingAreaMilestoneCrossings();
+  m_areaMilestonePresenter.Enqueue(crossings, [&file](uint32_t compactIndex, uint64_t)
+  {
+    auto const * area = street_pixels::FindAreaByCompactIndex(file, compactIndex);
+    if (area == nullptr)
+      return std::string();
+    return std::string(street_pixels::DisplayName(*area));
+  });
+  NotifyAreaMilestonePresentationIfChanged(before);
+}
+
+void StreetPixelsManager::NotifyAreaMilestonePresentationIfChanged(
+    std::optional<street_pixels::AreaMilestonePresentation> const & before)
+{
+  auto const after = m_areaMilestonePresenter.Peek();
+  if (before == after)
+    return;
+  if (m_areaMilestonePresentationListener)
+    m_areaMilestonePresentationListener(after);
+  EmitAreaMilestoneHapticIfNeeded(after);
+}
+
+void StreetPixelsManager::EmitAreaMilestoneHapticIfNeeded(
+    std::optional<street_pixels::AreaMilestonePresentation> const & head)
+{
+  if (!head || !m_areaMilestoneHapticHandler)
+    return;
+  if (head->m_threshold == street_pixels::AreaMilestoneThreshold::P50)
+    m_areaMilestoneHapticHandler(street_pixels::AreaMilestoneHapticEvent::FiftyPercent);
+  else if (head->m_threshold == street_pixels::AreaMilestoneThreshold::P100)
+    m_areaMilestoneHapticHandler(street_pixels::AreaMilestoneHapticEvent::HundredPercent);
+}
+
 bool StreetPixelsManager::IsFirstGoalSessionActive() const
 {
   if (m_recordingSession == nullptr)
@@ -2055,7 +2118,10 @@ void StreetPixelsManager::RefreshFocusedAreaFractionUnlocked()
 {
   std::lock_guard<std::mutex> focusLock(m_focusedAreaMutex);
   if (!m_focusedAreaProgress.m_hasFocus)
+  {
+    m_focusedAreaProgress.m_previouslyCompleted = false;
     return;
+  }
 
   std::lock_guard<std::mutex> cacheLock(m_areaCompletionMutex);
   if (!m_areaCompletionCache.IsValid())
@@ -2063,6 +2129,7 @@ void StreetPixelsManager::RefreshFocusedAreaFractionUnlocked()
     m_focusedAreaProgress.m_fractionValid = false;
     m_focusedAreaProgress.m_fraction = 0.0;
     m_focusedAreaProgress.m_areaCompleted = false;
+    m_focusedAreaProgress.m_previouslyCompleted = false;
     return;
   }
 
@@ -2074,6 +2141,7 @@ void StreetPixelsManager::RefreshFocusedAreaFractionUnlocked()
       m_focusedAreaProgress.m_fractionValid = false;
       m_focusedAreaProgress.m_fraction = 0.0;
       m_focusedAreaProgress.m_areaCompleted = false;
+      m_focusedAreaProgress.m_previouslyCompleted = false;
       return;
     }
     counts = m_cityCompletionCache.Get(m_focusedAreaProgress.m_compactIndex);
@@ -2088,12 +2156,21 @@ void StreetPixelsManager::RefreshFocusedAreaFractionUnlocked()
     m_focusedAreaProgress.m_fractionValid = false;
     m_focusedAreaProgress.m_fraction = 0.0;
     m_focusedAreaProgress.m_areaCompleted = false;
+    m_focusedAreaProgress.m_previouslyCompleted = false;
     return;
   }
   m_focusedAreaProgress.m_fraction = street_pixels::AreaCompletionFraction(*counts);
   m_focusedAreaProgress.m_fractionValid = true;
   m_focusedAreaProgress.m_areaCompleted =
       counts->m_total > 0 && counts->m_explored >= counts->m_total;
+  if (m_focusedAreaProgress.m_citySummary)
+    m_focusedAreaProgress.m_previouslyCompleted = false;
+  else
+  {
+    m_focusedAreaProgress.m_previouslyCompleted =
+        street_pixels::AreaMilestoneStore::Instance().WasPreviouslyCompletedBelow100(
+            counts->m_osmId, m_focusedAreaProgress.m_fraction);
+  }
 }
 
 void StreetPixelsManager::ClearFocusedAreaUnlocked()
@@ -2587,6 +2664,7 @@ bool StreetPixelsManager::RebuildAreaCompletionCacheFromLoadedUnlocked(
   }
 
   EvaluateAreaMilestonesUnlocked(static_cast<int64_t>(base::Timer::LocalTime()));
+  IngestPendingAreaMilestonePresentations(resolver.GetFile());
 
   base::Timer overlayTimer;
   PushExplorationAreaOverlayUnlocked(resolver.GetFile());

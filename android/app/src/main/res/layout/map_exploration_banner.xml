@@ -29,4 +29,11 @@
       android:autoSizeMinTextSize="12sp"
       android:ellipsize="end"
       android:text="@string/street_pixels_first_goal" />
+  <include
+      android:id="@+id/area_completion_card"
+      layout="@layout/area_completion_card"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="@dimen/margin_quarter"
+      android:visibility="gone" />
 </LinearLayout>

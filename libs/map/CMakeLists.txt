@@ -25,6 +25,8 @@ set(SRC
   backend_config.hpp
   explorer_pro.cpp
   explorer_pro.hpp
+  area_milestone_presentation.cpp
+  area_milestone_presentation.hpp
   first_goal.cpp
   first_goal.hpp
   live_sample_acceptance_filter.cpp

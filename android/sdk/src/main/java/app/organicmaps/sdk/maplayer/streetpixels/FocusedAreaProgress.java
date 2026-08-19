@@ -11,6 +11,7 @@ public class FocusedAreaProgress
   public final boolean citySummary;
   public final boolean areaCompleted;
   public final boolean noExplorationArea;
+  public final boolean previouslyCompleted;
   public final int compactIndex;
   public final long osmId;
   @NonNull
@@ -20,7 +21,7 @@ public class FocusedAreaProgress
   @Keep
   public FocusedAreaProgress(boolean hasFocus, boolean fractionValid, boolean citySummary, boolean areaCompleted,
                              boolean noExplorationArea, int compactIndex, long osmId, @NonNull String displayName,
-                             double fraction)
+                             double fraction, boolean previouslyCompleted)
   {
     this.hasFocus = hasFocus;
     this.fractionValid = fractionValid;
@@ -31,5 +32,6 @@ public class FocusedAreaProgress
     this.osmId = osmId;
     this.displayName = displayName;
     this.fraction = fraction;
+    this.previouslyCompleted = previouslyCompleted;
   }
 }

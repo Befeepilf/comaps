@@ -8,6 +8,8 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -15,6 +17,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
@@ -37,6 +41,7 @@ import app.organicmaps.sdk.downloader.UpdateInfo;
 import app.organicmaps.sdk.location.RecordingSession;
 import app.organicmaps.location.RecordingSessionUiModel;
 import app.organicmaps.sdk.maplayer.isolines.IsolinesManager;
+import app.organicmaps.sdk.maplayer.streetpixels.AreaMilestonePresentation;
 import app.organicmaps.sdk.maplayer.streetpixels.FirstGoalProgress;
 import app.organicmaps.sdk.maplayer.streetpixels.FocusedAreaProgress;
 import app.organicmaps.sdk.maplayer.streetpixels.StreetPixelsManager;
@@ -75,6 +80,12 @@ public class MapButtonsController extends Fragment
   @Nullable
   private ExtendedFloatingActionButton mFirstGoalBadge;
   @Nullable
+  private View mCompletionCard;
+  @Nullable
+  private TextView mCompletionCardTitle;
+  @Nullable
+  private TextView mCompletionCardBody;
+  @Nullable
   private ObjectAnimator mTrackRecordingBlinkAnimator;
 
   @Nullable
@@ -98,6 +109,10 @@ public class MapButtonsController extends Fragment
       this::bindExplorationBadgeFromProgress;
   private final StreetPixelsManager.FirstGoalProgressCallback mFirstGoalProgressCallback =
       this::applyFirstGoalBadge;
+  private final StreetPixelsManager.AreaMilestonePresentationCallback mAreaMilestonePresentationCallback =
+      this::applyAreaMilestonePresentation;
+  private final Handler mAreaMilestoneHandler = new Handler(Looper.getMainLooper());
+  private final Runnable mAcknowledgeAreaMilestone = this::acknowledgeAreaMilestonePresentation;
   private final Observer<Integer> mTopButtonMarginObserver = this::updateTopButtonsMargin;
 
   private LeftButton mLeftButton;
@@ -225,12 +240,21 @@ public class MapButtonsController extends Fragment
           return;
         }
         FocusedAreaDetailBottomSheet.show(getParentFragmentManager(), progress.displayName, progress.fractionValid,
-                                          progress.fraction, progress.areaCompleted);
+                                          progress.fraction, progress.areaCompleted, progress.previouslyCompleted);
       });
     }
     mFirstGoalBadge = mFrame.findViewById(R.id.first_goal_badge);
     if (mFirstGoalBadge != null)
       mButtonsMap.put(MapButtons.firstGoalBanner, mFirstGoalBadge);
+    mCompletionCard = mFrame.findViewById(R.id.area_completion_card);
+    if (mCompletionCard != null)
+    {
+      mCompletionCardTitle = mCompletionCard.findViewById(R.id.area_completion_card_title);
+      mCompletionCardBody = mCompletionCard.findViewById(R.id.area_completion_card_body);
+      View share = mCompletionCard.findViewById(R.id.area_completion_card_share);
+      if (share != null)
+        share.setOnClickListener(v -> {});
+    }
   }
 
   private void applyLeftButton()
@@ -542,6 +566,81 @@ public class MapButtonsController extends Fragment
     }
   }
 
+  private void refreshAreaMilestonePresentation()
+  {
+    Context ctx = getContext();
+    if (ctx == null)
+      return;
+    applyAreaMilestonePresentation(
+        MwmApplication.from(ctx).getStreetPixelsManager().getCurrentAreaMilestonePresentation());
+  }
+
+  private void applyAreaMilestonePresentation(@Nullable AreaMilestonePresentation presentation)
+  {
+    Context ctx = getContext();
+    mAreaMilestoneHandler.removeCallbacks(mAcknowledgeAreaMilestone);
+    if (mCompletionCard != null)
+      UiUtils.hide(mCompletionCard);
+    if (ctx == null || presentation == null)
+      return;
+    String name = presentation.displayName;
+    int messageId = R.string.street_pixels_area_milestone_25;
+    int toastLength = Toast.LENGTH_SHORT;
+    long delayMs = 2000;
+    if (presentation.threshold == AreaMilestonePresentation.THRESHOLD_50)
+    {
+      messageId = R.string.street_pixels_area_milestone_50;
+      toastLength = Toast.LENGTH_LONG;
+      delayMs = 3500;
+    }
+    else if (presentation.threshold == AreaMilestonePresentation.THRESHOLD_100)
+    {
+      messageId = R.string.street_pixels_area_milestone_100;
+      toastLength = Toast.LENGTH_LONG;
+      delayMs = 4000;
+      if (mCompletionCardTitle != null)
+        mCompletionCardTitle.setText(getString(R.string.street_pixels_area_milestone_100, name));
+      if (mCompletionCardBody != null)
+        mCompletionCardBody.setText(getString(R.string.street_pixels_completion_card_body, name));
+      if (mCompletionCard != null)
+        UiUtils.show(mCompletionCard);
+    }
+    Toast.makeText(ctx, getString(messageId, name), toastLength).show();
+    pulseExplorationBadge(presentation.threshold);
+    mAreaMilestoneHandler.postDelayed(mAcknowledgeAreaMilestone, delayMs);
+  }
+
+  private void pulseExplorationBadge(int threshold)
+  {
+    if (mExplorationBadge == null)
+      return;
+    float scale = threshold == AreaMilestonePresentation.THRESHOLD_25 ? 1.08f : 1.16f;
+    long duration = threshold == AreaMilestonePresentation.THRESHOLD_25 ? 200 : 400;
+    mExplorationBadge.animate().cancel();
+    mExplorationBadge.setScaleX(1f);
+    mExplorationBadge.setScaleY(1f);
+    mExplorationBadge.animate()
+        .scaleX(scale)
+        .scaleY(scale)
+        .setDuration(duration)
+        .withEndAction(() -> {
+          if (mExplorationBadge == null)
+            return;
+          mExplorationBadge.animate().scaleX(1f).scaleY(1f).setDuration(duration).start();
+        })
+        .start();
+  }
+
+  private void acknowledgeAreaMilestonePresentation()
+  {
+    Context ctx = getContext();
+    if (mCompletionCard != null)
+      UiUtils.hide(mCompletionCard);
+    if (ctx == null)
+      return;
+    MwmApplication.from(ctx).getStreetPixelsManager().acknowledgeAreaMilestonePresentation();
+  }
+
   private boolean isBehindPlacePage(View v)
   {
     if (mPlacePageViewModel == null)
@@ -653,6 +752,7 @@ public class MapButtonsController extends Fragment
     mMapButtonsViewModel.getStreetPixelsState().observe(activity, mStreetPixelsStateObserver);
     StreetPixelsManager.registerFocusedAreaProgressCallback(mFocusedAreaProgressCallback);
     StreetPixelsManager.registerFirstGoalProgressCallback(mFirstGoalProgressCallback);
+    StreetPixelsManager.registerAreaMilestonePresentationCallback(mAreaMilestonePresentationCallback);
     mMapButtonsViewModel.getTopButtonsMarginTop().observe(activity, mTopButtonMarginObserver);
   }
 
@@ -666,6 +766,7 @@ public class MapButtonsController extends Fragment
     @Nullable StreetPixelsState state = mMapButtonsViewModel.getStreetPixelsState().getValue();
     updateExplorationBadge(state);
     refreshFirstGoalBadge();
+    refreshAreaMilestonePresentation();
 
     final WindowInsetUtils.PaddingInsetsListener insetsListener =
         new WindowInsetUtils.PaddingInsetsListener.Builder()
@@ -697,8 +798,12 @@ public class MapButtonsController extends Fragment
     mMapButtonsViewModel.getRecordingSessionState().removeObserver(mRecordingSessionObserver);
     StreetPixelsManager.unregisterFocusedAreaProgressCallback(mFocusedAreaProgressCallback);
     StreetPixelsManager.unregisterFirstGoalProgressCallback(mFirstGoalProgressCallback);
+    StreetPixelsManager.unregisterAreaMilestonePresentationCallback(mAreaMilestonePresentationCallback);
+    mAreaMilestoneHandler.removeCallbacks(mAcknowledgeAreaMilestone);
     if (mFirstGoalBadge != null)
       mFirstGoalBadge.animate().cancel();
+    if (mExplorationBadge != null)
+      mExplorationBadge.animate().cancel();
     mMapButtonsViewModel.getStreetPixelsState().removeObserver(mStreetPixelsStateObserver);
   }
 

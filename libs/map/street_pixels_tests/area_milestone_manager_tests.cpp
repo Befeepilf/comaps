@@ -163,8 +163,12 @@ UNIT_TEST(AreaMilestoneManager_FiresOnRebuild)
   TEST(!manager.GetAreaMilestoneRecord(8).has_value(), ());
 
   auto crossings = manager.ConsumePendingAreaMilestoneCrossings();
-  TEST_EQUAL(crossings.size(), 3, ());
-  TEST_EQUAL(crossings[0].m_osmId, 10u, ());
+  TEST_EQUAL(crossings.size(), 0, ());
+
+  auto peek = manager.GetCurrentAreaMilestonePresentation();
+  TEST(peek.has_value(), ());
+  TEST_EQUAL(peek->m_threshold, street_pixels::AreaMilestoneThreshold::P100, ());
+  TEST_EQUAL(peek->m_displayName, "District", ());
 
   CleanupAm(fx);
 }

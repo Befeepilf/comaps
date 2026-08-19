@@ -49,11 +49,11 @@ SP-062 re-verify (2026-08-19) confirmed this table. Extras in
 | Foreground signal | `OrganicMaps.nativeOnTransit` → `Framework::EnterForeground` / `EnterBackground` | Exists. Street Pixels collection / haptic path does not consult it. |
 | Haptics setting | `prefs_interface.xml` and related | **No** “Exploration haptics” toggle. |
 | Area completion % | `AreaCompletionCache`, `StreetPixelsManager::GetAreaCompletion` | Explored/total including imported (SPD-026). Invalidated on collect/import/rematch. **No** fired-once state, **no** original 100% date. |
-| Focused-area badge | `FocusedAreaProgress` + `MapButtonsController.mExplorationBadge` | Name + % + `m_areaCompleted` (SP-035/036/040). **Not** milestone-aware. Not a first-100 m chip. |
-| Completed chrome | SP-040 / `area_overlay` styles | Distinct completed visual (§18.6). No 25/50/100 celebration, no card surface. |
+| Focused-area badge | `FocusedAreaProgress` + `MapButtonsController.mExplorationBadge` | Name + % + `m_areaCompleted` (SP-035/036/040). `m_previouslyCompleted` for §27.4 detail copy (SP-065). Not a first-100 m chip. |
+| Completed chrome | SP-040 / `area_overlay` styles | Distinct completed visual (§18.6). 100% celebration is badge pulse + copy card (SP-065); do not replace overlay chrome. Card image still SP-067. |
 | Area geometry | `ExplorationArea::m_rings` | Mercator outer rings available offline — candidate for a boundary-outline card (SP-062 M1). |
-| Share | `SharingUtils`, bookmark/track KML/GPX | Generic file/text share. **No** neighbourhood card compositor. |
-| Milestone / card / first-goal | — | **Not found.** |
+| Share | `SharingUtils`, bookmark/track KML/GPX | Generic file/text share. **No** neighbourhood card compositor. SP-065 Share chrome is a no-op (`R.string.share`); SP-068 opens the sheet. |
+| Milestone / card / first-goal | `street_pixels::FirstGoalTracker` / JNI `FirstGoalProgress`; `street_pixels::AreaMilestonePresenter` / JNI `AreaMilestonePresentation` | First-goal exists (SP-064). 25/50/100 presentation queue exists (SP-065). Card image still SP-067. |
 | Growth analytics | `StreetExplorationRoutingAnalytics` (Phase 6) | Count-only routing counters only. No card-generated / share-initiated events. |
 | Routing-following | `RoutingManager::IsRoutingFollowing` | Exists; milestone UI must not interrupt it. |
 
@@ -246,9 +246,9 @@ SPD-046–055) in `DECISIONS.md` §15. **Not Accepted.**
 - M2 / OQ-10 — 100 m → new-live-pixel count.
 - M3 / OQ-11 — fired-state store and key.
 - M4 / OQ-12 — re-fire after map update.
-- M5 / OQ-13 — several areas in one session.
+- M5 / OQ-13 — several areas in one session. **Closed by SPD-050** (2026-08-19 via SP-062).
 - M6 / OQ-14 — completion date on the card by default vs opt-in.
-- M7 / OQ-15 — competition line stub vs Phase 8.
+- M7 / OQ-15 — competition line stub vs Phase 8. **Closed by SPD-052** (2026-08-19 via SP-062).
 - M8 / OQ-16 — first-100 m once per install.
 - M9 / OQ-17 — haptics predicate (foreground, one pulse, toggle).
 - M10 / OQ-18 — growth analytics sink (local + Phase 10 residual).

@@ -7,6 +7,7 @@
 #include "street_pixels_areas/focus_selection_engine.hpp"
 #include "street_pixels_areas/focused_area_progress.hpp"
 
+#include "map/area_milestone_presentation.hpp"
 #include "map/first_goal.hpp"
 
 #include "platform/local_country_file.hpp"
@@ -18,13 +19,15 @@
 #include "geometry/point2d.hpp"
 #include "geometry/mercator.hpp"
 
+#include <optional>
+
 extern "C"
 {
 static jobject ToJavaFocusedAreaProgress(JNIEnv * env, street_pixels::FocusedAreaProgress const & progress)
 {
   static jclass const progressClass =
       jni::GetGlobalClassRef(env, "app/organicmaps/sdk/maplayer/streetpixels/FocusedAreaProgress");
-  static jmethodID const ctor = jni::GetConstructorID(env, progressClass, "(ZZZZZIJLjava/lang/String;D)V");
+  static jmethodID const ctor = jni::GetConstructorID(env, progressClass, "(ZZZZZIJLjava/lang/String;DZ)V");
   jni::TScopedLocalRef const jName(env, jni::ToJavaString(env, progress.m_displayName));
   return env->NewObject(progressClass, ctor, static_cast<jboolean>(progress.m_hasFocus),
                         static_cast<jboolean>(progress.m_fractionValid),
@@ -32,7 +35,8 @@ static jobject ToJavaFocusedAreaProgress(JNIEnv * env, street_pixels::FocusedAre
                         static_cast<jboolean>(progress.m_areaCompleted),
                         static_cast<jboolean>(progress.m_noExplorationArea),
                         static_cast<jint>(progress.m_compactIndex), static_cast<jlong>(progress.m_osmId),
-                        jName.get(), static_cast<jdouble>(progress.m_fraction));
+                        jName.get(), static_cast<jdouble>(progress.m_fraction),
+                        static_cast<jboolean>(progress.m_previouslyCompleted));
 }
 
 static void StreetPixelsStateChanged(bool enabled, StreetPixelsManager::StreetPixelsStatus status,
@@ -61,6 +65,33 @@ static void CallFirstGoalCallback(std::shared_ptr<jobject> const & listener,
                       jni::GetMethodID(env, *listener, "onFirstGoalProgressChanged",
                                        "(Lapp/organicmaps/sdk/maplayer/streetpixels/FirstGoalProgress;)V"),
                       jProgress.get());
+}
+
+static jobject ToJavaAreaMilestonePresentation(JNIEnv * env, street_pixels::AreaMilestonePresentation const & presentation)
+{
+  static jclass const presentationClass =
+      jni::GetGlobalClassRef(env, "app/organicmaps/sdk/maplayer/streetpixels/AreaMilestonePresentation");
+  static jmethodID const ctor =
+      jni::GetConstructorID(env, presentationClass, "(IJILjava/lang/String;Ljava/lang/String;)V");
+  jni::TScopedLocalRef const jName(env, jni::ToJavaString(env, presentation.m_displayName));
+  jni::TScopedLocalRef const jLine(env, jni::ToJavaString(env, presentation.m_competitionLine));
+  return env->NewObject(presentationClass, ctor, static_cast<jint>(presentation.m_threshold),
+                        static_cast<jlong>(presentation.m_osmId), static_cast<jint>(presentation.m_compactIndex),
+                        jName.get(), jLine.get());
+}
+
+static void CallAreaMilestoneCallback(std::shared_ptr<jobject> const & listener,
+                                      std::optional<street_pixels::AreaMilestonePresentation> const & presentation)
+{
+  JNIEnv * env = jni::GetEnv();
+  jobject javaObj = nullptr;
+  if (presentation)
+    javaObj = ToJavaAreaMilestonePresentation(env, *presentation);
+  jni::TScopedLocalRef const jPresentation(env, javaObj);
+  env->CallVoidMethod(*listener,
+                      jni::GetMethodID(env, *listener, "onAreaMilestonePresentationChanged",
+                                       "(Lapp/organicmaps/sdk/maplayer/streetpixels/AreaMilestonePresentation;)V"),
+                      jPresentation.get());
 }
 
 static void CallFocusedAreaCallback(std::shared_ptr<jobject> const & listener, char const * method,
@@ -103,6 +134,12 @@ JNIEXPORT void JNICALL Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixe
         GetPlatform().RunTask(Platform::Thread::Gui, [globalListener, progress]()
         { CallFirstGoalCallback(globalListener, progress); });
       });
+  manager.SetAreaMilestonePresentationListener(
+      [globalListener](std::optional<street_pixels::AreaMilestonePresentation> const & presentation)
+      {
+        GetPlatform().RunTask(Platform::Thread::Gui, [globalListener, presentation]()
+        { CallAreaMilestoneCallback(globalListener, presentation); });
+      });
 }
 
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeRemoveListener(JNIEnv * env,
@@ -114,6 +151,7 @@ JNIEXPORT void JNICALL Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixe
   manager.SetFocusedAreaProgressListener(nullptr);
   manager.SetExplorationAreaTapListener(nullptr);
   manager.SetFirstGoalProgressListener(nullptr);
+  manager.SetAreaMilestonePresentationListener(nullptr);
 }
 
 JNIEXPORT jboolean JNICALL
@@ -196,5 +234,26 @@ Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeGetFirs
   CHECK(g_framework, ("Framework isn't created yet!"));
   auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
   return ToJavaFirstGoalProgress(env, manager.GetFirstGoalProgress());
+}
+
+JNIEXPORT jobject JNICALL
+Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeGetCurrentAreaMilestonePresentation(
+    JNIEnv * env, jclass clazz)
+{
+  CHECK(g_framework, ("Framework isn't created yet!"));
+  auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
+  auto const presentation = manager.GetCurrentAreaMilestonePresentation();
+  if (!presentation)
+    return nullptr;
+  return ToJavaAreaMilestonePresentation(env, *presentation);
+}
+
+JNIEXPORT void JNICALL
+Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeAcknowledgeAreaMilestonePresentation(
+    JNIEnv * env, jclass clazz)
+{
+  CHECK(g_framework, ("Framework isn't created yet!"));
+  auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
+  manager.AcknowledgeAreaMilestonePresentation();
 }
 }

@@ -27,10 +27,11 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
   private static final String ARG_FRACTION = "fraction";
   private static final String ARG_FRACTION_VALID = "fraction_valid";
   private static final String ARG_AREA_COMPLETED = "area_completed";
+  private static final String ARG_PREVIOUSLY_COMPLETED = "previously_completed";
   private static final String ARG_EMPTY = "empty";
 
   public static void show(@NonNull FragmentManager fm, @NonNull String displayName, boolean fractionValid,
-                          double fraction, boolean areaCompleted)
+                          double fraction, boolean areaCompleted, boolean previouslyCompleted)
   {
     FocusedAreaDetailBottomSheet sheet = new FocusedAreaDetailBottomSheet();
     Bundle args = new Bundle();
@@ -38,6 +39,7 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
     args.putBoolean(ARG_FRACTION_VALID, fractionValid);
     args.putDouble(ARG_FRACTION, fraction);
     args.putBoolean(ARG_AREA_COMPLETED, areaCompleted);
+    args.putBoolean(ARG_PREVIOUSLY_COMPLETED, previouslyCompleted);
     args.putBoolean(ARG_EMPTY, false);
     sheet.setArguments(args);
     dismissIfShowing(fm);
@@ -105,15 +107,21 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
 
     UiUtils.hide(bodyView);
     nameView.setText(args.getString(ARG_NAME, ""));
+    boolean areaCompleted = args.getBoolean(ARG_AREA_COMPLETED, false);
     if (args.getBoolean(ARG_FRACTION_VALID, false))
     {
       double percent = args.getDouble(ARG_FRACTION, 0.0) * 100.0;
-      if (args.getBoolean(ARG_AREA_COMPLETED, false))
+      if (areaCompleted)
         percentView.setText(R.string.street_pixels_area_completed);
       else
         percentView.setText(String.format(Locale.US, "%.4f%%", percent));
     }
     else
       percentView.setText("");
+    if (args.getBoolean(ARG_PREVIOUSLY_COMPLETED, false) && !areaCompleted)
+    {
+      bodyView.setText(R.string.street_pixels_area_previously_completed);
+      UiUtils.show(bodyView);
+    }
   }
 }
