@@ -111,7 +111,7 @@ Sentry.
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-068-share-flow-analytics-c417` |
-| Test output | |
+| Test output | `street_pixels_tests --filter=CompletionCardShare` **9/9**; `--filter=CompletionCard_` **10/10** |
 | Upload residual | Phase 10 — local uint64 settings only; no new network endpoint (SPD-055) |
 | Manual validation | Residual → SP-069 / Phase 10 |
 | Accepted by | |
