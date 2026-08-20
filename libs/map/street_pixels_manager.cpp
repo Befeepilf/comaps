@@ -36,6 +36,7 @@
 #include "map/live_sample_acceptance_filter.hpp"
 #include "map/live_segment_interpolation.hpp"
 #include "map/identity_store.hpp"
+#include "map/completion_card_analytics.hpp"
 
 #include "street_pixels_areas/exploration_area_tap.hpp"
 #include "street_pixels_areas/area_completion_cache.hpp"

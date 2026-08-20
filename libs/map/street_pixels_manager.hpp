@@ -3,7 +3,6 @@
 #include "map/bookmark_manager.hpp"
 
 #include "map/area_milestone_presentation.hpp"
-#include "map/completion_card_analytics.hpp"
 #include "map/exploration_haptics.hpp"
 #include "map/first_goal.hpp"
 #include "map/live_sample_acceptance_filter.hpp"
