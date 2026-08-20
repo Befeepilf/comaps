@@ -1,7 +1,7 @@
 # SP-065 — Area milestone presentation (25 / 50 / 100)
 
 **Phase:** 7 — Milestones and share cards
-**Status:** In review
+**Status:** Accepted
 **Branch:** `cursor/sp-065-area-milestone-presentation-c417`
 **Depends on:** SP-062 M5 (queue / non-interrupt) and M7 (competition stub);
   SP-063 fired-state; SP-034/035 focused-area badge. SP-067 compositor may
@@ -131,8 +131,8 @@ layer.
 | Branch | `cursor/sp-065-area-milestone-presentation-c417` |
 | Test output | `street_pixels_tests --filter=AreaMilestonePresentation` **14/14**; `street_pixels_areas_tests --filter=AreaMilestone` **8/8**; `street_pixels_tests --filter=AreaMilestone` **18/18**; `street_pixels_tests --filter=FocusedArea` **6/6** |
 | Manual validation | Device residual → SP-069 / Phase 10 |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-20 |
 
 ## Discovered follow-up
 
