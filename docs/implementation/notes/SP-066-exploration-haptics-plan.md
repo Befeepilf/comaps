@@ -1,6 +1,6 @@
 # SP-066 — Exploration haptics policy (implementation plan)
 
-**Status:** Draft plan for coding; not Accepted.
+**Status:** Draft plan for coding; not Accepted. Implemented on `cursor/sp-066-exploration-haptics-c417`.
 **Work item:** [`SP-066-exploration-haptics-policy.md`](../work-items/SP-066-exploration-haptics-policy.md)
 **Date:** 2026-08-20
 **Locks (do not re-open):** SPD-054 (recording ∧ foreground ∧ toggle; one collection pulse per update; stronger first-100 m / 50% / 100%; no extra 25%; boss out of V1; area milestones may fire without haptic when not recording). SPD-002 (shared C++ owns the persisted flag).

@@ -363,7 +363,7 @@ UNIT_TEST(AreaMilestonePresentation_DoesNotCallCollectionVibration)
   manager.ConfigureAreaMilestoneStoreForTesting(fx.dbPath);
 
   size_t vibrationCalls = 0;
-  manager.SetVibrationHandler([&vibrationCalls](size_t) { ++vibrationCalls; });
+  manager.SetVibrationHandler([&vibrationCalls](street_pixels::ExplorationHapticKind) { ++vibrationCalls; });
 
   TEST(manager.RebuildAreaCompletionCache(fx.leaf, fx.spaPath, fx.mapDataVersion), ());
   TEST_EQUAL(vibrationCalls, 0u, ());
@@ -384,7 +384,7 @@ UNIT_TEST(AreaMilestonePresentation_FollowingDoesNotStopRoute)
   TEST_EQUAL(session.Start(), RecordingSession::TransitionResult::Ok, ());
 
   size_t vibrationCalls = 0;
-  manager.SetVibrationHandler([&vibrationCalls](size_t) { ++vibrationCalls; });
+  manager.SetVibrationHandler([&vibrationCalls](street_pixels::ExplorationHapticKind) { ++vibrationCalls; });
 
   TEST(manager.RebuildAreaCompletionCache(fx.leaf, fx.spaPath, fx.mapDataVersion), ());
   auto peek = manager.GetCurrentAreaMilestonePresentation();
