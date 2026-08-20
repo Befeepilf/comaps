@@ -35,6 +35,7 @@
 #include "map/recording_session.hpp"
 #include "map/live_sample_acceptance_filter.hpp"
 #include "map/live_segment_interpolation.hpp"
+#include "map/identity_store.hpp"
 
 #include "street_pixels_areas/exploration_area_tap.hpp"
 #include "street_pixels_areas/area_completion_cache.hpp"
@@ -451,10 +452,38 @@ std::optional<street_pixels::AreaMilestonePresentation> StreetPixelsManager::Get
   return m_areaMilestonePresenter.Peek();
 }
 
+void StreetPixelsManager::SetCompletionCardGeneratedHandler(CompletionCardGeneratedFn const & fn)
+{
+  m_completionCardGeneratedFn = fn;
+}
+
+std::optional<street_pixels::CompletionCardModel> StreetPixelsManager::GetCompletionCardForCurrentPresentation(
+    bool includeDate)
+{
+  auto const peek = m_areaMilestonePresenter.Peek();
+  if (!peek || peek->m_threshold != street_pixels::AreaMilestoneThreshold::P100)
+    return std::nullopt;
+  auto const source = m_areaMilestonePresenter.PeekCardSource();
+  if (!source)
+    return std::nullopt;
+
+  street_pixels::CompletionCardOptions options;
+  options.includeDate = includeDate;
+  if (IdentityStore::HasUsername())
+    options.nickname = IdentityStore::GetUsername();
+
+  auto model = street_pixels::ComposeCompletionCard(*source, options);
+  if (model && m_completionCardGeneratedFn)
+    m_completionCardGeneratedFn();
+  return model;
+}
+
 void StreetPixelsManager::AcknowledgeAreaMilestonePresentation()
 {
   auto const before = m_areaMilestonePresenter.Peek();
   m_areaMilestonePresenter.Acknowledge();
+  if (before && before->m_threshold == street_pixels::AreaMilestoneThreshold::P100)
+    street_pixels::DeleteCompletionCardTransient();
   NotifyAreaMilestonePresentationIfChanged(before);
 }
 
@@ -467,13 +496,27 @@ void StreetPixelsManager::IngestPendingAreaMilestonePresentations(street_pixels:
 {
   auto const before = m_areaMilestonePresenter.Peek();
   auto const crossings = ConsumePendingAreaMilestoneCrossings();
-  m_areaMilestonePresenter.Enqueue(crossings, [&file](uint32_t compactIndex, uint64_t)
-  {
-    auto const * area = street_pixels::FindAreaByCompactIndex(file, compactIndex);
-    if (area == nullptr)
-      return std::string();
-    return std::string(street_pixels::DisplayName(*area));
-  });
+  m_areaMilestonePresenter.Enqueue(
+      crossings,
+      [&file](uint32_t compactIndex, uint64_t)
+      {
+        auto const * area = street_pixels::FindAreaByCompactIndex(file, compactIndex);
+        if (area == nullptr)
+          return std::string();
+        return std::string(street_pixels::DisplayName(*area));
+      },
+      [&file](uint32_t compactIndex, uint64_t osmId) -> std::optional<street_pixels::CompletionCardSource>
+      {
+        auto const * area = street_pixels::FindAreaByCompactIndex(file, compactIndex);
+        if (!area || area->m_rings.empty())
+          return std::nullopt;
+        street_pixels::CompletionCardSource src;
+        src.m_displayName = street_pixels::DisplayName(*area);
+        src.m_rings = area->m_rings;
+        if (auto rec = street_pixels::AreaMilestoneStore::Instance().Get(osmId))
+          src.m_completed100At = rec->m_completed100At;
+        return src;
+      });
   NotifyAreaMilestonePresentationIfChanged(before);
 }
 

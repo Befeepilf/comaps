@@ -183,6 +183,8 @@ public class StreetPixelsManager
   @Nullable
   private static native AreaMilestonePresentation nativeGetCurrentAreaMilestonePresentation();
   private static native void nativeAcknowledgeAreaMilestonePresentation();
+  @Nullable
+  private static native CompletionCardModel nativeGetCurrentCompletionCard(boolean includeDate);
 
   public void attach(@NonNull StreetPixelsErrorDialogListener listener)
   {
@@ -239,6 +241,12 @@ public class StreetPixelsManager
   public void acknowledgeAreaMilestonePresentation()
   {
     nativeAcknowledgeAreaMilestonePresentation();
+  }
+
+  @Nullable
+  public CompletionCardModel getCurrentCompletionCard(boolean includeDate)
+  {
+    return nativeGetCurrentCompletionCard(includeDate);
   }
 
   @Nullable
