@@ -1,7 +1,8 @@
 # SP-069 — Phase 7 end-to-end validation
 
 **Phase:** 7 — Milestones and share cards
-**Status:** Planned
+**Status:** In progress
+**Branch:** `cursor/sp-069-phase7-end-to-end-validation-c417`
 **Depends on:** SP-062–068 implemented or explicitly residualled
 **Notes:** Exit gate. Device residual → Phase 10 pattern (SP-014 / SP-041 /
   SP-061). Exit waits on Accepted locks (OQ-9–OQ-18 / draft SPD-046–055) or
@@ -90,8 +91,8 @@ analytics.
 
 | Field | Value |
 | --- | --- |
-| Validation plan | |
-| Evidence log | |
+| Validation plan | [SP-069-validation-plan.md](../validation/SP-069-validation-plan.md) |
+| Evidence log | [SP-069-evidence-log.md](../validation/SP-069-evidence-log.md) |
 | Test output | |
 | Device roster / residual | |
 | Exit criteria table | |
