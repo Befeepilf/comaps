@@ -458,7 +458,7 @@ void StreetPixelsManager::SetCompletionCardGeneratedHandler(CompletionCardGenera
 }
 
 std::optional<street_pixels::CompletionCardModel> StreetPixelsManager::GetCompletionCardForCurrentPresentation(
-    bool includeDate)
+    bool includeDate, bool recordGenerated)
 {
   auto const peek = m_areaMilestonePresenter.Peek();
   if (!peek || peek->m_threshold != street_pixels::AreaMilestoneThreshold::P100)
@@ -473,9 +473,29 @@ std::optional<street_pixels::CompletionCardModel> StreetPixelsManager::GetComple
     options.nickname = IdentityStore::GetUsername();
 
   auto model = street_pixels::ComposeCompletionCard(*source, options);
-  if (model && m_completionCardGeneratedFn)
+  if (model && recordGenerated && m_completionCardGeneratedFn)
     m_completionCardGeneratedFn();
   return model;
+}
+
+std::optional<street_pixels::CompletionCardSharePayload> StreetPixelsManager::PrepareCompletionCardShare(
+    bool includeDate)
+{
+  auto const model = GetCompletionCardForCurrentPresentation(includeDate, false);
+  if (!model)
+    return std::nullopt;
+  if (!street_pixels::WriteCompletionCardTransient(*model))
+    return std::nullopt;
+  street_pixels::CompletionCardSharePayload payload;
+  payload.m_path = street_pixels::CompletionCardTransientPath();
+  payload.m_mimeType = street_pixels::kCompletionCardShareMime;
+  payload.m_text = street_pixels::CompletionCardLabelText(*model);
+  return payload;
+}
+
+void StreetPixelsManager::RecordCompletionCardShareInitiated()
+{
+  street_pixels::CompletionCardAnalytics::RecordShareInitiated();
 }
 
 void StreetPixelsManager::AcknowledgeAreaMilestonePresentation()

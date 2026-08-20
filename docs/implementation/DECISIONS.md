@@ -1608,6 +1608,7 @@ OQ-18.
 **Consequences.**
 
 - SP-068 owns counters.
+- SP-068 implements `Explore.CardGenerated` and `Explore.ShareInitiated` (uint64 settings; no area id). Upload residual remains Phase 10.
 
 **Related documents.** Spec §32.4; SPD-044; SP-062; SP-068; phase-07.
 

@@ -3,6 +3,7 @@
 #include "map/benchmark_tools.hpp"
 #include "map/bookmark.hpp"
 #include "map/bookmark_helpers.hpp"
+#include "map/completion_card_analytics.hpp"
 #include "map/gps_track.hpp"
 #include "map/gps_track_filter.hpp"
 #include "map/gps_tracker.hpp"
@@ -503,6 +504,8 @@ Framework::Framework(FrameworkParams const & params, bool loadMaps)
   m_searchMarks.SetBookmarkManager(m_bmManager.get());
 
   m_streetPixelsManager->SetBookmarkManager(m_bmManager.get());
+  m_streetPixelsManager->SetCompletionCardGeneratedHandler(
+      [] { street_pixels::CompletionCardAnalytics::RecordGenerated(); });
   m_streetPixelsManager->SetExplorationListener(
     [this](StreetPixelsManager::ExplorationDelta const & d)
     {
