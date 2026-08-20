@@ -1,8 +1,8 @@
 # SP-068 — Share flow and growth analytics
 
 **Phase:** 7 — Milestones and share cards
-**Status:** Planned
-**Branch:**
+**Status:** Accepted
+**Branch:** `cursor/sp-068-share-flow-analytics-c417`
 **Depends on:** SP-067 card image/model; SP-062 M10; SPD-044 local-counter
   pattern (SP-060).
 **Notes:** Coding waits on OQ-14 / OQ-18 (draft SPD-051 / SPD-055).
@@ -64,11 +64,11 @@ Sentry.
 
 ## Relevant source files or symbols
 
-- `android/app/src/main/java/app/organicmaps/util/SharingUtils.java`
-- `routing::StreetExplorationRoutingAnalytics` (pattern to copy, not to
-  overload with card events)
-- SP-067 card output URI
-- No card-generated / share-initiated counters (2026-08-19)
+- `CompletionCardShare`, `StreetPixelsManager::PrepareCompletionCardShare`
+- `street_pixels::CompletionCardAnalytics` (`Explore.CardGenerated`, `Explore.ShareInitiated`)
+- `android/app/src/main/java/app/organicmaps/util/SharingUtils.java` (do not call)
+- `routing::StreetExplorationRoutingAnalytics` (pattern copied, not overloaded)
+- SP-067 transient PNG `street_pixels_completion_card.png`
 
 ## Implementation notes / constraints
 
@@ -110,15 +110,17 @@ Sentry.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Test output | |
-| Upload residual | |
-| Manual validation | |
-| Accepted by | |
-| Accepted date | |
+| Branch | `cursor/sp-068-share-flow-analytics-c417` |
+| Test output | `street_pixels_tests --filter=CompletionCardShare` **9/9**; `--filter=CompletionCard_` **10/10** |
+| Upload residual | Phase 10 — local uint64 settings only; no new network endpoint (SPD-055) |
+| Manual validation | Residual → SP-069 / Phase 10 |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-20 |
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| (filled during implementation) | |
+| 4 s auto-ack can delete the transient PNG while a share target still reads it | Residual → SP-069 / Phase 10; duration unchanged by SP-068 |
+| `onResume` rebind can increment generated again and reset the date checkbox | Residual → SP-069 |
+| Date/name live in `EXTRA_TEXT`; recipients that drop text will not see the date | Residual → SP-069 / Phase 10 |

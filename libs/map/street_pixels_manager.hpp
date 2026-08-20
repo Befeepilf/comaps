@@ -260,7 +260,10 @@ public:
 
   using CompletionCardGeneratedFn = std::function<void()>;
   void SetCompletionCardGeneratedHandler(CompletionCardGeneratedFn const & fn);
-  std::optional<street_pixels::CompletionCardModel> GetCompletionCardForCurrentPresentation(bool includeDate = false);
+  std::optional<street_pixels::CompletionCardModel> GetCompletionCardForCurrentPresentation(
+      bool includeDate = false, bool recordGenerated = true);
+  std::optional<street_pixels::CompletionCardSharePayload> PrepareCompletionCardShare(bool includeDate);
+  void RecordCompletionCardShareInitiated();
 
   void SetStreetPixelsForTesting(std::vector<df::StreetPixel> pixels);
   void SetStreetPixelsOverlayForTesting(storage::CountryId const & countryId, std::vector<df::StreetPixel> pixels);

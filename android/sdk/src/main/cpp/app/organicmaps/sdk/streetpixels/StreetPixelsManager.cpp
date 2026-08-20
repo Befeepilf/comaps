@@ -312,13 +312,47 @@ static jobject ToJavaCompletionCardModel(JNIEnv * env, street_pixels::Completion
 
 JNIEXPORT jobject JNICALL
 Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeGetCurrentCompletionCard(
+    JNIEnv * env, jclass clazz, jboolean includeDate, jboolean recordGenerated)
+{
+  CHECK(g_framework, ("Framework isn't created yet!"));
+  auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
+  auto const model = manager.GetCompletionCardForCurrentPresentation(static_cast<bool>(includeDate),
+                                                                     static_cast<bool>(recordGenerated));
+  if (!model)
+    return nullptr;
+  return ToJavaCompletionCardModel(env, *model);
+}
+
+static jobject ToJavaCompletionCardSharePayload(JNIEnv * env, street_pixels::CompletionCardSharePayload const & payload)
+{
+  static jclass const payloadClass =
+      jni::GetGlobalClassRef(env, "app/organicmaps/sdk/maplayer/streetpixels/CompletionCardSharePayload");
+  static jmethodID const ctor =
+      jni::GetConstructorID(env, payloadClass, "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
+  jni::TScopedLocalRef const jPath(env, jni::ToJavaString(env, payload.m_path));
+  jni::TScopedLocalRef const jMime(env, jni::ToJavaString(env, payload.m_mimeType));
+  jni::TScopedLocalRef const jText(env, jni::ToJavaString(env, payload.m_text));
+  return env->NewObject(payloadClass, ctor, jPath.get(), jMime.get(), jText.get());
+}
+
+JNIEXPORT jobject JNICALL
+Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativePrepareCompletionCardShare(
     JNIEnv * env, jclass clazz, jboolean includeDate)
 {
   CHECK(g_framework, ("Framework isn't created yet!"));
   auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
-  auto const model = manager.GetCompletionCardForCurrentPresentation(static_cast<bool>(includeDate));
-  if (!model)
+  auto const payload = manager.PrepareCompletionCardShare(static_cast<bool>(includeDate));
+  if (!payload)
     return nullptr;
-  return ToJavaCompletionCardModel(env, *model);
+  return ToJavaCompletionCardSharePayload(env, *payload);
+}
+
+JNIEXPORT void JNICALL
+Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeRecordCompletionCardShareInitiated(
+    JNIEnv * env, jclass clazz)
+{
+  CHECK(g_framework, ("Framework isn't created yet!"));
+  auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
+  manager.RecordCompletionCardShareInitiated();
 }
 }
