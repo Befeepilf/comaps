@@ -1,7 +1,7 @@
 # SP-066 — Exploration haptics policy
 
 **Phase:** 7 — Milestones and share cards
-**Status:** In review
+**Status:** Accepted
 **Branch:** `cursor/sp-066-exploration-haptics-c417`
 **Depends on:** SP-062 M9. Recording gate already in
   `OnLocationUpdate` (SP-007). Foreground signal:
@@ -120,8 +120,8 @@ milestone patterns.
 | Branch | `cursor/sp-066-exploration-haptics-c417` |
 | Test output | `street_pixels_tests --filter=ExplorationHaptic` **21/21**; `--filter=CollectionGate` **10/10**; `--filter=AreaMilestonePresentation` **14/14**; `--filter=FirstGoal` **11/11** (9 `FirstGoal_*` + 2 first-goal play tests); `--filter=EverLive_UpgradeDoesNotDoubleCount` **1/1**; `--filter=SampleAcceptanceManager_Rejected_NoVibration` **1/1**. Full `street_pixels_tests`: 111 OK then abort at `Eligibility_IncludesCommonHighways` (missing `classificator.txt` in this environment). Post-Eligibility remainder all passed. |
 | Manual validation | Device residual → SP-069 / Phase 10 |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-20 |
 
 ## Discovered follow-up
 
