@@ -5,8 +5,8 @@
 **Branch:** `cursor/sp-069-phase7-end-to-end-validation-c417`
 **Depends on:** SP-062–068 implemented or explicitly residualled
 **Notes:** Exit gate. Device residual → Phase 10 pattern (SP-014 / SP-041 /
-  SP-061). Exit waits on Accepted locks (OQ-9–OQ-18 / draft SPD-046–055) or
-  explicit deferrals.
+  SP-061). SPD-046–055 Accepted. Maintainer decides Phase 7 exit; agent
+  does not mark Accepted.
 
 ---
 
