@@ -44,6 +44,7 @@
 #include <cstdint>
 #include <functional>
 #include <list>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <shared_mutex>
@@ -355,11 +356,12 @@ private:
   void RefreshSparseAssignmentsBestEffortUnlocked(storage::CountryId const & countryId, std::string const & spaPath,
                                                   std::int64_t mapDataVersion, bool policyOnly);
   void InvalidateAreaCompletionCacheUnlocked();
+  void AddExploredPixelsToAreaCompletion(std::set<std::int64_t> const & pixelIds);
   bool RebuildAreaCompletionCacheUnlocked(storage::CountryId const & countryId, std::string const & spaPath,
                                           int64_t mapDataVersion);
   bool RebuildAreaCompletionCacheFromLoadedUnlocked(std::vector<std::int64_t> const & universeAscending,
                                                     std::vector<std::int64_t> const & exploredAscending,
-                                                    street_pixels::ExplorationAreaResolver const & resolver);
+                                                    street_pixels::ExplorationAreaResolver && resolver);
   void EvaluateAreaMilestonesUnlocked(int64_t nowSec);
   void IngestPendingAreaMilestonePresentations(street_pixels::SpaFile const & file);
   void NotifyAreaMilestonePresentationIfChanged(
@@ -418,6 +420,7 @@ private:
 
   street_pixels::AreaCompletionCache m_areaCompletionCache;
   street_pixels::CityCompletionCache m_cityCompletionCache;
+  std::shared_ptr<street_pixels::ExplorationAreaResolver> m_completionResolver;
   mutable std::mutex m_areaCompletionMutex;
 
   street_pixels::FocusedAreaProgress m_focusedAreaProgress;

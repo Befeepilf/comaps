@@ -275,3 +275,31 @@ UNIT_TEST(AreaCompletion_EmptyCentresMatchesProvidedCentres)
 
   RemoveIfExists(path);
 }
+
+UNIT_TEST(AreaCompletion_AddExploredHealpixIncrementsAndCaps)
+{
+  auto fx = MakeDistrictCityFixture();
+  auto resolver = ExplorationAreaResolver::TryLoad(fx.m_path, fx.m_universe, fx.m_params.m_mapDataVersion,
+                                                   fx.m_params.m_policyVersion);
+  TEST(resolver.has_value(), ());
+
+  auto cache = AreaCompletionCache::Build(*resolver, fx.m_universe, fx.m_samples, /*explored=*/{});
+  TEST_EQUAL(cache.Get(0)->m_explored, 0u, ());
+  TEST_EQUAL(cache.Get(1)->m_explored, 0u, ());
+
+  TEST(cache.AddExploredHealpix(*resolver, 10), ());
+  TEST_EQUAL(cache.Get(0)->m_explored, 1u, ());
+  TEST_EQUAL(cache.GetFraction(0), 1.0, ());
+  TEST_EQUAL(cache.Get(1)->m_explored, 0u, ());
+  TEST(!cache.AddExploredHealpix(*resolver, 10), ());
+  TEST_EQUAL(cache.Get(0)->m_explored, 1u, ());
+
+  TEST(!cache.AddExploredHealpix(*resolver, 999), ());
+  TEST_EQUAL(cache.Get(0)->m_explored, 1u, ());
+  TEST_EQUAL(cache.Get(1)->m_explored, 0u, ());
+
+  cache.Invalidate();
+  TEST(!cache.AddExploredHealpix(*resolver, 10), ());
+
+  RemoveIfExists(fx.m_path);
+}

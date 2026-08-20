@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <optional>
 
 namespace street_pixels
 {
@@ -21,27 +22,38 @@ m2::PointD CentreForSlot(std::vector<int64_t> const & universeAscendingNest,
   return MercatorCentreFromNestId(universeAscendingNest[slot]);
 }
 
-void AccumulateSlot(SpaFile const & file, SettlementContainmentIndex const & settlements,
-                    uint32_t sentinel, size_t areaCount, size_t slot,
-                    std::vector<int64_t> const & universeAscendingNest,
-                    std::vector<m2::PointD> const & universeCentres, std::vector<uint64_t> & counts)
+std::optional<uint32_t> CompactIndexForSlot(SpaFile const & file,
+                                            SettlementContainmentIndex const & settlements,
+                                            uint32_t sentinel, size_t areaCount, size_t slot,
+                                            std::vector<int64_t> const & universeAscendingNest,
+                                            std::vector<m2::PointD> const & universeCentres)
 {
   uint32_t const assign = file.m_assignments[slot];
   if (assign != sentinel)
   {
     if (assign < areaCount && file.m_areas[assign].IsAssignable())
-      ++counts[assign];
-    return;
+      return assign;
+    return std::nullopt;
   }
 
   ExplorationArea const * area =
       settlements.Select(CentreForSlot(universeAscendingNest, universeCentres, slot));
   if (area == nullptr)
-    return;
+    return std::nullopt;
   uint32_t const idx = area->m_compactIndex;
   if (idx >= areaCount)
-    return;
-  ++counts[idx];
+    return std::nullopt;
+  return idx;
+}
+
+void AccumulateSlot(SpaFile const & file, SettlementContainmentIndex const & settlements,
+                    uint32_t sentinel, size_t areaCount, size_t slot,
+                    std::vector<int64_t> const & universeAscendingNest,
+                    std::vector<m2::PointD> const & universeCentres, std::vector<uint64_t> & counts)
+{
+  if (auto const idx = CompactIndexForSlot(file, settlements, sentinel, areaCount, slot,
+                                           universeAscendingNest, universeCentres))
+    ++counts[*idx];
 }
 }  // namespace
 
@@ -138,5 +150,36 @@ double AreaCompletionCache::GetFraction(uint32_t compactIndex) const
   if (!counts)
     return 0.0;
   return AreaCompletionFraction(*counts);
+}
+
+bool AreaCompletionCache::AddExploredHealpix(ExplorationAreaResolver const & resolver,
+                                             int64_t healpixNestId)
+{
+  if (!m_valid)
+    return false;
+
+  auto const & universe = resolver.Universe();
+  auto const it = std::lower_bound(universe.begin(), universe.end(), healpixNestId);
+  if (it == universe.end() || *it != healpixNestId)
+    return false;
+
+  SpaFile const & file = resolver.GetFile();
+  size_t const slot = static_cast<size_t>(it - universe.begin());
+  uint32_t const sentinel = NoSubdivisionSentinel(file.m_header.m_indexWidth);
+  auto const compact = CompactIndexForSlot(file, resolver.Settlements(), sentinel, file.m_areas.size(),
+                                           slot, universe, {});
+  if (!compact)
+    return false;
+
+  for (auto & row : m_rows)
+  {
+    if (row.m_compactIndex != *compact)
+      continue;
+    if (row.m_explored >= row.m_total)
+      return false;
+    ++row.m_explored;
+    return true;
+  }
+  return false;
 }
 }  // namespace street_pixels

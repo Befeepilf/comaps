@@ -539,8 +539,8 @@ public class MapButtonsController extends Fragment
         }
         else
         {
-          double percent = Math.round(progress.fraction * 100 * 10) / 10.0;
-          mExplorationBadge.setText(progress.displayName + " • " + percent + "%");
+          mExplorationBadge.setText(progress.displayName + " • " +
+                                    FocusedAreaProgress.formatPercent(progress.fraction));
         }
       }
       else

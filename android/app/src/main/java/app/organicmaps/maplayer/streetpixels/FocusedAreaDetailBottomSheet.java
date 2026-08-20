@@ -13,11 +13,11 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import app.organicmaps.R;
+import app.organicmaps.sdk.maplayer.streetpixels.FocusedAreaProgress;
 import app.organicmaps.util.UiUtils;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.textview.MaterialTextView;
-import java.util.Locale;
 import java.util.Objects;
 
 public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
@@ -110,11 +110,10 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
     boolean areaCompleted = args.getBoolean(ARG_AREA_COMPLETED, false);
     if (args.getBoolean(ARG_FRACTION_VALID, false))
     {
-      double percent = args.getDouble(ARG_FRACTION, 0.0) * 100.0;
       if (areaCompleted)
         percentView.setText(R.string.street_pixels_area_completed);
       else
-        percentView.setText(String.format(Locale.US, "%.4f%%", percent));
+        percentView.setText(FocusedAreaProgress.formatPercent(args.getDouble(ARG_FRACTION, 0.0)));
     }
     else
       percentView.setText("");
