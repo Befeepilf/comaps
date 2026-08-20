@@ -1,6 +1,6 @@
 # SP-067 — Completion-card compositor (implementation plan)
 
-**Status:** Draft plan for coding; not Accepted.
+**Status:** Draft plan for coding; not Accepted. Implemented and Accepted 2026-08-20 on `cursor/sp-067-completion-card-compositor-c417`.
 **Work item:** [`SP-067-completion-card-compositor.md`](../work-items/SP-067-completion-card-compositor.md)
 **Date:** 2026-08-20
 **Locks (do not re-open):** SPD-046 (rings-only outline; never Drape/MapView), SPD-051 (store date always; card date default omitted; opt-in UI is SP-068), SPD-052 (first-person; no nickname required; competition stub empty; never “invalid completion”). SPD-008 (cards in Android V1).
