@@ -1,7 +1,7 @@
 # SP-069 — Phase 7 end-to-end validation
 
 **Phase:** 7 — Milestones and share cards
-**Status:** In progress
+**Status:** In review
 **Branch:** `cursor/sp-069-phase7-end-to-end-validation-c417`
 **Depends on:** SP-062–068 implemented or explicitly residualled
 **Notes:** Exit gate. Device residual → Phase 10 pattern (SP-014 / SP-041 /
@@ -93,9 +93,9 @@ analytics.
 | --- | --- |
 | Validation plan | [SP-069-validation-plan.md](../validation/SP-069-validation-plan.md) |
 | Evidence log | [SP-069-evidence-log.md](../validation/SP-069-evidence-log.md) |
-| Test output | |
-| Device roster / residual | |
-| Exit criteria table | |
+| Test output | SHA `4c67ed4c9`: areas `AreaMilestone` **8/8**; map `AreaMilestone` **18/18**; `FirstGoal` **11/11**; `ExplorationHaptic` **21/21**; `CompletionCard_` **10/10**; `CompletionCardShare` **9/9**; full `street_pixels_areas_tests` **113/113**. Full `street_pixels_tests`: 150 OK then Eligibility abort (missing `classificator.txt`); post-Eligibility remainder filters passed. |
+| Device roster / residual | D1 Pixel 3a / D2 OEM deferred → Phase 10 (I1–I6). Competition-on copy → Phase 8. Upload → Phase 10 / SPD-055. |
+| Exit criteria table | Evidence log — **1–9 Pass (automated) + Residual (device / Phase 8 / upload / Eligibility env)** |
 | Accepted by | |
 | Accepted date | |
 
@@ -103,4 +103,11 @@ analytics.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| (filled during validation) | |
+| Device Phase 7 walks (celebration, card image, share sheet, haptics, nav) | Phase 10 residual R1 |
+| Competition-on §22.10 sentences | Phase 8 residual R2 |
+| Growth-counter upload | Phase 10 / SPD-055 (R3) |
+| 4 s auto-ack vs share-target PNG lifetime | Phase 10 residual R4 |
+| `onResume` rebind increments generated / resets date checkbox | Phase 10 / polish R5 |
+| Full `street_pixels_tests` Eligibility abort (`classificator.txt` absent) | Environment residual R6 |
+| Outline PNG + date in EXTRA_TEXT | Phase 10 residual R7 |
+| Phase 7 exit Met? | Maintainer decision — agent does not self-accept |
