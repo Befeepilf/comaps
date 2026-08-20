@@ -12,6 +12,7 @@ namespace street_pixels
 inline constexpr char const kCompletionCardHeadline[] = "100% explored";
 inline constexpr char const kCompletionCardBranding[] = "Street Pixels";
 inline constexpr char const kCompletionCardTransientFile[] = "street_pixels_completion_card.png";
+inline constexpr char const kCompletionCardShareMime[] = "image/png";
 inline constexpr uint32_t kCompletionCardOutlineSize = 512;
 
 struct CompletionCardOptions
@@ -37,6 +38,13 @@ struct CompletionCardModel
   std::optional<std::string> m_completedDate;
   std::string m_branding;
   std::string m_competitionLine;
+};
+
+struct CompletionCardSharePayload
+{
+  std::string m_path;
+  std::string m_mimeType;
+  std::string m_text;
 };
 
 std::vector<std::string> CompletionCardPermittedKeys();

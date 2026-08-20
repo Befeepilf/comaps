@@ -10,6 +10,7 @@ set(SRC
   collection_gate_tests.cpp
   collection_radius_tests.cpp
   completion_card_tests.cpp
+  completion_card_share_tests.cpp
   country_config_tests.cpp
   eligibility_tests.cpp
   ever_live_tests.cpp
