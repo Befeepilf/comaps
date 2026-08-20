@@ -175,25 +175,43 @@ UNIT_TEST(AreaCompletionManager_RebuildAndFraction)
   CleanupAc(fx);
 }
 
-UNIT_TEST(AreaCompletionManager_InvalidateOnImport)
+UNIT_TEST(AreaCompletionManager_ImportIncrementsWithoutInvalidating)
 {
   auto fx = MakeAcFixture("sp034_mgr_import");
   FrozenDataSource dataSource;
   StreetPixelsManager manager(dataSource);
   TEST(manager.RebuildAreaCompletionCache(fx.leaf, fx.spaPath, fx.mapDataVersion), ());
   TEST(manager.IsAreaCompletionCacheValid(), ());
+  TEST(manager.GetAreaCompletion(1).has_value(), ());
+  TEST_EQUAL(manager.GetAreaCompletion(1)->m_explored, 0u, ());
 
   manager.SetStreetPixelsForTesting({
       street_pixels_tests::MakeStreetPixel(fx.districtId, true),
       street_pixels_tests::MakeStreetPixel(fx.cityOnlyId, false),
       street_pixels_tests::MakeStreetPixel(fx.outsideId, false),
   });
-  manager.MarkImportedPixelsForTesting({fx.cityOnlyId});
-  TEST(!manager.IsAreaCompletionCacheValid(), ());
-  TEST(!manager.GetAreaCompletion(0).has_value(), ());
+  TEST(manager.SetFocusedArea(1, fx.spaPath), ());
+  TEST(manager.GetFocusedAreaProgress().m_fractionValid, ());
+  TEST_EQUAL(manager.GetFocusedAreaProgress().m_fraction, 0.0, ());
 
-  TEST(manager.RebuildAreaCompletionCache(fx.leaf, fx.spaPath, fx.mapDataVersion), ());
+  manager.MarkImportedPixelsForTesting({fx.cityOnlyId});
   TEST(manager.IsAreaCompletionCacheValid(), ());
+  TEST(manager.GetAreaCompletion(0).has_value(), ());
+  TEST(manager.GetAreaCompletion(1).has_value(), ());
+  TEST_EQUAL(manager.GetAreaCompletion(0)->m_explored, 1u, ());
+  TEST_EQUAL(manager.GetAreaCompletion(1)->m_explored, 1u, ());
+  TEST_EQUAL(manager.GetAreaCompletionFraction(1), 1.0, ());
+  auto progress = manager.GetFocusedAreaProgress();
+  TEST(progress.m_fractionValid, ());
+  TEST_EQUAL(progress.m_fraction, 1.0, ());
+  TEST(progress.m_areaCompleted, ());
+
+  manager.MarkImportedPixelsForTesting({fx.cityOnlyId});
+  TEST_EQUAL(manager.GetAreaCompletion(1)->m_explored, 1u, ());
+
+  manager.MarkImportedPixelsForTesting({fx.outsideId});
+  TEST(manager.IsAreaCompletionCacheValid(), ());
+  TEST_EQUAL(manager.GetAreaCompletion(1)->m_explored, 1u, ());
 
   CleanupAc(fx);
 }
