@@ -85,7 +85,11 @@ public class CompletionCardOutlineView extends View
     for (int ringLength : mRingLengths)
     {
       if (ringLength < 3 || cursor + ringLength > mXs.length)
-        return;
+      {
+        if (ringLength > 0)
+          cursor += ringLength;
+        continue;
+      }
       mPath.moveTo(mXs[cursor] * scaleX, mYs[cursor] * scaleY);
       for (int i = 1; i < ringLength; ++i)
         mPath.lineTo(mXs[cursor + i] * scaleX, mYs[cursor + i] * scaleY);

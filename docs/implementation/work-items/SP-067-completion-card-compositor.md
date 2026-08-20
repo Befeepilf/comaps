@@ -118,7 +118,7 @@ track dump. The card is the only image produced for the outside world.
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-067-completion-card-compositor-c417` |
-| Test output | |
+| Test output | `street_pixels_tests --filter=CompletionCard` **10/10**; `AreaMilestonePresentation` **14/14** |
 | M1 path used | rings-only / `CompletionCardModel` (headless C++ stroke + Android Canvas from JNI model; never Drape / `MapView`) |
 | Manual image inspection | Residual → SP-069 / Phase 10 |
 | Accepted by | |
