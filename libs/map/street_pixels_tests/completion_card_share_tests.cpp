@@ -41,7 +41,7 @@ public:
   ~ShAmAnalyticsGuard() { street_pixels::CompletionCardAnalytics::ResetForTesting(); }
 };
 
-bool ShAmContainsForbidden(std::string const & text)
+bool ShAmContainsForbiddenKey(std::string const & text)
 {
   std::string const lower = strings::MakeLowerCase(text);
   std::string_view constexpr kForbidden[] = {
@@ -50,6 +50,17 @@ bool ShAmContainsForbidden(std::string const & text)
   for (auto const token : kForbidden)
   {
     if (lower.find(token) != std::string::npos)
+      return true;
+  }
+  return false;
+}
+
+bool ShAmContainsForbiddenText(std::string const & text)
+{
+  std::string const lower = strings::MakeLowerCase(text);
+  for (auto const & token : street_pixels::CompletionCardDeniedKeys())
+  {
+    if (lower.find(strings::MakeLowerCase(token)) != std::string::npos)
       return true;
   }
   return false;
@@ -181,18 +192,18 @@ UNIT_TEST(CompletionCardShare_AnalyticsKeysHaveNoLocationOrArea)
   std::string const keys[] = {std::string(street_pixels::CompletionCardAnalytics::kCardGeneratedKey),
                               std::string(street_pixels::CompletionCardAnalytics::kShareInitiatedKey)};
   for (auto const & key : keys)
-    TEST(!ShAmContainsForbidden(key), (key));
+    TEST(!ShAmContainsForbiddenKey(key), (key));
   auto const serialized = street_pixels::CompletionCardAnalytics::SerializedSnapshot();
   TEST_EQUAL(serialized.size(), 2, ());
   for (auto const & entry : serialized)
   {
     std::string const name(entry.first);
     TEST_EQUAL(strings::MakeLowerCase(name), name, ());
-    TEST(!ShAmContainsForbidden(name), (name));
+    TEST(!ShAmContainsForbiddenKey(name), (name));
   }
   std::string const debug = DebugPrint(street_pixels::CompletionCardAnalytics::LoadSnapshot());
   TEST_EQUAL(strings::MakeLowerCase(debug), debug, ());
-  TEST(!ShAmContainsForbidden(debug), (debug));
+  TEST(!ShAmContainsForbiddenKey(debug), (debug));
 }
 
 UNIT_TEST(CompletionCardShare_GeneratedIncrementsOnDisplayGet)
@@ -265,10 +276,13 @@ UNIT_TEST(CompletionCardShare_DateOptInDefaultOff)
   TEST(rec.has_value() && rec->m_completed100At.has_value(), ());
   auto payload = manager.PrepareCompletionCardShare(false);
   TEST(payload.has_value(), ());
-  TEST(!ShAmContainsForbidden(payload->m_text), (payload->m_text));
+  TEST(!ShAmContainsForbiddenText(payload->m_text), (payload->m_text));
   auto card = manager.GetCompletionCardForCurrentPresentation(false, false);
   TEST(card.has_value(), ());
   TEST(!card->m_completedDate.has_value(), ());
+  auto dated = manager.GetCompletionCardForCurrentPresentation(true, false);
+  TEST(dated.has_value() && dated->m_completedDate.has_value(), ());
+  TEST(payload->m_text.find(*dated->m_completedDate) == std::string::npos, (payload->m_text));
   CleanupShAm(fx);
 }
 
@@ -303,7 +317,7 @@ UNIT_TEST(CompletionCardShare_TextHasNoCoordinates)
   TEST(manager.RebuildAreaCompletionCache(fx.leaf, fx.spaPath, fx.mapDataVersion), ());
   auto payload = manager.PrepareCompletionCardShare(false);
   TEST(payload.has_value(), ());
-  TEST(!ShAmContainsForbidden(payload->m_text), (payload->m_text));
+  TEST(!ShAmContainsForbiddenText(payload->m_text), (payload->m_text));
   CleanupShAm(fx);
 }
 
