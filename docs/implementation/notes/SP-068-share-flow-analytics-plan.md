@@ -1,6 +1,6 @@
 # SP-068 — Share flow and growth analytics (implementation plan)
 
-**Status:** Draft plan for coding; not Accepted.
+**Status:** Draft plan for coding; not Accepted. Implemented and Accepted 2026-08-20 on `cursor/sp-068-share-flow-analytics-c417`.
 **Work item:** [`SP-068-share-flow-and-growth-analytics.md`](../work-items/SP-068-share-flow-and-growth-analytics.md)
 **Date:** 2026-08-20
 **Locks (do not re-open):** SPD-051 (share-time date opt-in, default off), SPD-055 (count-only card-generated and share-initiated; no area id / coords / image bytes; not Sentry; Phase 10 upload residual), SPD-046 (share the rings-only card image, never a map/track), SPD-044 pattern (uint64 settings counters). SPD-008 Android V1.
