@@ -57,7 +57,6 @@
 #include "platform/country_file.hpp"
 #include "platform/location.hpp"
 #include "platform/platform.hpp"
-#include "platform/vibration.hpp"
 
 #include "routing/routing_helpers.hpp"
 #include "routing/routing_options.hpp"
@@ -405,6 +404,11 @@ void StreetPixelsManager::SetVibrationHandler(VibrationHandler const & handler)
   m_vibrationHandler = handler;
 }
 
+void StreetPixelsManager::SetApplicationForeground(bool foreground)
+{
+  m_applicationForeground = foreground;
+}
+
 void StreetPixelsManager::SetFirstGoalProgressListener(FirstGoalProgressChangedFn const & fn)
 {
   m_firstGoalProgressListener = fn;
@@ -487,12 +491,20 @@ void StreetPixelsManager::NotifyAreaMilestonePresentationIfChanged(
 void StreetPixelsManager::EmitAreaMilestoneHapticIfNeeded(
     std::optional<street_pixels::AreaMilestonePresentation> const & head)
 {
-  if (!head || !m_areaMilestoneHapticHandler)
+  if (!head)
     return;
   if (head->m_threshold == street_pixels::AreaMilestoneThreshold::P50)
-    m_areaMilestoneHapticHandler(street_pixels::AreaMilestoneHapticEvent::FiftyPercent);
+  {
+    if (m_areaMilestoneHapticHandler)
+      m_areaMilestoneHapticHandler(street_pixels::AreaMilestoneHapticEvent::FiftyPercent);
+    PlayExplorationHaptic(street_pixels::ExplorationHapticKind::FiftyPercent);
+  }
   else if (head->m_threshold == street_pixels::AreaMilestoneThreshold::P100)
-    m_areaMilestoneHapticHandler(street_pixels::AreaMilestoneHapticEvent::HundredPercent);
+  {
+    if (m_areaMilestoneHapticHandler)
+      m_areaMilestoneHapticHandler(street_pixels::AreaMilestoneHapticEvent::HundredPercent);
+    PlayExplorationHaptic(street_pixels::ExplorationHapticKind::HundredPercent);
+  }
 }
 
 bool StreetPixelsManager::IsFirstGoalSessionActive() const
@@ -622,25 +634,23 @@ void StreetPixelsManager::TriggerCollectionVibration(size_t numNewlyExploredPixe
 {
   if (numNewlyExploredPixels == 0)
     return;
+  PlayExplorationHaptic(street_pixels::ExplorationHapticKind::Collection);
+}
 
+void StreetPixelsManager::PlayExplorationHaptic(street_pixels::ExplorationHapticKind kind)
+{
+  street_pixels::ExplorationHapticGate gate;
+  gate.recording = m_recordingSession && m_recordingSession->IsRecording();
+  gate.foreground = m_applicationForeground;
+  gate.toggleOn = street_pixels::ExplorationHapticsToggleEnabled();
+  if (!street_pixels::ShouldPlayExplorationHaptic(gate))
+    return;
   if (m_vibrationHandler)
   {
-    m_vibrationHandler(numNewlyExploredPixels);
+    m_vibrationHandler(kind);
     return;
   }
-
-  if (numNewlyExploredPixels == 1)
-    platform::Vibrate(50);
-  else
-  {
-    size_t const maxPixels = 10;
-    size_t const count = std::min(numNewlyExploredPixels, maxPixels);
-
-    std::vector<uint32_t> durations(count, 30);
-    std::vector<uint32_t> delays(count, 20);
-
-    platform::VibratePattern(durations.data(), delays.data(), count);
-  }
+  street_pixels::PlayExplorationHapticWaveform(kind);
 }
 
 void StreetPixelsManager::LoadStreetPixels(storage::LocalFilePtr const & localFile)
@@ -1851,16 +1861,19 @@ void StreetPixelsManager::OnLocationUpdate(location::GpsInfo const & info)
     m_explorationListener(d);
   }
 
-  TriggerCollectionVibration(numNewlyExploredPixels);
-
+  bool justCompleted = false;
   if (numNewlyExploredPixels > 0)
   {
-    bool const justCompleted =
+    justCompleted =
         m_firstGoalTracker.AddNewlyExploredLivePixels(static_cast<uint32_t>(numNewlyExploredPixels));
     NotifyFirstGoalProgressIfChanged();
     if (justCompleted && m_firstGoalCompleteHandler)
       m_firstGoalCompleteHandler();
   }
+  if (justCompleted)
+    PlayExplorationHaptic(street_pixels::ExplorationHapticKind::FirstGoalComplete);
+  else
+    TriggerCollectionVibration(numNewlyExploredPixels);
 }
 
 void StreetPixelsManager::UpdateStreetStats(double lat, double lon, size_t numNewlyExploredPixels)
