@@ -1,6 +1,6 @@
 # SP-069 — Phase 7 end-to-end validation (implementation plan)
 
-**Status:** Draft plan for validation; not Accepted.
+**Status:** Draft plan for validation; not Accepted. Evidence recorded 2026-08-20 on `cursor/sp-069-phase7-end-to-end-validation-c417`. Work item In review; agent does not mark Phase 7 exit Met.
 **Work item:** [`SP-069-phase7-end-to-end-validation.md`](../work-items/SP-069-phase7-end-to-end-validation.md)
 **Date:** 2026-08-20
 **Locks (do not re-open):** SPD-046–055 (M1–M10). SP-062–068 are implemented

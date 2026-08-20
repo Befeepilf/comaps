@@ -1,6 +1,6 @@
 # Phase 7 — Milestones and share cards
 
-**Status:** In progress (SP-062 Accepted 2026-08-19; SP-063+ coding underway)
+**Status:** In progress (SP-069 In review 2026-08-20; SP-062–068 Accepted except SP-063 In review already in tree)
 **Depends on:** Phase 5
 **Blocks:** nothing; required for release
 
@@ -232,6 +232,11 @@ Additional considerations:
 8. Milestone state survives map updates per spec §27.4.
 9. Growth analytics record card generation and share initiation with no
    location data.
+
+SP-069 evidence (2026-08-20) is in
+[`validation/SP-069-evidence-log.md`](../validation/SP-069-evidence-log.md).
+Automated coverage for 1–9 is recorded as Pass with device / Phase 8 /
+upload residuals. Agent does **not** mark this phase’s exit Met.
 
 ## Explicit non-goals
 
