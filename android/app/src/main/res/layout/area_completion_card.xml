@@ -19,11 +19,44 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="@style/MwmTextAppearance.Headline6" />
+    <app.organicmaps.maplayer.CompletionCardOutlineView
+        android:id="@+id/area_completion_card_outline"
+        android:layout_width="160dp"
+        android:layout_height="160dp"
+        android:layout_marginTop="@dimen/margin_quarter" />
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/area_completion_card_body"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_quarter"
+        android:textAppearance="@style/MwmTextAppearance.Body3" />
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/area_completion_card_nickname"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_quarter"
+        android:textAppearance="@style/MwmTextAppearance.Body3"
+        android:visibility="gone" />
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/area_completion_card_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_quarter"
+        android:textAppearance="@style/MwmTextAppearance.Body3"
+        android:visibility="gone" />
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/area_completion_card_competition"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_quarter"
+        android:textAppearance="@style/MwmTextAppearance.Body3"
+        android:visibility="gone" />
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/area_completion_card_branding"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_quarter"
+        android:text="@string/street_pixels_completion_card_branding"
         android:textAppearance="@style/MwmTextAppearance.Body3" />
     <com.google.android.material.button.MaterialButton
         android:id="@+id/area_completion_card_share"

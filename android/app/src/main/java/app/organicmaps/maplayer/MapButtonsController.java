@@ -42,6 +42,7 @@ import app.organicmaps.sdk.location.RecordingSession;
 import app.organicmaps.location.RecordingSessionUiModel;
 import app.organicmaps.sdk.maplayer.isolines.IsolinesManager;
 import app.organicmaps.sdk.maplayer.streetpixels.AreaMilestonePresentation;
+import app.organicmaps.sdk.maplayer.streetpixels.CompletionCardModel;
 import app.organicmaps.sdk.maplayer.streetpixels.FirstGoalProgress;
 import app.organicmaps.sdk.maplayer.streetpixels.FocusedAreaProgress;
 import app.organicmaps.sdk.maplayer.streetpixels.StreetPixelsManager;
@@ -85,6 +86,16 @@ public class MapButtonsController extends Fragment
   private TextView mCompletionCardTitle;
   @Nullable
   private TextView mCompletionCardBody;
+  @Nullable
+  private CompletionCardOutlineView mCompletionCardOutline;
+  @Nullable
+  private TextView mCompletionCardNickname;
+  @Nullable
+  private TextView mCompletionCardDate;
+  @Nullable
+  private TextView mCompletionCardCompetition;
+  @Nullable
+  private TextView mCompletionCardBranding;
   @Nullable
   private ObjectAnimator mTrackRecordingBlinkAnimator;
 
@@ -251,6 +262,11 @@ public class MapButtonsController extends Fragment
     {
       mCompletionCardTitle = mCompletionCard.findViewById(R.id.area_completion_card_title);
       mCompletionCardBody = mCompletionCard.findViewById(R.id.area_completion_card_body);
+      mCompletionCardOutline = mCompletionCard.findViewById(R.id.area_completion_card_outline);
+      mCompletionCardNickname = mCompletionCard.findViewById(R.id.area_completion_card_nickname);
+      mCompletionCardDate = mCompletionCard.findViewById(R.id.area_completion_card_date);
+      mCompletionCardCompetition = mCompletionCard.findViewById(R.id.area_completion_card_competition);
+      mCompletionCardBranding = mCompletionCard.findViewById(R.id.area_completion_card_branding);
       View share = mCompletionCard.findViewById(R.id.area_completion_card_share);
       if (share != null)
         share.setOnClickListener(v -> {});
@@ -602,12 +618,63 @@ public class MapButtonsController extends Fragment
         mCompletionCardTitle.setText(getString(R.string.street_pixels_area_milestone_100, name));
       if (mCompletionCardBody != null)
         mCompletionCardBody.setText(getString(R.string.street_pixels_completion_card_body, name));
+      bindCompletionCardOutline(MwmApplication.from(ctx).getStreetPixelsManager().getCurrentCompletionCard(false));
       if (mCompletionCard != null)
         UiUtils.show(mCompletionCard);
     }
     Toast.makeText(ctx, getString(messageId, name), toastLength).show();
     pulseExplorationBadge(presentation.threshold);
     mAreaMilestoneHandler.postDelayed(mAcknowledgeAreaMilestone, delayMs);
+  }
+
+  private void bindCompletionCardOutline(@Nullable CompletionCardModel card)
+  {
+    boolean hasOutline = card != null && card.outlineXs != null && card.outlineXs.length > 0;
+    if (mCompletionCardOutline != null)
+    {
+      if (hasOutline)
+      {
+        mCompletionCardOutline.setOutline(card.outlineXs, card.outlineYs, card.ringLengths);
+        mCompletionCardOutline.setContentDescription(card.areaDisplayName);
+        UiUtils.show(mCompletionCardOutline);
+      }
+      else
+      {
+        mCompletionCardOutline.setOutline(null, null, null);
+        UiUtils.hide(mCompletionCardOutline);
+      }
+    }
+    if (mCompletionCardBranding != null)
+    {
+      if (card != null && !TextUtils.isEmpty(card.branding))
+      {
+        mCompletionCardBranding.setText(card.branding);
+        UiUtils.show(mCompletionCardBranding);
+      }
+      else
+        UiUtils.hide(mCompletionCardBranding);
+    }
+    if (mCompletionCardNickname != null)
+    {
+      boolean showNick = card != null && !TextUtils.isEmpty(card.nickname);
+      if (showNick)
+        mCompletionCardNickname.setText(card.nickname);
+      UiUtils.showIf(showNick, mCompletionCardNickname);
+    }
+    if (mCompletionCardDate != null)
+    {
+      boolean showDate = card != null && !TextUtils.isEmpty(card.completedDate);
+      if (showDate)
+        mCompletionCardDate.setText(card.completedDate);
+      UiUtils.showIf(showDate, mCompletionCardDate);
+    }
+    if (mCompletionCardCompetition != null)
+    {
+      boolean showCompetition = card != null && !TextUtils.isEmpty(card.competitionLine);
+      if (showCompetition)
+        mCompletionCardCompetition.setText(card.competitionLine);
+      UiUtils.showIf(showCompetition, mCompletionCardCompetition);
+    }
   }
 
   private void pulseExplorationBadge(int threshold)

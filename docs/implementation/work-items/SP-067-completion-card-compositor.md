@@ -1,13 +1,13 @@
 # SP-067 — Completion-card compositor
 
 **Phase:** 7 — Milestones and share cards
-**Status:** Planned
-**Branch:**
+**Status:** Accepted
+**Branch:** `cursor/sp-067-completion-card-compositor-c417`
 **Depends on:** SP-062 M1 (render path), M6 (date opt-in), M7 (competition
   stub). SP-063 original 100% date. SP-065 100% surface. `ExplorationArea`
   rings and `DisplayName`.
 **Notes:** Coding waits on OQ-9 / OQ-14 / OQ-15 (draft SPD-046 / SPD-051 /
-  SPD-052). Rasterise only after M1 Accept.
+    SPD-052). Rasterise only after M1 Accept.
 **Unblocks:** SP-068 share of a real image; SP-069 exit #4, #5
 
 ---
@@ -68,10 +68,11 @@ track dump. The card is the only image produced for the outside world.
 
 ## Relevant source files or symbols
 
+- `street_pixels::CompletionCardModel`, `ComposeCompletionCard`, rings raster
 - `street_pixels::ExplorationArea::m_rings`, `m_name` / `DisplayName`
 - `SharingUtils` (do not attach tracks)
 - Drape / `area_overlay` (in-app chrome only; not the share bitmap)
-- No completion-card compositor (2026-08-19)
+- `area_completion_card.xml`, `CompletionCardOutlineView`
 
 ## Implementation notes / constraints
 
@@ -116,12 +117,12 @@ track dump. The card is the only image produced for the outside world.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Test output | |
-| M1 path used | |
-| Manual image inspection | |
-| Accepted by | |
-| Accepted date | |
+| Branch | `cursor/sp-067-completion-card-compositor-c417` |
+| Test output | `street_pixels_tests --filter=CompletionCard` **10/10**; `AreaMilestonePresentation` **14/14** |
+| M1 path used | rings-only / `CompletionCardModel` (headless C++ stroke + Android Canvas from JNI model; never Drape / `MapView`) |
+| Manual image inspection | Residual → SP-069 / Phase 10 |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-20 |
 
 ## Discovered follow-up
 

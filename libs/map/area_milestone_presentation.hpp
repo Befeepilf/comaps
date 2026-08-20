@@ -1,6 +1,7 @@
 #pragma once
 
 #include "street_pixels_areas/area_milestone_store.hpp"
+#include "street_pixels_areas/completion_card.hpp"
 
 #include <cstdint>
 #include <functional>
@@ -46,19 +47,28 @@ class AreaMilestonePresenter
 public:
   using NameLookup = std::function<std::string(uint32_t compactIndex, uint64_t osmId)>;
   using CompetitionLineFn = std::function<std::string(uint64_t osmId)>;
+  using CardSourceLookup = std::function<std::optional<CompletionCardSource>(uint32_t compactIndex, uint64_t osmId)>;
 
   void SetCompetitionLineProvider(CompetitionLineFn const & fn);
-  void Enqueue(std::vector<AreaMilestoneCrossing> const & crossings, NameLookup const & names);
+  void Enqueue(std::vector<AreaMilestoneCrossing> const & crossings, NameLookup const & names,
+               CardSourceLookup const & cards = {});
   std::optional<AreaMilestonePresentation> Peek() const;
+  std::optional<CompletionCardSource> PeekCardSource() const;
   void Acknowledge();
   void ResetForTesting();
 
 private:
+  struct QueueItem
+  {
+    AreaMilestonePresentation presentation;
+    std::optional<CompletionCardSource> cardSource;
+  };
+
   bool ContainsUnlocked(uint64_t osmId, AreaMilestoneThreshold threshold) const;
   void SortUnlocked();
 
   mutable std::mutex m_mutex;
-  std::vector<AreaMilestonePresentation> m_queue;
+  std::vector<QueueItem> m_queue;
   CompetitionLineFn m_competitionLineFn;
 };
 }  // namespace street_pixels
