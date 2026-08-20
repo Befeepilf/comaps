@@ -3,6 +3,7 @@
 #include "app/organicmaps/sdk/core/jni_helper.hpp"
 #include "app/organicmaps/sdk/platform/AndroidPlatform.hpp"
 
+#include "street_pixels_areas/completion_card.hpp"
 #include "street_pixels_areas/exploration_sidecar.hpp"
 #include "street_pixels_areas/focus_selection_engine.hpp"
 #include "street_pixels_areas/focused_area_progress.hpp"
@@ -20,6 +21,7 @@
 #include "geometry/mercator.hpp"
 
 #include <optional>
+#include <vector>
 
 extern "C"
 {
@@ -255,5 +257,68 @@ Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeAcknowl
   CHECK(g_framework, ("Framework isn't created yet!"));
   auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
   manager.AcknowledgeAreaMilestonePresentation();
+}
+
+static jobject ToJavaCompletionCardModel(JNIEnv * env, street_pixels::CompletionCardModel const & model)
+{
+  static jclass const modelClass =
+      jni::GetGlobalClassRef(env, "app/organicmaps/sdk/maplayer/streetpixels/CompletionCardModel");
+  static jmethodID const ctor = jni::GetConstructorID(
+      env, modelClass,
+      "(Ljava/lang/String;Ljava/lang/String;[F[F[ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/"
+      "String;)V");
+
+  auto const projected = street_pixels::ProjectOutlineToPixels(
+      model.m_outlineRings, street_pixels::kCompletionCardOutlineSize, street_pixels::kCompletionCardOutlineSize);
+  size_t vertexCount = 0;
+  for (auto const & ring : projected)
+    vertexCount += ring.size();
+
+  std::vector<jfloat> xs(vertexCount);
+  std::vector<jfloat> ys(vertexCount);
+  std::vector<jint> ringLengths(projected.size());
+  size_t cursor = 0;
+  for (size_t r = 0; r < projected.size(); ++r)
+  {
+    ringLengths[r] = static_cast<jint>(projected[r].size());
+    for (auto const & p : projected[r])
+    {
+      xs[cursor] = static_cast<jfloat>(p.x);
+      ys[cursor] = static_cast<jfloat>(p.y);
+      ++cursor;
+    }
+  }
+
+  jni::ScopedLocalRef<jfloatArray> const jXs(env, env->NewFloatArray(static_cast<jsize>(xs.size())));
+  jni::ScopedLocalRef<jfloatArray> const jYs(env, env->NewFloatArray(static_cast<jsize>(ys.size())));
+  jni::TScopedLocalIntArrayRef const jLengths(env, env->NewIntArray(static_cast<jsize>(ringLengths.size())));
+  if (jXs.get() != nullptr && !xs.empty())
+    env->SetFloatArrayRegion(jXs.get(), 0, static_cast<jsize>(xs.size()), xs.data());
+  if (jYs.get() != nullptr && !ys.empty())
+    env->SetFloatArrayRegion(jYs.get(), 0, static_cast<jsize>(ys.size()), ys.data());
+  if (jLengths.get() != nullptr && !ringLengths.empty())
+    env->SetIntArrayRegion(jLengths.get(), 0, static_cast<jsize>(ringLengths.size()), ringLengths.data());
+
+  jni::TScopedLocalRef const jName(env, jni::ToJavaString(env, model.m_areaDisplayName));
+  jni::TScopedLocalRef const jHeadline(env, jni::ToJavaString(env, model.m_headline));
+  jni::TScopedLocalRef const jNick(env, model.m_nickname ? jni::ToJavaString(env, *model.m_nickname) : nullptr);
+  jni::TScopedLocalRef const jDate(env, model.m_completedDate ? jni::ToJavaString(env, *model.m_completedDate)
+                                                             : nullptr);
+  jni::TScopedLocalRef const jBrand(env, jni::ToJavaString(env, model.m_branding));
+  jni::TScopedLocalRef const jComp(env, jni::ToJavaString(env, model.m_competitionLine));
+  return env->NewObject(modelClass, ctor, jName.get(), jHeadline.get(), jXs.get(), jYs.get(), jLengths.get(),
+                        jNick.get(), jDate.get(), jBrand.get(), jComp.get());
+}
+
+JNIEXPORT jobject JNICALL
+Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeGetCurrentCompletionCard(
+    JNIEnv * env, jclass clazz, jboolean includeDate)
+{
+  CHECK(g_framework, ("Framework isn't created yet!"));
+  auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
+  auto const model = manager.GetCompletionCardForCurrentPresentation(static_cast<bool>(includeDate));
+  if (!model)
+    return nullptr;
+  return ToJavaCompletionCardModel(env, *model);
 }
 }

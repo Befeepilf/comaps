@@ -494,14 +494,14 @@ city-scale/device residual → Phase 10. Coding SP-056+ may proceed.
 | 64 | [SP-064](work-items/SP-064-first-100-metres-goal.md) | First-100-metres contextual goal | 7 | **Accepted** — 10 newly explored live pixels (2026-08-19) |
 | 65 | [SP-065](work-items/SP-065-area-milestone-presentation.md) | Area milestone presentation (25 / 50 / 100) | 7 | **Accepted** — non-blocking 25/50/100 (2026-08-20) |
 | 66 | [SP-066](work-items/SP-066-exploration-haptics-policy.md) | Exploration haptics policy | 7 | **Accepted** — recording ∧ foreground ∧ toggle (2026-08-20) |
-| 67 | [SP-067](work-items/SP-067-completion-card-compositor.md) | Completion-card compositor | 7 | Planned — deny-list model + outline image |
+| 67 | [SP-067](work-items/SP-067-completion-card-compositor.md) | Completion-card compositor | 7 | **In review** — deny-list model + rings outline |
 | 68 | [SP-068](work-items/SP-068-share-flow-and-growth-analytics.md) | Share flow and growth analytics | 7 | Planned — explicit share; count-only |
 | 69 | [SP-069](work-items/SP-069-phase7-end-to-end-validation.md) | Phase 7 end-to-end validation | 7 | Planned — exit gate |
 
 Phase 7 work-item planning (2026-08-19) recorded in
 [`phases/phase-07-milestones-and-share-cards.md`](phases/phase-07-milestones-and-share-cards.md).
 SP-062 **Accepted** (SPD-046–055, 2026-08-19). SP-063 **In review**.
-SP-064 **Accepted** (2026-08-19). SP-065 **Accepted** (2026-08-20). SP-066 **Accepted** (2026-08-20). SP-067–069 **Planned**. Phase 7 **In progress**; stylised-map entry criterion
+SP-064 **Accepted** (2026-08-19). SP-065 **Accepted** (2026-08-20). SP-066 **Accepted** (2026-08-20). SP-067 **In review**. SP-068–069 **Planned**. Phase 7 **In progress**; stylised-map entry criterion
 **met** (SPD-046). Phase 5 exit (SP-041) is still the product prerequisite
 for milestone UI coding. Detailed work items exist for
 Phases 1–7. Later phases are broken down after their entry criteria are

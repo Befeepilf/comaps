@@ -1419,6 +1419,7 @@ outline branch for deny-list safety.
 **Consequences.**
 
 - SP-067 composes from rings, not a live map screenshot.
+- SP-067 implements `CompletionCardModel` from `m_rings` (headless raster + Android Canvas from that model; never Drape).
 - Phase 7 stylised-map entry criterion is met for coding.
 
 **Related documents.** Spec §19.1; SPD-008; SP-062; SP-067; phase-07.
