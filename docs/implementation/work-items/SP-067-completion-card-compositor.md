@@ -1,7 +1,7 @@
 # SP-067 — Completion-card compositor
 
 **Phase:** 7 — Milestones and share cards
-**Status:** In review
+**Status:** Accepted
 **Branch:** `cursor/sp-067-completion-card-compositor-c417`
 **Depends on:** SP-062 M1 (render path), M6 (date opt-in), M7 (competition
   stub). SP-063 original 100% date. SP-065 100% surface. `ExplorationArea`
@@ -121,8 +121,8 @@ track dump. The card is the only image produced for the outside world.
 | Test output | `street_pixels_tests --filter=CompletionCard` **10/10**; `AreaMilestonePresentation` **14/14** |
 | M1 path used | rings-only / `CompletionCardModel` (headless C++ stroke + Android Canvas from JNI model; never Drape / `MapView`) |
 | Manual image inspection | Residual → SP-069 / Phase 10 |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-20 |
 
 ## Discovered follow-up
 
