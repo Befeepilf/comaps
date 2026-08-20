@@ -34,6 +34,7 @@
 #include "street_pixels_areas/area_milestone_store.hpp"
 #include "street_pixels_areas/areas_types.hpp"
 #include "street_pixels_areas/city_completion_cache.hpp"
+#include "street_pixels_areas/completion_card.hpp"
 #include "street_pixels_areas/exploration_area_resolver.hpp"
 #include "street_pixels_areas/focus_selection_engine.hpp"
 #include "street_pixels_areas/focused_area_progress.hpp"
@@ -257,6 +258,10 @@ public:
   void AcknowledgeAreaMilestonePresentation();
   void ResetAreaMilestonePresentationForTesting();
 
+  using CompletionCardGeneratedFn = std::function<void()>;
+  void SetCompletionCardGeneratedHandler(CompletionCardGeneratedFn const & fn);
+  std::optional<street_pixels::CompletionCardModel> GetCompletionCardForCurrentPresentation(bool includeDate = false);
+
   void SetStreetPixelsForTesting(std::vector<df::StreetPixel> pixels);
   void SetStreetPixelsOverlayForTesting(storage::CountryId const & countryId, std::vector<df::StreetPixel> pixels);
   void ClearLeafPixCacheForTesting();
@@ -327,6 +332,7 @@ private:
   AreaMilestonePresentationChangedFn m_areaMilestonePresentationListener;
   AreaMilestoneHapticFn m_areaMilestoneHapticHandler;
   street_pixels::AreaMilestonePresenter m_areaMilestonePresenter;
+  CompletionCardGeneratedFn m_completionCardGeneratedFn;
   std::vector<df::StreetPixel> m_testStreetPixelsStorage;
 
   void TriggerCollectionVibration(size_t numNewlyExploredPixels);
