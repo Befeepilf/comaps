@@ -27,6 +27,8 @@ set(SRC
   explorer_pro.hpp
   area_milestone_presentation.cpp
   area_milestone_presentation.hpp
+  exploration_haptics.cpp
+  exploration_haptics.hpp
   first_goal.cpp
   first_goal.hpp
   live_sample_acceptance_filter.cpp

@@ -140,7 +140,7 @@ UNIT_TEST(CollectionGate_Rejected_NoVibration)
   CollectionGateFixture fixture;
   fixture.SetupPixels({{CollectionGateFixture::kPixelA, false}});
   size_t vibrationCalls = 0;
-  fixture.Manager().SetVibrationHandler([&](size_t) { ++vibrationCalls; });
+  fixture.Manager().SetVibrationHandler([&](street_pixels::ExplorationHapticKind) { ++vibrationCalls; });
 
   fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelA, street_pixels_tests::CurrentTimestampSec()));
   TEST_EQUAL(vibrationCalls, 0, ());
@@ -182,9 +182,15 @@ UNIT_TEST(CollectionGate_Recording_TriggersVibration)
   CollectionGateFixture fixture;
   fixture.SetupPixels({{CollectionGateFixture::kPixelA, false}});
   size_t vibrationCalls = 0;
-  fixture.Manager().SetVibrationHandler([&](size_t) { ++vibrationCalls; });
+  street_pixels::ExplorationHapticKind lastKind = street_pixels::ExplorationHapticKind::FiftyPercent;
+  fixture.Manager().SetVibrationHandler([&](street_pixels::ExplorationHapticKind kind) {
+    ++vibrationCalls;
+    lastKind = kind;
+  });
+  fixture.Manager().SetApplicationForeground(true);
 
   TEST_EQUAL(fixture.Session().Start(), RecordingSession::TransitionResult::Ok, ());
   fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(CollectionGateFixture::kPixelA, street_pixels_tests::CurrentTimestampSec()));
   TEST_EQUAL(vibrationCalls, 1, ());
+  TEST_EQUAL(lastKind, street_pixels::ExplorationHapticKind::Collection, ());
 }

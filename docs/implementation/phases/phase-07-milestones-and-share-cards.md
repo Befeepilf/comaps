@@ -40,14 +40,15 @@ Re-verified 2026-08-19 against the working tree (Phase 7 work-item planning).
 SP-062 re-verify (2026-08-19) confirmed this table. Extras in
 [`notes/SP-062-milestone-share-architecture.md`](../notes/SP-062-milestone-share-architecture.md):
 `qt/screenshoter.*` is desktop QA, not a card path;
-`Framework::EnterForeground` does not notify Street Pixels.
+`Framework::EnterForeground` / `EnterBackground` call
+`StreetPixelsManager::SetApplicationForeground` (SP-066).
 
 | Concern | Location | Observed state |
 | --- | --- | --- |
-| Collection haptic | `StreetPixelsManager::TriggerCollectionVibration` from `OnLocationUpdate` | Fires after live collection. Session-gated as a **side effect of SP-007** (`IsRecording()` early return). **Not** foreground-gated. When `numNewlyExploredPixels > 1`, `VibratePattern` pulses **once per pixel** (up to 10) — contradicts spec §28.2. Optional `m_vibrationHandler` used by tests. |
-| Platform vibrate | `libs/platform/vibration.cpp` → Android `Utils.vibrate` / `vibratePattern` | Desktop is a no-op. |
-| Foreground signal | `OrganicMaps.nativeOnTransit` → `Framework::EnterForeground` / `EnterBackground` | Exists. Street Pixels collection / haptic path does not consult it. |
-| Haptics setting | `prefs_interface.xml` and related | **No** “Exploration haptics” toggle. |
+| Collection haptic | `StreetPixelsManager::TriggerCollectionVibration` / `PlayExplorationHaptic` from `OnLocationUpdate` | One 50 ms collection pulse when ≥1 new pixel **and** SPD-054 predicate (recording ∧ foreground ∧ toggle). Same-update first-goal complete plays `FirstGoalComplete` instead. Tests intercept via `VibrationHandler(ExplorationHapticKind)`. |
+| Platform vibrate | `libs/platform/vibration.cpp` → Android `Utils.vibrate` / `vibratePattern` | Desktop is a no-op. Milestone waveforms in `exploration_haptics.cpp`. |
+| Foreground signal | `OrganicMaps.nativeOnTransit` → `Framework::EnterForeground` / `EnterBackground` | Forwards to `StreetPixelsManager::SetApplicationForeground`. Default **false**. Play is gated; collection itself is not. |
+| Haptics setting | `prefs_interface.xml`, `Config.explorationHapticsEnabled()`, C++ `StreetPixels.ExplorationHaptics` | Interface switch. Absent key → on. |
 | Area completion % | `AreaCompletionCache`, `StreetPixelsManager::GetAreaCompletion` | Explored/total including imported (SPD-026). Invalidated on collect/import/rematch. **No** fired-once state, **no** original 100% date. |
 | Focused-area badge | `FocusedAreaProgress` + `MapButtonsController.mExplorationBadge` | Name + % + `m_areaCompleted` (SP-035/036/040). `m_previouslyCompleted` for §27.4 detail copy (SP-065). Not a first-100 m chip. |
 | Completed chrome | SP-040 / `area_overlay` styles | Distinct completed visual (§18.6). 100% celebration is badge pulse + copy card (SP-065); do not replace overlay chrome. Card image still SP-067. |
@@ -59,9 +60,10 @@ SP-062 re-verify (2026-08-19) confirmed this table. Extras in
 
 **Difference from the technical audit (2026-07-20):** Phase 2 gated collection
 (and therefore vibration) on an active recording session — the audit/phase
-note that haptics were reachable outside a session is **stale**. The
-foreground condition, one-pulse-per-update rule, settings toggle, milestones,
-and compositor remain absent. Phase 5 delivered area-scoped % and completed
+note that haptics were reachable outside a session is **stale**. SP-066 landed
+the foreground gate, one-pulse-per-update rule, settings toggle, and
+milestone waveforms (device feel still SP-069). The compositor remains
+absent. Phase 5 delivered area-scoped % and completed
 chrome the 2026-07-25 snapshot marked missing for the badge.
 
 ## Intended outcome
@@ -91,8 +93,8 @@ chrome the 2026-07-25 snapshot marked missing for the badge.
 - No first-100 m onboarding badge (§10 steps 6 and 9).
 - No 25/50/100 celebration UI. Completed chrome exists (SP-040) but does not
   fire a card or share action.
-- Haptics: still not foreground-gated; multi-pixel updates vibrate per pixel;
-  no settings toggle.
+- Haptics: SP-066 recording ∧ foreground ∧ toggle; one collection pulse;
+  50/100/first-goal patterns. Device feel → SP-069.
 - No completion-card model or compositor. `SharingUtils` would share a track
   if reused naively.
 - No growth counters for card generated / share initiated.
