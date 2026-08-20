@@ -1,7 +1,7 @@
 # SP-068 — Share flow and growth analytics
 
 **Phase:** 7 — Milestones and share cards
-**Status:** In review
+**Status:** Accepted
 **Branch:** `cursor/sp-068-share-flow-analytics-c417`
 **Depends on:** SP-067 card image/model; SP-062 M10; SPD-044 local-counter
   pattern (SP-060).
@@ -114,11 +114,13 @@ Sentry.
 | Test output | `street_pixels_tests --filter=CompletionCardShare` **9/9**; `--filter=CompletionCard_` **10/10** |
 | Upload residual | Phase 10 — local uint64 settings only; no new network endpoint (SPD-055) |
 | Manual validation | Residual → SP-069 / Phase 10 |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Maintainer |
+| Accepted date | 2026-08-20 |
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| (filled during implementation) | |
+| 4 s auto-ack can delete the transient PNG while a share target still reads it | Residual → SP-069 / Phase 10; duration unchanged by SP-068 |
+| `onResume` rebind can increment generated again and reset the date checkbox | Residual → SP-069 |
+| Date/name live in `EXTRA_TEXT`; recipients that drop text will not see the date | Residual → SP-069 / Phase 10 |
