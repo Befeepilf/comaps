@@ -3,6 +3,7 @@
 #include "map/bookmark_manager.hpp"
 
 #include "map/area_milestone_presentation.hpp"
+#include "map/completion_card_analytics.hpp"
 #include "map/exploration_haptics.hpp"
 #include "map/first_goal.hpp"
 #include "map/live_sample_acceptance_filter.hpp"
@@ -260,7 +261,10 @@ public:
 
   using CompletionCardGeneratedFn = std::function<void()>;
   void SetCompletionCardGeneratedHandler(CompletionCardGeneratedFn const & fn);
-  std::optional<street_pixels::CompletionCardModel> GetCompletionCardForCurrentPresentation(bool includeDate = false);
+  std::optional<street_pixels::CompletionCardModel> GetCompletionCardForCurrentPresentation(
+      bool includeDate = false, bool recordGenerated = true);
+  std::optional<street_pixels::CompletionCardSharePayload> PrepareCompletionCardShare(bool includeDate);
+  void RecordCompletionCardShareInitiated();
 
   void SetStreetPixelsForTesting(std::vector<df::StreetPixel> pixels);
   void SetStreetPixelsOverlayForTesting(storage::CountryId const & countryId, std::vector<df::StreetPixel> pixels);

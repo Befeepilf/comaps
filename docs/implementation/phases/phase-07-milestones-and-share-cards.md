@@ -53,9 +53,9 @@ SP-062 re-verify (2026-08-19) confirmed this table. Extras in
 | Focused-area badge | `FocusedAreaProgress` + `MapButtonsController.mExplorationBadge` | Name + % + `m_areaCompleted` (SP-035/036/040). `m_previouslyCompleted` for §27.4 detail copy (SP-065). Not a first-100 m chip. |
 | Completed chrome | SP-040 / `area_overlay` styles | Distinct completed visual (§18.6). 100% celebration is badge pulse + copy card (SP-065) plus rings-only outline from `CompletionCardModel` (SP-067); do not replace overlay chrome. |
 | Area geometry | `ExplorationArea::m_rings` | Mercator outer rings available offline. V1 share geometry is SPD-046 rings-only via `CompletionCardModel`. |
-| Share | `SharingUtils`, bookmark/track KML/GPX | Generic file/text share. **Not** used for neighbourhood cards. SP-065/067 Share chrome is a no-op (`R.string.share`); SP-068 opens the sheet. |
-| Milestone / card / first-goal | `street_pixels::FirstGoalTracker` / JNI `FirstGoalProgress`; `street_pixels::AreaMilestonePresenter` / JNI `AreaMilestonePresentation`; `street_pixels::CompletionCardModel` | First-goal exists (SP-064). 25/50/100 presentation queue exists (SP-065). 100% compositor is rings-only `CompletionCardModel` (SP-067). Share tap still no-op. |
-| Growth analytics | `StreetExplorationRoutingAnalytics` (Phase 6) | Count-only routing counters only. No card-generated / share-initiated events. |
+| Share | `CompletionCardShare` + FileProvider of `street_pixels_completion_card.png` | Explicit Share tap sends `image/png`. Date checkbox default off. `SharingUtils` still unused for neighbourhood cards. |
+| Milestone / card / first-goal | `street_pixels::FirstGoalTracker` / JNI `FirstGoalProgress`; `street_pixels::AreaMilestonePresenter` / JNI `AreaMilestonePresentation`; `street_pixels::CompletionCardModel` | First-goal exists (SP-064). 25/50/100 presentation queue exists (SP-065). 100% compositor is rings-only `CompletionCardModel` (SP-067). Share tap opens an image sheet (SP-068). |
+| Growth analytics | `street_pixels::CompletionCardAnalytics`; `StreetExplorationRoutingAnalytics` (Phase 6) | Card-generated and share-initiated uint64 settings. No area id. Upload residual Phase 10. Routing counters unchanged. |
 | Routing-following | `RoutingManager::IsRoutingFollowing` | Exists; milestone UI must not interrupt it. |
 
 **Difference from the technical audit (2026-07-20):** Phase 2 gated collection
@@ -64,7 +64,9 @@ note that haptics were reachable outside a session is **stale**. SP-066 landed
 the foreground gate, one-pulse-per-update rule, settings toggle, and
 milestone waveforms (device feel still SP-069). SP-067 landed a
 rings-only `CompletionCardModel` compositor (headless stroke + Android
-Canvas from the JNI model). Share sheet remains SP-068. Phase 5 delivered area-scoped % and completed
+Canvas from the JNI model). SP-068 opens `ACTION_SEND` `image/png` of the
+transient card file on explicit Share tap; date opt-in default off;
+count-only `Explore.CardGenerated` / `Explore.ShareInitiated`. Phase 5 delivered area-scoped % and completed
 chrome the 2026-07-25 snapshot marked missing for the badge.
 
 ## Intended outcome
@@ -96,9 +98,9 @@ chrome the 2026-07-25 snapshot marked missing for the badge.
   fire a card or share action.
 - Haptics: SP-066 recording ∧ foreground ∧ toggle; one collection pulse;
   50/100/first-goal patterns. Device feel → SP-069.
-- No completion-card share sheet. SP-067 composes `CompletionCardModel` from
-  `m_rings`. `SharingUtils` would share a track if reused naively.
-- No growth counters for card generated / share initiated.
+- No completion-card gallery persist. SP-068 shares the transient PNG via
+  `ACTION_SEND`. `SharingUtils` would share a track if reused naively.
+- Growth counters are local uint64 settings; upload residual → Phase 10.
 
 ### Blocking unknowns (must not be guessed in coding items)
 

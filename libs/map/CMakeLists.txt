@@ -27,6 +27,8 @@ set(SRC
   explorer_pro.hpp
   area_milestone_presentation.cpp
   area_milestone_presentation.hpp
+  completion_card_analytics.cpp
+  completion_card_analytics.hpp
   exploration_haptics.cpp
   exploration_haptics.hpp
   first_goal.cpp
