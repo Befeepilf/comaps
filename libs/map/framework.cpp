@@ -1411,6 +1411,9 @@ void Framework::MemoryWarning()
 
 void Framework::EnterBackground()
 {
+  if (m_streetPixelsManager)
+    m_streetPixelsManager->SetApplicationForeground(false);
+
   m_usageStats.EnterBackground();
 
   if (m_drapeEngine)
@@ -1430,6 +1433,9 @@ void Framework::EnterBackground()
 
 void Framework::EnterForeground()
 {
+  if (m_streetPixelsManager)
+    m_streetPixelsManager->SetApplicationForeground(true);
+
   m_usageStats.EnterForeground();
 
   if (m_drapeEngine)

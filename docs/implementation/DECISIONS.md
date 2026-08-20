@@ -1583,7 +1583,7 @@ OQ-17.
 
 **Consequences.**
 
-- SP-066 wires foreground into Street Pixels and fixes per-pixel vibration.
+- SP-066 implements the predicate in `exploration_haptics` + manager; default foreground false; toggle key `StreetPixels.ExplorationHaptics`.
 - SP-064/065 emit milestone haptic events consumed by SP-066.
 
 **Related documents.** Spec §28.1–§28.4; SP-062; SP-064; SP-065; SP-066;

@@ -33,6 +33,7 @@ public final class Config
 
   private static final String KEY_DOWNLOADER_AUTO = "AutoDownloadEnabled";
   private static final String KEY_PREF_ZOOM_BUTTONS = "ZoomButtonsEnabled";
+  private static final String KEY_PREF_EXPLORATION_HAPTICS = "StreetPixels.ExplorationHaptics";
   private static final String KEY_PREF_USE_GS = "UseGoogleServices";
 
   private static final String KEY_MISC_DISCLAIMER_ACCEPTED = "IsDisclaimerApproved";
@@ -191,6 +192,16 @@ public final class Config
   public static void setShowZoomButtons(boolean show)
   {
     setBool(KEY_PREF_ZOOM_BUTTONS, show);
+  }
+
+  public static boolean explorationHapticsEnabled()
+  {
+    return getBool(KEY_PREF_EXPLORATION_HAPTICS, true);
+  }
+
+  public static void setExplorationHapticsEnabled(boolean enabled)
+  {
+    setBool(KEY_PREF_EXPLORATION_HAPTICS, enabled);
   }
 
   public static boolean isKeepScreenOnEnabled()

@@ -1,14 +1,14 @@
 # SP-066 — Exploration haptics policy
 
 **Phase:** 7 — Milestones and share cards
-**Status:** Planned
-**Branch:**
+**Status:** In review
+**Branch:** `cursor/sp-066-exploration-haptics-c417`
 **Depends on:** SP-062 M9. Recording gate already in
   `OnLocationUpdate` (SP-007). Foreground signal:
   `OrganicMaps.nativeOnTransit` → `Framework::EnterForeground/Background`.
   First-goal / 50% / 100% **events** from SP-064 and SP-065 (waveforms may
   land after those items; the predicate and collection pulse do not wait).
-**Notes:** Coding waits on OQ-17 (draft SPD-054).
+**Notes:** SPD-054 Accepted. Coding landed predicate + one pulse + toggle + waveforms.
 **Unblocks:** SP-069 exit #7; first-goal / 50% / 100% stronger patterns
 
 ---
@@ -70,8 +70,7 @@ milestone patterns.
 - `platform::Vibrate` / `VibratePattern` (`libs/platform/vibration.*`)
 - `Utils.vibrate` / `vibratePattern` (Android JNI)
 - `OrganicMaps.nativeOnTransit`
-- `android/app/src/main/res/xml/prefs_interface.xml` (candidate toggle)
-- No “Exploration haptics” preference (2026-08-19)
+- `android/app/src/main/res/xml/prefs_interface.xml` (`pref_exploration_haptics`)
 
 ## Implementation notes / constraints
 
@@ -118,9 +117,9 @@ milestone patterns.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Test output | |
-| Manual validation | |
+| Branch | `cursor/sp-066-exploration-haptics-c417` |
+| Test output | `street_pixels_tests --filter=ExplorationHaptic` **21/21**; `--filter=CollectionGate` **10/10**; `--filter=AreaMilestonePresentation` **14/14**; `--filter=FirstGoal` **11/11** (9 `FirstGoal_*` + 2 first-goal play tests); `--filter=EverLive_UpgradeDoesNotDoubleCount` **1/1**; `--filter=SampleAcceptanceManager_Rejected_NoVibration` **1/1**. Full `street_pixels_tests`: 111 OK then abort at `Eligibility_IncludesCommonHighways` (missing `classificator.txt` in this environment). Post-Eligibility remainder all passed. |
+| Manual validation | Device residual → SP-069 / Phase 10 |
 | Accepted by | |
 | Accepted date | |
 

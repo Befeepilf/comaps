@@ -3,6 +3,7 @@
 #include "map/bookmark_manager.hpp"
 
 #include "map/area_milestone_presentation.hpp"
+#include "map/exploration_haptics.hpp"
 #include "map/first_goal.hpp"
 #include "map/live_sample_acceptance_filter.hpp"
 #include "map/live_segment_interpolation.hpp"
@@ -235,8 +236,9 @@ public:
   void MarkInterpolationBarrier();
   SampleRejectReason GetLastSampleRejectReason() const;
 
-  using VibrationHandler = std::function<void(size_t newlyExplored)>;
+  using VibrationHandler = std::function<void(street_pixels::ExplorationHapticKind kind)>;
   void SetVibrationHandler(VibrationHandler const & handler);
+  void SetApplicationForeground(bool foreground);
 
   using FirstGoalProgressChangedFn = std::function<void(street_pixels::FirstGoalProgress const &)>;
   using FirstGoalCompleteFn = std::function<void()>;
@@ -317,6 +319,7 @@ private:
   LiveSegmentInterpolation m_segmentInterpolation;
   uint64_t m_filterSessionId = 0;
   VibrationHandler m_vibrationHandler;
+  bool m_applicationForeground = false;
   FirstGoalProgressChangedFn m_firstGoalProgressListener;
   FirstGoalCompleteFn m_firstGoalCompleteHandler;
   street_pixels::FirstGoalTracker m_firstGoalTracker;
@@ -327,6 +330,7 @@ private:
   std::vector<df::StreetPixel> m_testStreetPixelsStorage;
 
   void TriggerCollectionVibration(size_t numNewlyExploredPixels);
+  void PlayExplorationHaptic(street_pixels::ExplorationHapticKind kind);
   void NotifyFirstGoalProgressIfChanged();
   bool IsFirstGoalSessionActive() const;
   size_t MarkExploredPixelIds(std::set<std::int64_t> const & pixelIds, double eventTimeSec);

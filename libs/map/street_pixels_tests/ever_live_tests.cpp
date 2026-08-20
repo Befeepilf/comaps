@@ -159,9 +159,9 @@ UNIT_TEST(EverLive_UpgradeDoesNotDoubleCount)
   fixture.Manager().MarkImportedPixelsForTesting({EverLiveFixture::kPixelA});
   TEST_EQUAL(fixture.Manager().GetTotalExploredFraction(), 1.0, ());
 
-  size_t vibrationNewlyExplored = 0;
+  size_t vibrationCalls = 0;
   fixture.Manager().SetVibrationHandler(
-      [&vibrationNewlyExplored](size_t newlyExplored) { vibrationNewlyExplored += newlyExplored; });
+      [&vibrationCalls](street_pixels::ExplorationHapticKind) { ++vibrationCalls; });
 
   uint32_t listenerNewPixels = 0;
   fixture.Manager().SetExplorationListener(
@@ -175,7 +175,7 @@ UNIT_TEST(EverLive_UpgradeDoesNotDoubleCount)
   TEST(fixture.Manager().IsPixelExploredForTesting(EverLiveFixture::kPixelA), ());
   TEST(fixture.Manager().IsPixelEverLiveForTesting(EverLiveFixture::kPixelA), ());
   TEST_EQUAL(fixture.Manager().GetTotalExploredFraction(), 1.0, ());
-  TEST_EQUAL(vibrationNewlyExplored, 0, ());
+  TEST_EQUAL(vibrationCalls, 0, ());
   TEST_EQUAL(listenerNewPixels, 0, ());
 }
 

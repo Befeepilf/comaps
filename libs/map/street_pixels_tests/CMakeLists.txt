@@ -12,6 +12,7 @@ set(SRC
   country_config_tests.cpp
   eligibility_tests.cpp
   ever_live_tests.cpp
+  exploration_haptics_tests.cpp
   explorer_pro_tests.cpp
   first_goal_tests.cpp
   exploration_multiplier_tests.cpp

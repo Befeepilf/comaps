@@ -83,7 +83,7 @@ UNIT_TEST(SampleAcceptanceManager_Rejected_NoVibration)
   SampleAcceptanceManagerFixture fixture;
   fixture.SetupPixels({{SampleAcceptanceManagerFixture::kPixelA, false}});
   size_t vibrationCalls = 0;
-  fixture.Manager().SetVibrationHandler([&](size_t) { ++vibrationCalls; });
+  fixture.Manager().SetVibrationHandler([&](street_pixels::ExplorationHapticKind) { ++vibrationCalls; });
   TEST_EQUAL(fixture.Session().Start(), RecordingSession::TransitionResult::Ok, ());
 
   double const ts = street_pixels_tests::CurrentTimestampSec();
