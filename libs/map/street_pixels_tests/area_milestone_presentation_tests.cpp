@@ -461,3 +461,49 @@ UNIT_TEST(AreaMilestonePresentation_PreviouslyCompletedOnFocus)
 
   CleanupPresAm(fx);
 }
+
+UNIT_TEST(AreaMilestonePresentation_DebugPreviewWithoutHundredPercent)
+{
+  auto fx = MakePresAmFixture("sp_dbg_card");
+  TEST(street_pixels_file::SaveRematchedUniverse(
+           fx.pixPath, std::set<int64_t>{fx.districtId, fx.cityOnlyId, fx.outsideId},
+           street_pixels_file::ExploredEverLiveMap{}, fx.mapDataVersion),
+       ());
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  manager.ConfigureAreaMilestoneStoreForTesting(fx.dbPath);
+  TEST(manager.RebuildAreaCompletionCache(fx.leaf, fx.spaPath, fx.mapDataVersion), ());
+  TEST(!manager.GetCurrentAreaMilestonePresentation().has_value(), ());
+
+  size_t hapticEvents = 0;
+  size_t plays = 0;
+  manager.SetAreaMilestoneHapticHandler([&hapticEvents](street_pixels::AreaMilestoneHapticEvent) { ++hapticEvents; });
+  manager.SetVibrationHandler([&plays](street_pixels::ExplorationHapticKind) { ++plays; });
+  manager.SetApplicationForeground(true);
+
+  TEST(manager.DebugPreviewCompletionCard(), ());
+  auto peek = manager.GetCurrentAreaMilestonePresentation();
+  TEST(peek.has_value(), ());
+  TEST_EQUAL(peek->m_threshold, street_pixels::AreaMilestoneThreshold::P100, ());
+  TEST(peek->m_debugPreview, ());
+  TEST_EQUAL(hapticEvents, 0, ());
+  TEST_EQUAL(plays, 0, ());
+
+  auto card = manager.GetCompletionCardForCurrentPresentation(false, false);
+  TEST(card.has_value(), ());
+  TEST(!card->m_outlineRings.empty(), ());
+  TEST_EQUAL(card->m_headline, street_pixels::kCompletionCardHeadline, ());
+
+  auto share = manager.PrepareCompletionCardShare(false);
+  TEST(share.has_value(), ());
+  TEST_EQUAL(share->m_mimeType, street_pixels::kCompletionCardShareMime, ());
+
+  auto rec = street_pixels::AreaMilestoneStore::Instance().Get(10);
+  TEST(!rec.has_value() || (rec->m_firedMask & street_pixels::kAreaMilestoneMask100) == 0, ());
+
+  TEST(manager.ClearDebugCompletionCard(), ());
+  TEST(!manager.GetCurrentAreaMilestonePresentation().has_value(), ());
+  TEST(!manager.ClearDebugCompletionCard(), ());
+
+  CleanupPresAm(fx);
+}

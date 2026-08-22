@@ -74,12 +74,12 @@ static jobject ToJavaAreaMilestonePresentation(JNIEnv * env, street_pixels::Area
   static jclass const presentationClass =
       jni::GetGlobalClassRef(env, "app/organicmaps/sdk/maplayer/streetpixels/AreaMilestonePresentation");
   static jmethodID const ctor =
-      jni::GetConstructorID(env, presentationClass, "(IJILjava/lang/String;Ljava/lang/String;)V");
+      jni::GetConstructorID(env, presentationClass, "(IJILjava/lang/String;Ljava/lang/String;Z)V");
   jni::TScopedLocalRef const jName(env, jni::ToJavaString(env, presentation.m_displayName));
   jni::TScopedLocalRef const jLine(env, jni::ToJavaString(env, presentation.m_competitionLine));
   return env->NewObject(presentationClass, ctor, static_cast<jint>(presentation.m_threshold),
                         static_cast<jlong>(presentation.m_osmId), static_cast<jint>(presentation.m_compactIndex),
-                        jName.get(), jLine.get());
+                        jName.get(), jLine.get(), static_cast<jboolean>(presentation.m_debugPreview));
 }
 
 static void CallAreaMilestoneCallback(std::shared_ptr<jobject> const & listener,

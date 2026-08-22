@@ -25,13 +25,14 @@ struct AreaMilestonePresentation
   AreaMilestoneThreshold m_threshold = AreaMilestoneThreshold::P25;
   std::string m_displayName;
   std::string m_competitionLine;
+  bool m_debugPreview = false;
 };
 
 inline bool operator==(AreaMilestonePresentation const & lhs, AreaMilestonePresentation const & rhs)
 {
   return lhs.m_osmId == rhs.m_osmId && lhs.m_compactIndex == rhs.m_compactIndex &&
          lhs.m_threshold == rhs.m_threshold && lhs.m_displayName == rhs.m_displayName &&
-         lhs.m_competitionLine == rhs.m_competitionLine;
+         lhs.m_competitionLine == rhs.m_competitionLine && lhs.m_debugPreview == rhs.m_debugPreview;
 }
 
 inline bool operator!=(AreaMilestonePresentation const & lhs, AreaMilestonePresentation const & rhs)
@@ -54,6 +55,7 @@ public:
                CardSourceLookup const & cards = {});
   std::optional<AreaMilestonePresentation> Peek() const;
   std::optional<CompletionCardSource> PeekCardSource() const;
+  void PreviewDebug(AreaMilestonePresentation presentation, CompletionCardSource source);
   void Acknowledge();
   void ResetForTesting();
 

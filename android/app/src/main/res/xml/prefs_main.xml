@@ -10,6 +10,14 @@
     app:singleLineTitle="false"
     tools:summary="LongLongUsernameHere" />
 
+  <SwitchPreferenceCompat
+    android:key="@string/pref_exploration_haptics"
+    android:persistent="false"
+    android:summary="@string/pref_exploration_haptics_summary"
+    android:title="@string/pref_exploration_haptics_title"
+    android:widgetLayout="@layout/preference_switch"
+    app:singleLineTitle="false" />
+
   <PreferenceScreen
       android:key="pref_screen_nav"
       android:title="@string/prefs_group_route"

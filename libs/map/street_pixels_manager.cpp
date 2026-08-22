@@ -508,6 +508,69 @@ void StreetPixelsManager::AcknowledgeAreaMilestonePresentation()
   NotifyAreaMilestonePresentationIfChanged(before);
 }
 
+bool StreetPixelsManager::DebugPreviewCompletionCard()
+{
+  street_pixels::CompletionCardSource source;
+  source.m_displayName = "Debug area";
+
+  uint32_t compactIndex = 0;
+  uint64_t osmId = 0;
+  bool hasFocus = false;
+  bool citySummary = false;
+  {
+    std::lock_guard<std::mutex> focusLock(m_focusedAreaMutex);
+    hasFocus = m_focusedAreaProgress.m_hasFocus;
+    compactIndex = m_focusedAreaProgress.m_compactIndex;
+    osmId = m_focusedAreaProgress.m_osmId;
+    citySummary = m_focusedAreaProgress.m_citySummary;
+    if (hasFocus && !m_focusedAreaProgress.m_displayName.empty())
+      source.m_displayName = m_focusedAreaProgress.m_displayName;
+  }
+
+  if (hasFocus && !citySummary)
+  {
+    std::lock_guard<std::mutex> lock(m_focusCacheMutex);
+    if (m_cachedFocusSpaValid)
+    {
+      auto const * area = street_pixels::FindAreaByCompactIndex(m_cachedFocusSpaFile, compactIndex);
+      if (area != nullptr && !area->m_rings.empty())
+      {
+        source.m_rings = area->m_rings;
+        source.m_displayName = street_pixels::DisplayName(*area);
+        osmId = area->m_osmId;
+      }
+    }
+  }
+
+  if (source.m_rings.empty())
+  {
+    source.m_rings = {{mercator::FromLatLon(60.16, 24.92), mercator::FromLatLon(60.16, 24.96),
+                       mercator::FromLatLon(60.18, 24.96), mercator::FromLatLon(60.18, 24.92),
+                       mercator::FromLatLon(60.16, 24.92)}};
+  }
+
+  street_pixels::AreaMilestonePresentation presentation;
+  presentation.m_osmId = osmId;
+  presentation.m_compactIndex = compactIndex;
+  presentation.m_threshold = street_pixels::AreaMilestoneThreshold::P100;
+  presentation.m_displayName = source.m_displayName;
+  presentation.m_debugPreview = true;
+
+  auto const before = m_areaMilestonePresenter.Peek();
+  m_areaMilestonePresenter.PreviewDebug(std::move(presentation), std::move(source));
+  NotifyAreaMilestonePresentationIfChanged(before);
+  return true;
+}
+
+bool StreetPixelsManager::ClearDebugCompletionCard()
+{
+  auto const before = m_areaMilestonePresenter.Peek();
+  if (!before || !before->m_debugPreview)
+    return false;
+  AcknowledgeAreaMilestonePresentation();
+  return true;
+}
+
 void StreetPixelsManager::ResetAreaMilestonePresentationForTesting()
 {
   m_areaMilestonePresenter.ResetForTesting();
@@ -556,6 +619,8 @@ void StreetPixelsManager::EmitAreaMilestoneHapticIfNeeded(
     std::optional<street_pixels::AreaMilestonePresentation> const & head)
 {
   if (!head)
+    return;
+  if (head->m_debugPreview)
     return;
   if (head->m_threshold == street_pixels::AreaMilestoneThreshold::P50)
   {
