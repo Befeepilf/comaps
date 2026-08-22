@@ -70,6 +70,20 @@ std::optional<CompletionCardSource> AreaMilestonePresenter::PeekCardSource() con
   return m_queue.front().cardSource;
 }
 
+void AreaMilestonePresenter::PreviewDebug(AreaMilestonePresentation presentation, CompletionCardSource source)
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  presentation.m_debugPreview = true;
+  presentation.m_threshold = AreaMilestoneThreshold::P100;
+  QueueItem item;
+  item.presentation = std::move(presentation);
+  item.cardSource = std::move(source);
+  if (!m_queue.empty() && m_queue.front().presentation.m_debugPreview)
+    m_queue.front() = std::move(item);
+  else
+    m_queue.insert(m_queue.begin(), std::move(item));
+}
+
 void AreaMilestonePresenter::Acknowledge()
 {
   std::lock_guard<std::mutex> lock(m_mutex);
