@@ -256,6 +256,8 @@ public:
   void SetAreaMilestoneHapticHandler(AreaMilestoneHapticFn const & fn);
   std::optional<street_pixels::AreaMilestonePresentation> GetCurrentAreaMilestonePresentation() const;
   void AcknowledgeAreaMilestonePresentation();
+  bool DebugPreviewCompletionCard();
+  bool ClearDebugCompletionCard();
   void ResetAreaMilestonePresentationForTesting();
 
   using CompletionCardGeneratedFn = std::function<void()>;

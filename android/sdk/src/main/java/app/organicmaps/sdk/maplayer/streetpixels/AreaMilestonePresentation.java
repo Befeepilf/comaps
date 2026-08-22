@@ -17,15 +17,17 @@ public class AreaMilestonePresentation
   public final String displayName;
   @NonNull
   public final String competitionLine;
+  public final boolean debugPreview;
 
   @Keep
   public AreaMilestonePresentation(int threshold, long osmId, int compactIndex, @NonNull String displayName,
-                                   @NonNull String competitionLine)
+                                   @NonNull String competitionLine, boolean debugPreview)
   {
     this.threshold = threshold;
     this.osmId = osmId;
     this.compactIndex = compactIndex;
     this.displayName = displayName;
     this.competitionLine = competitionLine;
+    this.debugPreview = debugPreview;
   }
 }
