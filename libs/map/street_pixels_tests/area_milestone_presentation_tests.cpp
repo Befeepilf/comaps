@@ -272,6 +272,35 @@ UNIT_TEST(AreaMilestonePresentation_SkipDuplicateInQueue)
   TEST(!presenter.Peek().has_value(), ());
 }
 
+UNIT_TEST(AreaMilestonePresentation_DebugPreviewDoesNotBlockRealHundred)
+{
+  street_pixels::AreaMilestonePresenter presenter;
+  street_pixels::AreaMilestonePresentation debug;
+  debug.m_osmId = 10;
+  debug.m_compactIndex = 0;
+  debug.m_displayName = "Debug area";
+  street_pixels::CompletionCardSource source;
+  source.m_displayName = "Debug area";
+  source.m_rings = {PresAmLonLatBox(24.92, 60.16, 24.96, 60.18)};
+  presenter.PreviewDebug(std::move(debug), std::move(source));
+  auto peekDebug = presenter.Peek();
+  TEST(peekDebug.has_value(), ());
+  TEST(peekDebug->m_debugPreview, ());
+
+  presenter.Enqueue({PresMakeCrossing(10, 0, street_pixels::AreaMilestoneThreshold::P100)}, PresDistrictName);
+  auto stillDebug = presenter.Peek();
+  TEST(stillDebug.has_value(), ());
+  TEST(stillDebug->m_debugPreview, ());
+  TEST_EQUAL(stillDebug->m_displayName, "Debug area", ());
+
+  presenter.Acknowledge();
+  auto real = presenter.Peek();
+  TEST(real.has_value(), ());
+  TEST(!real->m_debugPreview, ());
+  TEST_EQUAL(real->m_threshold, street_pixels::AreaMilestoneThreshold::P100, ());
+  TEST_EQUAL(real->m_displayName, "District", ());
+}
+
 UNIT_TEST(AreaMilestonePresentation_DisplayNameNeverMwmId)
 {
   std::string const leaf = "sp065_mwm_id_leaf";

@@ -638,10 +638,12 @@ public class MapButtonsController extends Fragment
       if (mCompletionCard != null)
         UiUtils.show(mCompletionCard);
     }
-    Toast.makeText(ctx, getString(messageId, name), toastLength).show();
-    pulseExplorationBadge(presentation.threshold);
     if (!mCompletionCardDebugPreview)
+    {
+      Toast.makeText(ctx, getString(messageId, name), toastLength).show();
+      pulseExplorationBadge(presentation.threshold);
       mAreaMilestoneHandler.postDelayed(mAcknowledgeAreaMilestone, delayMs);
+    }
   }
 
   private void bindCompletionCardOutline(@Nullable CompletionCardModel card)

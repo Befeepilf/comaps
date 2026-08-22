@@ -37,6 +37,7 @@ public class SettingsPrefsFragment extends BaseXmlSettingsFragment
     super.onResume();
     updateProfileSettingsPrefsSummary();
     updateAboutSummary();
+    refreshExplorationHapticsPref();
   }
 
   @Override
@@ -57,11 +58,17 @@ public class SettingsPrefsFragment extends BaseXmlSettingsFragment
   private void initExplorationHapticsPrefsCallbacks()
   {
     final Preference pref = getPreference(getString(R.string.pref_exploration_haptics));
-    ((TwoStatePreference) pref).setChecked(Config.explorationHapticsEnabled());
+    refreshExplorationHapticsPref();
     pref.setOnPreferenceChangeListener((preference, newValue) -> {
       Config.setExplorationHapticsEnabled((boolean) newValue);
       return true;
     });
+  }
+
+  private void refreshExplorationHapticsPref()
+  {
+    final Preference pref = getPreference(getString(R.string.pref_exploration_haptics));
+    ((TwoStatePreference) pref).setChecked(Config.explorationHapticsEnabled());
   }
 
   private void updateProfileSettingsPrefsSummary()
