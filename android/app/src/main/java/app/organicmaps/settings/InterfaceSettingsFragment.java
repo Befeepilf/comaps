@@ -51,6 +51,7 @@ public class InterfaceSettingsFragment extends BaseXmlSettingsFragment implement
   {
     super.onResume();
     updateAppLanguageCodeSummary();
+    refreshExplorationHapticsPref();
   }
 
   @Override
@@ -128,11 +129,17 @@ public class InterfaceSettingsFragment extends BaseXmlSettingsFragment implement
   private void initExplorationHapticsPrefsCallbacks()
   {
     final Preference pref = getPreference(getString(R.string.pref_exploration_haptics));
-    ((TwoStatePreference) pref).setChecked(Config.explorationHapticsEnabled());
+    refreshExplorationHapticsPref();
     pref.setOnPreferenceChangeListener((preference, newValue) -> {
       Config.setExplorationHapticsEnabled((boolean) newValue);
       return true;
     });
+  }
+
+  private void refreshExplorationHapticsPref()
+  {
+    final Preference pref = getPreference(getString(R.string.pref_exploration_haptics));
+    ((TwoStatePreference) pref).setChecked(Config.explorationHapticsEnabled());
   }
 
   private void initLeftButtonPrefs()

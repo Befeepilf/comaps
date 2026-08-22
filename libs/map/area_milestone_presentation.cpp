@@ -102,6 +102,8 @@ bool AreaMilestonePresenter::ContainsUnlocked(uint64_t osmId, AreaMilestoneThres
 {
   for (auto const & item : m_queue)
   {
+    if (item.presentation.m_debugPreview)
+      continue;
     if (item.presentation.m_osmId == osmId && item.presentation.m_threshold == threshold)
       return true;
   }
@@ -113,6 +115,8 @@ void AreaMilestonePresenter::SortUnlocked()
   std::sort(m_queue.begin(), m_queue.end(),
             [](QueueItem const & a, QueueItem const & b)
             {
+              if (a.presentation.m_debugPreview != b.presentation.m_debugPreview)
+                return a.presentation.m_debugPreview;
               int const pa = CrossingPriority(a.presentation.m_threshold);
               int const pb = CrossingPriority(b.presentation.m_threshold);
               if (pa != pb)
