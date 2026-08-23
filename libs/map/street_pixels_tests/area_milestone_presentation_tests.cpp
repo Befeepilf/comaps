@@ -272,6 +272,35 @@ UNIT_TEST(AreaMilestonePresentation_SkipDuplicateInQueue)
   TEST(!presenter.Peek().has_value(), ());
 }
 
+UNIT_TEST(AreaMilestonePresentation_DebugPreviewDoesNotBlockRealHundred)
+{
+  street_pixels::AreaMilestonePresenter presenter;
+  street_pixels::AreaMilestonePresentation debug;
+  debug.m_osmId = 10;
+  debug.m_compactIndex = 0;
+  debug.m_displayName = "Debug area";
+  street_pixels::CompletionCardSource source;
+  source.m_displayName = "Debug area";
+  source.m_rings = {PresAmLonLatBox(24.92, 60.16, 24.96, 60.18)};
+  presenter.PreviewDebug(std::move(debug), std::move(source));
+  auto peekDebug = presenter.Peek();
+  TEST(peekDebug.has_value(), ());
+  TEST(peekDebug->m_debugPreview, ());
+
+  presenter.Enqueue({PresMakeCrossing(10, 0, street_pixels::AreaMilestoneThreshold::P100)}, PresDistrictName);
+  auto stillDebug = presenter.Peek();
+  TEST(stillDebug.has_value(), ());
+  TEST(stillDebug->m_debugPreview, ());
+  TEST_EQUAL(stillDebug->m_displayName, "Debug area", ());
+
+  presenter.Acknowledge();
+  auto real = presenter.Peek();
+  TEST(real.has_value(), ());
+  TEST(!real->m_debugPreview, ());
+  TEST_EQUAL(real->m_threshold, street_pixels::AreaMilestoneThreshold::P100, ());
+  TEST_EQUAL(real->m_displayName, "District", ());
+}
+
 UNIT_TEST(AreaMilestonePresentation_DisplayNameNeverMwmId)
 {
   std::string const leaf = "sp065_mwm_id_leaf";
@@ -458,6 +487,52 @@ UNIT_TEST(AreaMilestonePresentation_PreviouslyCompletedOnFocus)
   auto city = manager.GetFocusedAreaProgress();
   TEST(city.m_citySummary, ());
   TEST(!city.m_previouslyCompleted, ());
+
+  CleanupPresAm(fx);
+}
+
+UNIT_TEST(AreaMilestonePresentation_DebugPreviewWithoutHundredPercent)
+{
+  auto fx = MakePresAmFixture("sp_dbg_card");
+  TEST(street_pixels_file::SaveRematchedUniverse(
+           fx.pixPath, std::set<int64_t>{fx.districtId, fx.cityOnlyId, fx.outsideId},
+           street_pixels_file::ExploredEverLiveMap{}, fx.mapDataVersion),
+       ());
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  manager.ConfigureAreaMilestoneStoreForTesting(fx.dbPath);
+  TEST(manager.RebuildAreaCompletionCache(fx.leaf, fx.spaPath, fx.mapDataVersion), ());
+  TEST(!manager.GetCurrentAreaMilestonePresentation().has_value(), ());
+
+  size_t hapticEvents = 0;
+  size_t plays = 0;
+  manager.SetAreaMilestoneHapticHandler([&hapticEvents](street_pixels::AreaMilestoneHapticEvent) { ++hapticEvents; });
+  manager.SetVibrationHandler([&plays](street_pixels::ExplorationHapticKind) { ++plays; });
+  manager.SetApplicationForeground(true);
+
+  TEST(manager.DebugPreviewCompletionCard(), ());
+  auto peek = manager.GetCurrentAreaMilestonePresentation();
+  TEST(peek.has_value(), ());
+  TEST_EQUAL(peek->m_threshold, street_pixels::AreaMilestoneThreshold::P100, ());
+  TEST(peek->m_debugPreview, ());
+  TEST_EQUAL(hapticEvents, 0, ());
+  TEST_EQUAL(plays, 0, ());
+
+  auto card = manager.GetCompletionCardForCurrentPresentation(false, false);
+  TEST(card.has_value(), ());
+  TEST(!card->m_outlineRings.empty(), ());
+  TEST_EQUAL(card->m_headline, street_pixels::kCompletionCardHeadline, ());
+
+  auto share = manager.PrepareCompletionCardShare(false);
+  TEST(share.has_value(), ());
+  TEST_EQUAL(share->m_mimeType, street_pixels::kCompletionCardShareMime, ());
+
+  auto rec = street_pixels::AreaMilestoneStore::Instance().Get(10);
+  TEST(!rec.has_value() || (rec->m_firedMask & street_pixels::kAreaMilestoneMask100) == 0, ());
+
+  TEST(manager.ClearDebugCompletionCard(), ());
+  TEST(!manager.GetCurrentAreaMilestonePresentation().has_value(), ());
+  TEST(!manager.ClearDebugCompletionCard(), ());
 
   CleanupPresAm(fx);
 }

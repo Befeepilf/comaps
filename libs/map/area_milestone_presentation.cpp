@@ -70,6 +70,20 @@ std::optional<CompletionCardSource> AreaMilestonePresenter::PeekCardSource() con
   return m_queue.front().cardSource;
 }
 
+void AreaMilestonePresenter::PreviewDebug(AreaMilestonePresentation presentation, CompletionCardSource source)
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  presentation.m_debugPreview = true;
+  presentation.m_threshold = AreaMilestoneThreshold::P100;
+  QueueItem item;
+  item.presentation = std::move(presentation);
+  item.cardSource = std::move(source);
+  if (!m_queue.empty() && m_queue.front().presentation.m_debugPreview)
+    m_queue.front() = std::move(item);
+  else
+    m_queue.insert(m_queue.begin(), std::move(item));
+}
+
 void AreaMilestonePresenter::Acknowledge()
 {
   std::lock_guard<std::mutex> lock(m_mutex);
@@ -88,6 +102,8 @@ bool AreaMilestonePresenter::ContainsUnlocked(uint64_t osmId, AreaMilestoneThres
 {
   for (auto const & item : m_queue)
   {
+    if (item.presentation.m_debugPreview)
+      continue;
     if (item.presentation.m_osmId == osmId && item.presentation.m_threshold == threshold)
       return true;
   }
@@ -99,6 +115,8 @@ void AreaMilestonePresenter::SortUnlocked()
   std::sort(m_queue.begin(), m_queue.end(),
             [](QueueItem const & a, QueueItem const & b)
             {
+              if (a.presentation.m_debugPreview != b.presentation.m_debugPreview)
+                return a.presentation.m_debugPreview;
               int const pa = CrossingPriority(a.presentation.m_threshold);
               int const pb = CrossingPriority(b.presentation.m_threshold);
               if (pa != pb)

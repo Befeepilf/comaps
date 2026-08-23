@@ -129,6 +129,7 @@ public class MapButtonsController extends Fragment
       this::applyAreaMilestonePresentation;
   private final Handler mAreaMilestoneHandler = new Handler(Looper.getMainLooper());
   private final Runnable mAcknowledgeAreaMilestone = this::acknowledgeAreaMilestonePresentation;
+  private boolean mCompletionCardDebugPreview;
   private final Observer<Integer> mTopButtonMarginObserver = this::updateTopButtonsMargin;
 
   private LeftButton mLeftButton;
@@ -622,6 +623,7 @@ public class MapButtonsController extends Fragment
     mAreaMilestoneHandler.removeCallbacks(mAcknowledgeAreaMilestone);
     if (mCompletionCard != null)
       UiUtils.hide(mCompletionCard);
+    mCompletionCardDebugPreview = presentation != null && presentation.debugPreview;
     if (ctx == null || presentation == null)
       return;
     String name = presentation.displayName;
@@ -645,14 +647,17 @@ public class MapButtonsController extends Fragment
         mCompletionCardBody.setText(getString(R.string.street_pixels_completion_card_body, name));
       if (mCompletionCardIncludeDate != null)
         mCompletionCardIncludeDate.setChecked(false);
-      bindCompletionCardOutline(
-          MwmApplication.from(ctx).getStreetPixelsManager().getCurrentCompletionCard(false, true));
+      bindCompletionCardOutline(MwmApplication.from(ctx).getStreetPixelsManager().getCurrentCompletionCard(
+          false, !mCompletionCardDebugPreview));
       if (mCompletionCard != null)
         UiUtils.show(mCompletionCard);
     }
-    Toast.makeText(ctx, getString(messageId, name), toastLength).show();
-    pulseExplorationBadge(presentation.threshold);
-    mAreaMilestoneHandler.postDelayed(mAcknowledgeAreaMilestone, delayMs);
+    if (!mCompletionCardDebugPreview)
+    {
+      Toast.makeText(ctx, getString(messageId, name), toastLength).show();
+      pulseExplorationBadge(presentation.threshold);
+      mAreaMilestoneHandler.postDelayed(mAcknowledgeAreaMilestone, delayMs);
+    }
   }
 
   private void bindCompletionCardOutline(@Nullable CompletionCardModel card)
@@ -725,7 +730,8 @@ public class MapButtonsController extends Fragment
     if (payload == null || TextUtils.isEmpty(payload.path) || !"image/png".equals(payload.mimeType))
       return;
     CompletionCardShare.shareImage(ctx, payload);
-    manager.recordCompletionCardShareInitiated();
+    if (!mCompletionCardDebugPreview)
+      manager.recordCompletionCardShareInitiated();
   }
 
   private void pulseExplorationBadge(int threshold)
