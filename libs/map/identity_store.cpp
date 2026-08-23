@@ -14,6 +14,7 @@
 #include <array>
 #include <cstdint>
 #include <iterator>
+#include <mutex>
 #include <random>
 #include <string>
 #include <string_view>
@@ -35,6 +36,12 @@ IdentityStore::NicknameClaimHandler & ClaimHandler()
 {
   static IdentityStore::NicknameClaimHandler handler;
   return handler;
+}
+
+std::mutex & ClaimHandlerMutex()
+{
+  static std::mutex mutex;
+  return mutex;
 }
 
 std::string ToUrlSafeBase64(std::string s)
@@ -79,7 +86,13 @@ bool IsUnicodeSpace(char32_t c)
 bool IsCombining(char32_t c)
 {
   return (c >= 0x0300 && c <= 0x036F) || (c >= 0x1AB0 && c <= 0x1AFF) || (c >= 0x1DC0 && c <= 0x1DFF) ||
-         (c >= 0x20D0 && c <= 0x20FF) || (c >= 0xFE20 && c <= 0xFE2F) || (c >= 0x0483 && c <= 0x0489);
+         (c >= 0x20D0 && c <= 0x20FF) || (c >= 0xFE20 && c <= 0xFE2F) || (c >= 0x0483 && c <= 0x0489) ||
+         (c >= 0x0591 && c <= 0x05BD) || c == 0x05BF || (c >= 0x05C1 && c <= 0x05C2) ||
+         (c >= 0x05C4 && c <= 0x05C5) || c == 0x05C7 || (c >= 0x0610 && c <= 0x061A) ||
+         (c >= 0x064B && c <= 0x065F) || c == 0x0670 || (c >= 0x06D6 && c <= 0x06ED) ||
+         (c >= 0x0900 && c <= 0x0903) || (c >= 0x093A && c <= 0x094D) || (c >= 0x0951 && c <= 0x0957) ||
+         (c >= 0x0962 && c <= 0x0963) || c == 0x0E31 || (c >= 0x0E34 && c <= 0x0E3A) ||
+         (c >= 0x0E47 && c <= 0x0E4E);
 }
 
 bool IsFormat(char32_t c)
@@ -183,6 +196,47 @@ bool HasPhonePattern(std::string const & s)
     }
     if (count >= 8)
       return true;
+  }
+  return false;
+}
+
+bool HasTenOrMoreAsciiDigits(std::string const & s)
+{
+  int digits = 0;
+  for (unsigned char const ch : s)
+  {
+    if (ch >= '0' && ch <= '9' && ++digits >= 10)
+      return true;
+  }
+  return false;
+}
+
+bool HasUrlLikeTld(std::string const & s)
+{
+  std::string lower = s;
+  strings::AsciiToLower(lower);
+  static constexpr std::string_view kTlds[] = {".com", ".net", ".org", ".edu", ".gov", ".io",
+                                               ".app", ".dev", ".xyz", ".info", ".biz", ".co"};
+  for (auto const tld : kTlds)
+  {
+    auto pos = lower.find(tld);
+    while (pos != std::string::npos)
+    {
+      if (pos > 0)
+      {
+        unsigned char const prev = static_cast<unsigned char>(lower[pos - 1]);
+        if ((prev >= 'a' && prev <= 'z') || (prev >= '0' && prev <= '9'))
+        {
+          size_t const after = pos + tld.size();
+          if (after == lower.size())
+            return true;
+          unsigned char const next = static_cast<unsigned char>(lower[after]);
+          if (!((next >= 'a' && next <= 'z') || (next >= '0' && next <= '9')))
+            return true;
+        }
+      }
+      pos = lower.find(tld, pos + 1);
+    }
   }
   return false;
 }
@@ -328,6 +382,7 @@ void IdentityStore::RevokeCompetitionConsent()
   settings::Delete(std::string_view(kAggregateSharingEnabledKey));
   settings::Delete(std::string_view(kConsentPolicyVersionKey));
   settings::Delete(std::string_view(kConsentUnixTimeKey));
+  settings::Delete(std::string_view(kExploreConsentKey));
 }
 
 bool IdentityStore::ShouldUploadCompetitionIdentity()
@@ -386,10 +441,8 @@ bool IdentityStore::IsValidNickname(std::string_view nickname)
   bool seenBase = false;
   for (char32_t const cp : cps)
   {
-    if (IsControl(cp))
+    if (IsControl(cp) || IsFormat(cp))
       return false;
-    if (IsFormat(cp))
-      continue;
     if (IsCombining(cp))
     {
       if (!seenBase)
@@ -408,9 +461,10 @@ bool IdentityStore::IsValidNickname(std::string_view nickname)
   if (!seenBase || visible < 3 || visible > 24)
     return false;
   if (HasAsciiInsensitive(normalized, "://") || HasAsciiInsensitive(normalized, "www.") ||
-      HasAsciiInsensitive(normalized, "@"))
+      HasAsciiInsensitive(normalized, "@") || HasUrlLikeTld(normalized))
     return false;
-  if (HasEightConsecutiveAsciiDigits(normalized) || HasPhonePattern(normalized))
+  if (HasEightConsecutiveAsciiDigits(normalized) || HasPhonePattern(normalized) ||
+      HasTenOrMoreAsciiDigits(normalized))
     return false;
   if (normalized.find('/') != std::string::npos || normalized.find('\\') != std::string::npos ||
       normalized.find(':') != std::string::npos)
@@ -450,6 +504,7 @@ std::string IdentityStore::GenerateNickname(uint32_t attempt)
 
 void IdentityStore::SetNicknameClaimHandlerForTesting(NicknameClaimHandler handler)
 {
+  std::lock_guard<std::mutex> lock(ClaimHandlerMutex());
   ClaimHandler() = std::move(handler);
 }
 
@@ -467,7 +522,11 @@ IdentityStore::NicknameClaimResult IdentityStore::TryClaimNickname(std::string_v
   if (!accepted.empty() && !CanRenameNickname())
     return NicknameClaimResult::RenameLimited;
 
-  auto & handler = ClaimHandler();
+  NicknameClaimHandler handler;
+  {
+    std::lock_guard<std::mutex> lock(ClaimHandlerMutex());
+    handler = ClaimHandler();
+  }
   if (!handler)
   {
     settings::Set(std::string_view(kNicknameDraftKey), normalized);
@@ -482,9 +541,9 @@ IdentityStore::NicknameClaimResult IdentityStore::TryClaimNickname(std::string_v
   }
   if (status == 200)
   {
+    settings::Set(std::string_view(kNicknameLastChangedKey), base::SecondsSinceEpoch());
     settings::Set(std::string_view(kUsernameKey), normalized);
     settings::Delete(std::string_view(kNicknameDraftKey));
-    settings::Set(std::string_view(kNicknameLastChangedKey), base::SecondsSinceEpoch());
     return NicknameClaimResult::Ok;
   }
   settings::Set(std::string_view(kNicknameDraftKey), normalized);
