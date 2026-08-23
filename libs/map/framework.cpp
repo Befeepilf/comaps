@@ -3606,6 +3606,24 @@ bool Framework::ParseSearchQueryCommand(search::SearchParams const & params)
     return true;
   }
 
+  std::string query = params.m_query;
+  strings::Trim(query);
+  if (query == "?card" || query == "?completion-card")
+  {
+    GetStreetPixelsManager().DebugPreviewCompletionCard();
+    return true;
+  }
+  if (query == "?no-card")
+  {
+    GetStreetPixelsManager().ClearDebugCompletionCard();
+    return true;
+  }
+  if (query == "?achievements")
+  {
+    GetStreetPixelsManager().DebugTriggerAchievementPresentations();
+    return true;
+  }
+
   return false;
 }
 

@@ -129,6 +129,7 @@ public class MapButtonsController extends Fragment
       this::applyAreaMilestonePresentation;
   private final Handler mAreaMilestoneHandler = new Handler(Looper.getMainLooper());
   private final Runnable mAcknowledgeAreaMilestone = this::acknowledgeAreaMilestonePresentation;
+  private boolean mCompletionCardDebugPreview;
   private final Observer<Integer> mTopButtonMarginObserver = this::updateTopButtonsMargin;
 
   private LeftButton mLeftButton;
@@ -250,6 +251,11 @@ public class MapButtonsController extends Fragment
           return;
         FocusedAreaProgress progress =
             MwmApplication.from(ctx).getStreetPixelsManager().getFocusedAreaProgress();
+        Log.i("StreetPixels",
+              "sheet open hasFocus=" + progress.hasFocus + " fractionValid=" + progress.fractionValid
+                  + " citySummary=" + progress.citySummary + " compactIndex=" + progress.compactIndex
+                  + " fraction=" + progress.fraction + " areaCompleted=" + progress.areaCompleted
+                  + " noExplorationArea=" + progress.noExplorationArea);
         if (progress.noExplorationArea || !progress.hasFocus || TextUtils.isEmpty(progress.displayName))
         {
           FocusedAreaDetailBottomSheet.showEmpty(getParentFragmentManager());
@@ -261,7 +267,10 @@ public class MapButtonsController extends Fragment
     }
     mFirstGoalBadge = mFrame.findViewById(R.id.first_goal_badge);
     if (mFirstGoalBadge != null)
+    {
       mButtonsMap.put(MapButtons.firstGoalBanner, mFirstGoalBadge);
+      showButton(false, MapButtons.firstGoalBanner);
+    }
     mCompletionCard = mFrame.findViewById(R.id.area_completion_card);
     if (mCompletionCard != null)
     {
@@ -529,6 +538,11 @@ public class MapButtonsController extends Fragment
       return;
     if (progress.hasFocus && !TextUtils.isEmpty(progress.displayName))
     {
+      Log.i("StreetPixels",
+            "badge hasFocus=" + progress.hasFocus + " fractionValid=" + progress.fractionValid
+                + " citySummary=" + progress.citySummary + " compactIndex=" + progress.compactIndex
+                + " fraction=" + progress.fraction + " areaCompleted=" + progress.areaCompleted
+                + " omitPercent=" + !progress.fractionValid);
       if (progress.fractionValid)
       {
         if (progress.areaCompleted)
@@ -538,8 +552,8 @@ public class MapButtonsController extends Fragment
         }
         else
         {
-          double percent = Math.round(progress.fraction * 100 * 10) / 10.0;
-          mExplorationBadge.setText(progress.displayName + " • " + percent + "%");
+          mExplorationBadge.setText(progress.displayName + " • " +
+                                    FocusedAreaProgress.formatPercent(progress.fraction));
         }
       }
       else
@@ -574,6 +588,7 @@ public class MapButtonsController extends Fragment
       mFirstGoalBadge.setText(
           getString(R.string.street_pixels_first_goal_progress, progress.collected, progress.threshold));
       showButton(true, MapButtons.firstGoalBanner);
+      mFirstGoalBadge.extend();
     }
     else if (progress.state == FirstGoalProgress.STATE_COMPLETE && mFirstGoalBadge.getVisibility() == View.VISIBLE)
     {
@@ -608,6 +623,7 @@ public class MapButtonsController extends Fragment
     mAreaMilestoneHandler.removeCallbacks(mAcknowledgeAreaMilestone);
     if (mCompletionCard != null)
       UiUtils.hide(mCompletionCard);
+    mCompletionCardDebugPreview = presentation != null && presentation.debugPreview;
     if (ctx == null || presentation == null)
       return;
     String name = presentation.displayName;
@@ -631,14 +647,17 @@ public class MapButtonsController extends Fragment
         mCompletionCardBody.setText(getString(R.string.street_pixels_completion_card_body, name));
       if (mCompletionCardIncludeDate != null)
         mCompletionCardIncludeDate.setChecked(false);
-      bindCompletionCardOutline(
-          MwmApplication.from(ctx).getStreetPixelsManager().getCurrentCompletionCard(false, true));
+      bindCompletionCardOutline(MwmApplication.from(ctx).getStreetPixelsManager().getCurrentCompletionCard(
+          false, !mCompletionCardDebugPreview));
       if (mCompletionCard != null)
         UiUtils.show(mCompletionCard);
     }
-    Toast.makeText(ctx, getString(messageId, name), toastLength).show();
-    pulseExplorationBadge(presentation.threshold);
-    mAreaMilestoneHandler.postDelayed(mAcknowledgeAreaMilestone, delayMs);
+    if (!mCompletionCardDebugPreview)
+    {
+      Toast.makeText(ctx, getString(messageId, name), toastLength).show();
+      pulseExplorationBadge(presentation.threshold);
+      mAreaMilestoneHandler.postDelayed(mAcknowledgeAreaMilestone, delayMs);
+    }
   }
 
   private void bindCompletionCardOutline(@Nullable CompletionCardModel card)
@@ -711,7 +730,8 @@ public class MapButtonsController extends Fragment
     if (payload == null || TextUtils.isEmpty(payload.path) || !"image/png".equals(payload.mimeType))
       return;
     CompletionCardShare.shareImage(ctx, payload);
-    manager.recordCompletionCardShareInitiated();
+    if (!mCompletionCardDebugPreview)
+      manager.recordCompletionCardShareInitiated();
   }
 
   private void pulseExplorationBadge(int threshold)

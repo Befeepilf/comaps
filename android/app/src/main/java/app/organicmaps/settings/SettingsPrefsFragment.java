@@ -7,12 +7,14 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.preference.Preference;
+import androidx.preference.TwoStatePreference;
 
 import app.organicmaps.BuildConfig;
 import app.organicmaps.R;
 import app.organicmaps.editor.ProfileActivity;
 import app.organicmaps.help.HelpActivity;
 import app.organicmaps.sdk.editor.OsmOAuth;
+import app.organicmaps.sdk.util.Config;
 
 public class SettingsPrefsFragment extends BaseXmlSettingsFragment
 {
@@ -26,6 +28,7 @@ public class SettingsPrefsFragment extends BaseXmlSettingsFragment
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
   {
     super.onViewCreated(view, savedInstanceState);
+    initExplorationHapticsPrefsCallbacks();
   }
 
   @Override
@@ -34,6 +37,7 @@ public class SettingsPrefsFragment extends BaseXmlSettingsFragment
     super.onResume();
     updateProfileSettingsPrefsSummary();
     updateAboutSummary();
+    refreshExplorationHapticsPref();
   }
 
   @Override
@@ -49,6 +53,22 @@ public class SettingsPrefsFragment extends BaseXmlSettingsFragment
       startActivity(new Intent(requireActivity(), HelpActivity.class));
     }
     return super.onPreferenceTreeClick(preference);
+  }
+
+  private void initExplorationHapticsPrefsCallbacks()
+  {
+    final Preference pref = getPreference(getString(R.string.pref_exploration_haptics));
+    refreshExplorationHapticsPref();
+    pref.setOnPreferenceChangeListener((preference, newValue) -> {
+      Config.setExplorationHapticsEnabled((boolean) newValue);
+      return true;
+    });
+  }
+
+  private void refreshExplorationHapticsPref()
+  {
+    final Preference pref = getPreference(getString(R.string.pref_exploration_haptics));
+    ((TwoStatePreference) pref).setChecked(Config.explorationHapticsEnabled());
   }
 
   private void updateProfileSettingsPrefsSummary()
