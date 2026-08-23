@@ -49,6 +49,7 @@ public class ExploreConsentDialogFragment extends DialogFragment
             mListener.onExploreConsentGranted();
         })
         .setNegativeButton(R.string.explore_consent_decline, (d, w) -> {
+          Framework.nativeSetExploreConsent(false);
           if (mListener != null)
             mListener.onExploreConsentDeclined();
         })

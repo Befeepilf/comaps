@@ -102,6 +102,7 @@ public class MyAccountDialogFragment extends DialogFragment
       @Override
       public void onExploreConsentGranted()
       {
+        claimNickname();
       }
 
       @Override
@@ -109,7 +110,7 @@ public class MyAccountDialogFragment extends DialogFragment
       {
       }
     });
-    return Framework.nativeHasExploreConsent();
+    return false;
   }
 
   private void claimNickname()

@@ -75,6 +75,13 @@ UNIT_TEST(IdentityStore_RejectsInvalidNicknames)
     tooManyCombining += "\xCC\x81";
   ExpectInvalidAndUnpersisted(tooManyCombining);
   ExpectInvalidAndUnpersisted(" ");
+  ExpectInvalidAndUnpersisted("google.com");
+  ExpectInvalidAndUnpersisted("555-123-4567");
+  ExpectInvalidAndUnpersisted("555 123 4567");
+  std::string zwsp = "aa";
+  zwsp += "\xE2\x80\x8B";
+  zwsp += "b";
+  ExpectInvalidAndUnpersisted(zwsp);
 }
 
 UNIT_TEST(IdentityStore_AcceptsUnicodeNicknames)
@@ -182,4 +189,32 @@ UNIT_TEST(IdentityStore_GenerateNicknameRetryIsNotNumericSuffix)
   std::string const generated = IdentityStore::GenerateNickname();
   TEST(IdentityStore::IsValidNickname(generated), ());
   TEST(HasNoAsciiDigits(generated), ());
+}
+
+UNIT_TEST(IdentityStore_UnsetHandlerKeepsDraftOnly)
+{
+  ScopedIdentitySettings scoped;
+  TEST(IdentityStore::TryClaimNickname("Alice_1") == IdentityStore::NicknameClaimResult::Unavailable, ());
+  TEST(!IdentityStore::HasUsername(), ());
+  TEST(IdentityStore::GetUsername().empty(), ());
+  TEST_EQUAL(IdentityStore::GetNicknameDraft(), "Alice_1", ());
+}
+
+UNIT_TEST(IdentityStore_SetUsernameDoesNotAccept)
+{
+  ScopedIdentitySettings scoped;
+  TEST(IdentityStore::SetUsername("Alice_1"), ());
+  TEST(!IdentityStore::HasUsername(), ());
+  TEST(IdentityStore::GetUsername().empty(), ());
+  TEST_EQUAL(IdentityStore::GetNicknameDraft(), "Alice_1", ());
+}
+
+UNIT_TEST(IdentityStore_SameNicknameReclaimIsNotLimited)
+{
+  ScopedIdentitySettings scoped;
+  IdentityStore::SetNicknameClaimHandlerForTesting([](std::string_view) { return 200; });
+  TEST(IdentityStore::TryClaimNickname("Alice_1") == IdentityStore::NicknameClaimResult::Ok, ());
+  TEST(!IdentityStore::CanRenameNickname(), ());
+  TEST(IdentityStore::TryClaimNickname("Alice_1") == IdentityStore::NicknameClaimResult::Ok, ());
+  TEST_EQUAL(IdentityStore::GetUsername(), "Alice_1", ());
 }
