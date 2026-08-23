@@ -37,6 +37,10 @@ struct FriendsLists
 class FriendsManager
 {
 public:
+  static constexpr bool kFriendsPublicV1 = false;
+  static bool IsPublicV1Enabled() { return kFriendsPublicV1; }
+  static bool ShouldContactFriendsApi();
+
   class Subscriber
   {
   public:
