@@ -2,6 +2,7 @@ package app.organicmaps.maplayer.streetpixels;
 
 import android.app.Dialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -98,6 +99,7 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
 
     if (args.getBoolean(ARG_EMPTY, false))
     {
+      Log.i("StreetPixels", "sheet bind empty");
       nameView.setText(R.string.street_pixels_no_exploration_area_title);
       percentView.setText("");
       bodyView.setText(R.string.street_pixels_no_exploration_area_message);
@@ -108,12 +110,17 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
     UiUtils.hide(bodyView);
     nameView.setText(args.getString(ARG_NAME, ""));
     boolean areaCompleted = args.getBoolean(ARG_AREA_COMPLETED, false);
-    if (args.getBoolean(ARG_FRACTION_VALID, false))
+    boolean fractionValid = args.getBoolean(ARG_FRACTION_VALID, false);
+    double fraction = args.getDouble(ARG_FRACTION, 0.0);
+    Log.i("StreetPixels",
+          "sheet bind fractionValid=" + fractionValid + " fraction=" + fraction + " areaCompleted=" + areaCompleted
+              + " omitPercent=" + !fractionValid);
+    if (fractionValid)
     {
       if (areaCompleted)
         percentView.setText(R.string.street_pixels_area_completed);
       else
-        percentView.setText(FocusedAreaProgress.formatPercent(args.getDouble(ARG_FRACTION, 0.0)));
+        percentView.setText(FocusedAreaProgress.formatPercent(fraction));
     }
     else
       percentView.setText("");
