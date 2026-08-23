@@ -83,7 +83,7 @@ V1 scope. Explorer Pro **purchasing** is not.
 | 5 | Area progress and map interaction | [`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md) | In progress (phase-entry planning 2026-08-07) |
 | 6 | Exploration-aware routing | [`phases/phase-06-exploration-aware-routing.md`](phases/phase-06-exploration-aware-routing.md) | Not started |
 | 7 | Milestones and share cards | [`phases/phase-07-milestones-and-share-cards.md`](phases/phase-07-milestones-and-share-cards.md) | In progress (SP-069 In review; exit awaiting maintainer) |
-| 8 | Competition | [`phases/phase-08-competition.md`](phases/phase-08-competition.md) | Not started |
+| 8 | Competition | [`phases/phase-08-competition.md`](phases/phase-08-competition.md) | Work items planned (SP-070 In review) |
 | 9 | GPX and feature gating | [`phases/phase-09-gpx-and-feature-gating.md`](phases/phase-09-gpx-and-feature-gating.md) | Not started |
 | 10 | Android release hardening | [`phases/phase-10-android-release-hardening.md`](phases/phase-10-android-release-hardening.md) | Not started |
 
@@ -503,6 +503,26 @@ Phase 7 work-item planning (2026-08-19) recorded in
 SP-062 **Accepted** (SPD-046–055, 2026-08-19). SP-063 **In review**.
 SP-064 **Accepted** (2026-08-19). SP-065 **Accepted** (2026-08-20). SP-066 **Accepted** (2026-08-20). SP-067 **Accepted** (2026-08-20). SP-068 **Accepted** (2026-08-20). SP-069 **In review**. Phase 7 **In progress**; stylised-map entry criterion
 **met** (SPD-046). Phase 5 exit (SP-041) is still the product prerequisite
-for milestone UI coding. Detailed work items exist for
-Phases 1–7. Later phases are broken down after their entry criteria are
-met, and after any spike that phase depends on has a recorded outcome.
+for milestone UI coding.
+
+| Order | ID | Title | Phase | Why first |
+| --- | --- | --- | --- | --- |
+| 70 | [SP-070](work-items/SP-070-competition-architecture-decisions.md) | Competition architecture decisions | 8 | **In review** — SPD-057–066 (2026-08-23 product-owner lock; unique nicknames) |
+| 71 | [SP-071](work-items/SP-071-consent-and-competition-identity.md) | Consent record and competition identity | 8 | Not started — re-prompt; unique nickname; hide friends |
+| 72 | [SP-072](work-items/SP-072-recency-and-ownership-scoring.md) | Recency store and ownership scoring | 8 | Not started — SPD-057 / SPD-058 / SPD-063 |
+| 73 | [SP-073](work-items/SP-073-weekly-city-new-live-pixels.md) | Weekly city new-live-pixel counting | 8 | Not started — SPD-060 |
+| 74 | [SP-074](work-items/SP-074-competition-upload-queue.md) | Competition upload queue | 8 | Not started — 15 min + jitter; §25.2 allow-list |
+| 75 | [SP-075](work-items/SP-075-backend-competition-core.md) | Backend competition core | 8 | Not started — `comaps_backend` `competition/` app |
+| 76 | [SP-076](work-items/SP-076-backend-reads-and-sparse-anonymity.md) | Backend reads and sparse-area anonymity | 8 | Not started — server-side N<3 nickname hide |
+| 77 | [SP-077](work-items/SP-077-nickname-moderation-and-deletion.md) | Nickname moderation and profile deletion | 8 | Not started — filter, report, 7-day rename, delete |
+| 78 | [SP-078](work-items/SP-078-competition-ui-and-card-copy.md) | Competition UI, card copy, 30-pixel hint | 8 | Not started — §22.10; SPD-066 |
+| 79 | [SP-079](work-items/SP-079-phase8-end-to-end-validation.md) | Phase 8 end-to-end validation | 8 | Not started — exit gate |
+
+Phase 8 work-item planning (2026-08-23) recorded in
+[`phases/phase-08-competition.md`](phases/phase-08-competition.md).
+SP-070 **In review** (SPD-057–066; unique nicknames per product-owner
+override of spec §20.4). Coding SP-071+ waits on maintainer review of
+SP-070. Backend items SP-075–077 land in `comaps_backend`. Detailed work
+items exist for Phases 1–8. Later phases are broken down after their
+entry criteria are met, and after any spike that phase depends on has a
+recorded outcome.

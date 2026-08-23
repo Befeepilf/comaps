@@ -1639,6 +1639,289 @@ unclear. Closes OQ-19. Supersedes SPD-051’s card/share opt-in (default off).
 
 ---
 
+## SPD-057 — Ownership score is recency-weighted live coverage of the area
+
+**Decision.** For participant \(i\) in an exploration area with \(T\) valid
+street pixels, the V1 ownership score is
+
+\[
+\mathrm{ownership\_score}_i = 100 \times \frac{1}{T}\sum_{p \in L_i} 2^{-\Delta t_p / 30\,\mathrm{d}}
+\]
+
+where \(L_i\) is the set of **ever-live** pixels assigned to that area
+(`IsEverLive()`), \(\Delta t_p\) is time since the last validated live visit
+of \(p\), and a revisit restores weight \(\approx 1\). \(T = 0\) → score
+\(0\). Imported-only pixels are excluded. The score is a **percentage of the
+area**, range \([0, 100]\). Pixel count and live percentage are **not**
+multiplied together.
+
+Boss eligibility stays as spec §22.5: ≥2% live coverage, ≥50 unique live
+pixels (waived if \(T < 50\)), and ownership score ≥ `0.5`.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-23 via SP-070. Closes the ownership
+slice of OQ-1. Spec §22.4 LaTeX is empty; surrounding text forbids
+double-counting coverage. Personal completion remains SPD-026 and is a
+different number.
+
+**Consequences.**
+
+- Phase 8 scoring (SP-072) implements this formula locally.
+- Per-pixel recency lives in the sparse store (SPD-063), not in `.pix`.
+- Score-calculation version starts at **1** (SPD-065).
+
+**Related documents.** Spec §22.2–§22.5; OQ-1; SPD-015, SPD-026, SPD-063,
+SPD-065; SP-070; SP-072; `phases/phase-08-competition.md`.
+
+---
+
+## SPD-058 — Contested when the runner-up has at least 80% of the leader’s score
+
+**Decision.** An area is **contested** iff there is an eligible boss, at
+least one other eligible participant, and
+
+\[
+\mathrm{score}_{\mathrm{runner-up}} \ge 0.80 \times \mathrm{score}_{\mathrm{leader}}
+\]
+
+The leader remains boss until overtaken. Unclaimed areas are never
+contested. Relative 80% is the V1 “close race” label.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-23 via SP-070. Closes the contested
+slice of OQ-1. Spec §22.9 LaTeX is empty; §22.6 says the leader stays boss
+until overtaken.
+
+**Consequences.**
+
+- SP-072 evaluates contested locally from eligible scores; SP-076 returns
+  the same rule from stored aggregates.
+- Do not invent an absolute percentage-point gap.
+
+**Related documents.** Spec §22.6, §22.9; OQ-1; SP-070; SP-072; SP-076.
+
+---
+
+## SPD-059 — Public nicknames are unique in V1
+
+**Decision.** V1 public nicknames **must be unique** across competition
+profiles. The backend unique `username` constraint is kept. Registration
+and rename fail closed on collision (HTTP 409). Generated suggestions
+retry until unique. The public UI does **not** add numeric suffixes or
+other disambiguators.
+
+**Status.** Accepted. **V1 spec divergence** from §20.4 (“Nicknames do not
+need to be globally unique”). The product spec is not edited here.
+
+**Context.** Product-owner lock 2026-08-23 via SP-070 (override of the
+SP-070 recommendation to follow §20.4). Closes OQ-4. Current
+`comaps_backend` already enforces unique `username`.
+
+**Consequences.**
+
+- SP-071 / SP-075 implement uniqueness as a server rule, not a local guess.
+- Nickname **format** still follows spec §21.1 (3–24 visible characters,
+  Unicode letters, spaces, hyphens, limited punctuation, normalisation).
+  Today’s ASCII `[a-z0-9_]{3,20}` `IdentityStore::IsValidUsername` is too
+  narrow and must be replaced under SP-071.
+- Seven-day rename limit (§21.4) still applies; uniqueness is checked on
+  rename too.
+- An internal profile identifier remains the stable identity; the nickname
+  is the unique public label.
+
+**Related documents.** Spec §20.4, §21.1, §21.4; OQ-4; SP-070; SP-071;
+SP-075; SP-077.
+
+---
+
+## SPD-060 — Weekly city week is Monday 00:00 in the city IANA zone, else UTC
+
+**Decision.** The weekly city leaderboard week starts **Monday 00:00** in
+the IANA timezone of the settlement centroid, stored on the city record
+when known. If timezone lookup fails or is absent, **UTC**. Never use the
+device’s local zone. City identity is the **settlement OSM id** (SPD-007
+fallback / Finland admin_8). The metric remains spec §24.1: unique **new**
+live pixels this week; revisits and imports do not count.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-23 via SP-070. Closes OQ-3.
+
+**Consequences.**
+
+- SP-073 counts locally with the same week rule; SP-076 ranks with the
+  same rule. Unknown TZ → UTC on **both** sides (fail closed to the
+  fallback, not a silent Helsinki default).
+- Persisting IANA tz on the settlement/city record is allowed follow-up
+  inside SP-073 / sidecar metadata; it is not a Phase 4 reopen.
+
+**Related documents.** Spec §24.1–§24.2; OQ-3; SPD-007; SP-070; SP-073;
+SP-076.
+
+---
+
+## SPD-061 — Friends stay out of public Android V1
+
+**Decision.** Public Android V1 **does not expose** the friends feature.
+No friends UI next to the competition profile. Public builds must not call
+friends endpoints. Existing client and `comaps_backend` friends code may
+remain in-tree; it is not deleted in Phase 8 unless a later cleanup item
+says so. Competition identity is not the friends `MyAccount` surface.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-23 via SP-070. Closes OQ-6. Spec
+§6 lists friend requests as a V1 non-goal.
+
+**Consequences.**
+
+- SP-071 hides friends from public Android UI when the competition
+  identity surface lands.
+- Do not build competition on the friends API.
+
+**Related documents.** Spec §6; OQ-6; SP-004; SP-070; SP-071; SP-078.
+
+---
+
+## SPD-062 — Competition API host, `/api/v1/competition/`, EU, retention
+
+**Decision.**
+
+- Production host remains `https://api.comaps.app` (SP-004 release/beta
+  inject). Debug stays fail-closed empty.
+- Competition routes live at `{apiBase}/v1/competition/…` with
+  `apiBase = https://api.comaps.app/api`, i.e.
+  `https://api.comaps.app/api/v1/competition/…`. Freeze `/v1/` before the
+  first public client. Do **not** reuse `/stats/upload`.
+- Hosting region is **EU** (GDPR). The exact provider/region string for
+  the privacy policy is an ops lock, not a code constant.
+- Server stores only spec §25.2 aggregates. Never GPS, tracks, exact
+  location, per-pixel timestamps, or live movement.
+- Profile + aggregates: retain until the user deletes, **or** 24 months
+  after last upload if they left-with-retain or went silent, then
+  hard-delete. Decay still runs while retained.
+- Upload/access logs: 30 days. Nickname reports: 12 months.
+- Leaving competition still offers spec §20.6: stop uploads but keep
+  public stats, **or** delete profile + aggregates. Local exploration
+  always stays.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-23 via SP-070. Closes OQ-7.
+SP-004 already fail-closes the unconfigured API base.
+
+**Consequences.**
+
+- SP-074 builds competition URLs under `/api/v1/competition/`; existing
+  `GetStatsUploadUrl` (`/stats/upload`) is not the competition path.
+- Privacy-policy version in the consent record (SPD-064) must match this
+  retention and region once ops names the EU region string.
+- A deployable non-SQLite backend environment remains an SP-075 concern.
+
+**Related documents.** Spec §20.6, §25; OQ-7; SPD-014; SP-004; SP-070;
+SP-074; SP-075; SP-077.
+
+---
+
+## SPD-063 — Sparse live-recency store; seed at first opt-in
+
+**Decision.** Last-live-visit timestamps live in a **sparse** HEALPix →
+timestamp map for ever-live cells only. Not in `.pix`. Not a
+full-universe timestamp table. On **first competition opt-in**, seed
+`last_live_visit = consent timestamp` for currently ever-live pixels.
+After that, only validated live sessions update recency. Imported-only
+cells never get a timestamp.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-23 via SP-070 (C1, C2). SPD-015
+already forbids per-pixel timestamps in `.pix`. Existing ever-live bits
+have no recency.
+
+**Consequences.**
+
+- SP-072 owns the store and the seed.
+- Pre-opt-in live exploration counts after seed (not “only post-opt-in
+  visits”).
+
+**Related documents.** Spec §22.3; SPD-015; SP-070; SP-072.
+
+---
+
+## SPD-064 — Re-prompt consent; discard `explore_stats.json`
+
+**Decision.** The existing `Explore.ConsentGiven` boolean is **not**
+informed consent for competition. Re-prompt with privacy-policy version
+and timestamp. An existing `true` is treated as not consented. Discard
+`explore_stats.json`; it is the wrong schema and there is no public user
+base. Do not migrate those weekly region rows into competition
+aggregates.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-23 via SP-070 (C3, C4). Spec §20.5
+requires policy version + timestamp.
+
+**Consequences.**
+
+- SP-071 replaces the boolean with a consent record.
+- SP-074 does not read `explore_stats.json` as a source of truth.
+
+**Related documents.** Spec §20.5; SP-070; SP-071; SP-074.
+
+---
+
+## SPD-065 — Competition backend app, clamp, OSM ids, score version 1
+
+**Decision.** Competition lives in a new Django app `competition/`, not
+rows bolted onto `Explorer` / `Friendship`. Wire identifiers are stable
+**OSM ids**, not compact sidecar indices. Score-calculation version
+starts at **1** and bumps when SPD-057 changes. Server rejects non-finite
+values; clamps ownership score and live coverage to `[0, 100]`; if
+`eligible` is true but coverage `< 2%` or score `< 0.5`, force
+ineligible. Do **not** add unique pixel counts to the upload list
+(SPD-014 / §25.2). The 50-pixel eligibility rule stays client-trusted.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-23 via SP-070 (C5–C8).
+
+**Consequences.**
+
+- SP-075 creates `competition/`. SP-074 / SP-076 use OSM ids and
+  `score_calc_version = 1`.
+- Boss haptic stays out of V1 (SPD-054).
+
+**Related documents.** Spec §22.5, §25.2; SPD-014, SPD-048, SPD-054;
+SP-070; SP-074; SP-075; SP-076.
+
+---
+
+## SPD-066 — Competition hint at 30 newly explored live pixels
+
+**Decision.** Spec §10 step 10 competition hint fires after **30 newly
+explored live pixels** in the install (same newly-explored counting as
+SPD-047). Imported-only writes never count. The hint is once, non-blocking,
+and must not claim another user is nearby. Phase 7 stub remains until
+SP-078 fills copy.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-23 via SP-070 (C9). Complements
+SPD-047 (10 pixels ≈ first 100 m) and SPD-052 (card competition line stub).
+
+**Consequences.**
+
+- SP-078 owns the hint and §22.10 leading / not-leading card copy.
+- Do not encode 30 pixels in Phase 7.
+
+**Related documents.** Spec §10 step 10, §22.10; SPD-047, SPD-052; SP-070;
+SP-078.
+
+---
+
 ## 15. Recorded open questions (not decisions)
 
 These are carried from existing project documents. They are listed so they are
@@ -1647,17 +1930,18 @@ treated as authorisation.
 
 Phase 7 M1–M10 were locked 2026-08-19 via SP-062 as **SPD-046–055** (see
 numbered sections above). **SPD-056** (2026-08-23) supersedes SPD-051’s
-card/share date opt-in. Remaining open questions:
+card/share date opt-in. Phase 8 product locks 2026-08-23 via SP-070 as
+**SPD-057–066**. Remaining open questions:
 
 | Ref | Question | Source | Blocks |
 | --- | --- | --- | --- |
-| OQ-1 | The area-completion formula (§7), ownership-score formula (§22.4), and contested-state threshold (§22.9) are empty in the product spec. **Personal completion slice closed by SPD-026** (explored/total; live+imported). Ownership / contested remain open. | Product spec; audit §2, §22 | Phase 8 (ownership / contested). Phase 5 personal completion → SPD-026. |
+| OQ-1 | ~~The area-completion formula (§7), ownership-score formula (§22.4), and contested-state threshold (§22.9) are empty in the product spec.~~ | Product spec; audit §2, §22 | **Personal completion closed by SPD-026**. **Ownership closed by SPD-057**. **Contested closed by SPD-058**. Spec LaTeX remains empty; V1 implements the SPDs (do not edit the spec). |
 | OQ-2 | ~~Does prefer-unexplored routing use the personal explored set including imported pixels, or live-only?~~ | Audit §12, §27 Q4 | **Closed by SPD-040** — personal `IsExplored()` including imported; `IsEverLive()` unused for routing. |
-| OQ-3 | Weekly leaderboard reset when a city's local time zone is unknown. | Audit §24 | Phase 8. |
-| OQ-4 | Nickname uniqueness: the spec says nicknames need not be unique, but the current backend enforces a unique `username`. | Product spec §20.4; backend `core/models.py` | Phase 8. |
+| OQ-3 | ~~Weekly leaderboard reset when a city's local time zone is unknown.~~ | Audit §24 | **Closed by SPD-060** — Monday 00:00 city IANA zone, else UTC. |
+| OQ-4 | ~~Nickname uniqueness: the spec says nicknames need not be unique, but the current backend enforces a unique `username`.~~ | Product spec §20.4; backend `core/models.py` | **Closed by SPD-059** — V1 nicknames are unique (spec divergence; spec not edited). |
 | OQ-5 | ~~Bridge and tunnel eligibility, and the motorway-with-explicit-bicycle-access case, after a tag-survival audit.~~ | Product spec §13.1; audit §6, §27 Q9 | **Closed by SP-020** — bridges include; tunnels exclude; motorway/motorway_link (incl. bridge) require `hwtag-yesbicycle`. |
-| OQ-6 | Whether the in-progress friends feature is retained in Street Pixels builds. Friends exist in Android and in `comaps_backend` but are a product non-goal for V1. | Product spec §6; audit §15, §27 Q7 | Phase 1 (what a public build exposes) and Phase 8. |
-| OQ-7 | Production API base URL, hosting region, and data-retention policy. | Audit §27 Q6 | Phase 8, and partially Phase 1 (SP-004). |
+| OQ-6 | ~~Whether the in-progress friends feature is retained in Street Pixels builds.~~ | Product spec §6; audit §15, §27 Q7 | **Closed by SPD-061** — hidden in public Android V1; code may stay in-tree. |
+| OQ-7 | ~~Production API base URL, hosting region, and data-retention policy.~~ | Audit §27 Q6 | **Closed by SPD-062** — `https://api.comaps.app/api/v1/competition/`; EU; retain until delete or 24 months idle. Exact EU region string remains ops. |
 | OQ-8 | ~~Whether HEALPix `nside` stays at 1048576 after rendering measurement.~~ | Audit §27 Q8 | **Closed for V1 by SPD-017** — `nside = 1048576` locked. |
 | OQ-9 | ~~Phase 7 M1 compositor: how is the stylised map on the completion card rendered?~~ | SP-062 (2026-08-19); spec §19.1 | **Closed by SPD-046** — rings-only outline from `m_rings`; never a live Drape / `MapView` screenshot. |
 | OQ-10 | ~~Phase 7 M2: what is “approximately 100 metres of new live street pixels”?~~ | SP-062 (2026-08-19); spec §10 steps 9–10 | **Closed by SPD-047** — 10 newly explored live pixels; not `IsEverLive` flips. |
