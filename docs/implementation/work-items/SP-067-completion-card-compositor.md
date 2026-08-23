@@ -128,4 +128,5 @@ track dump. The card is the only image produced for the outside world.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| (filled during implementation) | |
+| Device review 2026-08-22: 100% card looks like a plain unstyled white sheet. It should feel like a celebration (confetti / game-like congratulations), not a dialog. | Visual polish of the in-app card chrome. Keep SPD-046: outline is still rings-only, never a live map screenshot. |
+| Device review 2026-08-22: district outline reads as a blank empty square. `?achievements` feeds a dummy mercator unit square `{{0,0}…{0,0}}`; `CompletionCardOutlineView` strokes only (4 px black, no fill) on white. | Debug fixture should use a recognisable ring. Real cards: filled / styled outline so the boundary is readable, still from `m_rings`. |

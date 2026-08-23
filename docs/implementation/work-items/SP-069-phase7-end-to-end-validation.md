@@ -111,3 +111,5 @@ analytics.
 | Full `street_pixels_tests` Eligibility abort (`classificator.txt` absent) | Environment residual R6 |
 | Outline PNG + date in EXTRA_TEXT | Phase 10 residual R7 |
 | Phase 7 exit Met? | Maintainer decision — agent does not self-accept |
+| Device review 2026-08-22 (`?achievements` on `app.comaps.test`): first-goal `7/10` copy is confusing; 100% card is unstyled with a blank-looking outline; date checkbox is unclear. | SP-064 / SP-067 / SP-068 discovered follow-ups. Date-always-on is **SPD-056** (checkbox removal residual). |
+| Same session: process crash after the 100% card (`IllegalFormatConversionException` on the 25% toast). | Fixed in `street_pixels_area_milestone_25` (`25%%`). Re-run `?achievements` through 25% on device. |

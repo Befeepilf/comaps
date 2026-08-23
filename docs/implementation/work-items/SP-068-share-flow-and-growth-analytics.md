@@ -124,3 +124,4 @@ Sentry.
 | 4 s auto-ack can delete the transient PNG while a share target still reads it | Residual → SP-069 / Phase 10; duration unchanged by SP-068 |
 | `onResume` rebind can increment generated again and reset the date checkbox | Residual → SP-069 |
 | Date/name live in `EXTRA_TEXT`; recipients that drop text will not see the date | Residual → SP-069 / Phase 10 |
+| Device review 2026-08-22: “Include completion date” checkbox sits above Share and is unclear. Always include the stored 100% date; no checkbox. | **SPD-056 Accepted 2026-08-23** (supersedes SPD-051 card opt-in). Residual: remove the checkbox; always pass the stored date into the card and share payload. |

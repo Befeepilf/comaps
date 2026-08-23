@@ -128,3 +128,4 @@ This is contextual onboarding, not an achievement system (§18.5).
 | --- | --- |
 | First-goal complete haptic is a handler stub (`SetFirstGoalCompleteHandler`). | SP-066 implements the pattern and foreground/toggle predicate. |
 | Android first-goal chip sits under the focused-area banner in `map_exploration_banner.xml`. | Keep; do not replace the area % badge. |
+| Device review 2026-08-22: badge copy `Explore your first 100 m • 7/10` is unclear. The fraction is **pixels** toward SPD-047 (10 newly explored live pixels ≈ 100 m), not metres and not a 10-step tutorial. Users cannot tell what 7/10 measures. | Copy change: drop the `n/10` suffix, or make the unit explicit. Do not change the SPD-047 count rule. |
