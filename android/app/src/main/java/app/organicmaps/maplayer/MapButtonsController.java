@@ -251,6 +251,11 @@ public class MapButtonsController extends Fragment
           return;
         FocusedAreaProgress progress =
             MwmApplication.from(ctx).getStreetPixelsManager().getFocusedAreaProgress();
+        Log.i("StreetPixels",
+              "sheet open hasFocus=" + progress.hasFocus + " fractionValid=" + progress.fractionValid
+                  + " citySummary=" + progress.citySummary + " compactIndex=" + progress.compactIndex
+                  + " fraction=" + progress.fraction + " areaCompleted=" + progress.areaCompleted
+                  + " noExplorationArea=" + progress.noExplorationArea);
         if (progress.noExplorationArea || !progress.hasFocus || TextUtils.isEmpty(progress.displayName))
         {
           FocusedAreaDetailBottomSheet.showEmpty(getParentFragmentManager());
@@ -533,6 +538,11 @@ public class MapButtonsController extends Fragment
       return;
     if (progress.hasFocus && !TextUtils.isEmpty(progress.displayName))
     {
+      Log.i("StreetPixels",
+            "badge hasFocus=" + progress.hasFocus + " fractionValid=" + progress.fractionValid
+                + " citySummary=" + progress.citySummary + " compactIndex=" + progress.compactIndex
+                + " fraction=" + progress.fraction + " areaCompleted=" + progress.areaCompleted
+                + " omitPercent=" + !progress.fractionValid);
       if (progress.fractionValid)
       {
         if (progress.areaCompleted)
