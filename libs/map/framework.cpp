@@ -3606,7 +3606,6 @@ bool Framework::ParseSearchQueryCommand(search::SearchParams const & params)
     m_storage.RunCountriesCheckAsyncSaveOnly();
     return true;
   }
-
   if (params.m_query == "?card" || params.m_query == "?completion-card")
   {
     GetStreetPixelsManager().DebugPreviewCompletionCard();
@@ -3615,6 +3614,11 @@ bool Framework::ParseSearchQueryCommand(search::SearchParams const & params)
   if (params.m_query == "?no-card")
   {
     GetStreetPixelsManager().ClearDebugCompletionCard();
+    return true;
+  }
+  if (params.m_query == "?achievements")
+  {
+    m_streetPixelsManager->DebugTriggerAchievementPresentations();
     return true;
   }
 

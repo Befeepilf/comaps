@@ -24,7 +24,6 @@
       style="@style/MwmWidget.ExtendedFAB"
       app:icon="@null"
       android:maxLines="1"
-      android:visibility="gone"
       android:autoSizeTextType="uniform"
       android:autoSizeMinTextSize="12sp"
       android:ellipsize="end"
