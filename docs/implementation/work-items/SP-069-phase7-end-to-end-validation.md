@@ -1,11 +1,12 @@
 # SP-069 — Phase 7 end-to-end validation
 
 **Phase:** 7 — Milestones and share cards
-**Status:** Planned
+**Status:** In review
+**Branch:** `cursor/sp-069-phase7-end-to-end-validation-c417`
 **Depends on:** SP-062–068 implemented or explicitly residualled
 **Notes:** Exit gate. Device residual → Phase 10 pattern (SP-014 / SP-041 /
-  SP-061). Exit waits on Accepted locks (OQ-9–OQ-18 / draft SPD-046–055) or
-  explicit deferrals.
+  SP-061). SPD-046–055 Accepted. Maintainer decides Phase 7 exit; agent
+  does not mark Accepted.
 
 ---
 
@@ -90,11 +91,11 @@ analytics.
 
 | Field | Value |
 | --- | --- |
-| Validation plan | |
-| Evidence log | |
-| Test output | |
-| Device roster / residual | |
-| Exit criteria table | |
+| Validation plan | [SP-069-validation-plan.md](../validation/SP-069-validation-plan.md) |
+| Evidence log | [SP-069-evidence-log.md](../validation/SP-069-evidence-log.md) |
+| Test output | SHA `4c67ed4c9`: areas `AreaMilestone` **8/8**; map `AreaMilestone` **18/18**; `FirstGoal` **11/11**; `ExplorationHaptic` **21/21**; `CompletionCard_` **10/10**; `CompletionCardShare` **9/9**; full `street_pixels_areas_tests` **113/113**. Full `street_pixels_tests`: 150 OK then Eligibility abort (missing `classificator.txt`); post-Eligibility remainder filters passed. |
+| Device roster / residual | D1 Pixel 3a / D2 OEM deferred → Phase 10 (I1–I6). Competition-on copy → Phase 8. Upload → Phase 10 / SPD-055. |
+| Exit criteria table | Evidence log — **1–9 Pass (automated) + Residual (device / Phase 8 / upload / Eligibility env)** |
 | Accepted by | |
 | Accepted date | |
 
@@ -102,5 +103,13 @@ analytics.
 
 | Finding | Proposed disposition |
 | --- | --- |
+| Device Phase 7 walks (celebration, card image, share sheet, haptics, nav) | Phase 10 residual R1 |
+| Competition-on §22.10 sentences | Phase 8 residual R2 |
+| Growth-counter upload | Phase 10 / SPD-055 (R3) |
+| 4 s auto-ack vs share-target PNG lifetime | Phase 10 residual R4 |
+| `onResume` rebind increments generated / resets date checkbox | Phase 10 / polish R5 |
+| Full `street_pixels_tests` Eligibility abort (`classificator.txt` absent) | Environment residual R6 |
+| Outline PNG + date in EXTRA_TEXT | Phase 10 residual R7 |
+| Phase 7 exit Met? | Maintainer decision — agent does not self-accept |
 | Device review 2026-08-22 (`?achievements` on `app.comaps.test`): first-goal `7/10` copy is confusing; 100% card is unstyled with a blank-looking outline; date checkbox is unclear. | SP-064 / SP-067 / SP-068 discovered follow-ups. Date-always-on is **SPD-056** (checkbox removal residual). |
 | Same session: process crash after the 100% card (`IllegalFormatConversionException` on the 25% toast). | Fixed in `street_pixels_area_milestone_25` (`25%%`). Re-run `?achievements` through 25% on device. |

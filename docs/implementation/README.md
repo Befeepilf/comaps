@@ -82,7 +82,7 @@ V1 scope. Explorer Pro **purchasing** is not.
 | 4 | Administrative-area pipeline | [`phases/phase-04-administrative-area-pipeline.md`](phases/phase-04-administrative-area-pipeline.md) | Exit criteria met (device residual → Phase 10) |
 | 5 | Area progress and map interaction | [`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md) | In progress (phase-entry planning 2026-08-07) |
 | 6 | Exploration-aware routing | [`phases/phase-06-exploration-aware-routing.md`](phases/phase-06-exploration-aware-routing.md) | Not started |
-| 7 | Milestones and share cards | [`phases/phase-07-milestones-and-share-cards.md`](phases/phase-07-milestones-and-share-cards.md) | Not started |
+| 7 | Milestones and share cards | [`phases/phase-07-milestones-and-share-cards.md`](phases/phase-07-milestones-and-share-cards.md) | In progress (SP-069 In review; exit awaiting maintainer) |
 | 8 | Competition | [`phases/phase-08-competition.md`](phases/phase-08-competition.md) | Not started |
 | 9 | GPX and feature gating | [`phases/phase-09-gpx-and-feature-gating.md`](phases/phase-09-gpx-and-feature-gating.md) | Not started |
 | 10 | Android release hardening | [`phases/phase-10-android-release-hardening.md`](phases/phase-10-android-release-hardening.md) | Not started |
@@ -496,12 +496,12 @@ city-scale/device residual → Phase 10. Coding SP-056+ may proceed.
 | 66 | [SP-066](work-items/SP-066-exploration-haptics-policy.md) | Exploration haptics policy | 7 | **Accepted** — recording ∧ foreground ∧ toggle (2026-08-20) |
 | 67 | [SP-067](work-items/SP-067-completion-card-compositor.md) | Completion-card compositor | 7 | **Accepted** — deny-list model + rings outline (2026-08-20) |
 | 68 | [SP-068](work-items/SP-068-share-flow-and-growth-analytics.md) | Share flow and growth analytics | 7 | **Accepted** — explicit image share; count-only (2026-08-20) |
-| 69 | [SP-069](work-items/SP-069-phase7-end-to-end-validation.md) | Phase 7 end-to-end validation | 7 | Planned — exit gate |
+| 69 | [SP-069](work-items/SP-069-phase7-end-to-end-validation.md) | Phase 7 end-to-end validation | 7 | **In review** — exit gate |
 
 Phase 7 work-item planning (2026-08-19) recorded in
 [`phases/phase-07-milestones-and-share-cards.md`](phases/phase-07-milestones-and-share-cards.md).
 SP-062 **Accepted** (SPD-046–055, 2026-08-19). SP-063 **In review**.
-SP-064 **Accepted** (2026-08-19). SP-065 **Accepted** (2026-08-20). SP-066 **Accepted** (2026-08-20). SP-067 **Accepted** (2026-08-20). SP-068 **Accepted** (2026-08-20). SP-069 **Planned**. Phase 7 **In progress**; stylised-map entry criterion
+SP-064 **Accepted** (2026-08-19). SP-065 **Accepted** (2026-08-20). SP-066 **Accepted** (2026-08-20). SP-067 **Accepted** (2026-08-20). SP-068 **Accepted** (2026-08-20). SP-069 **In review**. Phase 7 **In progress**; stylised-map entry criterion
 **met** (SPD-046). Phase 5 exit (SP-041) is still the product prerequisite
 for milestone UI coding. Detailed work items exist for
 Phases 1–7. Later phases are broken down after their entry criteria are
