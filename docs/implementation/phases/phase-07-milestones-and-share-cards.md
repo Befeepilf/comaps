@@ -53,7 +53,7 @@ SP-062 re-verify (2026-08-19) confirmed this table. Extras in
 | Focused-area badge | `FocusedAreaProgress` + `MapButtonsController.mExplorationBadge` | Name + % + `m_areaCompleted` (SP-035/036/040). `m_previouslyCompleted` for §27.4 detail copy (SP-065). Not a first-100 m chip. |
 | Completed chrome | SP-040 / `area_overlay` styles | Distinct completed visual (§18.6). 100% celebration is badge pulse + copy card (SP-065) plus rings-only outline from `CompletionCardModel` (SP-067); do not replace overlay chrome. |
 | Area geometry | `ExplorationArea::m_rings` | Mercator outer rings available offline. V1 share geometry is SPD-046 rings-only via `CompletionCardModel`. |
-| Share | `CompletionCardShare` + FileProvider of `street_pixels_completion_card.png` | Explicit Share tap sends `image/png`. Date checkbox default off. `SharingUtils` still unused for neighbourhood cards. |
+| Share | `CompletionCardShare` + FileProvider of `street_pixels_completion_card.png` | Explicit Share tap sends `image/png`. Date checkbox still in UI; **SPD-056** locks always-include stored date (checkbox removal residual). `SharingUtils` still unused for neighbourhood cards. |
 | Milestone / card / first-goal | `street_pixels::FirstGoalTracker` / JNI `FirstGoalProgress`; `street_pixels::AreaMilestonePresenter` / JNI `AreaMilestonePresentation`; `street_pixels::CompletionCardModel` | First-goal exists (SP-064). 25/50/100 presentation queue exists (SP-065). 100% compositor is rings-only `CompletionCardModel` (SP-067). Share tap opens an image sheet (SP-068). |
 | Growth analytics | `street_pixels::CompletionCardAnalytics`; `StreetExplorationRoutingAnalytics` (Phase 6) | Card-generated and share-initiated uint64 settings. No area id. Upload residual Phase 10. Routing counters unchanged. |
 | Routing-following | `RoutingManager::IsRoutingFollowing` | Exists; milestone UI must not interrupt it. |
@@ -65,7 +65,8 @@ the foreground gate, one-pulse-per-update rule, settings toggle, and
 milestone waveforms (device feel still SP-069). SP-067 landed a
 rings-only `CompletionCardModel` compositor (headless stroke + Android
 Canvas from the JNI model). SP-068 opens `ACTION_SEND` `image/png` of the
-transient card file on explicit Share tap; date opt-in default off;
+transient card file on explicit Share tap; **SPD-056** always includes the
+stored 100% date (checkbox removal residual);
 count-only `Explore.CardGenerated` / `Explore.ShareInitiated`. Phase 5 delivered area-scoped % and completed
 chrome the 2026-07-25 snapshot marked missing for the badge.
 
