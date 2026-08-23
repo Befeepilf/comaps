@@ -1,6 +1,6 @@
 # Phase 8 — Competition
 
-**Status:** Not started
+**Status:** Work items planned (SP-070 In review; coding not started)
 **Depends on:** Phase 4
 **Blocks:** nothing; required for release
 
@@ -47,18 +47,23 @@ This phase spans both repositories: `comaps` (client) and `comaps_backend`
 
 ## Current code locations
 
-Verified 2026-07-25 against both working trees.
+Verified 2026-07-25 against both working trees. **Re-verified 2026-08-23
+(SP-070)** on the client tree; backend still not in this checkout (2026-07-25
+snapshot stands until SP-075).
 
 ### Client — `comaps`
 
 | Concern | Location | Observed state |
 | --- | --- | --- |
-| Identity | `libs/map/identity_store.cpp` | Device id in `SecureStorage` under `Explore.DeviceId`, 24 random bytes base64url; username in settings under `Explore.Username`; consent as a **boolean only** under `Explore.ConsentGiven`. No policy version, no timestamp. |
+| Identity | `libs/map/identity_store.cpp` | Device id in `SecureStorage` under `Explore.DeviceId`, 24 random bytes base64url; username in settings under `Explore.Username` (ASCII `[a-z0-9_]{3,20}` after lowercasing); consent as a **boolean only** under `Explore.ConsentGiven`. No policy version, no timestamp. |
 | Upload client | `libs/map/explore_stats_service.cpp` | Weekly per-region entries `{regionId, weekStartSec, exploredPixels, version}` plus device id and optional username. Periodic check every **1 minute**. Gated only by `m_syncEnabled`. Aggregation continues even when sharing is off. Persists to `explore_stats.json`. |
-| Endpoint | `libs/map/backend_config.cpp` `GetStatsUploadUrl` | `{apiBase}/stats/upload` |
+| Endpoint | `libs/map/backend_config.cpp` `GetStatsUploadUrl` | `{apiBase}/stats/upload`. Release/beta inject `https://api.comaps.app/api` (SP-004). Debug empty. |
 | Friends client | `libs/map/friends_manager.cpp` | Full friends API client with local cache, `X-Device-Id` and `X-Username` headers |
 | Android UI | `MyAccountDialogFragment`, `ExploreConsentDialogFragment`, `Friends.java`, `item_friend_row.xml` | Friends-first account UI, consent dialog, add-friend deep links registered in the manifest |
-| Ownership, recency, decay | — | Not found |
+| Ownership, recency, decay | — | Not found. Ever-live bit exists (`IsEverLive()`, SPD-015). |
+| Area / city ids | `street_pixels::ExplorationArea::m_osmId` | OSM ids in the sidecar. Compact index is not a wire identity. |
+| Card competition line | `CompletionCardSource::m_competitionLine` | Stub (SPD-052). |
+| First-goal counter | `kFirstGoalLivePixelThreshold = 10` | Newly explored live pixels (SPD-047). 30-pixel competition hint not implemented. |
 
 ### Backend — `comaps_backend`
 
@@ -100,47 +105,44 @@ hold: only accounts and friends exist, and `/stats/upload` is still missing.
 
 - Phase 4, for area identifiers. Without them there is nothing to own.
 - Phase 3, for live-versus-imported flags, so imported exploration is excluded.
-- OQ-1 must be resolved: the ownership-score, area-completion, and
-  contested-state formulas are empty in the product spec.
-- OQ-4 must be resolved: nickname uniqueness.
-- OQ-7 must be resolved: production API base URL, hosting region, retention.
+- OQ-1 **closed** (SPD-057 ownership, SPD-058 contested; personal completion
+  already SPD-026).
+- OQ-4 **closed** (SPD-059 unique nicknames — V1 spec divergence from §20.4).
+- OQ-7 **closed** (SPD-062 host/path/EU/retention). Exact EU region string
+  for the privacy policy remains ops.
+- OQ-3 **closed** (SPD-060). OQ-6 **closed** (SPD-061).
 
-## Proposed work-item breakdown
+## Work-item breakdown
 
-Not yet decomposed. **This phase must not be broken into work items until OQ-1
-is answered.** Coding a scoring system around an undefined formula produces
-work that will be thrown away.
+Product-owner locks 2026-08-23 are recorded in
+[`SP-070`](../work-items/SP-070-competition-architecture-decisions.md)
+as **SPD-057–066**. Coding waits on maintainer review of that item; it
+must not guess formulas.
 
-Likely shape once unblocked:
+| Order | ID | Title |
+| --- | --- | --- |
+| 1 | [SP-070](../work-items/SP-070-competition-architecture-decisions.md) | Architecture decisions (**entry gate**) |
+| 2 | [SP-071](../work-items/SP-071-consent-and-competition-identity.md) | Consent record, unique nickname, hide friends |
+| 3 | [SP-072](../work-items/SP-072-recency-and-ownership-scoring.md) | Recency store, ownership, eligibility, contested, unclaimed |
+| 4 | [SP-073](../work-items/SP-073-weekly-city-new-live-pixels.md) | Weekly city new-live-pixel counting |
+| 5 | [SP-074](../work-items/SP-074-competition-upload-queue.md) | Upload queue, cadence, payload allow-list |
+| 6 | [SP-075](../work-items/SP-075-backend-competition-core.md) | Backend `competition` app: register, ingest, decay, clamp |
+| 7 | [SP-076](../work-items/SP-076-backend-reads-and-sparse-anonymity.md) | Area snapshot, weekly board, sparse-area anonymity |
+| 8 | [SP-077](../work-items/SP-077-nickname-moderation-and-deletion.md) | Nickname filter/report/reset; profile deletion |
+| 9 | [SP-078](../work-items/SP-078-competition-ui-and-card-copy.md) | Android chrome, §22.10 card copy, 30-pixel hint |
+| 10 | [SP-079](../work-items/SP-079-phase8-end-to-end-validation.md) | Phase 8 end-to-end validation (**exit gate**) |
 
-1. Consent record with policy version and timestamp, replacing the boolean.
-2. Competition profile and nickname, separated from the friends account UI.
-3. Local recency store and ownership computation.
-4. Eligibility, contested, and unclaimed state evaluation.
-5. Weekly city new-live-pixel counting.
-6. Upload queue with the specified cadence, jitter, and offline behaviour,
-   replacing the current one-minute poll.
-7. Backend competition app: models, schema, endpoints, throttling.
-8. Server-side decay.
-9. Backend read APIs for area snapshot and weekly city board.
-10. Sparse-area anonymity enforcement on the server.
-11. Nickname validation, filtering, reporting, and administrative reset.
-12. Profile and aggregate deletion.
-13. Competition UI: mode control, area snapshot, ranking, overtaking hints.
+SP-075–077 land in `comaps_backend` (not this checkout). Client scoring
+and UI may proceed against fakes; they must not assume `/stats/upload`.
 
 ## Data and migration concerns
 
-- Per-pixel live recency is new local data. Storing a timestamp for every cell
-  would change the storage profile materially; the audit recommends sparse
-  storage or on-the-fly aggregation into area scores. Decide with measurement.
-- The existing `explore_stats.json` weekly per-region entries are a different
-  schema from competition aggregates. Decide whether to migrate or discard;
-  there is no public user base yet, which argues for discarding.
-- The consent boolean must migrate to a record with a policy version and
-  timestamp. An existing `true` cannot be assumed to be informed consent for
-  the new text; treat it as not consented and ask again.
-- The backend has one migration and no production database. Adding competition
-  models now is cheap.
+- Per-pixel live recency is new local data. **SPD-063:** sparse HEALPix →
+  timestamp for ever-live cells only; seed at first opt-in. Not in `.pix`.
+- **SPD-064:** discard `explore_stats.json`; do not migrate weekly region
+  rows. Existing consent boolean is not informed consent; re-prompt.
+- Backend has one migration and no production database. Adding competition
+  models now is cheap (SP-075 `competition/` app).
 - Uploads carry a map-data version and a score-calculation version so that the
   server can accept aggregates from supported older versions without strict
   normalisation.
@@ -215,10 +217,12 @@ Backend (needs a test setup that does not exist yet):
 ## Entry criteria
 
 - Phase 4 exit criteria met.
-- OQ-1 answered and recorded as a decision.
-- OQ-4 and OQ-7 answered.
+- OQ-1 answered and recorded as a decision. **Met in docs** — SPD-057 /
+  SPD-058 (2026-08-23 via SP-070; maintainer review of SP-070 still open).
+- OQ-4 and OQ-7 answered. **Met in docs** — SPD-059, SPD-062.
 - A deployable backend environment exists, with a production settings module
-  and a database that is not SQLite.
+  and a database that is not SQLite. **Unmet** — owned by SP-075 / ops;
+  does not reopen scoring formulas. Client items may use fakes.
 
 ## Exit criteria
 
@@ -254,16 +258,19 @@ Backend (needs a test setup that does not exist yet):
 
 ## Known uncertainties
 
-- The scoring formulas (OQ-1). This blocks the whole phase.
-- Nickname uniqueness (OQ-4): the spec allows duplicates, the backend enforces
-  a unique `username`.
-- Weekly reset when a city's time zone is unknown (OQ-3).
-- Whether the friends feature stays in public builds (OQ-6).
-- Where competition lives in the backend: extending `apis/` and `core/`, or a
-  separate Django app.
-- Whether the API base path should move to `/api/v1/` before the first
-  production client ships.
-- Whether per-pixel recency is stored sparsely or aggregated on the fly.
-- What "clamp impossible percentages" means concretely as a server-side rule.
-- Hosting region and retention policy (OQ-7), which affect the privacy policy
-  text and therefore the consent version.
+Closed 2026-08-23 via SP-070 (product-owner lock; maintainer still reviews
+the SPD text):
+
+- Scoring formulas (OQ-1) → SPD-057 / SPD-058.
+- Nickname uniqueness (OQ-4) → SPD-059 (**unique**; spec §20.4 divergence).
+- Weekly reset when TZ unknown (OQ-3) → SPD-060.
+- Friends in public builds (OQ-6) → SPD-061 (hidden).
+- Backend shape, `/api/v1/`, recency store, clamp, host/retention (OQ-7
+  and C-locks) → SPD-062–065.
+- Competition hint at ~300 m → SPD-066 (30 newly explored live pixels).
+
+Still open (not formula blockers):
+
+- Exact EU provider/region string in the privacy policy (ops; SPD-062).
+- `comaps_backend` production deploy (SP-075 / Phase 10 ops).
+- Device traffic-capture and OEM residuals → SP-079 / Phase 10.
