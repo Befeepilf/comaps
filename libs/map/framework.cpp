@@ -3606,6 +3606,14 @@ bool Framework::ParseSearchQueryCommand(search::SearchParams const & params)
     return true;
   }
 
+  std::string query = params.m_query;
+  strings::Trim(query);
+  if (query == "?achievements")
+  {
+    m_streetPixelsManager->DebugTriggerAchievementPresentations();
+    return true;
+  }
+
   return false;
 }
 

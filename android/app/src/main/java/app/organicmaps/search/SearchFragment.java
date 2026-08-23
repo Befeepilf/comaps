@@ -9,6 +9,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.CallSuper;
@@ -30,6 +31,9 @@ import app.organicmaps.sdk.bookmarks.data.FeatureId;
 import app.organicmaps.sdk.bookmarks.data.MapObject;
 import app.organicmaps.sdk.downloader.MapManager;
 import app.organicmaps.sdk.location.LocationListener;
+import app.organicmaps.sdk.maplayer.streetpixels.AreaMilestonePresentation;
+import app.organicmaps.sdk.maplayer.streetpixels.FirstGoalProgress;
+import app.organicmaps.sdk.maplayer.streetpixels.StreetPixelsManager;
 import app.organicmaps.sdk.routing.RoutingController;
 import app.organicmaps.sdk.search.SearchEngine;
 import app.organicmaps.sdk.search.SearchListener;
@@ -106,6 +110,13 @@ public class SearchFragment extends BaseMwmFragment implements SearchListener, C
     @Override
     protected boolean onStartSearchClick()
     {
+      if (tryRecognizeHiddenCommand(getQuery()))
+      {
+        mSearchAdapter.clear();
+        stopSearch();
+        closeSearch();
+        return true;
+      }
       deactivate();
       return true;
     }
@@ -408,7 +419,8 @@ public class SearchFragment extends BaseMwmFragment implements SearchListener, C
     {
       mHiddenCommands.addAll(Arrays.asList(
           new BadStorageCommand("?emulateBadStorage", requireContext()), new JavaCrashCommand("?emulateJavaCrash"),
-          new NativeCrashCommand("?emulateNativeCrash"), new PushTokenCommand("?pushToken")));
+          new NativeCrashCommand("?emulateNativeCrash"), new PushTokenCommand("?pushToken"),
+          new AchievementsCommand("?achievements", requireContext())));
     }
 
     return mHiddenCommands;
@@ -573,7 +585,10 @@ public class SearchFragment extends BaseMwmFragment implements SearchListener, C
   private void closeSearch()
   {
     final Activity activity = requireActivity();
-    activity.finish();
+    if (activity instanceof SearchActivity)
+      activity.finish();
+    else
+      Utils.navigateToParent(activity);
   }
 
   public void setRecyclerScrollListener(RecyclerView recycler)
@@ -644,5 +659,48 @@ public class SearchFragment extends BaseMwmFragment implements SearchListener, C
     @Override
     void executeInternal()
     {}
+  }
+
+  private static class AchievementsCommand extends HiddenCommand.BaseHiddenCommand
+  {
+    @NonNull
+    private final Context mContext;
+
+    AchievementsCommand(@NonNull String command, @NonNull Context context)
+    {
+      super(command);
+      mContext = context;
+    }
+
+    @Override
+    public boolean execute(@NonNull String command)
+    {
+      if (!"?achievements".equalsIgnoreCase(command.trim()))
+        return false;
+      executeInternal();
+      return true;
+    }
+
+    @Override
+    void executeInternal()
+    {
+      try
+      {
+        StreetPixelsManager manager = MwmApplication.from(mContext).getStreetPixelsManager();
+        manager.debugTriggerAchievementPresentations();
+        FirstGoalProgress progress = manager.getFirstGoalProgress();
+        AreaMilestonePresentation presentation = manager.getCurrentAreaMilestonePresentation();
+        String milestone = presentation == null ? "null" : String.valueOf(presentation.threshold);
+        Toast.makeText(mContext.getApplicationContext(),
+                       "SP debug firstGoal=" + progress.state + " " + progress.collected + "/" + progress.threshold
+                           + " milestone=" + milestone,
+                       Toast.LENGTH_LONG)
+            .show();
+      }
+      catch (Throwable t)
+      {
+        Toast.makeText(mContext.getApplicationContext(), "SP debug FAIL: " + t, Toast.LENGTH_LONG).show();
+      }
+    }
   }
 }

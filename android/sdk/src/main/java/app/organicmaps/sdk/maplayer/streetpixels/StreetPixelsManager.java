@@ -180,6 +180,7 @@ public class StreetPixelsManager
                                                                             @NonNull String countryId);
   @NonNull
   private static native FirstGoalProgress nativeGetFirstGoalProgress();
+  private static native void nativeDebugTriggerAchievementPresentations();
   @Nullable
   private static native AreaMilestonePresentation nativeGetCurrentAreaMilestonePresentation();
   private static native void nativeAcknowledgeAreaMilestonePresentation();
@@ -234,6 +235,11 @@ public class StreetPixelsManager
   public FirstGoalProgress getFirstGoalProgress()
   {
     return nativeGetFirstGoalProgress();
+  }
+
+  public void debugTriggerAchievementPresentations()
+  {
+    nativeDebugTriggerAchievementPresentations();
   }
 
   @Nullable
