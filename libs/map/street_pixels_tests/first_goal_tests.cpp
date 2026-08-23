@@ -10,6 +10,7 @@
 #include "platform/settings.hpp"
 
 #include <cstdint>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -225,6 +226,40 @@ UNIT_TEST(FirstGoal_LiveVisitOfImportedPixelsDoesNotAdvance)
   fixture.Collect(1);
   TEST(fixture.Manager().IsPixelEverLiveForTesting(fixture.PixelAt(0)), ());
   TEST_EQUAL(fixture.Manager().GetFirstGoalProgress().m_collected, 0u, ());
+}
+
+UNIT_TEST(FirstGoal_DebugTriggerShowsBadgeAndMilestoneQueue)
+{
+  FirstGoalCleanup cleanup;
+  FirstGoalFixture fixture;
+  size_t firstGoalCalls = 0;
+  street_pixels::FirstGoalProgress lastFirstGoal;
+  fixture.Manager().SetFirstGoalProgressListener(
+      [&firstGoalCalls, &lastFirstGoal](street_pixels::FirstGoalProgress const & progress)
+      {
+        ++firstGoalCalls;
+        lastFirstGoal = progress;
+      });
+  std::optional<street_pixels::AreaMilestonePresentation> head;
+  fixture.Manager().SetAreaMilestonePresentationListener(
+      [&head](std::optional<street_pixels::AreaMilestonePresentation> const & presentation)
+      { head = presentation; });
+
+  fixture.Manager().DebugTriggerAchievementPresentations();
+  TEST_EQUAL(firstGoalCalls, 1u, ());
+  TEST_EQUAL(lastFirstGoal.m_state, street_pixels::FirstGoalState::InProgress, ());
+  TEST_EQUAL(lastFirstGoal.m_collected, 7u, ());
+  TEST_EQUAL(fixture.Manager().GetFirstGoalProgress().m_state, street_pixels::FirstGoalState::InProgress, ());
+  TEST(head.has_value(), ());
+  TEST_EQUAL(head->m_threshold, street_pixels::AreaMilestoneThreshold::P100, ());
+  TEST_EQUAL(head->m_displayName, std::string("Debug District"), ());
+
+  fixture.Manager().AcknowledgeAreaMilestonePresentation();
+  TEST_EQUAL(head->m_threshold, street_pixels::AreaMilestoneThreshold::P50, ());
+  fixture.Manager().AcknowledgeAreaMilestonePresentation();
+  TEST_EQUAL(head->m_threshold, street_pixels::AreaMilestoneThreshold::P25, ());
+  fixture.Manager().AcknowledgeAreaMilestonePresentation();
+  TEST(!head.has_value(), ());
 }
 
 UNIT_TEST(FirstGoal_SinglePulseCanComplete)

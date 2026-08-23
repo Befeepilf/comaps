@@ -259,6 +259,7 @@ public:
   void AcknowledgeAreaMilestonePresentation();
   bool DebugPreviewCompletionCard();
   bool ClearDebugCompletionCard();
+  void DebugTriggerAchievementPresentations();
   void ResetAreaMilestonePresentationForTesting();
 
   using CompletionCardGeneratedFn = std::function<void()>;
@@ -335,6 +336,7 @@ private:
   FirstGoalCompleteFn m_firstGoalCompleteHandler;
   street_pixels::FirstGoalTracker m_firstGoalTracker;
   street_pixels::FirstGoalProgress m_lastNotifiedFirstGoalProgress;
+  std::optional<street_pixels::FirstGoalProgress> m_debugFirstGoalOverride;
   AreaMilestonePresentationChangedFn m_areaMilestonePresentationListener;
   AreaMilestoneHapticFn m_areaMilestoneHapticHandler;
   street_pixels::AreaMilestonePresenter m_areaMilestonePresenter;

@@ -238,6 +238,14 @@ Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeGetFirs
   return ToJavaFirstGoalProgress(env, manager.GetFirstGoalProgress());
 }
 
+JNIEXPORT void JNICALL
+Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeDebugTriggerAchievementPresentations(
+    JNIEnv *, jclass)
+{
+  CHECK(g_framework, ("Framework isn't created yet!"));
+  g_framework->NativeFramework()->GetStreetPixelsManager().DebugTriggerAchievementPresentations();
+}
+
 JNIEXPORT jobject JNICALL
 Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeGetCurrentAreaMilestonePresentation(
     JNIEnv * env, jclass clazz)
