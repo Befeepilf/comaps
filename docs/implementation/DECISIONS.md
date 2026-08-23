@@ -1516,17 +1516,19 @@ includes it only if the user opts in at share time; **default off**. Owner:
 SP-068. Alternative: omit the date from the V1 card entirely (drops the
 control). Do not default-on with no control.
 
-**Status.** Accepted.
+**Status.** Superseded by SPD-056. Local persistence of the original 100% date
+remains in force under SPD-056.
 
 **Context.** Maintainer lock of Phase 7 M6 (2026-08-19) via SP-062. Closes
-OQ-14.
+OQ-14. Card/share opt-in reopened as OQ-19 (device review 2026-08-22).
 
 **Consequences.**
 
 - SP-063 stores `completed_100_at` on first 100% fire.
-- SP-068 owns share-time opt-in.
+- Share-time opt-in was SP-068; **SPD-056** drops that control.
 
-**Related documents.** Spec §18.5, §19.1; SP-062; SP-067; SP-068; phase-07.
+**Related documents.** Spec §18.5, §19.1; SP-062; SP-067; SP-068; SPD-056;
+phase-07.
 
 ---
 
@@ -1614,6 +1616,29 @@ OQ-18.
 
 ---
 
+## SPD-056 — Completion card always includes the stored 100% date
+
+**Decision.** Always persist the original 100% completion date locally. The
+card and share payload **always include** that stored date. There is no
+share-time opt-in. Drop the “Include completion date” checkbox.
+
+**Status.** Accepted.
+
+**Context.** Device review 2026-08-22: the checkbox sat above Share and was
+unclear. Closes OQ-19. Supersedes SPD-051’s card/share opt-in (default off).
+
+**Consequences.**
+
+- SP-063 still stores `completed_100_at` on first 100% fire.
+- SP-067 / SP-068 always pass the stored date into the card model and share
+  text. Remove the checkbox; do not add a replacement control.
+- Android UI still showing the checkbox is a residual until that removal
+  lands.
+
+**Related documents.** Spec §18.5, §19.1; SP-067; SP-068; SPD-051; phase-07.
+
+---
+
 ## 15. Recorded open questions (not decisions)
 
 These are carried from existing project documents. They are listed so they are
@@ -1621,7 +1646,8 @@ not lost. None of them is decided here, and nothing in this section may be
 treated as authorisation.
 
 Phase 7 M1–M10 were locked 2026-08-19 via SP-062 as **SPD-046–055** (see
-numbered sections above). Remaining open questions:
+numbered sections above). **SPD-056** (2026-08-23) supersedes SPD-051’s
+card/share date opt-in. Remaining open questions:
 
 | Ref | Question | Source | Blocks |
 | --- | --- | --- | --- |
@@ -1638,11 +1664,12 @@ numbered sections above). Remaining open questions:
 | OQ-11 | ~~Phase 7 M3: where does milestone fired-state live?~~ | SP-062 (2026-08-19) | **Closed by SPD-048** — `area_milestones.db` keyed by OSM id. |
 | OQ-12 | ~~Phase 7 M4: re-fire after map update?~~ | SP-062 (2026-08-19); spec §27.4 | **Closed by SPD-049** — does not re-fire; date survives rematch. |
 | OQ-13 | ~~Phase 7 M5: several areas cross thresholds in one session?~~ | SP-062 (2026-08-19); spec §18.4 | **Closed by SPD-050** — queue; never interrupt following. |
-| OQ-14 | ~~Phase 7 M6: completion date on the card?~~ | SP-062 (2026-08-19); spec §19.1 | **Closed by SPD-051** — store always; card opt-in default off (SP-068). |
+| OQ-14 | ~~Phase 7 M6: completion date on the card?~~ | SP-062 (2026-08-19); spec §19.1 | **Closed by SPD-051**; card/share display **superseded by SPD-056**. |
 | OQ-15 | ~~Phase 7 M7: competition line on the card?~~ | SP-062 (2026-08-19); spec §19.2, §22.10 | **Closed by SPD-052** — stub; Phase 8 fills copy. |
 | OQ-16 | ~~Phase 7 M8: first-100 m lifetime?~~ | SP-062 (2026-08-19); spec §10 steps 6 and 9 | **Closed by SPD-053** — once per install. |
 | OQ-17 | ~~Phase 7 M9: exploration haptics predicate?~~ | SP-062 (2026-08-19); spec §28.1–§28.4 | **Closed by SPD-054** — recording ∧ foreground ∧ toggle; one pulse per update. |
 | OQ-18 | ~~Phase 7 M10: growth analytics for cards?~~ | SP-062 (2026-08-19); spec §32.4 | **Closed by SPD-055** — count-only; no area id. |
+| OQ-19 | ~~Should the 100% card always include the stored completion date, with no share-time checkbox?~~ | Device review 2026-08-22; SP-068 | **Closed by SPD-056** — always include the stored date; no checkbox. |
 
 When one of these is answered, add a new `SPD-NNN` entry above and strike the
 row here with a reference to it.
