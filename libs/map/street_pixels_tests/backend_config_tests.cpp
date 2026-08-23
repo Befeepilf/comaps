@@ -61,3 +61,16 @@ UNIT_TEST(FriendsManager_SkipsRefreshWhenApiUnconfigured)
   manager.Refresh();
   ClearApiBaseUrl();
 }
+
+UNIT_TEST(FriendsManager_RefreshNoOpWhenFriendsHiddenInPublicV1)
+{
+  backend::SetApiBaseUrl("https://example.com/api");
+  TEST(!FriendsManager::IsPublicV1Enabled(), ());
+  TEST(!FriendsManager::ShouldContactFriendsApi(), ());
+  FriendsManager manager;
+  manager.Refresh();
+  TEST(manager.GetLists().m_accepted.empty(), ());
+  TEST(manager.GetLists().m_incoming.empty(), ());
+  TEST(manager.GetLists().m_outgoing.empty(), ());
+  ClearApiBaseUrl();
+}

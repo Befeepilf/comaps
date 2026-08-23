@@ -17,6 +17,7 @@ set(SRC
   exploration_haptics_tests.cpp
   explorer_pro_tests.cpp
   first_goal_tests.cpp
+  identity_store_tests.cpp
   exploration_multiplier_tests.cpp
   exploration_weight_lookup_tests.cpp
   focused_area_badge_tests.cpp

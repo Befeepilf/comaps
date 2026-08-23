@@ -36,17 +36,22 @@ public class UsernameDialogFragment extends DialogFragment
     final EditText input = new EditText(requireContext());
     input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
     input.setImeOptions(EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING);
-    input.setFilters(new InputFilter[]{ new InputFilter.LengthFilter(20) });
-    String current = Framework.nativeHasUsername() ? Framework.nativeGetUsername() : null;
-    if (current != null)
-      input.setText(current);
+    input.setFilters(new InputFilter[]{ new InputFilter.LengthFilter(24) });
+    String draft = Framework.nativeGetNicknameDraft();
+    String accepted = Framework.nativeHasUsername() ? Framework.nativeGetUsername() : null;
+    if (draft != null && !draft.isEmpty())
+      input.setText(draft);
+    else if (accepted != null)
+      input.setText(accepted);
+    else
+      input.setText(Framework.nativeGenerateNickname());
 
     return new MaterialAlertDialogBuilder(requireContext(), R.style.MwmTheme_AlertDialog)
         .setTitle(R.string.pref_explore_username_title)
         .setMessage(R.string.pref_explore_username_hint)
         .setView(input)
         .setPositiveButton(R.string.save, (d, w) -> {
-          String value = input.getText().toString().trim();
+          String value = input.getText().toString();
           if (mListener != null)
             mListener.onUsernameEntered(value);
         })
