@@ -1,8 +1,8 @@
 # SP-071 — Consent record and competition identity
 
 **Phase:** 8 — Competition
-**Status:** Not started
-**Branch:**
+**Status:** In progress
+**Branch:** `cursor/sp-071-consent-identity-c990`
 **Depends on:** SP-070 locks (SPD-059, SPD-061, SPD-062, SPD-064)
 **Unblocks:** SP-074 (upload gated on consent), SP-075 (register), SP-078
   (identity UI)
