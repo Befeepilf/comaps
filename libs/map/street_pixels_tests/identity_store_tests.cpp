@@ -102,6 +102,8 @@ UNIT_TEST(IdentityStore_Collision409DoesNotPersistNickname)
 
   IdentityStore::SetNicknameClaimHandlerForTesting([](std::string_view) { return 200; });
   TEST(IdentityStore::TryClaimNickname("Alice_1") == IdentityStore::NicknameClaimResult::Ok, ());
+  uint64_t const aged = base::SecondsSinceEpoch() - IdentityStore::kNicknameRenameIntervalSeconds;
+  settings::Set("Explore.NicknameLastChangedUnix", aged);
   IdentityStore::SetNicknameClaimHandlerForTesting([](std::string_view) { return 409; });
   TEST(IdentityStore::TryClaimNickname("Bob_2") == IdentityStore::NicknameClaimResult::Collision, ());
   TEST_EQUAL(IdentityStore::GetUsername(), "Alice_1", ());
