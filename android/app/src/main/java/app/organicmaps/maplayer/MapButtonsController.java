@@ -262,7 +262,10 @@ public class MapButtonsController extends Fragment
     }
     mFirstGoalBadge = mFrame.findViewById(R.id.first_goal_badge);
     if (mFirstGoalBadge != null)
+    {
       mButtonsMap.put(MapButtons.firstGoalBanner, mFirstGoalBadge);
+      showButton(false, MapButtons.firstGoalBanner);
+    }
     mCompletionCard = mFrame.findViewById(R.id.area_completion_card);
     if (mCompletionCard != null)
     {
@@ -575,6 +578,7 @@ public class MapButtonsController extends Fragment
       mFirstGoalBadge.setText(
           getString(R.string.street_pixels_first_goal_progress, progress.collected, progress.threshold));
       showButton(true, MapButtons.firstGoalBanner);
+      mFirstGoalBadge.extend();
     }
     else if (progress.state == FirstGoalProgress.STATE_COMPLETE && mFirstGoalBadge.getVisibility() == View.VISIBLE)
     {
