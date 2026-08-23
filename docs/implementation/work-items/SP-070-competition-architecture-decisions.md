@@ -1,7 +1,7 @@
 # SP-070 — Competition architecture decisions
 
 **Phase:** 8 — Competition
-**Status:** In review
+**Status:** Accepted
 **Branch:** `cursor/phase-08-work-items-c990`
 **Depends on:** Phase 4 exit met. Product-owner locks 2026-08-23 (OQ-1,
   OQ-3, OQ-4 unique nicknames, OQ-6, OQ-7, C1–C10).
@@ -135,8 +135,8 @@ OQ-3, OQ-6, OQ-7, C1–C10 as in the table. Full text in `DECISIONS.md`.
 | Product-owner lock | 2026-08-23 (unique nicknames; otherwise recommended positions) |
 | Decision ids | SPD-057 (OQ-1 score), SPD-058 (OQ-1 contested), SPD-059 (OQ-4 unique), SPD-060 (OQ-3), SPD-061 (OQ-6), SPD-062 (OQ-7), SPD-063 (recency), SPD-064 (consent / stats file), SPD-065 (backend / clamp / OSM / version), SPD-066 (30-pixel hint) |
 | Spec divergence | SPD-059 — unique nicknames vs spec §20.4 |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Product owner |
+| Accepted date | 2026-08-23 |
 
 ## Discovered follow-up
 
