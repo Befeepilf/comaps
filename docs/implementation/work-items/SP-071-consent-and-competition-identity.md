@@ -111,8 +111,8 @@ Nicknames are unique in V1 (SPD-059).
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Test output | |
+| Branch | `cursor/sp-071-consent-identity-c990` |
+| Test output | `./omim-build-debug/street_pixels_tests --data_path=data --user_resource_path=data --filter='IdentityStore_|FriendsManager_|BackendConfig_|ExploreStatsUpload_'` — 18 passed, 0 failed |
 | Accepted by | |
 | Accepted date | |
 
