@@ -1131,8 +1131,8 @@
     <string name="friends_remove">Remove</string>
     <string name="friends_account_required">Create an account first</string>
     <string name="friends_signup_to_add">Sign up to add this friend</string>
-    <string name="explore_consent_title">Exploration sharing</string>
-    <string name="explore_consent_message">CoMaps can sync aggregate exploration counts (no GPS tracks) to enable friends, leaderboards, and challenges. You can turn this off anytime in My Account.</string>
+    <string name="explore_consent_title">Join local exploration rankings</string>
+    <string name="explore_consent_message">Join local exploration rankings.\n\nWhen you opt in:\n• Aggregated area statistics are uploaded.\n• Your public nickname is shown where rankings have enough participants.\n• Exact routes are not uploaded.\n• Raw GPS is not uploaded.\n• Live location is not shared.\n• Nearby-user discovery does not exist in this version.\n• You can disable participation later.</string>
     <string name="explore_consent_accept">I understand</string>
     <string name="explore_consent_decline">Not now</string>
     <string name="account_export_data">Export my data</string>

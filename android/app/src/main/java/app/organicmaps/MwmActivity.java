@@ -327,37 +327,13 @@ public class MwmActivity extends BaseMwmFragmentActivity
       return;
 
     android.net.Uri data = intent.getData();
-    if (ExploreDeepLink.isAddFriendUri(data))
-    {
-      String username = ExploreDeepLink.getAddFriendUsername(data);
-      if (username != null)
-        intent.putExtra(EXTRA_ADD_FRIEND_USERNAME, username);
-    }
-
     intent.putExtra(EXTRA_CONSUMED, true);
+
+    if (ExploreDeepLink.isAddFriendUri(data))
+      return;
 
     if (handleStopTrackRecordingIntent(intent))
       return;
-
-    final String addFriendUsername = intent.getStringExtra(EXTRA_ADD_FRIEND_USERNAME);
-    if (addFriendUsername != null && !addFriendUsername.isEmpty())
-    {
-      if (!ExploreConsentDialogFragment.maybeShow(getSupportFragmentManager(), new ExploreConsentDialogFragment.Listener()
-      {
-        @Override
-        public void onExploreConsentGranted()
-        {
-          MyAccountDialogFragment.showWithAddFriend(getSupportFragmentManager(), addFriendUsername);
-        }
-
-        @Override
-        public void onExploreConsentDeclined()
-        {
-        }
-      }))
-        MyAccountDialogFragment.showWithAddFriend(getSupportFragmentManager(), addFriendUsername);
-      return;
-    }
 
     final long categoryId = intent.getLongExtra(EXTRA_CATEGORY_ID, -1);
     final long bookmarkId = intent.getLongExtra(EXTRA_BOOKMARK_ID, -1);

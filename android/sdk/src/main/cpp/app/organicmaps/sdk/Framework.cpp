@@ -924,6 +924,46 @@ JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeSetExploreConsen
   IdentityStore::SetExploreConsent(static_cast<bool>(consented));
 }
 
+JNIEXPORT jstring JNICALL Java_app_organicmaps_sdk_Framework_nativeGenerateNickname(JNIEnv * env, jclass)
+{
+  return jni::ToJavaString(env, IdentityStore::GenerateNickname());
+}
+
+JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_Framework_nativeIsValidNickname(JNIEnv * env, jclass,
+                                                                                   jstring nickname)
+{
+  return static_cast<jboolean>(IdentityStore::IsValidNickname(jni::ToNativeString(env, nickname)));
+}
+
+JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_Framework_nativeSetNicknameDraft(JNIEnv * env, jclass,
+                                                                                    jstring nickname)
+{
+  return static_cast<jboolean>(IdentityStore::SetNicknameDraft(jni::ToNativeString(env, nickname)));
+}
+
+JNIEXPORT jint JNICALL Java_app_organicmaps_sdk_Framework_nativeTryClaimNickname(JNIEnv * env, jclass, jstring nickname)
+{
+  return static_cast<jint>(IdentityStore::TryClaimNickname(jni::ToNativeString(env, nickname)));
+}
+
+JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_Framework_nativeCanRenameNickname(JNIEnv *, jclass)
+{
+  return static_cast<jboolean>(IdentityStore::CanRenameNickname());
+}
+
+JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_Framework_nativeShouldUploadCompetitionIdentity(JNIEnv *, jclass)
+{
+  return static_cast<jboolean>(IdentityStore::ShouldUploadCompetitionIdentity());
+}
+
+JNIEXPORT jstring JNICALL Java_app_organicmaps_sdk_Framework_nativeGetNicknameDraft(JNIEnv * env, jclass)
+{
+  auto const name = IdentityStore::GetNicknameDraft();
+  if (name.empty())
+    return nullptr;
+  return jni::ToJavaString(env, name);
+}
+
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeSetExploreApiBaseUrl(JNIEnv * env, jclass, jstring url)
 {
   backend::SetApiBaseUrl(jni::ToNativeString(env, url));

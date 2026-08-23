@@ -394,6 +394,14 @@ public class Framework
   public static native void nativeSetExploreFriendVisibilityEnabled(boolean enabled);
   public static native boolean nativeHasExploreConsent();
   public static native void nativeSetExploreConsent(boolean consented);
+  public static native String nativeGenerateNickname();
+  public static native boolean nativeIsValidNickname(@NonNull String nickname);
+  public static native boolean nativeSetNicknameDraft(@NonNull String nickname);
+  public static native int nativeTryClaimNickname(@NonNull String nickname);
+  public static native boolean nativeCanRenameNickname();
+  public static native boolean nativeShouldUploadCompetitionIdentity();
+  @Nullable
+  public static native String nativeGetNicknameDraft();
   public static native void nativeSetExploreApiBaseUrl(@NonNull String url);
   public static native void nativeSetExplorerProCapabilities(boolean gpxImport, boolean gpxExport,
                                                            boolean advancedTrackManagement);
