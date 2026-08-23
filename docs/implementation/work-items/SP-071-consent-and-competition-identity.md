@@ -112,7 +112,7 @@ Nicknames are unique in V1 (SPD-059).
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-071-consent-identity-c990` |
-| Test output | `./omim-build-debug/street_pixels_tests --data_path=data --user_resource_path=data --filter='IdentityStore_|FriendsManager_|BackendConfig_|ExploreStatsUpload_'` — 18 passed, 0 failed |
+| Test output | `./omim-build-debug/street_pixels_tests --data_path=data --user_resource_path=data --filter='IdentityStore_|FriendsManager_|BackendConfig_|ExploreStatsUpload_'` — 21 passed, 0 failed |
 | Accepted by | |
 | Accepted date | |
 
@@ -120,4 +120,6 @@ Nicknames are unique in V1 (SPD-059).
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Production `TryClaimNickname` stays `Unavailable` (draft only) until SP-075 injects the HTTP claim handler | SP-075 |
+| Nickname letter tables omit some scripts; no Unicode NFC without ICU | Residual V1 client check; server remains authority in SP-075 |
+| 7-digit local phone-like names without `+` and under 10 digits may still pass | Residual; uniqueness/moderation in SP-075 / SP-077 |
