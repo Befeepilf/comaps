@@ -1,6 +1,6 @@
 # Phase 8 — Competition
 
-**Status:** Work items planned (SP-070 In review; coding not started)
+**Status:** SP-070 Accepted; SP-071 in progress
 **Depends on:** Phase 4
 **Blocks:** nothing; required for release
 
@@ -217,9 +217,9 @@ Backend (needs a test setup that does not exist yet):
 ## Entry criteria
 
 - Phase 4 exit criteria met.
-- OQ-1 answered and recorded as a decision. **Met in docs** — SPD-057 /
-  SPD-058 (2026-08-23 via SP-070; maintainer review of SP-070 still open).
-- OQ-4 and OQ-7 answered. **Met in docs** — SPD-059, SPD-062.
+- OQ-1 answered and recorded as a decision. **Met** — SPD-057 / SPD-058
+  (SP-070 Accepted 2026-08-23).
+- OQ-4 and OQ-7 answered. **Met** — SPD-059, SPD-062.
 - A deployable backend environment exists, with a production settings module
   and a database that is not SQLite. **Unmet** — owned by SP-075 / ops;
   does not reopen scoring formulas. Client items may use fakes.
@@ -258,8 +258,7 @@ Backend (needs a test setup that does not exist yet):
 
 ## Known uncertainties
 
-Closed 2026-08-23 via SP-070 (product-owner lock; maintainer still reviews
-the SPD text):
+Closed 2026-08-23 via SP-070 (**Accepted**):
 
 - Scoring formulas (OQ-1) → SPD-057 / SPD-058.
 - Nickname uniqueness (OQ-4) → SPD-059 (**unique**; spec §20.4 divergence).
