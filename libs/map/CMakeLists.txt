@@ -25,6 +25,14 @@ set(SRC
   backend_config.hpp
   explorer_pro.cpp
   explorer_pro.hpp
+  area_milestone_presentation.cpp
+  area_milestone_presentation.hpp
+  completion_card_analytics.cpp
+  completion_card_analytics.hpp
+  exploration_haptics.cpp
+  exploration_haptics.hpp
+  first_goal.cpp
+  first_goal.hpp
   live_sample_acceptance_filter.cpp
   live_sample_acceptance_filter.hpp
   live_segment_interpolation.cpp

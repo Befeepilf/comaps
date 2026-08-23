@@ -8,6 +8,8 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -15,6 +17,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.CompoundButton;
+import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
@@ -37,6 +42,10 @@ import app.organicmaps.sdk.downloader.UpdateInfo;
 import app.organicmaps.sdk.location.RecordingSession;
 import app.organicmaps.location.RecordingSessionUiModel;
 import app.organicmaps.sdk.maplayer.isolines.IsolinesManager;
+import app.organicmaps.sdk.maplayer.streetpixels.AreaMilestonePresentation;
+import app.organicmaps.sdk.maplayer.streetpixels.CompletionCardModel;
+import app.organicmaps.sdk.maplayer.streetpixels.CompletionCardSharePayload;
+import app.organicmaps.sdk.maplayer.streetpixels.FirstGoalProgress;
 import app.organicmaps.sdk.maplayer.streetpixels.FocusedAreaProgress;
 import app.organicmaps.sdk.maplayer.streetpixels.StreetPixelsManager;
 import app.organicmaps.sdk.maplayer.streetpixels.StreetPixelsState;
@@ -52,6 +61,7 @@ import app.organicmaps.widget.placepage.PlacePageViewModel;
 import com.google.android.material.badge.BadgeDrawable;
 import com.google.android.material.badge.BadgeUtils;
 import com.google.android.material.badge.ExperimentalBadgeUtils;
+import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.HashMap;
@@ -71,6 +81,26 @@ public class MapButtonsController extends Fragment
   FloatingActionButton mTrackRecordingStatusButton;
   @Nullable
   private ExtendedFloatingActionButton mExplorationBadge;
+  @Nullable
+  private ExtendedFloatingActionButton mFirstGoalBadge;
+  @Nullable
+  private View mCompletionCard;
+  @Nullable
+  private TextView mCompletionCardTitle;
+  @Nullable
+  private TextView mCompletionCardBody;
+  @Nullable
+  private CompletionCardOutlineView mCompletionCardOutline;
+  @Nullable
+  private TextView mCompletionCardNickname;
+  @Nullable
+  private TextView mCompletionCardDate;
+  @Nullable
+  private TextView mCompletionCardCompetition;
+  @Nullable
+  private TextView mCompletionCardBranding;
+  @Nullable
+  private MaterialCheckBox mCompletionCardIncludeDate;
   @Nullable
   private ObjectAnimator mTrackRecordingBlinkAnimator;
 
@@ -93,6 +123,13 @@ public class MapButtonsController extends Fragment
   private final Observer<StreetPixelsState> mStreetPixelsStateObserver = this::updateExplorationBadge;
   private final StreetPixelsManager.FocusedAreaProgressCallback mFocusedAreaProgressCallback =
       this::bindExplorationBadgeFromProgress;
+  private final StreetPixelsManager.FirstGoalProgressCallback mFirstGoalProgressCallback =
+      this::applyFirstGoalBadge;
+  private final StreetPixelsManager.AreaMilestonePresentationCallback mAreaMilestonePresentationCallback =
+      this::applyAreaMilestonePresentation;
+  private final Handler mAreaMilestoneHandler = new Handler(Looper.getMainLooper());
+  private final Runnable mAcknowledgeAreaMilestone = this::acknowledgeAreaMilestonePresentation;
+  private boolean mCompletionCardDebugPreview;
   private final Observer<Integer> mTopButtonMarginObserver = this::updateTopButtonsMargin;
 
   private LeftButton mLeftButton;
@@ -214,14 +251,45 @@ public class MapButtonsController extends Fragment
           return;
         FocusedAreaProgress progress =
             MwmApplication.from(ctx).getStreetPixelsManager().getFocusedAreaProgress();
+        Log.i("StreetPixels",
+              "sheet open hasFocus=" + progress.hasFocus + " fractionValid=" + progress.fractionValid
+                  + " citySummary=" + progress.citySummary + " compactIndex=" + progress.compactIndex
+                  + " fraction=" + progress.fraction + " areaCompleted=" + progress.areaCompleted
+                  + " noExplorationArea=" + progress.noExplorationArea);
         if (progress.noExplorationArea || !progress.hasFocus || TextUtils.isEmpty(progress.displayName))
         {
           FocusedAreaDetailBottomSheet.showEmpty(getParentFragmentManager());
           return;
         }
         FocusedAreaDetailBottomSheet.show(getParentFragmentManager(), progress.displayName, progress.fractionValid,
-                                          progress.fraction, progress.areaCompleted);
+                                          progress.fraction, progress.areaCompleted, progress.previouslyCompleted);
       });
+    }
+    mFirstGoalBadge = mFrame.findViewById(R.id.first_goal_badge);
+    if (mFirstGoalBadge != null)
+    {
+      mButtonsMap.put(MapButtons.firstGoalBanner, mFirstGoalBadge);
+      showButton(false, MapButtons.firstGoalBanner);
+    }
+    mCompletionCard = mFrame.findViewById(R.id.area_completion_card);
+    if (mCompletionCard != null)
+    {
+      mCompletionCardTitle = mCompletionCard.findViewById(R.id.area_completion_card_title);
+      mCompletionCardBody = mCompletionCard.findViewById(R.id.area_completion_card_body);
+      mCompletionCardOutline = mCompletionCard.findViewById(R.id.area_completion_card_outline);
+      mCompletionCardNickname = mCompletionCard.findViewById(R.id.area_completion_card_nickname);
+      mCompletionCardDate = mCompletionCard.findViewById(R.id.area_completion_card_date);
+      mCompletionCardCompetition = mCompletionCard.findViewById(R.id.area_completion_card_competition);
+      mCompletionCardBranding = mCompletionCard.findViewById(R.id.area_completion_card_branding);
+      mCompletionCardIncludeDate = mCompletionCard.findViewById(R.id.area_completion_card_include_date);
+      View share = mCompletionCard.findViewById(R.id.area_completion_card_share);
+      if (mCompletionCardIncludeDate != null)
+      {
+        mCompletionCardIncludeDate.setChecked(false);
+        mCompletionCardIncludeDate.setOnCheckedChangeListener(this::onCompletionCardIncludeDateChanged);
+      }
+      if (share != null)
+        share.setOnClickListener(v -> shareCompletionCard());
     }
   }
 
@@ -278,6 +346,9 @@ public class MapButtonsController extends Fragment
     case explorationBanner:
       UiUtils.showIf(show, buttonView);
       break;
+    case firstGoalBanner:
+      UiUtils.showIf(show, buttonView);
+      break;
     case trackRecordingStatus:
       UiUtils.showIf(show, buttonView);
       break;
@@ -292,6 +363,7 @@ public class MapButtonsController extends Fragment
     showButton(active, MapButtons.trackRecordingStatus);
     updateLeftButtonToggleState(active);
     updateTrackRecordingStatusAppearance(state);
+    refreshFirstGoalBadge();
   }
 
   private void updateTrackRecordingStatusAppearance(@RecordingSession.State int state)
@@ -466,6 +538,11 @@ public class MapButtonsController extends Fragment
       return;
     if (progress.hasFocus && !TextUtils.isEmpty(progress.displayName))
     {
+      Log.i("StreetPixels",
+            "badge hasFocus=" + progress.hasFocus + " fractionValid=" + progress.fractionValid
+                + " citySummary=" + progress.citySummary + " compactIndex=" + progress.compactIndex
+                + " fraction=" + progress.fraction + " areaCompleted=" + progress.areaCompleted
+                + " omitPercent=" + !progress.fractionValid);
       if (progress.fractionValid)
       {
         if (progress.areaCompleted)
@@ -475,8 +552,8 @@ public class MapButtonsController extends Fragment
         }
         else
         {
-          double percent = Math.round(progress.fraction * 100 * 10) / 10.0;
-          mExplorationBadge.setText(progress.displayName + " • " + percent + "%");
+          mExplorationBadge.setText(progress.displayName + " • " +
+                                    FocusedAreaProgress.formatPercent(progress.fraction));
         }
       }
       else
@@ -490,6 +567,202 @@ public class MapButtonsController extends Fragment
       mExplorationBadge.setText(R.string.street_pixels_no_exploration_area);
       showButton(true, MapButtons.explorationBanner);
     }
+  }
+
+  private void refreshFirstGoalBadge()
+  {
+    Context ctx = getContext();
+    if (ctx == null)
+      return;
+    applyFirstGoalBadge(MwmApplication.from(ctx).getStreetPixelsManager().getFirstGoalProgress());
+  }
+
+  private void applyFirstGoalBadge(@NonNull FirstGoalProgress progress)
+  {
+    if (mFirstGoalBadge == null)
+      return;
+    if (progress.state == FirstGoalProgress.STATE_IN_PROGRESS)
+    {
+      mFirstGoalBadge.animate().cancel();
+      mFirstGoalBadge.setAlpha(1f);
+      mFirstGoalBadge.setText(
+          getString(R.string.street_pixels_first_goal_progress, progress.collected, progress.threshold));
+      showButton(true, MapButtons.firstGoalBanner);
+      mFirstGoalBadge.extend();
+    }
+    else if (progress.state == FirstGoalProgress.STATE_COMPLETE && mFirstGoalBadge.getVisibility() == View.VISIBLE)
+    {
+      mFirstGoalBadge.setText(
+          getString(R.string.street_pixels_first_goal_progress, progress.threshold, progress.threshold));
+      mFirstGoalBadge.animate().alpha(0f).setDuration(250).withEndAction(() -> {
+        if (!isAdded() || mFirstGoalBadge == null)
+          return;
+        showButton(false, MapButtons.firstGoalBanner);
+        mFirstGoalBadge.setAlpha(1f);
+      }).start();
+    }
+    else
+    {
+      mFirstGoalBadge.animate().cancel();
+      showButton(false, MapButtons.firstGoalBanner);
+    }
+  }
+
+  private void refreshAreaMilestonePresentation()
+  {
+    Context ctx = getContext();
+    if (ctx == null)
+      return;
+    applyAreaMilestonePresentation(
+        MwmApplication.from(ctx).getStreetPixelsManager().getCurrentAreaMilestonePresentation());
+  }
+
+  private void applyAreaMilestonePresentation(@Nullable AreaMilestonePresentation presentation)
+  {
+    Context ctx = getContext();
+    mAreaMilestoneHandler.removeCallbacks(mAcknowledgeAreaMilestone);
+    if (mCompletionCard != null)
+      UiUtils.hide(mCompletionCard);
+    mCompletionCardDebugPreview = presentation != null && presentation.debugPreview;
+    if (ctx == null || presentation == null)
+      return;
+    String name = presentation.displayName;
+    int messageId = R.string.street_pixels_area_milestone_25;
+    int toastLength = Toast.LENGTH_SHORT;
+    long delayMs = 2000;
+    if (presentation.threshold == AreaMilestonePresentation.THRESHOLD_50)
+    {
+      messageId = R.string.street_pixels_area_milestone_50;
+      toastLength = Toast.LENGTH_LONG;
+      delayMs = 3500;
+    }
+    else if (presentation.threshold == AreaMilestonePresentation.THRESHOLD_100)
+    {
+      messageId = R.string.street_pixels_area_milestone_100;
+      toastLength = Toast.LENGTH_LONG;
+      delayMs = 4000;
+      if (mCompletionCardTitle != null)
+        mCompletionCardTitle.setText(getString(R.string.street_pixels_area_milestone_100, name));
+      if (mCompletionCardBody != null)
+        mCompletionCardBody.setText(getString(R.string.street_pixels_completion_card_body, name));
+      if (mCompletionCardIncludeDate != null)
+        mCompletionCardIncludeDate.setChecked(false);
+      bindCompletionCardOutline(MwmApplication.from(ctx).getStreetPixelsManager().getCurrentCompletionCard(
+          false, !mCompletionCardDebugPreview));
+      if (mCompletionCard != null)
+        UiUtils.show(mCompletionCard);
+    }
+    if (!mCompletionCardDebugPreview)
+    {
+      Toast.makeText(ctx, getString(messageId, name), toastLength).show();
+      pulseExplorationBadge(presentation.threshold);
+      mAreaMilestoneHandler.postDelayed(mAcknowledgeAreaMilestone, delayMs);
+    }
+  }
+
+  private void bindCompletionCardOutline(@Nullable CompletionCardModel card)
+  {
+    boolean hasOutline = card != null && card.outlineXs != null && card.outlineXs.length > 0;
+    if (mCompletionCardOutline != null)
+    {
+      if (hasOutline)
+      {
+        mCompletionCardOutline.setOutline(card.outlineXs, card.outlineYs, card.ringLengths);
+        mCompletionCardOutline.setContentDescription(card.areaDisplayName);
+        UiUtils.show(mCompletionCardOutline);
+      }
+      else
+      {
+        mCompletionCardOutline.setOutline(null, null, null);
+        UiUtils.hide(mCompletionCardOutline);
+      }
+    }
+    if (mCompletionCardBranding != null)
+    {
+      if (card != null && !TextUtils.isEmpty(card.branding))
+      {
+        mCompletionCardBranding.setText(card.branding);
+        UiUtils.show(mCompletionCardBranding);
+      }
+      else
+        UiUtils.hide(mCompletionCardBranding);
+    }
+    if (mCompletionCardNickname != null)
+    {
+      boolean showNick = card != null && !TextUtils.isEmpty(card.nickname);
+      if (showNick)
+        mCompletionCardNickname.setText(card.nickname);
+      UiUtils.showIf(showNick, mCompletionCardNickname);
+    }
+    if (mCompletionCardDate != null)
+    {
+      boolean showDate = card != null && !TextUtils.isEmpty(card.completedDate);
+      if (showDate)
+        mCompletionCardDate.setText(card.completedDate);
+      UiUtils.showIf(showDate, mCompletionCardDate);
+    }
+    if (mCompletionCardCompetition != null)
+    {
+      boolean showCompetition = card != null && !TextUtils.isEmpty(card.competitionLine);
+      if (showCompetition)
+        mCompletionCardCompetition.setText(card.competitionLine);
+      UiUtils.showIf(showCompetition, mCompletionCardCompetition);
+    }
+  }
+
+  private void onCompletionCardIncludeDateChanged(CompoundButton button, boolean checked)
+  {
+    Context ctx = getContext();
+    if (ctx == null)
+      return;
+    bindCompletionCardOutline(
+        MwmApplication.from(ctx).getStreetPixelsManager().getCurrentCompletionCard(checked, false));
+  }
+
+  private void shareCompletionCard()
+  {
+    Context ctx = getContext();
+    if (ctx == null)
+      return;
+    boolean includeDate = mCompletionCardIncludeDate != null && mCompletionCardIncludeDate.isChecked();
+    StreetPixelsManager manager = MwmApplication.from(ctx).getStreetPixelsManager();
+    CompletionCardSharePayload payload = manager.prepareCompletionCardShare(includeDate);
+    if (payload == null || TextUtils.isEmpty(payload.path) || !"image/png".equals(payload.mimeType))
+      return;
+    CompletionCardShare.shareImage(ctx, payload);
+    if (!mCompletionCardDebugPreview)
+      manager.recordCompletionCardShareInitiated();
+  }
+
+  private void pulseExplorationBadge(int threshold)
+  {
+    if (mExplorationBadge == null)
+      return;
+    float scale = threshold == AreaMilestonePresentation.THRESHOLD_25 ? 1.08f : 1.16f;
+    long duration = threshold == AreaMilestonePresentation.THRESHOLD_25 ? 200 : 400;
+    mExplorationBadge.animate().cancel();
+    mExplorationBadge.setScaleX(1f);
+    mExplorationBadge.setScaleY(1f);
+    mExplorationBadge.animate()
+        .scaleX(scale)
+        .scaleY(scale)
+        .setDuration(duration)
+        .withEndAction(() -> {
+          if (mExplorationBadge == null)
+            return;
+          mExplorationBadge.animate().scaleX(1f).scaleY(1f).setDuration(duration).start();
+        })
+        .start();
+  }
+
+  private void acknowledgeAreaMilestonePresentation()
+  {
+    Context ctx = getContext();
+    if (mCompletionCard != null)
+      UiUtils.hide(mCompletionCard);
+    if (ctx == null)
+      return;
+    MwmApplication.from(ctx).getStreetPixelsManager().acknowledgeAreaMilestonePresentation();
   }
 
   private boolean isBehindPlacePage(View v)
@@ -602,6 +875,8 @@ public class MapButtonsController extends Fragment
     mMapButtonsViewModel.getRecordingSessionState().observe(activity, mRecordingSessionObserver);
     mMapButtonsViewModel.getStreetPixelsState().observe(activity, mStreetPixelsStateObserver);
     StreetPixelsManager.registerFocusedAreaProgressCallback(mFocusedAreaProgressCallback);
+    StreetPixelsManager.registerFirstGoalProgressCallback(mFirstGoalProgressCallback);
+    StreetPixelsManager.registerAreaMilestonePresentationCallback(mAreaMilestonePresentationCallback);
     mMapButtonsViewModel.getTopButtonsMarginTop().observe(activity, mTopButtonMarginObserver);
   }
 
@@ -614,6 +889,8 @@ public class MapButtonsController extends Fragment
 
     @Nullable StreetPixelsState state = mMapButtonsViewModel.getStreetPixelsState().getValue();
     updateExplorationBadge(state);
+    refreshFirstGoalBadge();
+    refreshAreaMilestonePresentation();
 
     final WindowInsetUtils.PaddingInsetsListener insetsListener =
         new WindowInsetUtils.PaddingInsetsListener.Builder()
@@ -644,6 +921,13 @@ public class MapButtonsController extends Fragment
     mMapButtonsViewModel.getSearchOption().removeObserver(mSearchOptionObserver);
     mMapButtonsViewModel.getRecordingSessionState().removeObserver(mRecordingSessionObserver);
     StreetPixelsManager.unregisterFocusedAreaProgressCallback(mFocusedAreaProgressCallback);
+    StreetPixelsManager.unregisterFirstGoalProgressCallback(mFirstGoalProgressCallback);
+    StreetPixelsManager.unregisterAreaMilestonePresentationCallback(mAreaMilestonePresentationCallback);
+    mAreaMilestoneHandler.removeCallbacks(mAcknowledgeAreaMilestone);
+    if (mFirstGoalBadge != null)
+      mFirstGoalBadge.animate().cancel();
+    if (mExplorationBadge != null)
+      mExplorationBadge.animate().cancel();
     mMapButtonsViewModel.getStreetPixelsState().removeObserver(mStreetPixelsStateObserver);
   }
 
@@ -693,6 +977,7 @@ public class MapButtonsController extends Fragment
     menu,
     help,
     explorationBanner,
+    firstGoalBanner,
     trackRecordingStatus
   }
 

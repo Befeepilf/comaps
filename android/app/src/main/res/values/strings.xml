@@ -211,7 +211,7 @@
     <string name="prefs_group_map_appearance">Map appearance</string>
     <string name="prefs_group_map_appearance_summary">Map language, labels size, 2D/3D buildings</string>
     <string name="prefs_group_interface">Interface</string>
-    <string name="prefs_group_interface_summary">Night mode, buttons, language</string>
+    <string name="prefs_group_interface_summary">Night mode, buttons, haptics, language</string>
     <string name="prefs_group_data_management">Data management</string>
     <string name="prefs_group_data_management_summary">Map storage, backup favorites</string>
     <string name="prefs_group_information">Information</string>
@@ -219,6 +219,8 @@
     <string name="prefs_group_route_summary">Units, voice instructions, routing options</string>
     <string name="pref_zoom_title">Zoom buttons</string>
     <string name="pref_zoom_summary">Display on the map</string>
+    <string name="pref_exploration_haptics_title">Exploration haptics</string>
+    <string name="pref_exploration_haptics_summary">Pulse while recording in the foreground</string>
     <!-- Settings advanced group in settings screen -->
     <string name="prefs_group_advanced">Advanced</string>
     <string name="prefs_group_advanced_summary">Enable logging</string>
@@ -738,6 +740,16 @@
     <string name="street_pixels_no_exploration_area_title">No selected exploration area</string>
     <string name="street_pixels_no_exploration_area_message">Personal pixels still work. Area percentage is unavailable until a supported settlement, administrative subdivision, or place boundary is present.</string>
     <string name="street_pixels_area_completed">Completed</string>
+    <string name="street_pixels_first_goal">Explore your first 100 m</string>
+    <string name="street_pixels_first_goal_progress">Explore your first 100 m • %1$d/%2$d</string>
+    <string name="street_pixels_area_milestone_25">25%% of %1$s explored</string>
+    <string name="street_pixels_area_milestone_50">Half of %1$s explored</string>
+    <string name="street_pixels_area_milestone_100">%1$s fully explored</string>
+    <string name="street_pixels_area_previously_completed">Previously completed</string>
+    <string name="street_pixels_completion_card_body">%1$s fully explored</string>
+    <string name="street_pixels_completion_card_branding">Street Pixels</string>
+    <string name="street_pixels_completion_card_headline">100% explored</string>
+    <string name="street_pixels_completion_card_include_date">Include completion date</string>
     <string name="layers_title">Map Styles and Layers</string>
     <string name="bookmarks_empty_list_title">This list is empty</string>
     <string name="bookmarks_empty_list_message">To save a place, tap a place on the map and then tap the star icon</string>

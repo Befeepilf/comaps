@@ -3,6 +3,7 @@
 #include "map/benchmark_tools.hpp"
 #include "map/bookmark.hpp"
 #include "map/bookmark_helpers.hpp"
+#include "map/completion_card_analytics.hpp"
 #include "map/gps_track.hpp"
 #include "map/gps_track_filter.hpp"
 #include "map/gps_tracker.hpp"
@@ -503,6 +504,8 @@ Framework::Framework(FrameworkParams const & params, bool loadMaps)
   m_searchMarks.SetBookmarkManager(m_bmManager.get());
 
   m_streetPixelsManager->SetBookmarkManager(m_bmManager.get());
+  m_streetPixelsManager->SetCompletionCardGeneratedHandler(
+      [] { street_pixels::CompletionCardAnalytics::RecordGenerated(); });
   m_streetPixelsManager->SetExplorationListener(
     [this](StreetPixelsManager::ExplorationDelta const & d)
     {
@@ -514,6 +517,7 @@ Framework::Framework(FrameworkParams const & params, bool loadMaps)
   m_recordingSession->SetStateListener([this](RecordingSession::State previous, RecordingSession::State current)
   {
     ApplyRecordingPauseResumeEffects(previous, current, &GpsTracker::Instance(), m_streetPixelsManager.get());
+    m_streetPixelsManager->OnRecordingSessionStateChanged();
     if (m_recordingSessionPlatformListener)
       m_recordingSessionPlatformListener(previous, current);
   });
@@ -1398,6 +1402,9 @@ void Framework::MemoryWarning()
 
 void Framework::EnterBackground()
 {
+  if (m_streetPixelsManager)
+    m_streetPixelsManager->SetApplicationForeground(false);
+
   m_usageStats.EnterBackground();
 
   if (m_drapeEngine)
@@ -1417,6 +1424,9 @@ void Framework::EnterBackground()
 
 void Framework::EnterForeground()
 {
+  if (m_streetPixelsManager)
+    m_streetPixelsManager->SetApplicationForeground(true);
+
   m_usageStats.EnterForeground();
 
   if (m_drapeEngine)
@@ -3593,6 +3603,24 @@ bool Framework::ParseSearchQueryCommand(search::SearchParams const & params)
   {
     LOG(LINFO, ("COUNTRIES: triggered manual check for updates"));
     m_storage.RunCountriesCheckAsyncSaveOnly();
+    return true;
+  }
+
+  std::string query = params.m_query;
+  strings::Trim(query);
+  if (query == "?card" || query == "?completion-card")
+  {
+    GetStreetPixelsManager().DebugPreviewCompletionCard();
+    return true;
+  }
+  if (query == "?no-card")
+  {
+    GetStreetPixelsManager().ClearDebugCompletionCard();
+    return true;
+  }
+  if (query == "?achievements")
+  {
+    GetStreetPixelsManager().DebugTriggerAchievementPresentations();
     return true;
   }
 

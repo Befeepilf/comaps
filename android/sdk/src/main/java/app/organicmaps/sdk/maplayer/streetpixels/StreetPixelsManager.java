@@ -30,12 +30,27 @@ public class StreetPixelsManager
     void onExplorationAreaTapped(@NonNull FocusedAreaProgress progress);
   }
 
+  public interface FirstGoalProgressCallback
+  {
+    void onFirstGoalProgressChanged(@NonNull FirstGoalProgress progress);
+  }
+
+  public interface AreaMilestonePresentationCallback
+  {
+    void onAreaMilestonePresentationChanged(@Nullable AreaMilestonePresentation presentation);
+  }
+
   @NonNull
   private static final java.util.List<Callback> sCallbacks = new java.util.ArrayList<>();
   @NonNull
   private static final java.util.List<FocusedAreaProgressCallback> sProgressCallbacks = new java.util.ArrayList<>();
   @NonNull
   private static final java.util.List<ExplorationAreaTapCallback> sTapCallbacks = new java.util.ArrayList<>();
+  @NonNull
+  private static final java.util.List<FirstGoalProgressCallback> sFirstGoalCallbacks = new java.util.ArrayList<>();
+  @NonNull
+  private static final java.util.List<AreaMilestonePresentationCallback> sAreaMilestoneCallbacks =
+      new java.util.ArrayList<>();
 
   public static void registerCallback(@NonNull Callback callback)
   {
@@ -88,6 +103,40 @@ public class StreetPixelsManager
     }
   }
 
+  public static void registerFirstGoalProgressCallback(@NonNull FirstGoalProgressCallback callback)
+  {
+    synchronized (sFirstGoalCallbacks)
+    {
+      if (!sFirstGoalCallbacks.contains(callback))
+        sFirstGoalCallbacks.add(callback);
+    }
+  }
+
+  public static void unregisterFirstGoalProgressCallback(@NonNull FirstGoalProgressCallback callback)
+  {
+    synchronized (sFirstGoalCallbacks)
+    {
+      sFirstGoalCallbacks.remove(callback);
+    }
+  }
+
+  public static void registerAreaMilestonePresentationCallback(@NonNull AreaMilestonePresentationCallback callback)
+  {
+    synchronized (sAreaMilestoneCallbacks)
+    {
+      if (!sAreaMilestoneCallbacks.contains(callback))
+        sAreaMilestoneCallbacks.add(callback);
+    }
+  }
+
+  public static void unregisterAreaMilestonePresentationCallback(@NonNull AreaMilestonePresentationCallback callback)
+  {
+    synchronized (sAreaMilestoneCallbacks)
+    {
+      sAreaMilestoneCallbacks.remove(callback);
+    }
+  }
+
   public StreetPixelsManager()
   {
     mListener = new OnStreetPixelsChangedListener();
@@ -129,6 +178,18 @@ public class StreetPixelsManager
   @NonNull
   private static native FocusedAreaProgress nativeSelectFocusedAreaAtLatLon(double lat, double lon,
                                                                             @NonNull String countryId);
+  @NonNull
+  private static native FirstGoalProgress nativeGetFirstGoalProgress();
+  private static native void nativeDebugTriggerAchievementPresentations();
+  @Nullable
+  private static native AreaMilestonePresentation nativeGetCurrentAreaMilestonePresentation();
+  private static native void nativeAcknowledgeAreaMilestonePresentation();
+  @Nullable
+  private static native CompletionCardModel nativeGetCurrentCompletionCard(boolean includeDate,
+                                                                           boolean recordGenerated);
+  @Nullable
+  private static native CompletionCardSharePayload nativePrepareCompletionCardShare(boolean includeDate);
+  private static native void nativeRecordCompletionCardShareInitiated();
 
   public void attach(@NonNull StreetPixelsErrorDialogListener listener)
   {
@@ -168,6 +229,51 @@ public class StreetPixelsManager
   public FocusedAreaProgress selectFocusedAreaAtLatLon(double lat, double lon, @NonNull String countryId)
   {
     return nativeSelectFocusedAreaAtLatLon(lat, lon, countryId);
+  }
+
+  @NonNull
+  public FirstGoalProgress getFirstGoalProgress()
+  {
+    return nativeGetFirstGoalProgress();
+  }
+
+  public void debugTriggerAchievementPresentations()
+  {
+    nativeDebugTriggerAchievementPresentations();
+  }
+
+  @Nullable
+  public AreaMilestonePresentation getCurrentAreaMilestonePresentation()
+  {
+    return nativeGetCurrentAreaMilestonePresentation();
+  }
+
+  public void acknowledgeAreaMilestonePresentation()
+  {
+    nativeAcknowledgeAreaMilestonePresentation();
+  }
+
+  @Nullable
+  public CompletionCardModel getCurrentCompletionCard(boolean includeDate)
+  {
+    return nativeGetCurrentCompletionCard(includeDate, true);
+  }
+
+  @Nullable
+  public CompletionCardModel getCurrentCompletionCard(boolean includeDate, boolean recordGenerated)
+  {
+    return nativeGetCurrentCompletionCard(includeDate, recordGenerated);
+  }
+
+  @Nullable
+  public CompletionCardSharePayload prepareCompletionCardShare(boolean includeDate)
+  {
+    return nativePrepareCompletionCardShare(includeDate);
+  }
+
+  public void recordCompletionCardShareInitiated()
+  {
+    nativeRecordCompletionCardShareInitiated();
   }
 
   @Nullable
@@ -215,5 +321,27 @@ public class StreetPixelsManager
     }
     for (ExplorationAreaTapCallback cb : snapshot)
       cb.onExplorationAreaTapped(progress);
+  }
+
+  static void notifyFirstGoalProgress(@NonNull FirstGoalProgress progress)
+  {
+    java.util.List<FirstGoalProgressCallback> snapshot;
+    synchronized (sFirstGoalCallbacks)
+    {
+      snapshot = new java.util.ArrayList<>(sFirstGoalCallbacks);
+    }
+    for (FirstGoalProgressCallback cb : snapshot)
+      cb.onFirstGoalProgressChanged(progress);
+  }
+
+  static void notifyAreaMilestonePresentation(@Nullable AreaMilestonePresentation presentation)
+  {
+    java.util.List<AreaMilestonePresentationCallback> snapshot;
+    synchronized (sAreaMilestoneCallbacks)
+    {
+      snapshot = new java.util.ArrayList<>(sAreaMilestoneCallbacks);
+    }
+    for (AreaMilestonePresentationCallback cb : snapshot)
+      cb.onAreaMilestonePresentationChanged(presentation);
   }
 }

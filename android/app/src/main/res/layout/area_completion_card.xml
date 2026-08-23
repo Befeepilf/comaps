@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Widget.Material3.CardView.Elevated"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:visibility="gone"
+    app:cardBackgroundColor="?cardBackground"
+    app:cardCornerRadius="@dimen/margin_half"
+    app:cardElevation="@dimen/margin_quarter"
+    app:contentPadding="@dimen/margin_half">
+  <LinearLayout
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:orientation="vertical">
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/area_completion_card_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/MwmTextAppearance.Headline6" />
+    <app.organicmaps.maplayer.CompletionCardOutlineView
+        android:id="@+id/area_completion_card_outline"
+        android:layout_width="160dp"
+        android:layout_height="160dp"
+        android:layout_marginTop="@dimen/margin_quarter" />
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/area_completion_card_body"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_quarter"
+        android:textAppearance="@style/MwmTextAppearance.Body3" />
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/area_completion_card_nickname"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_quarter"
+        android:textAppearance="@style/MwmTextAppearance.Body3"
+        android:visibility="gone" />
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/area_completion_card_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_quarter"
+        android:textAppearance="@style/MwmTextAppearance.Body3"
+        android:visibility="gone" />
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/area_completion_card_competition"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_quarter"
+        android:textAppearance="@style/MwmTextAppearance.Body3"
+        android:visibility="gone" />
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/area_completion_card_branding"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_quarter"
+        android:text="@string/street_pixels_completion_card_branding"
+        android:textAppearance="@style/MwmTextAppearance.Body3" />
+    <com.google.android.material.checkbox.MaterialCheckBox
+        android:id="@+id/area_completion_card_include_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_quarter"
+        android:checked="false"
+        android:text="@string/street_pixels_completion_card_include_date"
+        android:textAppearance="@style/MwmTextAppearance.Body3" />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/area_completion_card_share"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_half"
+        android:text="@string/share" />
+  </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

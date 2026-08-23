@@ -1400,11 +1400,254 @@ exploration.
 
 ---
 
+## SPD-046 — Completion-card geometry is a rings-only outline
+
+**Decision.** V1 share image is composed off-map from `ExplorationArea::m_rings`
+(outer rings only). Shared card model in `libs/`; Android or a headless
+rasteriser given only that model. Never capture Drape / `MapView`; never draw
+explored HEALPix, route, home, live location, track, or position marker. Do not
+use MWM / country id as the title. No lat/lon, `geo:`, or ge0 URLs. No
+individual timestamps or other users’ personal information. `area_overlay` stays
+in-app. City-summary does not fire area 25/50/100 or a city share card.
+
+**Status.** Accepted.
+
+**Context.** Maintainer lock of Phase 7 M1 (2026-08-19) via SP-062. Closes
+OQ-9. Spec §19.1 allows “stylized map or boundary outline”; V1 chooses the
+outline branch for deny-list safety.
+
+**Consequences.**
+
+- SP-067 composes from rings, not a live map screenshot.
+- SP-067 implements `CompletionCardModel` from `m_rings` (headless raster + Android Canvas from that model; never Drape).
+- Phase 7 stylised-map entry criterion is met for coding.
+
+**Related documents.** Spec §19.1; SPD-008; SP-062; SP-067; phase-07.
+
+---
+
+## SPD-047 — First-100 m counts 10 newly explored live pixels
+
+**Decision.** V1 first-100 m counts **newly explored cells only** (today’s
+`numNewlyExploredPixels`), not `IsEverLive` flips. Threshold is **10 new live
+pixels** from spec §10 step 10 (`30 new live pixels ≈ 300 m`). This is not
+geodesic 100 m. Import-only writes never count.
+
+**Status.** Accepted.
+
+**Context.** Maintainer lock of Phase 7 M2 (2026-08-19) via SP-062. Closes
+OQ-10.
+
+**Consequences.**
+
+- SP-064 implements 10-pixel threshold with newly-explored counting only.
+- A single 25 m collection pulse may complete the goal.
+
+**Related documents.** Spec §10 steps 6, 9, 10; SP-062; SP-064; phase-07.
+
+---
+
+## SPD-048 — Area milestone fired-state is keyed by OSM id
+
+**Decision.** Milestone fired-state and the original 100% completion date live in
+a new local SQLite store (`area_milestones.db`), keyed by **OSM id**. Fired
+thresholds are recorded in a per-area mask (25 / 50 / 100). Not `settings.ini`
+unbounded rows; not `StreetStatsDB` feature-bitmask tables. Compact index is a
+cache hint only.
+
+**Status.** Accepted.
+
+**Context.** Maintainer lock of Phase 7 M3 (2026-08-19) via SP-062. Closes
+OQ-11.
+
+**Consequences.**
+
+- SP-063 introduces `AreaMilestoneStore` in `libs/street_pixels_areas/`.
+- Stable across `.spa` regen and compact-index changes when OSM id is unchanged.
+
+**Related documents.** Spec §18.5; SP-062; SP-063; phase-07.
+
+---
+
+## SPD-049 — Area milestones do not re-fire after map update
+
+**Decision.** Milestone fired-state and the original 100% date survive rematch,
+policy change, and `.spa` refetch. Re-crossing a threshold after a drop does
+**not** re-fire.
+
+**Status.** Accepted.
+
+**Context.** Maintainer lock of Phase 7 M4 (2026-08-19) via SP-062. Closes
+OQ-12. Spec §27.4.
+
+**Consequences.**
+
+- `InvalidateAreaCompletionCache` and rematch must not reset milestone store.
+- UI may say an area was previously completed while showing current %.
+
+**Related documents.** Spec §27.4; SP-062; SP-063; phase-07.
+
+---
+
+## SPD-050 — Multi-area milestone celebrations queue
+
+**Decision.** When several areas cross thresholds in one update, queue
+non-blocking acknowledgments. Show one at a time. Priority: 100% > 50% > 25%.
+Never interrupt `IsRoutingFollowing`. First-100 m is independent. City-summary
+rollup does not enqueue area celebrations.
+
+**Status.** Accepted.
+
+**Context.** Maintainer lock of Phase 7 M5 (2026-08-19) via SP-062. Closes
+OQ-13.
+
+**Consequences.**
+
+- SP-065 owns presentation queue; SP-063 records fires only.
+
+**Related documents.** Spec §18.4; SP-062; SP-065; phase-07.
+
+---
+
+## SPD-051 — Store 100% date always; card shows only if opted in
+
+**Decision.** Always persist the original 100% completion date locally. The card
+includes it only if the user opts in at share time; **default off**. Owner:
+SP-068. Alternative: omit the date from the V1 card entirely (drops the
+control). Do not default-on with no control.
+
+**Status.** Superseded by SPD-056. Local persistence of the original 100% date
+remains in force under SPD-056.
+
+**Context.** Maintainer lock of Phase 7 M6 (2026-08-19) via SP-062. Closes
+OQ-14. Card/share opt-in reopened as OQ-19 (device review 2026-08-22).
+
+**Consequences.**
+
+- SP-063 stores `completed_100_at` on first 100% fire.
+- Share-time opt-in was SP-068; **SPD-056** drops that control.
+
+**Related documents.** Spec §18.5, §19.1; SP-062; SP-067; SP-068; SPD-056;
+phase-07.
+
+---
+
+## SPD-052 — Completion card works without competition profile
+
+**Decision.** Card and first-person copy work with no profile and no nickname.
+Provide a stub hook for spec §22.10; Phase 8 fills leading / not-leading copy.
+Never imply personal completion was invalid.
+
+**Status.** Accepted.
+
+**Context.** Maintainer lock of Phase 7 M7 (2026-08-19) via SP-062. Closes
+OQ-15.
+
+**Consequences.**
+
+- SP-065 / SP-067 ship anonymous copy without Phase 8.
+
+**Related documents.** Spec §19.2, §22.10; SP-062; SP-065; SP-067; phase-08.
+
+---
+
+## SPD-053 — First-100 m is once per install
+
+**Decision.** First-100 m appears on first recording start, completes at the
+M2 threshold, and never returns. Incomplete progress persists across recording
+sessions until complete. Not per-session, not per-area.
+
+**Status.** Accepted.
+
+**Context.** Maintainer lock of Phase 7 M8 (2026-08-19) via SP-062. Closes
+OQ-16.
+
+**Consequences.**
+
+- SP-064 owns install-scoped first-goal state.
+
+**Related documents.** Spec §10 steps 6, 9; SP-062; SP-064; phase-07.
+
+---
+
+## SPD-054 — Exploration haptics predicate and milestone patterns
+
+**Decision.** Exploration haptic pulse iff recording (not paused) **and**
+application foreground **and** exploration-haptics toggle on (default on). One
+collection pulse per collecting update, not per pixel. Stronger patterns for
+first-100 m complete, 50% area, and 100% area. No extra pattern for 25%. Boss
+pattern is out of V1 scope. Area milestones may fire without haptic when not
+recording (e.g. import-driven threshold cross).
+
+**Status.** Accepted.
+
+**Context.** Maintainer lock of Phase 7 M9 (2026-08-19) via SP-062. Closes
+OQ-17.
+
+**Consequences.**
+
+- SP-066 implements the predicate in `exploration_haptics` + manager; default foreground false; toggle key `StreetPixels.ExplorationHaptics`.
+- SP-064/065 emit milestone haptic events consumed by SP-066.
+
+**Related documents.** Spec §28.1–§28.4; SP-062; SP-064; SP-065; SP-066;
+phase-07.
+
+---
+
+## SPD-055 — Milestone growth analytics are count-only
+
+**Decision.** Count-only local analytics: completion card generated and share
+action initiated. No area name, OSM id, coordinates, or image bytes. Persist as
+uint64 in settings (SPD-044 pattern). Upload residual → Phase 10 if no sink. Not
+Sentry. Does not add spec §32.1 first-pixel / first-100 m product events in
+Phase 7.
+
+**Status.** Accepted.
+
+**Context.** Maintainer lock of Phase 7 M10 (2026-08-19) via SP-062. Closes
+OQ-18.
+
+**Consequences.**
+
+- SP-068 owns counters.
+- SP-068 implements `Explore.CardGenerated` and `Explore.ShareInitiated` (uint64 settings; no area id). Upload residual remains Phase 10.
+
+**Related documents.** Spec §32.4; SPD-044; SP-062; SP-068; phase-07.
+
+---
+
+## SPD-056 — Completion card always includes the stored 100% date
+
+**Decision.** Always persist the original 100% completion date locally. The
+card and share payload **always include** that stored date. There is no
+share-time opt-in. Drop the “Include completion date” checkbox.
+
+**Status.** Accepted.
+
+**Context.** Device review 2026-08-22: the checkbox sat above Share and was
+unclear. Closes OQ-19. Supersedes SPD-051’s card/share opt-in (default off).
+
+**Consequences.**
+
+- SP-063 still stores `completed_100_at` on first 100% fire.
+- SP-067 / SP-068 always pass the stored date into the card model and share
+  text. Remove the checkbox; do not add a replacement control.
+- Android UI still showing the checkbox is a residual until that removal
+  lands.
+
+**Related documents.** Spec §18.5, §19.1; SP-067; SP-068; SPD-051; phase-07.
+
+---
+
 ## 15. Recorded open questions (not decisions)
 
 These are carried from existing project documents. They are listed so they are
 not lost. None of them is decided here, and nothing in this section may be
 treated as authorisation.
+
+Phase 7 M1–M10 were locked 2026-08-19 via SP-062 as **SPD-046–055** (see
+numbered sections above). **SPD-056** (2026-08-23) supersedes SPD-051’s
+card/share date opt-in. Remaining open questions:
 
 | Ref | Question | Source | Blocks |
 | --- | --- | --- | --- |
@@ -1416,6 +1659,17 @@ treated as authorisation.
 | OQ-6 | Whether the in-progress friends feature is retained in Street Pixels builds. Friends exist in Android and in `comaps_backend` but are a product non-goal for V1. | Product spec §6; audit §15, §27 Q7 | Phase 1 (what a public build exposes) and Phase 8. |
 | OQ-7 | Production API base URL, hosting region, and data-retention policy. | Audit §27 Q6 | Phase 8, and partially Phase 1 (SP-004). |
 | OQ-8 | ~~Whether HEALPix `nside` stays at 1048576 after rendering measurement.~~ | Audit §27 Q8 | **Closed for V1 by SPD-017** — `nside = 1048576` locked. |
+| OQ-9 | ~~Phase 7 M1 compositor: how is the stylised map on the completion card rendered?~~ | SP-062 (2026-08-19); spec §19.1 | **Closed by SPD-046** — rings-only outline from `m_rings`; never a live Drape / `MapView` screenshot. |
+| OQ-10 | ~~Phase 7 M2: what is “approximately 100 metres of new live street pixels”?~~ | SP-062 (2026-08-19); spec §10 steps 9–10 | **Closed by SPD-047** — 10 newly explored live pixels; not `IsEverLive` flips. |
+| OQ-11 | ~~Phase 7 M3: where does milestone fired-state live?~~ | SP-062 (2026-08-19) | **Closed by SPD-048** — `area_milestones.db` keyed by OSM id. |
+| OQ-12 | ~~Phase 7 M4: re-fire after map update?~~ | SP-062 (2026-08-19); spec §27.4 | **Closed by SPD-049** — does not re-fire; date survives rematch. |
+| OQ-13 | ~~Phase 7 M5: several areas cross thresholds in one session?~~ | SP-062 (2026-08-19); spec §18.4 | **Closed by SPD-050** — queue; never interrupt following. |
+| OQ-14 | ~~Phase 7 M6: completion date on the card?~~ | SP-062 (2026-08-19); spec §19.1 | **Closed by SPD-051**; card/share display **superseded by SPD-056**. |
+| OQ-15 | ~~Phase 7 M7: competition line on the card?~~ | SP-062 (2026-08-19); spec §19.2, §22.10 | **Closed by SPD-052** — stub; Phase 8 fills copy. |
+| OQ-16 | ~~Phase 7 M8: first-100 m lifetime?~~ | SP-062 (2026-08-19); spec §10 steps 6 and 9 | **Closed by SPD-053** — once per install. |
+| OQ-17 | ~~Phase 7 M9: exploration haptics predicate?~~ | SP-062 (2026-08-19); spec §28.1–§28.4 | **Closed by SPD-054** — recording ∧ foreground ∧ toggle; one pulse per update. |
+| OQ-18 | ~~Phase 7 M10: growth analytics for cards?~~ | SP-062 (2026-08-19); spec §32.4 | **Closed by SPD-055** — count-only; no area id. |
+| OQ-19 | ~~Should the 100% card always include the stored completion date, with no share-time checkbox?~~ | Device review 2026-08-22; SP-068 | **Closed by SPD-056** — always include the stored date; no checkbox. |
 
 When one of these is answered, add a new `SPD-NNN` entry above and strike the
 row here with a reference to it.
