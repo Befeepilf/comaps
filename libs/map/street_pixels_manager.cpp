@@ -424,6 +424,8 @@ void StreetPixelsManager::SetFirstGoalCompleteHandler(FirstGoalCompleteFn const 
 
 street_pixels::FirstGoalProgress StreetPixelsManager::GetFirstGoalProgress() const
 {
+  if (m_debugFirstGoalOverride)
+    return *m_debugFirstGoalOverride;
   return m_firstGoalTracker.Snapshot(IsFirstGoalSessionActive());
 }
 
@@ -436,6 +438,7 @@ void StreetPixelsManager::ResetFirstGoalForTesting()
 {
   m_firstGoalTracker.ResetForTesting();
   m_lastNotifiedFirstGoalProgress = {};
+  m_debugFirstGoalOverride.reset();
   NotifyFirstGoalProgressIfChanged();
 }
 
@@ -575,6 +578,38 @@ bool StreetPixelsManager::ClearDebugCompletionCard()
 void StreetPixelsManager::ResetAreaMilestonePresentationForTesting()
 {
   m_areaMilestonePresenter.ResetForTesting();
+}
+
+void StreetPixelsManager::DebugTriggerAchievementPresentations()
+{
+  street_pixels::FirstGoalProgress progress;
+  progress.m_state = street_pixels::FirstGoalState::InProgress;
+  progress.m_collected = 7;
+  progress.m_threshold = street_pixels::kFirstGoalLivePixelThreshold;
+  m_debugFirstGoalOverride = progress;
+  if (m_firstGoalProgressListener)
+    m_firstGoalProgressListener(progress);
+
+  m_areaMilestonePresenter.ResetForTesting();
+  std::vector<street_pixels::AreaMilestoneCrossing> crossings = {
+      {1, 0, street_pixels::AreaMilestoneThreshold::P25},
+      {1, 0, street_pixels::AreaMilestoneThreshold::P50},
+      {1, 0, street_pixels::AreaMilestoneThreshold::P100},
+  };
+  auto const name = [](uint32_t, uint64_t) { return std::string("Debug District"); };
+  auto const card = [](uint32_t, uint64_t) -> std::optional<street_pixels::CompletionCardSource>
+  {
+    street_pixels::CompletionCardSource src;
+    src.m_displayName = "Debug District";
+    src.m_rings = {{{0.0, 0.0}, {1.0, 0.0}, {1.0, 1.0}, {0.0, 1.0}, {0.0, 0.0}}};
+    src.m_completed100At = 1;
+    return src;
+  };
+  m_areaMilestonePresenter.Enqueue(crossings, name, card);
+  auto const after = m_areaMilestonePresenter.Peek();
+  if (m_areaMilestonePresentationListener)
+    m_areaMilestonePresentationListener(after);
+  EmitAreaMilestoneHapticIfNeeded(after);
 }
 
 void StreetPixelsManager::IngestPendingAreaMilestonePresentations(street_pixels::SpaFile const & file)
