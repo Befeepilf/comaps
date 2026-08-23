@@ -55,6 +55,10 @@ public:
   std::optional<AreaCompletionCounts> Get(uint32_t compactIndex) const;
   double GetFraction(uint32_t compactIndex) const;
 
+  // Live collect / import: bump explored for one universe pixel. Same slot rules as Build.
+  // No-op and false when invalid, unknown, no-area, or already at total.
+  bool AddExploredHealpix(ExplorationAreaResolver const & resolver, int64_t healpixNestId);
+
 private:
   bool m_valid = false;
   int64_t m_mapDataVersion = 0;

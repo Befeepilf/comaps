@@ -141,3 +141,4 @@ layer.
 | Area-milestone haptic is a C++ handler stub (`SetAreaMilestoneHapticHandler`). | SP-066 implements waveforms and the foreground/recording/toggle predicate. |
 | 100% card is copy-only (title + body + Share chrome). | SP-067 fills the deny-list image. |
 | Share button is enabled with an empty click listener. | SP-068 opens `ACTION_SEND` and counts. |
+| Device review 2026-08-22: `?achievements` 100% card auto-ack then 50% then 25% crashed (`IllegalFormatConversionException: o != String` at `applyAreaMilestonePresentation`). Cause: `street_pixels_area_milestone_25` was `25% of %1$s` — Java treats `% o` as octal. | Fixed: `25%% of %1$s explored` in `values/strings.xml` and `values-en/strings.xml`. |

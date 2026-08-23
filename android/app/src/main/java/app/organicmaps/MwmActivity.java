@@ -28,6 +28,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -1238,6 +1239,11 @@ public class MwmActivity extends BaseMwmFragmentActivity
   private void onExplorationAreaTapped(@NonNull FocusedAreaProgress progress)
   {
     closePlacePage();
+    Log.i("StreetPixels",
+          "sheet open hasFocus=" + progress.hasFocus + " fractionValid=" + progress.fractionValid
+              + " citySummary=" + progress.citySummary + " compactIndex=" + progress.compactIndex
+              + " fraction=" + progress.fraction + " areaCompleted=" + progress.areaCompleted
+              + " noExplorationArea=" + progress.noExplorationArea);
     if (progress.hasFocus && !TextUtils.isEmpty(progress.displayName))
     {
       FocusedAreaDetailBottomSheet.show(getSupportFragmentManager(), progress.displayName, progress.fractionValid,

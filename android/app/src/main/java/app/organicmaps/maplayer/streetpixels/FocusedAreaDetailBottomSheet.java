@@ -2,6 +2,7 @@ package app.organicmaps.maplayer.streetpixels;
 
 import android.app.Dialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,11 +14,11 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import app.organicmaps.R;
+import app.organicmaps.sdk.maplayer.streetpixels.FocusedAreaProgress;
 import app.organicmaps.util.UiUtils;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.textview.MaterialTextView;
-import java.util.Locale;
 import java.util.Objects;
 
 public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
@@ -98,6 +99,7 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
 
     if (args.getBoolean(ARG_EMPTY, false))
     {
+      Log.i("StreetPixels", "sheet bind empty");
       nameView.setText(R.string.street_pixels_no_exploration_area_title);
       percentView.setText("");
       bodyView.setText(R.string.street_pixels_no_exploration_area_message);
@@ -108,13 +110,17 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
     UiUtils.hide(bodyView);
     nameView.setText(args.getString(ARG_NAME, ""));
     boolean areaCompleted = args.getBoolean(ARG_AREA_COMPLETED, false);
-    if (args.getBoolean(ARG_FRACTION_VALID, false))
+    boolean fractionValid = args.getBoolean(ARG_FRACTION_VALID, false);
+    double fraction = args.getDouble(ARG_FRACTION, 0.0);
+    Log.i("StreetPixels",
+          "sheet bind fractionValid=" + fractionValid + " fraction=" + fraction + " areaCompleted=" + areaCompleted
+              + " omitPercent=" + !fractionValid);
+    if (fractionValid)
     {
-      double percent = args.getDouble(ARG_FRACTION, 0.0) * 100.0;
       if (areaCompleted)
         percentView.setText(R.string.street_pixels_area_completed);
       else
-        percentView.setText(String.format(Locale.US, "%.4f%%", percent));
+        percentView.setText(FocusedAreaProgress.formatPercent(fraction));
     }
     else
       percentView.setText("");
