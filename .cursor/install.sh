@@ -60,6 +60,11 @@ echo "==> CoMaps: configuring repository (styles, strings, World map download)"
 ./configure.sh
 
 echo "==> CoMaps: building the Release desktop application"
+BUILD_DIR="$HOME/omim-build-release"
+if [ -f "$BUILD_DIR/CMakeCache.txt" ] && ! grep -q "^CMAKE_HOME_DIRECTORY:INTERNAL=$REPO_ROOT$" "$BUILD_DIR/CMakeCache.txt"; then
+  echo "==> CoMaps: existing build cache is for a different source path; removing $BUILD_DIR"
+  rm -rf "$BUILD_DIR"
+fi
 SKIP_MAP_DOWNLOAD=1 ./tools/unix/build_omim.sh -r -p "$HOME" desktop
 
 EXPLORER_DIR="$REPO_ROOT/../explorer"
