@@ -1,0 +1,20 @@
+{
+  "name": "CoMaps desktop + Explorer backend",
+  "install": "./.cursor/install.sh",
+  "repositoryDependencies": [
+    "github.com/Befeepilf/explorer"
+  ],
+  "ports": [
+    {
+      "name": "explorer-api",
+      "port": 8000
+    }
+  ],
+  "terminals": [
+    {
+      "name": "explorer-backend",
+      "command": "export PATH=\"$HOME/.local/bin:$PATH\"; if [ -d ../explorer ]; then cd ../explorer && exec uv run python manage.py runserver 0.0.0.0:8000; else echo 'explorer repository not checked out; nothing to run'; fi",
+      "description": "CoMaps Explorer Django (django-ninja) REST API at http://localhost:8000 (OpenAPI docs at /api/docs). Runs only when the sibling explorer repo is present. Build the desktop app once via .cursor/install.sh, then run it on a display with: cd comaps && DISPLAY=:1 $HOME/omim-build-release/CoMaps"
+    }
+  ]
+}
