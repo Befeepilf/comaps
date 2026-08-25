@@ -109,6 +109,7 @@
 #include "defines.hpp"
 
 #include <algorithm>
+#include <chrono>
 
 using namespace location;
 using namespace routing;
@@ -300,10 +301,20 @@ bool Framework::IsExploreSharingEnabled() const
   return m_exploreStatsService && m_exploreStatsService->IsSharingEnabled();
 }
 
-void Framework::TriggerExploreStatsUpload()
+void Framework::TriggerExploreStatsUpload() {}
+
+void Framework::ScheduleCompetitionUploadChecks()
 {
-  if (m_exploreStatsService)
-    m_exploreStatsService->TryUpload();
+  if (!m_competitionUploadService)
+    return;
+  GetPlatform().RunDelayedTask(Platform::Thread::Network,
+                               std::chrono::seconds(kCompetitionMinUploadIntervalSeconds),
+                               [this]()
+                               {
+                                 if (m_competitionUploadService)
+                                   m_competitionUploadService->MaybeUpload();
+                                 ScheduleCompetitionUploadChecks();
+                               });
 }
 
 void Framework::GetExploreStatsRegions(std::vector<std::pair<std::string, std::string>> & outRegions) const
@@ -402,6 +413,7 @@ void Framework::OnViewportChanged(ScreenBase const & screen)
 Framework::Framework(FrameworkParams const & params, bool loadMaps)
   : m_streetPixelsManager(std::make_unique<StreetPixelsManager>(m_featuresFetcher.GetDataSource()))
   , m_exploreStatsService(std::make_unique<ExploreStatsService>())
+  , m_competitionUploadService(std::make_unique<CompetitionUploadService>())
   , m_recordingSession(std::make_unique<RecordingSession>())
   , m_enabledDiffs(params.m_enableDiffs)
   , m_isRenderingEnabled(true)
@@ -515,15 +527,23 @@ Framework::Framework(FrameworkParams const & params, bool loadMaps)
     }
   );
   m_streetPixelsManager->SetRecordingSession(m_recordingSession.get());
+  if (m_competitionUploadService)
+  {
+    m_competitionUploadService->SetSnapshotFn(
+        [this](int64_t nowUnix) { return m_streetPixelsManager->BuildCompetitionUploadSnapshot(nowUnix); });
+  }
   IdentityStore::SetCompetitionConsentGrantedHandler(
       [this](uint64_t unixTime) { m_streetPixelsManager->MaybeSeedLiveRecency(unixTime); });
   m_recordingSession->SetStateListener([this](RecordingSession::State previous, RecordingSession::State current)
   {
     ApplyRecordingPauseResumeEffects(previous, current, &GpsTracker::Instance(), m_streetPixelsManager.get());
     m_streetPixelsManager->OnRecordingSessionStateChanged();
+    if (current == RecordingSession::State::Finished && m_competitionUploadService)
+      m_competitionUploadService->MarkPending();
     if (m_recordingSessionPlatformListener)
       m_recordingSessionPlatformListener(previous, current);
   });
+  ScheduleCompetitionUploadChecks();
 
   m_routingManager.SetTransitManager(&m_transitManager);
 

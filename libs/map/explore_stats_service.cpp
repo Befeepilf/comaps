@@ -1,9 +1,7 @@
 #include "map/explore_stats_service.hpp"
 
-#include "map/backend_config.hpp"
 #include "map/identity_store.hpp"
 
-#include "platform/http_client.hpp"
 #include "platform/platform.hpp"
 #include "platform/settings.hpp"
 
@@ -44,7 +42,6 @@ ExploreStatsService::ExploreStatsService()
   std::lock_guard<std::mutex> lock(m_mutex);
   m_syncEnabled = syncEnabled;
   m_friendVisibilityEnabled = friendVisibilityEnabled;
-  SchedulePeriodicUpload();
 }
 
 void ExploreStatsService::EnableSync(bool enabled)
@@ -215,68 +212,20 @@ void ExploreStatsService::Save()
   }
 }
 
-void ExploreStatsService::SchedulePeriodicUpload()
+void ExploreStatsService::SetStatsUploadAttemptHookForTesting(StatsUploadAttemptHook hook)
 {
-  GetPlatform().RunDelayedTask(Platform::Thread::Background, std::chrono::minutes(1),
-                               [this]()
-                               {
-                                 LOG(LINFO, ("Checking if new stats need to be uploaded"));
-                                 bool shouldUpload = false;
-                                 {
-                                   std::lock_guard<std::mutex> lock(m_mutex);
-                                   shouldUpload = m_changedAt > m_lastUploadAt;
-                                 }
-                                 if (shouldUpload)
-                                   TryUpload();
-                                 else
-                                   LOG(LINFO, ("No new stats to upload"));
-                                 SchedulePeriodicUpload();
-                               });
+  std::lock_guard<std::mutex> lock(m_mutex);
+  m_statsUploadAttemptHook = std::move(hook);
 }
+
+bool ExploreStatsService::ShouldAttemptStatsUpload() const { return false; }
 
 void ExploreStatsService::TryUpload()
 {
-  {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    if (!m_syncEnabled)
-    {
-      LOG(LINFO, ("Sync disabled; skipping upload"));
-      return;
-    }
-  }
-
-  if (!backend::IsApiConfigured())
-  {
-    LOG(LINFO, ("API base not configured; skipping upload"));
+  if (!ShouldAttemptStatsUpload())
     return;
-  }
-
-  std::string const url = backend::GetStatsUploadUrl();
-  if (url.empty())
-    return;
-
-  LOG(LINFO, ("Uploading stats..."));
-
-  std::string const body = BuildUploadJson();
-
-  GetPlatform().RunTask(Platform::Thread::Network,
-                        [this, body, url]()
-                        {
-                          platform::HttpClient req(url);
-                          req.SetBodyData(body, "application/json");
-                          std::string response;
-                          bool const ok = req.RunHttpRequest(response);
-                          if (!ok || req.ErrorCode() != 200)
-                          {
-                            LOG(LWARNING, ("Stats upload failed:", req.ErrorCode()));
-                            return;
-                          }
-                          LOG(LINFO, ("Stats uploaded"));
-                          {
-                            std::lock_guard<std::mutex> lock(m_mutex);
-                            m_lastUploadAt = std::chrono::steady_clock::now();
-                          }
-                        });
+  if (m_statsUploadAttemptHook)
+    m_statsUploadAttemptHook();
 }
 
 std::string ExploreStatsService::BuildUploadJson() const

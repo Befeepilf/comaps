@@ -3,6 +3,7 @@
 #include "map/backend_config.hpp"
 #include "map/competition_upload_payload.hpp"
 #include "map/competition_upload_service.hpp"
+#include "map/explore_stats_service.hpp"
 #include "map/identity_store.hpp"
 #include "map/recording_session.hpp"
 #include "map/street_pixels_file.hpp"
@@ -675,5 +676,37 @@ UNIT_TEST(CompetitionUpload_ImportedOnlyZeroCompetitiveHttp)
   TEST(!DeviceIdExists(), ());
   CleanupSp074Area(fx);
 }
+
+UNIT_TEST(CompetitionUpload_ExploreStatsTryUploadZeroHook)
+{
+  ScopedCompetitionUpload scoped;
+  backend::SetApiBaseUrl("https://example.com/api");
+  ExploreStatsService stats;
+  int attempts = 0;
+  stats.SetStatsUploadAttemptHookForTesting([&attempts]() { ++attempts; });
+  stats.EnableSharing(true);
+  stats.TryUpload();
+  TEST_EQUAL(attempts, 0, ());
+}
+
+UNIT_TEST(CompetitionUpload_EnableSharingWithoutConsentZeroHttp)
+{
+  UploadHarness h;
+  h.ConfigureApi();
+  ExploreStatsService stats;
+  int attempts = 0;
+  stats.SetStatsUploadAttemptHookForTesting([&attempts]() { ++attempts; });
+  stats.EnableSharing(true);
+  stats.TryUpload();
+  TEST_EQUAL(attempts, 0, ());
+  TEST(!IdentityStore::HasCompetitionConsent(), ());
+  auto service = h.MakeService();
+  h.now = 0;
+  service.MarkPending();
+  h.now = 900;
+  service.MaybeUpload();
+  TEST_EQUAL(h.posts, 0, ());
+}
+
 
 
