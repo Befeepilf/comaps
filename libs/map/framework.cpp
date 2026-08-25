@@ -7,6 +7,7 @@
 #include "map/gps_track.hpp"
 #include "map/gps_track_filter.hpp"
 #include "map/gps_tracker.hpp"
+#include "map/identity_store.hpp"
 #include "map/place_page_info.hpp"
 #include "map/power_management/power_management_schemas.hpp"
 #include "map/recording_pause_resume.hpp"
@@ -514,6 +515,8 @@ Framework::Framework(FrameworkParams const & params, bool loadMaps)
     }
   );
   m_streetPixelsManager->SetRecordingSession(m_recordingSession.get());
+  IdentityStore::SetCompetitionConsentGrantedHandler(
+      [this](uint64_t unixTime) { m_streetPixelsManager->MaybeSeedLiveRecency(unixTime); });
   m_recordingSession->SetStateListener([this](RecordingSession::State previous, RecordingSession::State current)
   {
     ApplyRecordingPauseResumeEffects(previous, current, &GpsTracker::Instance(), m_streetPixelsManager.get());
@@ -560,6 +563,8 @@ Framework::Framework(FrameworkParams const & params, bool loadMaps)
 
 Framework::~Framework()
 {
+  IdentityStore::SetCompetitionConsentGrantedHandler({});
+
   GetPowerManager().UnsubscribeAll();
 
   m_threadRunner.reset();

@@ -21,6 +21,7 @@ public:
   };
 
   using NicknameClaimHandler = std::function<int(std::string_view)>;
+  using CompetitionConsentGrantedHandler = std::function<void(uint64_t)>;
 
   static std::string GetOrCreateDeviceId();
 
@@ -36,9 +37,11 @@ public:
   static bool SetExploreConsent(bool consented);
 
   static bool HasCompetitionConsent();
+  static uint64_t GetCompetitionConsentUnixTime();
   static void GrantCompetitionConsent();
   static void RevokeCompetitionConsent();
   static bool ShouldUploadCompetitionIdentity();
+  static void SetCompetitionConsentGrantedHandler(CompetitionConsentGrantedHandler handler);
 
   static std::string NormalizeNickname(std::string_view input);
   static bool IsValidNickname(std::string_view nickname);
