@@ -23,6 +23,8 @@ set(SRC
   explore_stats_service.hpp
   backend_config.cpp
   backend_config.hpp
+  competition_upload_payload.cpp
+  competition_upload_payload.hpp
   explorer_pro.cpp
   explorer_pro.hpp
   area_milestone_presentation.cpp
