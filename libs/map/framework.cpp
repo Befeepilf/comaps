@@ -411,11 +411,11 @@ void Framework::OnViewportChanged(ScreenBase const & screen)
 }
 
 Framework::Framework(FrameworkParams const & params, bool loadMaps)
-  : m_streetPixelsManager(std::make_unique<StreetPixelsManager>(m_featuresFetcher.GetDataSource()))
+  : m_enabledDiffs(params.m_enableDiffs)
+  , m_streetPixelsManager(std::make_unique<StreetPixelsManager>(m_featuresFetcher.GetDataSource()))
   , m_exploreStatsService(std::make_unique<ExploreStatsService>())
   , m_competitionUploadService(std::make_unique<CompetitionUploadService>())
   , m_recordingSession(std::make_unique<RecordingSession>())
-  , m_enabledDiffs(params.m_enableDiffs)
   , m_isRenderingEnabled(true)
   , m_transitManager(m_featuresFetcher.GetDataSource(),
                      [this](FeatureCallback const & fn, vector<FeatureID> const & features)

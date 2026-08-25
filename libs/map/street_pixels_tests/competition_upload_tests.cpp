@@ -216,14 +216,14 @@ struct UploadHarness
   bool Pending() const
   {
     bool pending = false;
-    settings::Get(std::string_view("Explore.CompetitionUploadPending"), pending);
+    settings::TryGet("Explore.CompetitionUploadPending", pending);
     return pending;
   }
 
   uint64_t NextAllowed() const
   {
     uint64_t value = 0;
-    settings::Get(std::string_view("Explore.CompetitionNextAllowedUnix"), value);
+    settings::TryGet("Explore.CompetitionNextAllowedUnix", value);
     return value;
   }
 };
