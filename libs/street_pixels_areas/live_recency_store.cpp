@@ -14,12 +14,12 @@ namespace street_pixels
 {
 namespace
 {
-constexpr char kDatabaseFileName[] = "live_recency.db";
+constexpr char kLiveRecencyDatabaseFileName[] = "live_recency.db";
 }  // namespace
 
 std::string LiveRecencyStore::DefaultDbPath()
 {
-  return GetPlatform().WritablePathForFile(kDatabaseFileName);
+  return GetPlatform().WritablePathForFile(kLiveRecencyDatabaseFileName);
 }
 
 LiveRecencyStore & LiveRecencyStore::Instance()
