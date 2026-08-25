@@ -103,22 +103,28 @@ No recency or ownership code exists. `.pix` has an ever-live bit only
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-072-recency-ownership-scoring-f95c` |
-| Test output | Pasted under **Executed test output** below. Binaries in `/home/ubuntu/omim-build-debug/`. Debug build used `./tools/unix/build_omim.sh -d -p "$HOME"` (default `../omim-build-debug` is not writable in this environment). |
+| Test output | Independent review re-run pasted under **Executed test output** below. Binaries in `/home/ubuntu/omim-build-debug/`. Debug build used `./tools/unix/build_omim.sh -d -p "$HOME"`. |
 | Store location | `live_recency.db` via `GetPlatform().WritablePathForFile` (`LiveRecencyStore::DefaultDbPath()`). Not `area_milestones.db`. `.pix` format remains `kFormatVersionV2`. |
 | Accepted by | |
 | Accepted date | |
 
 ## Executed test output
 
+Independent review re-run after fixes. Binaries in `/home/ubuntu/omim-build-debug/`.
+
 ```
-=== /home/ubuntu/omim-build-debug/street_pixels_areas_tests --data_path=data --user_resource_path=data --filter=OwnershipScoring_|LiveRecency_ ===
+=== /home/ubuntu/omim-build-debug/street_pixels_areas_tests --data_path=data --user_resource_path=data --filter=OwnershipScoring_|LiveRecency_|AreaCompletion_KnownTotals ===
+Running area_completion_cache_tests.cpp::AreaCompletion_KnownTotalsAndFractions
+OK
+Test took 0 ms
+
 Running live_recency_store_tests.cpp::LiveRecency_SeedInsertOrIgnoreKeepsFirstTimestamp
 OK
-Test took 6 ms
+Test took 8 ms
 
 Running live_recency_store_tests.cpp::LiveRecency_TouchOverwritesTimestamp
 OK
-Test took 4 ms
+Test took 3 ms
 
 Running live_recency_store_tests.cpp::LiveRecency_DefaultPathIsLiveRecencyNotMilestones
 OK
@@ -126,7 +132,7 @@ Test took 0 ms
 
 Running live_recency_store_tests.cpp::LiveRecency_TempDbRemovesWalAndShm
 OK
-Test took 4 ms
+Test took 1 ms
 
 Running live_recency_store_tests.cpp::LiveRecency_GetLastLiveVisitsBatch
 OK
@@ -265,7 +271,9 @@ Test took 0 ms
 
 Running street_pixels_file_tests.cpp::StreetPixelsFile_UnsupportedFormatRejectedWithoutRewrite
 Settings path: data/settings.ini
-Loading settings: data/settings.ini; READ; No such file or directory
+Explore.DeviceId : Hrc2V2FEny4EYbCwYYwVwGKe-hI4UUQy
+StreetPixels.FirstGoalCollected : 10
+StreetPixels.FirstGoalComplete : true
 LoadStreetPixelsFromFile sp015_unsupported
 Trying to memory-map existing pix file for sp015_unsupported
 OK
@@ -290,18 +298,18 @@ Test took 0 ms
 Running collection_gate_tests.cpp::CollectionGate_Recording_CollectsExpected
 StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
 OK
-Test took 8 ms
+Test took 4 ms
 
 Running collection_gate_tests.cpp::CollectionGate_StartMidSequence_CollectsFromStartOnward
 StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
 OK
-Test took 1 ms
+Test took 0 ms
 
 Running collection_gate_tests.cpp::CollectionGate_PauseMidSequence_CollectsUntilPause
 StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
 StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
 OK
-Test took 2 ms
+Test took 0 ms
 
 Running collection_gate_tests.cpp::CollectionGate_TrackReplay_MarksRegardlessOfSession
 StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
@@ -328,12 +336,12 @@ Test took 0 ms
 Running competition_ownership_tests.cpp::CompetitionOwnership_LiveFirstVisitWritesRecency
 StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
 OK
-Test took 4 ms
+Test took 2 ms
 
 Running competition_ownership_tests.cpp::CompetitionOwnership_ImportDoesNotWriteRecency
 StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
 OK
-Test took 2 ms
+Test took 1 ms
 
 Running competition_ownership_tests.cpp::CompetitionOwnership_ImportedThenLiveWritesRecency
 StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
@@ -348,28 +356,37 @@ Test took 1 ms
 Running competition_ownership_tests.cpp::CompetitionOwnership_RevisitUpdatesTimestamp
 StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
 OK
-Test took 9 ms
+Test took 1 ms
 
 Running competition_ownership_tests.cpp::CompetitionOwnership_IdleWritesNoRecency
 OK
-Test took 4 ms
+Test took 3 ms
 
 Running competition_ownership_tests.cpp::CompetitionOwnership_PauseWritesNoRecency
 OK
-Test took 4 ms
+Test took 2 ms
 
 Running competition_ownership_tests.cpp::CompetitionOwnership_RejectedSampleWritesNoRecency
 OK
-Test took 1 ms
+Test took 3 ms
 
 Running competition_ownership_tests.cpp::CompetitionOwnership_SeedOnOptInAndSecondOptInDoesNotReseed
 OK
-Test took 6 ms
+Test took 4 ms
 
 Running competition_ownership_tests.cpp::CompetitionOwnership_Score100JustVisitedFullLive
 StreetPixels rebuild pix scan ms 0 sp072_score100
 StreetPixels rebuild spa+resolver ms 0 sp072_score100
 StreetPixels AreaCompletionCache::Build ms 0 universe 3 explored 1 sentinelSlots 2 settlements 1
+StreetPixels CityCompletionCache::Build ms 0
+StreetPixels overlay push ms 0
+OK
+Test took 4 ms
+
+Running competition_ownership_tests.cpp::CompetitionOwnership_ScoreUsesAreaTotalNotExploredCount
+StreetPixels rebuild pix scan ms 0 sp072_score_total
+StreetPixels rebuild spa+resolver ms 0 sp072_score_total
+StreetPixels AreaCompletionCache::Build ms 0 universe 4 explored 1 sentinelSlots 2 settlements 1
 StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 OK
@@ -382,7 +399,7 @@ StreetPixels AreaCompletionCache::Build ms 0 universe 3 explored 1 sentinelSlots
 StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 OK
-Test took 4 ms
+Test took 2 ms
 
 Running competition_ownership_tests.cpp::CompetitionOwnership_ImportedOnlyDoesNotAffectEligibilityOrContested
 StreetPixels rebuild pix scan ms 0 sp072_imported_elig
@@ -391,7 +408,7 @@ StreetPixels AreaCompletionCache::Build ms 0 universe 3 explored 1 sentinelSlots
 StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 OK
-Test took 2 ms
+Test took 5 ms
 
 Running competition_ownership_tests.cpp::CompetitionOwnership_UnknownOsmFailClosedZeros
 StreetPixels rebuild pix scan ms 0 sp072_unknown_osm
@@ -410,11 +427,19 @@ StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 StreetPixels increment n 1 bumped 0 changed 0
 OK
-Test took 8 ms
+Test took 5 ms
 
 Running competition_ownership_tests.cpp::CompetitionOwnership_SeedScansPixFileEverLive
 OK
-Test took 7 ms
+Test took 4 ms
+
+Running competition_ownership_tests.cpp::CompetitionOwnership_SeedSkipsImportedOnlyPixCells
+OK
+Test took 2 ms
+
+Running competition_ownership_tests.cpp::CompetitionOwnership_GrantHandlerSeedsWithoutExplicitCall
+OK
+Test took 4 ms
 
 Running ever_live_tests.cpp::EverLive_FirstLiveSetsEverLive
 StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
@@ -520,11 +545,11 @@ All tests passed.
 === /home/ubuntu/omim-build-debug/street_pixels_areas_tests --data_path=data --user_resource_path=data --filter=AreaMilestone_ ===
 Running area_milestone_store_tests.cpp::AreaMilestone_FireOncePerThreshold
 OK
-Test took 7 ms
+Test took 8 ms
 
 Running area_milestone_store_tests.cpp::AreaMilestone_TripleCrossOneUpdate
 OK
-Test took 5 ms
+Test took 3 ms
 
 Running area_milestone_store_tests.cpp::AreaMilestone_NoRefireAfterDrop
 OK
@@ -532,23 +557,23 @@ Test took 4 ms
 
 Running area_milestone_store_tests.cpp::AreaMilestone_ZeroTotalDoesNotFire
 OK
-Test took 4 ms
+Test took 1 ms
 
 Running area_milestone_store_tests.cpp::AreaMilestone_ConsumePendingCrossings
 OK
-Test took 2 ms
+Test took 1 ms
 
 Running area_milestone_store_tests.cpp::AreaMilestone_OsmIdStableAcrossCacheRebuild
 OK
-Test took 2 ms
+Test took 1 ms
 
 Running area_milestone_store_tests.cpp::AreaMilestone_OsmIdStableAcrossCompactIndexChange
 OK
-Test took 4 ms
+Test took 5 ms
 
 Running area_milestone_store_tests.cpp::AreaMilestone_CitySummaryDoesNotWriteAreaFiredState
 OK
-Test took 2 ms
+Test took 1 ms
 
 All tests passed.
 
@@ -564,7 +589,7 @@ StreetPixels AreaCompletionCache::Build ms 0 universe 3 explored 1 sentinelSlots
 StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 OK
-Test took 4 ms
+Test took 5 ms
 
 Running area_milestone_manager_tests.cpp::AreaMilestoneManager_NoRefireAfterInvalidateRebuild
 StreetPixels rebuild pix scan ms 0 sp063_mgr_norefire
@@ -579,7 +604,7 @@ StreetPixels AreaCompletionCache::Build ms 0 universe 3 explored 1 sentinelSlots
 StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 OK
-Test took 3 ms
+Test took 5 ms
 
 Running area_milestone_manager_tests.cpp::AreaMilestoneManager_ImportCanCrossThreshold
 StreetPixels rebuild pix scan ms 0 sp063_mgr_import
@@ -593,7 +618,7 @@ StreetPixels AreaCompletionCache::Build ms 0 universe 3 explored 2 sentinelSlots
 StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 OK
-Test took 4 ms
+Test took 3 ms
 
 Running area_milestone_manager_tests.cpp::AreaMilestoneManager_PreviouslyCompletedBelow100
 StreetPixels rebuild pix scan ms 0 sp063_mgr_prev
@@ -607,7 +632,7 @@ StreetPixels AreaCompletionCache::Build ms 0 universe 3 explored 1 sentinelSlots
 StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 OK
-Test took 6 ms
+Test took 3 ms
 
 Running area_milestone_presentation_tests.cpp::AreaMilestonePresentation_MapsThresholds
 OK
@@ -633,7 +658,7 @@ StreetPixels AreaCompletionCache::Build ms 0 universe 3 explored 1 sentinelSlots
 StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 OK
-Test took 5 ms
+Test took 4 ms
 
 Running area_milestone_presentation_tests.cpp::AreaMilestonePresentation_SkipDuplicateInQueue
 OK
@@ -659,7 +684,7 @@ StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 StreetPixels fraction reason ok citySummary 1 compactIndex 1 explored 1 total 2 fraction 0.5 fractionValid 1
 OK
-Test took 4 ms
+Test took 3 ms
 
 Running area_milestone_presentation_tests.cpp::AreaMilestonePresentation_Haptic50And100Not25
 StreetPixels rebuild pix scan ms 0 sp065_haptic
@@ -668,7 +693,7 @@ StreetPixels AreaCompletionCache::Build ms 0 universe 3 explored 1 sentinelSlots
 StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 OK
-Test took 3 ms
+Test took 2 ms
 
 Running area_milestone_presentation_tests.cpp::AreaMilestonePresentation_DoesNotCallCollectionVibration
 StreetPixels rebuild pix scan ms 0 sp065_novib
@@ -677,7 +702,7 @@ StreetPixels AreaCompletionCache::Build ms 0 universe 3 explored 1 sentinelSlots
 StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 OK
-Test took 5 ms
+Test took 3 ms
 
 Running area_milestone_presentation_tests.cpp::AreaMilestonePresentation_FollowingDoesNotStopRoute
 StreetPixels rebuild pix scan ms 0 sp065_follow
@@ -686,7 +711,7 @@ StreetPixels AreaCompletionCache::Build ms 0 universe 3 explored 1 sentinelSlots
 StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 OK
-Test took 3 ms
+Test took 2 ms
 
 Running area_milestone_presentation_tests.cpp::AreaMilestonePresentation_HundredPercentDoesNotShare
 StreetPixels rebuild pix scan ms 0 sp065_noshare
@@ -724,7 +749,7 @@ StreetPixels AreaCompletionCache::Build ms 0 universe 3 explored 0 sentinelSlots
 StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 OK
-Test took 60 ms
+Test took 53 ms
 
 All tests passed.
 ```
@@ -733,6 +758,10 @@ All tests passed.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| `QueryCompetitionOwnership` enumerates ever-live pixels only from the currently loaded `m_streetPixels` span. `MaybeSeedLiveRecency` also scans WritableDir `*.pix` and `*.pixr`. A multi-country local score can miss ever-live cells whose leaf is not loaded. | SP-074 / later: when querying, also scan other leaves (or the area’s MWM `.pix`) the same way seed does. |
+| `QueryCompetitionOwnership` enumerates ever-live pixels only from the currently loaded `m_streetPixels` span. Opt-in / manager construction still scans WritableDir `*.pix` and `*.pixr`. Country load seeds only the mapped span. A multi-country local score can miss ever-live cells whose leaf is not loaded. | SP-074 / later: when querying, also scan other leaves (or the area’s MWM `.pix`) the same way opt-in seed does. |
+| Query still walks the loaded universe checking `IsEverLive` (now under a shared lock; area lookup is outside the lock). | SP-074: index ever-live ids or enumerate recency-store keys instead of the full span. |
 | `recency_meta` is created in `live_recency.db` but unused. | Keep for a later score/store version key, or drop if still empty after SP-074. |
 | Unity builds collide on identical anonymous-namespace names (`kDatabaseFileName` vs `AreaMilestoneStore`). | Fixed in this item by renaming the recency constant. Watch for the same pattern in later sqlite stores. |
+| `RevokeCompetitionConsent` does not delete `live_recency.db` rows. Re-opt-in `INSERT OR IGNORE` keeps prior timestamps. | Privacy / product: decide whether revoke should wipe local recency; do not upload either way. |
+| Exclusive `m_streetPixelsMutex` during ownership query; full WritableDir rescan on every country load; consent handler lifetime after `Framework` teardown. | Fixed in independent review: shared lock + id collection only; country-load seed from mapped span; handler cleared in `~Framework`. |
+| No test that local T is `AreaCompletionCache::m_total` when explored < total; imported-only cells skipped on seed; grant handler seeds without an extra `MaybeSeed` call. | Fixed in independent review (`CompetitionOwnership_ScoreUsesAreaTotalNotExploredCount`, `SeedSkipsImportedOnlyPixCells`, `GrantHandlerSeedsWithoutExplicitCall`). |
