@@ -708,5 +708,155 @@ UNIT_TEST(CompetitionUpload_EnableSharingWithoutConsentZeroHttp)
   TEST_EQUAL(h.posts, 0, ());
 }
 
+UNIT_TEST(CompetitionUpload_JitterClampedToClosedRange)
+{
+  {
+    UploadHarness h;
+    h.jitter = -50;
+    h.GrantConsentAndUsername();
+    h.ConfigureApi();
+    auto service = h.MakeService();
+    h.now = 0;
+    service.MarkPending();
+    TEST_EQUAL(h.NextAllowed(), 900u, ());
+    TEST_EQUAL(h.posts, 0, ());
+  }
+  {
+    UploadHarness h;
+    h.jitter = 5000;
+    h.GrantConsentAndUsername();
+    h.ConfigureApi();
+    auto service = h.MakeService();
+    h.now = 0;
+    service.MarkPending();
+    TEST_EQUAL(h.NextAllowed(), 1800u, ());
+    h.now = 1799;
+    service.MaybeUpload();
+    TEST_EQUAL(h.posts, 0, ());
+    h.now = 1800;
+    service.MaybeUpload();
+    TEST_EQUAL(h.posts, 1, ());
+  }
+}
+
+UNIT_TEST(CompetitionUpload_HttpFailureDoesNotRetryStorm)
+{
+  UploadHarness h;
+  h.status = 500;
+  h.GrantConsentAndUsername();
+  h.ConfigureApi();
+  auto service = h.MakeService();
+  h.now = 0;
+  service.MarkPending();
+  h.now = 900;
+  service.MaybeUpload();
+  TEST_EQUAL(h.posts, 1, ());
+  TEST(h.Pending(), ());
+  TEST_EQUAL(h.NextAllowed(), 1800u, ());
+  h.status = 200;
+  service.MaybeUpload();
+  TEST_EQUAL(h.posts, 1, ());
+  h.now = 1799;
+  service.MaybeUpload();
+  TEST_EQUAL(h.posts, 1, ());
+  h.now = 1800;
+  service.MaybeUpload();
+  TEST_EQUAL(h.posts, 2, ());
+  TEST(!h.Pending(), ());
+}
+
+UNIT_TEST(CompetitionUpload_ConsentRevokedDuringSnapshotZeroHttp)
+{
+  UploadHarness h;
+  h.GrantConsentAndUsername();
+  h.ConfigureApi();
+  auto service = CompetitionUploadService(
+      [&h]() { return h.now; }, [&h]() { return h.jitter; }, [&h]() { return h.connected; },
+      [&h](std::string const & url, std::string const & body, CompetitionUploadService::Headers const & headers)
+      {
+        ++h.posts;
+        h.lastUrl = url;
+        h.lastBody = body;
+        h.lastHeaders = headers;
+        return h.status;
+      },
+      [&h](int64_t)
+      {
+        IdentityStore::RevokeCompetitionConsent();
+        return h.snapshot;
+      });
+  h.now = 0;
+  service.MarkPending();
+  h.now = 900;
+  service.MaybeUpload();
+  TEST_EQUAL(h.posts, 0, ());
+  TEST(!h.Pending(), ());
+  TEST(!DeviceIdExists(), ());
+  TEST(!IdentityStore::HasCompetitionConsent(), ());
+}
+
+UNIT_TEST(CompetitionUpload_UsernameClearedDuringSnapshotZeroHttp)
+{
+  UploadHarness h;
+  h.GrantConsentAndUsername();
+  h.ConfigureApi();
+  auto service = CompetitionUploadService(
+      [&h]() { return h.now; }, [&h]() { return h.jitter; }, [&h]() { return h.connected; },
+      [&h](std::string const & url, std::string const & body, CompetitionUploadService::Headers const & headers)
+      {
+        ++h.posts;
+        h.lastUrl = url;
+        h.lastBody = body;
+        h.lastHeaders = headers;
+        return h.status;
+      },
+      [&h](int64_t)
+      {
+        IdentityStore::ClearUsername();
+        return h.snapshot;
+      });
+  h.now = 0;
+  service.MarkPending();
+  h.now = 900;
+  service.MaybeUpload();
+  TEST_EQUAL(h.posts, 0, ());
+  TEST(h.Pending(), ());
+  TEST(!DeviceIdExists(), ());
+}
+
+UNIT_TEST(CompetitionUpload_MarkPendingDuringInFlightKeepsPending)
+{
+  UploadHarness h;
+  h.GrantConsentAndUsername();
+  h.ConfigureApi();
+  CompetitionUploadService * svc = nullptr;
+  auto service = CompetitionUploadService(
+      [&h]() { return h.now; }, [&h]() { return h.jitter; }, [&h]() { return h.connected; },
+      [&h, &svc](std::string const & url, std::string const & body, CompetitionUploadService::Headers const & headers)
+      {
+        ++h.posts;
+        h.lastUrl = url;
+        h.lastBody = body;
+        h.lastHeaders = headers;
+        if (svc && h.posts == 1)
+          svc->MarkPending();
+        return h.status;
+      },
+      [&h](int64_t) { return h.snapshot; });
+  svc = &service;
+  h.now = 0;
+  service.MarkPending();
+  h.now = 900;
+  service.MaybeUpload();
+  TEST_EQUAL(h.posts, 1, ());
+  TEST(h.Pending(), ());
+  service.MaybeUpload();
+  TEST_EQUAL(h.posts, 1, ());
+  h.now = 1800;
+  service.MaybeUpload();
+  TEST_EQUAL(h.posts, 2, ());
+  TEST(!h.Pending(), ());
+}
+
 
 

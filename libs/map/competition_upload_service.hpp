@@ -43,4 +43,5 @@ private:
   SnapshotFn m_snapshotFn;
   mutable std::mutex m_mutex;
   bool m_uploadInFlight = false;
+  bool m_markedWhileInFlight = false;
 };

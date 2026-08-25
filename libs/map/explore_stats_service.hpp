@@ -10,9 +10,8 @@
 
 #include "base/visitor.hpp"
 
-// Aggregates per-region weekly exploration deltas and uploads them.
-// - Aggregation continues even when sharing is disabled
-// - Uploads only when sharing is enabled and server URL is configured
+// Local per-region weekly exploration deltas. Not a competition source of truth
+// (SPD-064). TryUpload is a no-op; competition uses CompetitionUploadService.
 class ExploreStatsService
 {
 public:

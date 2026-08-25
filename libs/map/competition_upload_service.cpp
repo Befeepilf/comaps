@@ -7,8 +7,10 @@
 #include "platform/platform.hpp"
 #include "platform/settings.hpp"
 
+#include "base/scope_guard.hpp"
 #include "base/timer.hpp"
 
+#include <algorithm>
 #include <random>
 #include <string>
 #include <string_view>
@@ -94,6 +96,8 @@ void CompetitionUploadService::MarkPending()
 {
   std::lock_guard<std::mutex> lock(m_mutex);
   settings::Set(std::string_view(kPendingKey), true);
+  if (m_uploadInFlight)
+    m_markedWhileInFlight = true;
   if (LoadNextAllowedUnlocked() != 0)
     return;
   int64_t const now = m_nowFn();
@@ -107,11 +111,13 @@ void CompetitionUploadService::MaybeUpload()
   std::string url;
   SnapshotFn snapshotFn;
   PostFn postFn;
+  int64_t gateNow = 0;
   {
     std::lock_guard<std::mutex> lock(m_mutex);
     if (!IdentityStore::HasCompetitionConsent())
     {
       settings::Set(std::string_view(kPendingKey), false);
+      m_markedWhileInFlight = false;
       return;
     }
     if (!IdentityStore::HasUsername())
@@ -123,8 +129,8 @@ void CompetitionUploadService::MaybeUpload()
       return;
     if (!LoadPendingUnlocked())
       return;
-    int64_t const now = m_nowFn();
-    if (now < static_cast<int64_t>(LoadNextAllowedUnlocked()))
+    gateNow = m_nowFn();
+    if (gateNow < static_cast<int64_t>(LoadNextAllowedUnlocked()))
       return;
     if (!m_connectedFn())
       return;
@@ -135,35 +141,65 @@ void CompetitionUploadService::MaybeUpload()
     postFn = m_postFn;
   }
 
-  auto clearInFlight = [this]()
+  SCOPE_GUARD(clearInFlight, [this]()
   {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_uploadInFlight = false;
-  };
+  });
 
   int64_t const now = m_nowFn();
   CompetitionUploadPayload payload = snapshotFn ? snapshotFn(now) : CompetitionUploadPayload{};
   if (CompetitionUploadPayloadIsEmpty(payload))
+    return;
+
   {
-    clearInFlight();
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if (!IdentityStore::HasCompetitionConsent())
+    {
+      settings::Set(std::string_view(kPendingKey), false);
+      m_markedWhileInFlight = false;
+      return;
+    }
+    if (!IdentityStore::HasUsername())
+      return;
+    if (backend::GetApiBaseUrl().empty())
+      return;
+    url = backend::GetCompetitionAggregatesUrl();
+    if (url.empty())
+      return;
+    std::string const nickname = IdentityStore::GetUsername();
+    if (nickname.empty())
+      return;
+    payload.m_profileId = IdentityStore::GetOrCreateDeviceId();
+    payload.m_nickname = nickname;
+  }
+
+  if (!IdentityStore::HasCompetitionConsent() || backend::GetApiBaseUrl().empty())
+  {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if (!IdentityStore::HasCompetitionConsent())
+    {
+      settings::Set(std::string_view(kPendingKey), false);
+      m_markedWhileInFlight = false;
+    }
     return;
   }
 
-  payload.m_profileId = IdentityStore::GetOrCreateDeviceId();
-  payload.m_nickname = IdentityStore::GetUsername();
   std::string const body = SerializeCompetitionUploadPayload(payload);
   Headers headers;
   int const status = postFn ? postFn(url, body, headers) : 0;
 
   {
     std::lock_guard<std::mutex> lock(m_mutex);
-    m_uploadInFlight = false;
+    int64_t const cadenceNow = std::max(gateNow, now);
     uint64_t const nextAllowed =
-        static_cast<uint64_t>(now + kCompetitionMinUploadIntervalSeconds + ClampedJitter());
+        static_cast<uint64_t>(cadenceNow + kCompetitionMinUploadIntervalSeconds + ClampedJitter());
     settings::Set(std::string_view(kNextAllowedKey), nextAllowed);
-    if (status != 200)
+    bool const keepPending = status != 200 || m_markedWhileInFlight;
+    m_markedWhileInFlight = false;
+    if (keepPending)
       return;
     settings::Set(std::string_view(kPendingKey), false);
-    settings::Set(std::string_view(kLastSuccessKey), static_cast<uint64_t>(now));
+    settings::Set(std::string_view(kLastSuccessKey), static_cast<uint64_t>(cadenceNow));
   }
 }
