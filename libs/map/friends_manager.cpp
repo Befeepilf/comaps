@@ -136,7 +136,7 @@ void FriendsManager::RemoveSubscriber(Subscriber * sub)
 
 void FriendsManager::Refresh()
 {
-  if (!backend::IsApiConfigured())
+  if (!ShouldContactFriendsApi())
     return;
 
   GetPlatform().RunTask(Platform::Thread::Network, [this]()
@@ -172,8 +172,13 @@ void FriendsManager::Refresh()
 
 void FriendsManager::Signup(std::string const & username)
 {
-  if (!backend::IsApiConfigured())
+  if (!ShouldContactFriendsApi())
+  {
+    std::lock_guard<std::mutex> lock(m_subscribersMutex);
+    for (auto * sub : m_subscribers)
+      sub->OnSignupResult(false);
     return;
+  }
 
   GetPlatform().RunTask(Platform::Thread::Network, [this, username]()
   {
@@ -197,8 +202,13 @@ void FriendsManager::Signup(std::string const & username)
 
 void FriendsManager::ChangeUsername(std::string const & username)
 {
-  if (!backend::IsApiConfigured())
+  if (!ShouldContactFriendsApi())
+  {
+    std::lock_guard<std::mutex> lock(m_subscribersMutex);
+    for (auto * sub : m_subscribers)
+      sub->OnUsernameChanged(false);
     return;
+  }
 
   GetPlatform().RunTask(Platform::Thread::Network, [this, username]()
   {
@@ -222,8 +232,12 @@ void FriendsManager::ChangeUsername(std::string const & username)
 
 void FriendsManager::SearchByUsername(std::string const & query, SearchCallback const & callback)
 {
-  if (!backend::IsApiConfigured())
+  if (!ShouldContactFriendsApi())
+  {
+    if (callback)
+      callback({});
     return;
+  }
 
   GetPlatform().RunTask(Platform::Thread::Network, [query, callback]()
   {
@@ -243,15 +257,21 @@ void FriendsManager::SearchByUsername(std::string const & query, SearchCallback 
     }
     GetPlatform().RunTask(Platform::Thread::Gui, [results = std::move(results), callback]()
     {
-      callback(results);
+      if (callback)
+        callback(results);
     });
   });
 }
 
 void FriendsManager::SendRequest(std::string const & userId)
 {
-  if (!backend::IsApiConfigured())
+  if (!ShouldContactFriendsApi())
+  {
+    std::lock_guard<std::mutex> lock(m_subscribersMutex);
+    for (auto * sub : m_subscribers)
+      sub->OnActionResult(false);
     return;
+  }
 
   GetPlatform().RunTask(Platform::Thread::Network, [this, userId]()
   {
@@ -273,8 +293,13 @@ void FriendsManager::SendRequest(std::string const & userId)
 
 void FriendsManager::AcceptRequest(std::string const & userId)
 {
-  if (!backend::IsApiConfigured())
+  if (!ShouldContactFriendsApi())
+  {
+    std::lock_guard<std::mutex> lock(m_subscribersMutex);
+    for (auto * sub : m_subscribers)
+      sub->OnActionResult(false);
     return;
+  }
 
   GetPlatform().RunTask(Platform::Thread::Network, [this, userId]()
   {
@@ -296,8 +321,13 @@ void FriendsManager::AcceptRequest(std::string const & userId)
 
 void FriendsManager::CancelRequest(std::string const & userId)
 {
-  if (!backend::IsApiConfigured())
+  if (!ShouldContactFriendsApi())
+  {
+    std::lock_guard<std::mutex> lock(m_subscribersMutex);
+    for (auto * sub : m_subscribers)
+      sub->OnActionResult(false);
     return;
+  }
 
   GetPlatform().RunTask(Platform::Thread::Network, [this, userId]()
   {
@@ -317,10 +347,15 @@ void FriendsManager::CancelRequest(std::string const & userId)
   });
 }
 
+bool FriendsManager::ShouldContactFriendsApi()
+{
+  return kFriendsPublicV1 && backend::IsApiConfigured();
+}
+
 void FriendsManager::ClearLocalAccountData()
 {
   IdentityStore::ClearUsername();
-  IdentityStore::SetExploreConsent(false);
+  IdentityStore::RevokeCompetitionConsent();
   settings::Set("Explore.SyncEnabled", false);
   settings::Set("Explore.FriendVisibilityEnabled", false);
   m_lists = {};
@@ -330,8 +365,13 @@ void FriendsManager::ClearLocalAccountData()
 
 void FriendsManager::DeleteAccount()
 {
-  if (!backend::IsApiConfigured())
+  if (!ShouldContactFriendsApi())
+  {
+    std::lock_guard<std::mutex> lock(m_subscribersMutex);
+    for (auto * sub : m_subscribers)
+      sub->OnDeleteAccountResult(false);
     return;
+  }
 
   GetPlatform().RunTask(Platform::Thread::Network, [this]()
   {
@@ -355,8 +395,12 @@ void FriendsManager::DeleteAccount()
 
 void FriendsManager::ExportAccount(ExportCallback const & callback)
 {
-  if (!backend::IsApiConfigured())
+  if (!ShouldContactFriendsApi())
+  {
+    if (callback)
+      callback(false, {});
     return;
+  }
 
   GetPlatform().RunTask(Platform::Thread::Network, [callback]()
   {
@@ -367,7 +411,8 @@ void FriendsManager::ExportAccount(ExportCallback const & callback)
     bool const success = request.RunHttpRequest(json);
     GetPlatform().RunTask(Platform::Thread::Gui, [callback, success, json = std::move(json)]()
     {
-      callback(success, json);
+      if (callback)
+        callback(success, json);
     });
   });
 }
