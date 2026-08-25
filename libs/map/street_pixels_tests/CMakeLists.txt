@@ -32,6 +32,7 @@ set(SRC
   segment_interpolation_tests.cpp
   street_pixel_tests.cpp
   street_pixels_file_tests.cpp
+  weekly_city_live_tests.cpp
   street_pixels_test_helpers.hpp
 )
 
