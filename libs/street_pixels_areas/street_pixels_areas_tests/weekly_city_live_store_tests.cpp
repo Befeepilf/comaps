@@ -16,7 +16,7 @@ namespace
 {
 using namespace street_pixels;
 
-int64_t constexpr kUtcMonday2026Mar23 = 1774224000;
+int64_t constexpr kWeeklyCityLiveUtcMonday2026Mar23 = 1774224000;
 
 std::string WeeklyDbPath(std::string const & leaf)
 {
@@ -37,15 +37,15 @@ UNIT_TEST(WeeklyCityLive_Increment)
   RemoveWeeklyDb(dbPath);
   WeeklyCityLiveStore store(dbPath);
 
-  store.RecordFirstLive({8}, kUtcMonday2026Mar23);
-  auto q = store.Query(8, kUtcMonday2026Mar23);
+  store.RecordFirstLive({8}, kWeeklyCityLiveUtcMonday2026Mar23);
+  auto q = store.Query(8, kWeeklyCityLiveUtcMonday2026Mar23);
   TEST_EQUAL(q.m_cityOsmId, 8, ());
   TEST_EQUAL(q.m_newLiveCount, 1, ());
-  TEST_EQUAL(q.m_weekId, kUtcMonday2026Mar23, ());
+  TEST_EQUAL(q.m_weekId, kWeeklyCityLiveUtcMonday2026Mar23, ());
   TEST(q.m_usedUtcFallback, ());
 
-  store.RecordFirstLive({8, 8}, kUtcMonday2026Mar23);
-  q = store.Query(8, kUtcMonday2026Mar23);
+  store.RecordFirstLive({8, 8}, kWeeklyCityLiveUtcMonday2026Mar23);
+  q = store.Query(8, kWeeklyCityLiveUtcMonday2026Mar23);
   TEST_EQUAL(q.m_newLiveCount, 3, ());
 
   RemoveWeeklyDb(dbPath);
@@ -57,14 +57,14 @@ UNIT_TEST(WeeklyCityLive_TwoCities)
   RemoveWeeklyDb(dbPath);
   WeeklyCityLiveStore store(dbPath);
 
-  store.RecordFirstLive({8, 18, 8}, kUtcMonday2026Mar23);
-  auto const a = store.Query(8, kUtcMonday2026Mar23);
-  auto const b = store.Query(18, kUtcMonday2026Mar23);
+  store.RecordFirstLive({8, 18, 8}, kWeeklyCityLiveUtcMonday2026Mar23);
+  auto const a = store.Query(8, kWeeklyCityLiveUtcMonday2026Mar23);
+  auto const b = store.Query(18, kWeeklyCityLiveUtcMonday2026Mar23);
   TEST_EQUAL(a.m_newLiveCount, 2, ());
   TEST_EQUAL(b.m_newLiveCount, 1, ());
   TEST_EQUAL(a.m_weekId, b.m_weekId, ());
 
-  auto rows = store.ListCurrentWeekCounts(kUtcMonday2026Mar23);
+  auto rows = store.ListCurrentWeekCounts(kWeeklyCityLiveUtcMonday2026Mar23);
   TEST_EQUAL(rows.size(), 2, ());
   std::sort(rows.begin(), rows.end(),
             [](WeeklyCityLiveCountRow const & l, WeeklyCityLiveCountRow const & r)
@@ -84,7 +84,7 @@ UNIT_TEST(WeeklyCityLive_TzChangesWeekIdVsUtc)
   WeeklyCityLiveStore store(dbPath);
 
   int32_t constexpr kUtcPlus2 = 7200;
-  int64_t const sundayEveningUtc = kUtcMonday2026Mar23 - 3600;
+  int64_t const sundayEveningUtc = kWeeklyCityLiveUtcMonday2026Mar23 - 3600;
   auto const utcBounds = WeekBoundsFromUnix(sundayEveningUtc, {});
   auto const offsetBounds = WeekBoundsAtFixedOffset(sundayEveningUtc, kUtcPlus2);
   TEST_NOT_EQUAL(utcBounds.m_weekId, offsetBounds.m_weekId, ());
@@ -125,8 +125,8 @@ UNIT_TEST(WeeklyCityLive_TempDbRemovesWalAndShm)
   RemoveWeeklyDb(dbPath);
   {
     WeeklyCityLiveStore store(dbPath);
-    store.RecordFirstLive({42}, kUtcMonday2026Mar23);
-    TEST_EQUAL(store.Query(42, kUtcMonday2026Mar23).m_newLiveCount, 1, ());
+    store.RecordFirstLive({42}, kWeeklyCityLiveUtcMonday2026Mar23);
+    TEST_EQUAL(store.Query(42, kWeeklyCityLiveUtcMonday2026Mar23).m_newLiveCount, 1, ());
   }
   RemoveWeeklyDb(dbPath);
   TEST(!Platform::IsFileExistsByFullPath(dbPath), ());
@@ -139,10 +139,10 @@ UNIT_TEST(WeeklyCityLive_UnknownCityUtcZero)
   auto const dbPath = WeeklyDbPath("sp073_unknown");
   RemoveWeeklyDb(dbPath);
   WeeklyCityLiveStore store(dbPath);
-  auto const q = store.Query(999, kUtcMonday2026Mar23);
+  auto const q = store.Query(999, kWeeklyCityLiveUtcMonday2026Mar23);
   TEST_EQUAL(q.m_cityOsmId, 999, ());
   TEST_EQUAL(q.m_newLiveCount, 0, ());
-  TEST_EQUAL(q.m_weekId, kUtcMonday2026Mar23, ());
+  TEST_EQUAL(q.m_weekId, kWeeklyCityLiveUtcMonday2026Mar23, ());
   TEST(q.m_usedUtcFallback, ());
   TEST_EQUAL(store.GetCityIanaTz(999), "", ());
   RemoveWeeklyDb(dbPath);

@@ -32,7 +32,7 @@
 
 namespace
 {
-int64_t constexpr kSecondsPerWeek = 7 * 86400;
+int64_t constexpr kWeeklyCityLiveSecondsPerWeek = 7 * 86400;
 int64_t constexpr kCityAOsm = 8;
 int64_t constexpr kDistrictOsm = 10;
 int64_t constexpr kCityBOsm = 18;
@@ -164,11 +164,11 @@ void CleanupWkArea(WkAreaFixture const & fx)
   WkRemove(fx.spxPath);
 }
 
-class SessionCleanup
+class WeeklyCityLiveSessionCleanup
 {
 public:
-  SessionCleanup() { settings::Delete("RecordingSessionActive"); }
-  ~SessionCleanup() { settings::Delete("RecordingSessionActive"); }
+  WeeklyCityLiveSessionCleanup() { settings::Delete("RecordingSessionActive"); }
+  ~WeeklyCityLiveSessionCleanup() { settings::Delete("RecordingSessionActive"); }
 };
 
 class WeeklyCityLiveFixture
@@ -214,7 +214,7 @@ public:
   RecordingSession & Session() { return m_session; }
 
 private:
-  SessionCleanup m_cleanup;
+  WeeklyCityLiveSessionCleanup m_cleanup;
   FrozenDataSource m_dataSource;
   RecordingSession m_session;
   std::string m_weeklyPath;
@@ -381,7 +381,7 @@ UNIT_TEST(WeeklyCityLive_QueryWeekRemaining)
   auto const q = fixture.Manager().QueryWeeklyCityLive(kCityAOsm, now);
   TEST_EQUAL(q.m_remainingSeconds, q.m_weekEndUnix - now, ());
   TEST_GREATER(q.m_remainingSeconds, 0, ());
-  TEST_LESS_OR_EQUAL(q.m_remainingSeconds, kSecondsPerWeek, ());
+  TEST_LESS_OR_EQUAL(q.m_remainingSeconds, kWeeklyCityLiveSecondsPerWeek, ());
   TEST(q.m_usedUtcFallback, ());
   TEST_EQUAL(q.m_newLiveCount, 0, ());
 }
