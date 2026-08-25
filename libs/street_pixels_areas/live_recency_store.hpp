@@ -35,9 +35,8 @@ private:
   bool EnsureOpen() const;
   void CloseDb() const;
   void InitSchema() const;
+  void RunVisitBatch(char const * sql, std::vector<int64_t> const & ids, int64_t unixSec);
   std::optional<int64_t> LoadVisitUnlocked(int64_t healpixId) const;
-  bool InsertOrIgnoreUnlocked(int64_t healpixId, int64_t unixSec);
-  bool UpsertVisitUnlocked(int64_t healpixId, int64_t unixSec);
 
   std::string m_dbPath;
   mutable sqlite3 * m_db = nullptr;

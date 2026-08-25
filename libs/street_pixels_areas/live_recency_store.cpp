@@ -15,6 +15,15 @@ namespace street_pixels
 namespace
 {
 constexpr char kLiveRecencyDatabaseFileName[] = "live_recency.db";
+
+bool StepBoundPair(sqlite3_stmt * stmt, int64_t healpixId, int64_t unixSec)
+{
+  sqlite3_reset(stmt);
+  sqlite3_clear_bindings(stmt);
+  sqlite3_bind_int64(stmt, 1, healpixId);
+  sqlite3_bind_int64(stmt, 2, unixSec);
+  return sqlite3_step(stmt) == SQLITE_DONE;
+}
 }  // namespace
 
 std::string LiveRecencyStore::DefaultDbPath()
@@ -112,9 +121,19 @@ std::optional<int64_t> LiveRecencyStore::LoadVisitUnlocked(int64_t healpixId) co
   return sqlite3_column_int64(stmt, 0);
 }
 
-bool LiveRecencyStore::InsertOrIgnoreUnlocked(int64_t healpixId, int64_t unixSec)
+void LiveRecencyStore::RunVisitBatch(char const * sql, std::vector<int64_t> const & ids, int64_t unixSec)
 {
-  ASSERT(m_db, ());
+  ASSERT(sql, ());
+  if (ids.empty())
+    return;
+
+  std::lock_guard<std::mutex> lock(m_mutex);
+  if (!EnsureOpen())
+    return;
+
+  if (sqlite3_exec(m_db, "BEGIN IMMEDIATE TRANSACTION;", nullptr, nullptr, nullptr) != SQLITE_OK)
+    return;
+
   sqlite3_stmt * stmt = nullptr;
   SCOPE_GUARD(finalize, [&stmt]()
   {
@@ -122,84 +141,37 @@ bool LiveRecencyStore::InsertOrIgnoreUnlocked(int64_t healpixId, int64_t unixSec
       sqlite3_finalize(stmt);
   });
 
-  char const * sql = "INSERT OR IGNORE INTO live_recency(healpix_id, last_live_visit) VALUES(?,?);";
   if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
-    return false;
-
-  sqlite3_bind_int64(stmt, 1, healpixId);
-  sqlite3_bind_int64(stmt, 2, unixSec);
-  return sqlite3_step(stmt) == SQLITE_DONE;
-}
-
-bool LiveRecencyStore::UpsertVisitUnlocked(int64_t healpixId, int64_t unixSec)
-{
-  ASSERT(m_db, ());
-  sqlite3_stmt * stmt = nullptr;
-  SCOPE_GUARD(finalize, [&stmt]()
   {
-    if (stmt)
-      sqlite3_finalize(stmt);
-  });
+    sqlite3_exec(m_db, "ROLLBACK;", nullptr, nullptr, nullptr);
+    return;
+  }
 
-  char const * sql =
-      "INSERT INTO live_recency(healpix_id, last_live_visit) VALUES(?,?) "
-      "ON CONFLICT(healpix_id) DO UPDATE SET last_live_visit=excluded.last_live_visit;";
-  if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
-    return false;
+  for (int64_t const id : ids)
+  {
+    if (!StepBoundPair(stmt, id, unixSec))
+    {
+      sqlite3_exec(m_db, "ROLLBACK;", nullptr, nullptr, nullptr);
+      return;
+    }
+  }
 
-  sqlite3_bind_int64(stmt, 1, healpixId);
-  sqlite3_bind_int64(stmt, 2, unixSec);
-  return sqlite3_step(stmt) == SQLITE_DONE;
+  if (sqlite3_exec(m_db, "COMMIT;", nullptr, nullptr, nullptr) != SQLITE_OK)
+    sqlite3_exec(m_db, "ROLLBACK;", nullptr, nullptr, nullptr);
 }
 
 void LiveRecencyStore::SeedEverLive(std::vector<int64_t> const & ids, int64_t consentUnixSec)
 {
-  if (ids.empty())
-    return;
-
-  std::lock_guard<std::mutex> lock(m_mutex);
-  if (!EnsureOpen())
-    return;
-
-  if (sqlite3_exec(m_db, "BEGIN IMMEDIATE TRANSACTION;", nullptr, nullptr, nullptr) != SQLITE_OK)
-    return;
-
-  for (int64_t const id : ids)
-  {
-    if (!InsertOrIgnoreUnlocked(id, consentUnixSec))
-    {
-      sqlite3_exec(m_db, "ROLLBACK;", nullptr, nullptr, nullptr);
-      return;
-    }
-  }
-
-  if (sqlite3_exec(m_db, "COMMIT;", nullptr, nullptr, nullptr) != SQLITE_OK)
-    sqlite3_exec(m_db, "ROLLBACK;", nullptr, nullptr, nullptr);
+  RunVisitBatch("INSERT OR IGNORE INTO live_recency(healpix_id, last_live_visit) VALUES(?,?);", ids,
+                consentUnixSec);
 }
 
 void LiveRecencyStore::TouchLiveVisits(std::vector<int64_t> const & ids, int64_t nowUnixSec)
 {
-  if (ids.empty())
-    return;
-
-  std::lock_guard<std::mutex> lock(m_mutex);
-  if (!EnsureOpen())
-    return;
-
-  if (sqlite3_exec(m_db, "BEGIN IMMEDIATE TRANSACTION;", nullptr, nullptr, nullptr) != SQLITE_OK)
-    return;
-
-  for (int64_t const id : ids)
-  {
-    if (!UpsertVisitUnlocked(id, nowUnixSec))
-    {
-      sqlite3_exec(m_db, "ROLLBACK;", nullptr, nullptr, nullptr);
-      return;
-    }
-  }
-
-  if (sqlite3_exec(m_db, "COMMIT;", nullptr, nullptr, nullptr) != SQLITE_OK)
-    sqlite3_exec(m_db, "ROLLBACK;", nullptr, nullptr, nullptr);
+  RunVisitBatch(
+      "INSERT INTO live_recency(healpix_id, last_live_visit) VALUES(?,?) "
+      "ON CONFLICT(healpix_id) DO UPDATE SET last_live_visit=excluded.last_live_visit;",
+      ids, nowUnixSec);
 }
 
 std::optional<int64_t> LiveRecencyStore::GetLastLiveVisit(int64_t healpixId) const
@@ -222,8 +194,30 @@ std::vector<std::optional<int64_t>> LiveRecencyStore::GetLastLiveVisits(std::vec
     return out;
   }
 
+  sqlite3_stmt * stmt = nullptr;
+  SCOPE_GUARD(finalize, [&stmt]()
+  {
+    if (stmt)
+      sqlite3_finalize(stmt);
+  });
+
+  char const * sql = "SELECT last_live_visit FROM live_recency WHERE healpix_id = ?;";
+  if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+  {
+    out.assign(ids.size(), std::nullopt);
+    return out;
+  }
+
   for (int64_t const id : ids)
-    out.push_back(LoadVisitUnlocked(id));
+  {
+    sqlite3_reset(stmt);
+    sqlite3_clear_bindings(stmt);
+    sqlite3_bind_int64(stmt, 1, id);
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+      out.emplace_back(sqlite3_column_int64(stmt, 0));
+    else
+      out.emplace_back(std::nullopt);
+  }
   return out;
 }
 }  // namespace street_pixels
