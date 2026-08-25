@@ -38,6 +38,7 @@
 #include "street_pixels_areas/exploration_area_resolver.hpp"
 #include "street_pixels_areas/focus_selection_engine.hpp"
 #include "street_pixels_areas/focused_area_progress.hpp"
+#include "street_pixels_areas/ownership_scoring.hpp"
 
 #include <healpix_base.h>
 
@@ -186,6 +187,9 @@ public:
   std::vector<street_pixels::AreaMilestoneCrossing> ConsumePendingAreaMilestoneCrossings();
   bool WasAreaPreviouslyCompletedBelow100(uint32_t compactIndex) const;
   void ConfigureAreaMilestoneStoreForTesting(std::string const & dbPath);
+  void ConfigureLiveRecencyStoreForTesting(std::string const & dbPath);
+  void MaybeSeedLiveRecency(uint64_t consentUnix);
+  street_pixels::CompetitionAreaQuery QueryCompetitionOwnership(uint64_t osmId) const;
 
   // Focused-area progress for the primary badge (SP-035 / SP-036 §12.5).
   street_pixels::FocusedAreaProgress GetFocusedAreaProgress() const;
