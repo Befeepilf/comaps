@@ -144,6 +144,18 @@ std::optional<AreaCompletionCounts> AreaCompletionCache::Get(uint32_t compactInd
   return std::nullopt;
 }
 
+std::optional<AreaCompletionCounts> AreaCompletionCache::GetByOsmId(uint64_t osmId) const
+{
+  if (!m_valid || osmId == 0)
+    return std::nullopt;
+  for (auto const & row : m_rows)
+  {
+    if (row.m_osmId == osmId)
+      return row;
+  }
+  return std::nullopt;
+}
+
 double AreaCompletionCache::GetFraction(uint32_t compactIndex) const
 {
   auto const counts = Get(compactIndex);

@@ -44,6 +44,18 @@ std::mutex & ClaimHandlerMutex()
   return mutex;
 }
 
+IdentityStore::CompetitionConsentGrantedHandler & ConsentGrantedHandler()
+{
+  static IdentityStore::CompetitionConsentGrantedHandler handler;
+  return handler;
+}
+
+std::mutex & ConsentGrantedHandlerMutex()
+{
+  static std::mutex mutex;
+  return mutex;
+}
+
 std::string ToUrlSafeBase64(std::string s)
 {
   for (char & ch : s)
@@ -367,13 +379,30 @@ bool IdentityStore::HasCompetitionConsent()
   return true;
 }
 
+uint64_t IdentityStore::GetCompetitionConsentUnixTime()
+{
+  uint64_t unixTime = 0;
+  if (!settings::Get(std::string_view(kConsentUnixTimeKey), unixTime))
+    return 0;
+  return unixTime;
+}
+
 void IdentityStore::GrantCompetitionConsent()
 {
+  uint64_t const unixTime = base::SecondsSinceEpoch();
   settings::Set(std::string_view(kCompetitionEnabledKey), true);
   settings::Set(std::string_view(kAggregateSharingEnabledKey), true);
   settings::Set(std::string_view(kConsentPolicyVersionKey), std::string(kCompetitionPrivacyPolicyVersion));
-  settings::Set(std::string_view(kConsentUnixTimeKey), base::SecondsSinceEpoch());
+  settings::Set(std::string_view(kConsentUnixTimeKey), unixTime);
   settings::Delete(std::string_view(kExploreConsentKey));
+
+  CompetitionConsentGrantedHandler handler;
+  {
+    std::lock_guard<std::mutex> lock(ConsentGrantedHandlerMutex());
+    handler = ConsentGrantedHandler();
+  }
+  if (handler)
+    handler(unixTime);
 }
 
 void IdentityStore::RevokeCompetitionConsent()
@@ -506,6 +535,12 @@ void IdentityStore::SetNicknameClaimHandlerForTesting(NicknameClaimHandler handl
 {
   std::lock_guard<std::mutex> lock(ClaimHandlerMutex());
   ClaimHandler() = std::move(handler);
+}
+
+void IdentityStore::SetCompetitionConsentGrantedHandler(CompetitionConsentGrantedHandler handler)
+{
+  std::lock_guard<std::mutex> lock(ConsentGrantedHandlerMutex());
+  ConsentGrantedHandler() = std::move(handler);
 }
 
 IdentityStore::NicknameClaimResult IdentityStore::TryClaimNickname(std::string_view nickname)

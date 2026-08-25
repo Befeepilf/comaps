@@ -53,6 +53,7 @@ public:
                                    std::vector<int64_t> const & exploredAscendingNest);
 
   std::optional<AreaCompletionCounts> Get(uint32_t compactIndex) const;
+  std::optional<AreaCompletionCounts> GetByOsmId(uint64_t osmId) const;
   double GetFraction(uint32_t compactIndex) const;
 
   // Live collect / import: bump explored for one universe pixel. Same slot rules as Build.

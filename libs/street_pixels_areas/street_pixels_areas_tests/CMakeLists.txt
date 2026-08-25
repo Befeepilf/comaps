@@ -9,6 +9,8 @@ set(SRC
   exploration_filter_tests.cpp
   exploration_sidecar_tests.cpp
   exploration_area_tap_tests.cpp
+  live_recency_store_tests.cpp
+  ownership_scoring_tests.cpp
   focus_selection_engine_tests.cpp
   sparse_assignment_store_tests.cpp
   spa_dense_emit_tests.cpp
