@@ -563,6 +563,8 @@ Framework::Framework(FrameworkParams const & params, bool loadMaps)
 
 Framework::~Framework()
 {
+  IdentityStore::SetCompetitionConsentGrantedHandler({});
+
   GetPowerManager().UnsubscribeAll();
 
   m_threadRunner.reset();

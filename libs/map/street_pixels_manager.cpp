@@ -48,6 +48,7 @@
 #include "street_pixels_areas/focus_selection_engine.hpp"
 #include "street_pixels_areas/live_recency_store.hpp"
 #include "street_pixels_areas/ownership_scoring.hpp"
+#include "street_pixels_areas/sample_centres.hpp"
 #include "street_pixels_areas/sparse_assignment_store.hpp"
 
 #include "drape_frontend/exploration_area_overlay.hpp"
@@ -1020,7 +1021,7 @@ void StreetPixelsManager::LoadStreetPixelsFromFile(storage::CountryId const & co
   }
 
   if (IdentityStore::HasCompetitionConsent())
-    MaybeSeedLiveRecency(IdentityStore::GetCompetitionConsentUnixTime());
+    MaybeSeedLiveRecency(IdentityStore::GetCompetitionConsentUnixTime(), false);
 }
 
 void StreetPixelsManager::SaveStreetPixelsToFile(std::set<std::int64_t> const & streetPixels,
@@ -2292,14 +2293,15 @@ void StreetPixelsManager::ConfigureLiveRecencyStoreForTesting(std::string const 
   street_pixels::LiveRecencyStore::Instance().Reopen(dbPath);
 }
 
-void StreetPixelsManager::MaybeSeedLiveRecency(uint64_t consentUnix)
+void StreetPixelsManager::MaybeSeedLiveRecency(uint64_t consentUnix, bool scanWritableLeaves)
 {
   if (consentUnix == 0)
     return;
 
   std::vector<int64_t> ids;
   {
-    std::lock_guard<std::shared_mutex> lock(m_streetPixelsMutex);
+    std::shared_lock<std::shared_mutex> lock(m_streetPixelsMutex);
+    ids.reserve(m_exploredPixelCount);
     for (auto const & pixel : m_streetPixels)
     {
       if (pixel.IsEverLive())
@@ -2307,16 +2309,19 @@ void StreetPixelsManager::MaybeSeedLiveRecency(uint64_t consentUnix)
     }
   }
 
-  std::string const dir = GetPlatform().WritableDir();
-  Platform::FilesList pixFiles;
-  Platform::GetFilesByExt(dir, ".pix", pixFiles);
-  for (auto const & name : pixFiles)
-    AppendEverLiveFromScan(street_pixels_file::ScanExploredEverLive(base::JoinPath(dir, name)), ids);
+  if (scanWritableLeaves)
+  {
+    std::string const dir = GetPlatform().WritableDir();
+    Platform::FilesList pixFiles;
+    Platform::GetFilesByExt(dir, ".pix", pixFiles);
+    for (auto const & name : pixFiles)
+      AppendEverLiveFromScan(street_pixels_file::ScanExploredEverLive(base::JoinPath(dir, name)), ids);
 
-  Platform::FilesList archiveFiles;
-  Platform::GetFilesByExt(dir, ".pixr", archiveFiles);
-  for (auto const & name : archiveFiles)
-    AppendEverLiveFromScan(street_pixels_file::LoadExploredArchive(base::JoinPath(dir, name)), ids);
+    Platform::FilesList archiveFiles;
+    Platform::GetFilesByExt(dir, ".pixr", archiveFiles);
+    for (auto const & name : archiveFiles)
+      AppendEverLiveFromScan(street_pixels_file::LoadExploredArchive(base::JoinPath(dir, name)), ids);
+  }
 
   std::sort(ids.begin(), ids.end());
   ids.erase(std::unique(ids.begin(), ids.end()), ids.end());
@@ -2348,13 +2353,21 @@ street_pixels::CompetitionAreaQuery StreetPixelsManager::QueryCompetitionOwnersh
 
   std::vector<int64_t> liveIds;
   {
-    std::lock_guard<std::shared_mutex> lock(m_streetPixelsMutex);
-    for (auto const & pixel : m_streetPixels)
+    std::vector<int64_t> candidates;
     {
-      if (!pixel.IsEverLive())
-        continue;
-      int64_t const id = pixel.GetPixelId();
-      auto const * area = resolver->LookupByHealpix(id, pixel.GetPoint());
+      std::shared_lock<std::shared_mutex> lock(m_streetPixelsMutex);
+      candidates.reserve(m_exploredPixelCount);
+      for (auto const & pixel : m_streetPixels)
+      {
+        if (pixel.IsEverLive())
+          candidates.push_back(pixel.GetPixelId());
+      }
+    }
+
+    liveIds.reserve(candidates.size());
+    for (int64_t const id : candidates)
+    {
+      auto const * area = resolver->LookupByHealpix(id, street_pixels::MercatorCentreFromNestId(id));
       if (area == nullptr || street_pixels::StableOsmId(*area) != osmId)
         continue;
       liveIds.push_back(id);

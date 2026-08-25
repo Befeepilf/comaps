@@ -188,7 +188,7 @@ public:
   bool WasAreaPreviouslyCompletedBelow100(uint32_t compactIndex) const;
   void ConfigureAreaMilestoneStoreForTesting(std::string const & dbPath);
   void ConfigureLiveRecencyStoreForTesting(std::string const & dbPath);
-  void MaybeSeedLiveRecency(uint64_t consentUnix);
+  void MaybeSeedLiveRecency(uint64_t consentUnix, bool scanWritableLeaves = true);
   street_pixels::CompetitionAreaQuery QueryCompetitionOwnership(uint64_t osmId) const;
 
   // Focused-area progress for the primary badge (SP-035 / SP-036 §12.5).
