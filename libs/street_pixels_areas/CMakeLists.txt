@@ -31,6 +31,8 @@ set(SRC
   focused_area_progress.hpp
   focus_selection_engine.cpp
   focus_selection_engine.hpp
+  live_recency_store.cpp
+  live_recency_store.hpp
   ownership_scoring.cpp
   ownership_scoring.hpp
   sample_centres.cpp
