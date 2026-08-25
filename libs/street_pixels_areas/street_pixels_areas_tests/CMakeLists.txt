@@ -19,6 +19,8 @@ set(SRC
   settlement_containment_tests.cpp
   subdivision_assigner_tests.cpp
   subdivision_assignment_tests.cpp
+  weekly_city_live_store_tests.cpp
+  weekly_city_week_tests.cpp
   test_helpers.hpp
 )
 
@@ -27,4 +29,5 @@ omim_add_test(${PROJECT_NAME} ${SRC})
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
     street_pixels_areas
+    sqlite
 )
