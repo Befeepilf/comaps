@@ -50,6 +50,7 @@
 #include "street_pixels_areas/ownership_scoring.hpp"
 #include "street_pixels_areas/sample_centres.hpp"
 #include "street_pixels_areas/sparse_assignment_store.hpp"
+#include "street_pixels_areas/weekly_city_live_store.hpp"
 
 #include "drape_frontend/exploration_area_overlay.hpp"
 #include "drape/color.hpp"
@@ -1985,6 +1986,8 @@ void StreetPixelsManager::OnLocationUpdate(location::GpsInfo const & info)
   std::set<std::int64_t> newlyExploredIds;
   std::vector<std::int64_t> recencyTouchIds;
   recencyTouchIds.reserve(pixels.size());
+  std::vector<std::int64_t> firstLiveIds;
+  firstLiveIds.reserve(pixels.size());
   std::vector<ExplorationDelta> perPixelExplorationDeltas;
   if (m_explorationListener)
     perPixelExplorationDeltas.reserve(pixels.size());
@@ -2005,7 +2008,10 @@ void StreetPixelsManager::OnLocationUpdate(location::GpsInfo const & info)
       if (pixel == nullptr)
         continue;
       recencyTouchIds.push_back(pix);
-      if (pixel->IsExplored() && pixel->IsEverLive())
+      bool const alreadyEverLive = pixel->IsEverLive();
+      if (!alreadyEverLive)
+        firstLiveIds.push_back(pix);
+      if (pixel->IsExplored() && alreadyEverLive)
         continue;
       idx = GetPixelIndexWhileLocked(pixel);
       if (!pixel->IsExplored())
@@ -2049,6 +2055,36 @@ void StreetPixelsManager::OnLocationUpdate(location::GpsInfo const & info)
   {
     street_pixels::LiveRecencyStore::Instance().TouchLiveVisits(
         recencyTouchIds, static_cast<int64_t>(base::SecondsSinceEpoch()));
+  }
+
+  if (!firstLiveIds.empty())
+  {
+    std::shared_ptr<street_pixels::ExplorationAreaResolver> resolver;
+    {
+      std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+      resolver = m_completionResolver;
+    }
+    if (resolver)
+    {
+      std::vector<int64_t> cityOsmIds;
+      cityOsmIds.reserve(firstLiveIds.size());
+      for (int64_t const id : firstLiveIds)
+      {
+        auto const * settlement =
+            resolver->Settlements().Select(street_pixels::MercatorCentreFromNestId(id));
+        if (settlement == nullptr || settlement->m_role != street_pixels::AreaRole::Settlement)
+          continue;
+        uint64_t const osm = street_pixels::StableOsmId(*settlement);
+        if (osm == 0)
+          continue;
+        cityOsmIds.push_back(static_cast<int64_t>(osm));
+      }
+      if (!cityOsmIds.empty())
+      {
+        street_pixels::WeeklyCityLiveStore::Instance().RecordFirstLive(
+            cityOsmIds, static_cast<int64_t>(base::SecondsSinceEpoch()));
+      }
+    }
   }
 
   if (m_explorationListener)
@@ -2293,6 +2329,11 @@ void StreetPixelsManager::ConfigureLiveRecencyStoreForTesting(std::string const 
   street_pixels::LiveRecencyStore::Instance().Reopen(dbPath);
 }
 
+void StreetPixelsManager::ConfigureWeeklyCityLiveStoreForTesting(std::string const & dbPath)
+{
+  street_pixels::WeeklyCityLiveStore::Instance().Reopen(dbPath);
+}
+
 void StreetPixelsManager::MaybeSeedLiveRecency(uint64_t consentUnix, bool scanWritableLeaves)
 {
   if (consentUnix == 0)
@@ -2403,6 +2444,17 @@ street_pixels::CompetitionAreaQuery StreetPixelsManager::QueryCompetitionOwnersh
       query.m_totalPixels, query.m_uniqueLivePixels, query.m_liveCoverageFraction, query.m_ownershipScore);
   street_pixels::ApplyLocalCompetitionView(query);
   return query;
+}
+
+street_pixels::CompetitionWeeklyCityQuery StreetPixelsManager::QueryWeeklyCityLive(int64_t settlementOsmId) const
+{
+  return QueryWeeklyCityLive(settlementOsmId, static_cast<int64_t>(base::SecondsSinceEpoch()));
+}
+
+street_pixels::CompetitionWeeklyCityQuery StreetPixelsManager::QueryWeeklyCityLive(int64_t settlementOsmId,
+                                                                                  int64_t nowUnix) const
+{
+  return street_pixels::WeeklyCityLiveStore::Instance().Query(settlementOsmId, nowUnix);
 }
 
 void StreetPixelsManager::EvaluateAreaMilestonesUnlocked(int64_t nowSec)

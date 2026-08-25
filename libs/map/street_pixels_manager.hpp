@@ -39,6 +39,7 @@
 #include "street_pixels_areas/focus_selection_engine.hpp"
 #include "street_pixels_areas/focused_area_progress.hpp"
 #include "street_pixels_areas/ownership_scoring.hpp"
+#include "street_pixels_areas/weekly_city_live_store.hpp"
 
 #include <healpix_base.h>
 
@@ -188,8 +189,11 @@ public:
   bool WasAreaPreviouslyCompletedBelow100(uint32_t compactIndex) const;
   void ConfigureAreaMilestoneStoreForTesting(std::string const & dbPath);
   void ConfigureLiveRecencyStoreForTesting(std::string const & dbPath);
+  void ConfigureWeeklyCityLiveStoreForTesting(std::string const & dbPath);
   void MaybeSeedLiveRecency(uint64_t consentUnix, bool scanWritableLeaves = true);
   street_pixels::CompetitionAreaQuery QueryCompetitionOwnership(uint64_t osmId) const;
+  street_pixels::CompetitionWeeklyCityQuery QueryWeeklyCityLive(int64_t settlementOsmId) const;
+  street_pixels::CompetitionWeeklyCityQuery QueryWeeklyCityLive(int64_t settlementOsmId, int64_t nowUnix) const;
 
   // Focused-area progress for the primary badge (SP-035 / SP-036 §12.5).
   street_pixels::FocusedAreaProgress GetFocusedAreaProgress() const;
