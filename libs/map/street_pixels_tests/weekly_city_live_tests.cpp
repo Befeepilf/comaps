@@ -331,7 +331,10 @@ UNIT_TEST(WeeklyCityLive_TwoCitiesIndependent)
   TEST_EQUAL(fixture.Count(kCityAOsm), 1, ());
   TEST_EQUAL(fixture.Count(kCityBOsm), 0, ());
 
+  fixture.Manager().MarkInterpolationBarrier();
+  fixture.Manager().ResetSampleAcceptanceReference();
   fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(fx.cityBId, ts + 1.0));
+  TEST(fixture.Manager().IsPixelEverLiveForTesting(fx.cityBId), ());
   TEST_EQUAL(fixture.Count(kCityAOsm), 1, ());
   TEST_EQUAL(fixture.Count(kCityBOsm), 1, ());
 
