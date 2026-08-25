@@ -2008,9 +2008,11 @@ void StreetPixelsManager::OnLocationUpdate(location::GpsInfo const & info)
       if (pixel == nullptr)
         continue;
       recencyTouchIds.push_back(pix);
-      if (pixel->IsExplored() && pixel->IsEverLive())
+      bool const alreadyEverLive = pixel->IsEverLive();
+      if (!alreadyEverLive)
+        firstLiveIds.push_back(pix);
+      if (pixel->IsExplored() && alreadyEverLive)
         continue;
-      firstLiveIds.push_back(pix);
       idx = GetPixelIndexWhileLocked(pixel);
       if (!pixel->IsExplored())
       {

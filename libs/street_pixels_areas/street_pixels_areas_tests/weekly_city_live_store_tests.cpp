@@ -8,9 +8,14 @@
 #include "platform/platform.hpp"
 
 #include "base/file_name_utils.hpp"
+#include "base/scope_guard.hpp"
 
 #include <algorithm>
+#include <cctype>
 #include <string>
+#include <vector>
+
+#include <sqlite3.h>
 
 namespace
 {
@@ -145,5 +150,113 @@ UNIT_TEST(WeeklyCityLive_UnknownCityUtcZero)
   TEST_EQUAL(q.m_weekId, kWeeklyCityLiveUtcMonday2026Mar23, ());
   TEST(q.m_usedUtcFallback, ());
   TEST_EQUAL(store.GetCityIanaTz(999), "", ());
+  RemoveWeeklyDb(dbPath);
+}
+
+UNIT_TEST(WeeklyCityLive_MondayBoundarySeparateWeeks)
+{
+  auto const dbPath = WeeklyDbPath("sp073_monday_boundary");
+  RemoveWeeklyDb(dbPath);
+  WeeklyCityLiveStore store(dbPath);
+
+  int64_t const monday = kWeeklyCityLiveUtcMonday2026Mar23;
+  store.RecordFirstLive({8}, monday - 1);
+  store.RecordFirstLive({8}, monday);
+
+  auto const before = store.Query(8, monday - 1);
+  auto const after = store.Query(8, monday);
+  TEST_EQUAL(before.m_newLiveCount, 1, ());
+  TEST_EQUAL(after.m_newLiveCount, 1, ());
+  TEST_NOT_EQUAL(before.m_weekId, after.m_weekId, ());
+  TEST_EQUAL(after.m_weekId, monday, ());
+
+  auto const current = store.ListCurrentWeekCounts(monday);
+  TEST_EQUAL(current.size(), 1, ());
+  TEST_EQUAL(current[0].m_cityOsmId, 8, ());
+  TEST_EQUAL(current[0].m_weekId, monday, ());
+  TEST_EQUAL(current[0].m_newLiveCount, 1, ());
+
+  RemoveWeeklyDb(dbPath);
+}
+
+UNIT_TEST(WeeklyCityLive_SchemaHasNoGpsOrHealpix)
+{
+  auto const dbPath = WeeklyDbPath("sp073_schema");
+  RemoveWeeklyDb(dbPath);
+  {
+    WeeklyCityLiveStore store(dbPath);
+    store.RecordFirstLive({8}, kWeeklyCityLiveUtcMonday2026Mar23);
+    store.SetCityIanaTz(8, "Etc/UTC");
+  }
+
+  sqlite3 * db = nullptr;
+  TEST_EQUAL(sqlite3_open_v2(dbPath.c_str(), &db, SQLITE_OPEN_READONLY, nullptr), SQLITE_OK, ());
+  SCOPE_GUARD(closeDb, [&db]() { sqlite3_close_v2(db); });
+
+  sqlite3_stmt * tables = nullptr;
+  TEST_EQUAL(sqlite3_prepare_v2(db, "SELECT name FROM sqlite_master WHERE type='table';", -1, &tables, nullptr),
+             SQLITE_OK, ());
+  SCOPE_GUARD(finalizeTables, [&tables]() { sqlite3_finalize(tables); });
+
+  std::vector<std::string> tableNames;
+  while (sqlite3_step(tables) == SQLITE_ROW)
+  {
+    unsigned char const * text = sqlite3_column_text(tables, 0);
+    TEST(text != nullptr, ());
+    tableNames.emplace_back(reinterpret_cast<char const *>(text));
+  }
+  TEST(std::find(tableNames.begin(), tableNames.end(), "weekly_city_counts") != tableNames.end(), ());
+  TEST(std::find(tableNames.begin(), tableNames.end(), "city_tz") != tableNames.end(), ());
+  TEST(std::find(tableNames.begin(), tableNames.end(), "weekly_meta") == tableNames.end(), ());
+
+  auto collectColumns = [&](char const * table)
+  {
+    std::vector<std::string> names;
+    std::string const sql = std::string("PRAGMA table_info(") + table + ");";
+    sqlite3_stmt * cols = nullptr;
+    TEST_EQUAL(sqlite3_prepare_v2(db, sql.c_str(), -1, &cols, nullptr), SQLITE_OK, ());
+    SCOPE_GUARD(finalizeCols, [&cols]() { sqlite3_finalize(cols); });
+    while (sqlite3_step(cols) == SQLITE_ROW)
+    {
+      unsigned char const * text = sqlite3_column_text(cols, 1);
+      TEST(text != nullptr, ());
+      names.emplace_back(reinterpret_cast<char const *>(text));
+    }
+    return names;
+  };
+
+  auto const countCols = collectColumns("weekly_city_counts");
+  TEST_EQUAL(countCols.size(), 3, ());
+  TEST_EQUAL(countCols[0], "city_osm_id", ());
+  TEST_EQUAL(countCols[1], "week_id", ());
+  TEST_EQUAL(countCols[2], "new_live_count", ());
+
+  auto const tzCols = collectColumns("city_tz");
+  TEST_EQUAL(tzCols.size(), 2, ());
+  TEST_EQUAL(tzCols[0], "city_osm_id", ());
+  TEST_EQUAL(tzCols[1], "iana_tz", ());
+
+  auto forbid = [](std::string const & name)
+  {
+    std::string lower = name;
+    for (char & c : lower)
+      c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    TEST(lower != "lat" && lower != "lon" && lower != "latitude" && lower != "longitude", (name));
+    TEST(lower.find("gps") == std::string::npos, (name));
+    TEST(lower.find("healpix") == std::string::npos, (name));
+    TEST(lower.find("pixel") == std::string::npos, (name));
+    TEST(lower.find("nest") == std::string::npos, (name));
+  };
+  for (auto const & name : tableNames)
+  {
+    if (name.rfind("sqlite_", 0) == 0)
+      continue;
+    forbid(name);
+  }
+  for (auto const & name : countCols)
+    forbid(name);
+  for (auto const & name : tzCols)
+    forbid(name);
+
   RemoveWeeklyDb(dbPath);
 }

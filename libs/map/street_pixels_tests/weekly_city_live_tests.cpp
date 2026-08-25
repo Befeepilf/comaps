@@ -271,6 +271,41 @@ UNIT_TEST(WeeklyCityLive_ImportOnlyDoesNot)
   CleanupWkArea(fx);
 }
 
+UNIT_TEST(WeeklyCityLive_TrackReplayDoesNot)
+{
+  WeeklyCityLiveFixture fixture;
+  auto fx = MakeWkAreaFixture("sp073_track_replay", false);
+  fixture.LoadAreas(fx);
+  fixture.SetupPixels({{fx.districtId, false}, {fx.cityOnlyId, false}, {fx.outsideId, false}});
+  fixture.Manager().MarkTrackPixelsForTesting({fx.districtId});
+  TEST(fixture.Manager().IsPixelExploredForTesting(fx.districtId), ());
+  TEST(!fixture.Manager().IsPixelEverLiveForTesting(fx.districtId), ());
+  TEST_EQUAL(fixture.Count(kCityAOsm), 0, ());
+
+  CleanupWkArea(fx);
+}
+
+UNIT_TEST(WeeklyCityLive_AlreadyEverLiveDoesNot)
+{
+  WeeklyCityLiveFixture fixture;
+  auto fx = MakeWkAreaFixture("sp073_already_live", false);
+  fixture.LoadAreas(fx);
+  fixture.Manager().SetStreetPixelsForTesting({
+      street_pixels_tests::MakeStreetPixel(fx.districtId, true, true),
+      street_pixels_tests::MakeStreetPixel(fx.cityOnlyId, false, false),
+      street_pixels_tests::MakeStreetPixel(fx.outsideId, false, false),
+  });
+  TEST_EQUAL(fixture.Session().Start(), RecordingSession::TransitionResult::Ok, ());
+  TEST(fixture.Manager().IsPixelEverLiveForTesting(fx.districtId), ());
+  TEST_EQUAL(fixture.Count(kCityAOsm), 0, ());
+
+  fixture.Manager().OnLocationUpdate(
+      fixture.GpsAtPixel(fx.districtId, street_pixels_tests::CurrentTimestampSec()));
+  TEST_EQUAL(fixture.Count(kCityAOsm), 0, ());
+
+  CleanupWkArea(fx);
+}
+
 UNIT_TEST(WeeklyCityLive_ImportedThenLiveCountsOnce)
 {
   WeeklyCityLiveFixture fixture;

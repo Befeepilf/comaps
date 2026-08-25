@@ -53,7 +53,6 @@ private:
   void CloseDb() const;
   void InitSchema() const;
   std::string LoadTzUnlocked(int64_t cityOsmId) const;
-  bool IncrementUnlocked(int64_t cityOsmId, int64_t weekId, int64_t delta);
   int64_t LoadCountUnlocked(int64_t cityOsmId, int64_t weekId) const;
   CompetitionWeeklyCityQuery QueryUnlocked(int64_t cityOsmId, int64_t nowUnix) const;
 

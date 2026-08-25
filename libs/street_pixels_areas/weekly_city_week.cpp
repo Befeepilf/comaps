@@ -2,7 +2,6 @@
 
 #include "base/gmtime.hpp"
 #include "base/timegm.hpp"
-#include "base/timer.hpp"
 
 #include <ctime>
 

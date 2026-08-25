@@ -89,10 +89,7 @@ void WeeklyCityLiveStore::InitSchema() const
       "PRIMARY KEY (city_osm_id, week_id));"
       "CREATE TABLE IF NOT EXISTS city_tz ("
       "city_osm_id INTEGER PRIMARY KEY, "
-      "iana_tz TEXT NOT NULL);"
-      "CREATE TABLE IF NOT EXISTS weekly_meta ("
-      "key TEXT PRIMARY KEY, "
-      "value INTEGER NOT NULL);";
+      "iana_tz TEXT NOT NULL);";
   if (sqlite3_exec(m_db, sql, nullptr, nullptr, &errMsg) != SQLITE_OK)
   {
     LOG(LERROR, ("Failed to initialize weekly city live schema:", errMsg));
@@ -121,32 +118,6 @@ std::string WeeklyCityLiveStore::LoadTzUnlocked(int64_t cityOsmId) const
   if (text == nullptr)
     return {};
   return reinterpret_cast<char const *>(text);
-}
-
-bool WeeklyCityLiveStore::IncrementUnlocked(int64_t cityOsmId, int64_t weekId, int64_t delta)
-{
-  ASSERT(m_db, ());
-  if (delta <= 0)
-    return true;
-
-  sqlite3_stmt * stmt = nullptr;
-  SCOPE_GUARD(finalize, [&stmt]()
-  {
-    if (stmt)
-      sqlite3_finalize(stmt);
-  });
-
-  char const * sql =
-      "INSERT INTO weekly_city_counts(city_osm_id, week_id, new_live_count) VALUES(?,?,?) "
-      "ON CONFLICT(city_osm_id, week_id) DO UPDATE SET "
-      "new_live_count = new_live_count + excluded.new_live_count;";
-  if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
-    return false;
-
-  sqlite3_bind_int64(stmt, 1, cityOsmId);
-  sqlite3_bind_int64(stmt, 2, weekId);
-  sqlite3_bind_int64(stmt, 3, delta);
-  return sqlite3_step(stmt) == SQLITE_DONE;
 }
 
 int64_t WeeklyCityLiveStore::LoadCountUnlocked(int64_t cityOsmId, int64_t weekId) const
@@ -199,28 +170,54 @@ void WeeklyCityLiveStore::RecordFirstLive(std::vector<int64_t> const & cityOsmId
   if (sqlite3_exec(m_db, "BEGIN IMMEDIATE TRANSACTION;", nullptr, nullptr, nullptr) != SQLITE_OK)
     return;
 
-  size_t i = 0;
-  while (i < sorted.size())
+  bool committed = false;
+  SCOPE_GUARD(rollback, [&]()
   {
-    int64_t const city = sorted[i];
-    int64_t delta = 0;
-    while (i < sorted.size() && sorted[i] == city)
-    {
-      ++delta;
-      ++i;
-    }
-    if (city == 0)
-      continue;
-    auto const bounds = WeekBoundsFromUnix(nowUnix, LoadTzUnlocked(city));
-    if (!IncrementUnlocked(city, bounds.m_weekId, delta))
-    {
+    if (!committed)
       sqlite3_exec(m_db, "ROLLBACK;", nullptr, nullptr, nullptr);
+  });
+
+  {
+    sqlite3_stmt * stmt = nullptr;
+    SCOPE_GUARD(finalize, [&stmt]()
+    {
+      if (stmt)
+        sqlite3_finalize(stmt);
+    });
+
+    char const * sql =
+        "INSERT INTO weekly_city_counts(city_osm_id, week_id, new_live_count) VALUES(?,?,?) "
+        "ON CONFLICT(city_osm_id, week_id) DO UPDATE SET "
+        "new_live_count = new_live_count + excluded.new_live_count;";
+    if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
       return;
+
+    size_t i = 0;
+    while (i < sorted.size())
+    {
+      int64_t const city = sorted[i];
+      int64_t delta = 0;
+      while (i < sorted.size() && sorted[i] == city)
+      {
+        ++delta;
+        ++i;
+      }
+      if (city == 0 || delta <= 0)
+        continue;
+      auto const bounds = WeekBoundsFromUnix(nowUnix, LoadTzUnlocked(city));
+      sqlite3_reset(stmt);
+      sqlite3_clear_bindings(stmt);
+      sqlite3_bind_int64(stmt, 1, city);
+      sqlite3_bind_int64(stmt, 2, bounds.m_weekId);
+      sqlite3_bind_int64(stmt, 3, delta);
+      if (sqlite3_step(stmt) != SQLITE_DONE)
+        return;
     }
   }
 
   if (sqlite3_exec(m_db, "COMMIT;", nullptr, nullptr, nullptr) != SQLITE_OK)
-    sqlite3_exec(m_db, "ROLLBACK;", nullptr, nullptr, nullptr);
+    return;
+  committed = true;
 }
 
 CompetitionWeeklyCityQuery WeeklyCityLiveStore::Query(int64_t cityOsmId, int64_t nowUnix) const

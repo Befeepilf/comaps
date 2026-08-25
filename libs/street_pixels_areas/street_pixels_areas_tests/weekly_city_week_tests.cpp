@@ -56,6 +56,10 @@ UNIT_TEST(WeeklyCityWeek_UtcMondayBoundary)
   TEST_EQUAL(atStart.m_weekEndUnix, kWeeklyCityWeekUtcMonday2026Mar23 + kWeeklyCitySecondsPerWeek, ());
   TEST(atStart.m_usedUtcFallback, ());
 
+  int64_t const thursdayUnixWeek =
+      (kWeeklyCityWeekUtcMonday2026Mar23 / kWeeklyCitySecondsPerWeek) * kWeeklyCitySecondsPerWeek;
+  TEST_NOT_EQUAL(atStart.m_weekId, thursdayUnixWeek, ());
+
   auto const justBefore = WeekBoundsFromUnix(kWeeklyCityWeekUtcMonday2026Mar23 - 1, {});
   TEST_EQUAL(justBefore.m_weekId, kWeeklyCityWeekUtcMonday2026Mar23 - kWeeklyCitySecondsPerWeek, ());
   TEST_EQUAL(justBefore.m_weekEndUnix, kWeeklyCityWeekUtcMonday2026Mar23, ());
