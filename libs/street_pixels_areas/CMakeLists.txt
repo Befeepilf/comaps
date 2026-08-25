@@ -47,6 +47,8 @@ set(SRC
   subdivision_assigner.hpp
   subdivision_assignment.cpp
   subdivision_assignment.hpp
+  weekly_city_week.cpp
+  weekly_city_week.hpp
 )
 
 omim_add_library(${PROJECT_NAME} ${SRC})
