@@ -111,6 +111,12 @@ UNIT_TEST(AreaCompletion_KnownTotalsAndFractions)
   TEST_EQUAL(district->m_total, 1u, ());
   TEST_EQUAL(district->m_explored, 1u, ());
   TEST_EQUAL(cache.GetFraction(0), 1.0, ());
+  auto districtByOsm = cache.GetByOsmId(10);
+  TEST(districtByOsm.has_value(), ());
+  TEST_EQUAL(districtByOsm->m_compactIndex, 0u, ());
+  TEST_EQUAL(districtByOsm->m_total, 1u, ());
+  TEST(!cache.GetByOsmId(0).has_value(), ());
+  TEST(!cache.GetByOsmId(999).has_value(), ());
 
   auto city = cache.Get(1);
   TEST(city.has_value(), ());

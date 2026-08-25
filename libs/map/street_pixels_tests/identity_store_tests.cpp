@@ -22,6 +22,7 @@ void ClearIdentityKeys()
   settings::Delete("Explore.NicknameDraft");
   settings::Delete("Explore.NicknameLastChangedUnix");
   IdentityStore::SetNicknameClaimHandlerForTesting({});
+  IdentityStore::SetCompetitionConsentGrantedHandler({});
 }
 
 class ScopedIdentitySettings
@@ -120,11 +121,42 @@ UNIT_TEST(IdentityStore_ConsentOffBlocksIdentityUpload)
 {
   ScopedIdentitySettings scoped;
   TEST(!IdentityStore::ShouldUploadCompetitionIdentity(), ());
+  TEST_EQUAL(IdentityStore::GetCompetitionConsentUnixTime(), 0, ());
   IdentityStore::GrantCompetitionConsent();
   TEST(IdentityStore::HasCompetitionConsent(), ());
   TEST(IdentityStore::ShouldUploadCompetitionIdentity(), ());
+  TEST(IdentityStore::GetCompetitionConsentUnixTime() != 0, ());
   IdentityStore::RevokeCompetitionConsent();
   TEST(!IdentityStore::ShouldUploadCompetitionIdentity(), ());
+  TEST_EQUAL(IdentityStore::GetCompetitionConsentUnixTime(), 0, ());
+}
+
+UNIT_TEST(IdentityStore_GrantInvokesHandlerWithStoredUnixTime)
+{
+  ScopedIdentitySettings scoped;
+  uint64_t observed = 0;
+  size_t calls = 0;
+  IdentityStore::SetCompetitionConsentGrantedHandler([&](uint64_t unixTime)
+  {
+    ++calls;
+    observed = unixTime;
+  });
+  uint64_t const before = base::SecondsSinceEpoch();
+  IdentityStore::GrantCompetitionConsent();
+  uint64_t const after = base::SecondsSinceEpoch();
+  TEST_EQUAL(calls, 1, ());
+  TEST_EQUAL(observed, IdentityStore::GetCompetitionConsentUnixTime(), ());
+  TEST(observed >= before, ());
+  TEST(observed <= after, ());
+}
+
+UNIT_TEST(IdentityStore_GrantWithoutHandlerDoesNotCrash)
+{
+  ScopedIdentitySettings scoped;
+  IdentityStore::SetCompetitionConsentGrantedHandler({});
+  IdentityStore::GrantCompetitionConsent();
+  TEST(IdentityStore::HasCompetitionConsent(), ());
+  TEST(IdentityStore::GetCompetitionConsentUnixTime() != 0, ());
 }
 
 UNIT_TEST(IdentityStore_EmptyPolicyVersionIsNotConsent)
