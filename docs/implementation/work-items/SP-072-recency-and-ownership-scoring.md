@@ -1,7 +1,7 @@
 # SP-072 — Recency store, ownership, eligibility, contested, unclaimed
 
 **Phase:** 8 — Competition
-**Status:** In progress
+**Status:** Accepted
 **Branch:** `cursor/sp-072-recency-ownership-scoring-f95c`
 **Depends on:** SP-070 (SPD-057, SPD-058, SPD-063); Phase 3 ever-live bit;
   Phase 4 area OSM ids
@@ -105,8 +105,8 @@ No recency or ownership code exists. `.pix` has an ever-live bit only
 | Branch | `cursor/sp-072-recency-ownership-scoring-f95c` |
 | Test output | Independent review re-run pasted under **Executed test output** below. Binaries in `/home/ubuntu/omim-build-debug/`. Debug build used `./tools/unix/build_omim.sh -d -p "$HOME"`. |
 | Store location | `live_recency.db` via `GetPlatform().WritablePathForFile` (`LiveRecencyStore::DefaultDbPath()`). Not `area_milestones.db`. `.pix` format remains `kFormatVersionV2`. |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Product owner |
+| Accepted date | 2026-08-25 |
 
 ## Executed test output
 
