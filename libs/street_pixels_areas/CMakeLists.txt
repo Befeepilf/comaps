@@ -31,6 +31,8 @@ set(SRC
   focused_area_progress.hpp
   focus_selection_engine.cpp
   focus_selection_engine.hpp
+  ownership_scoring.cpp
+  ownership_scoring.hpp
   sample_centres.cpp
   sample_centres.hpp
   settlement_containment.cpp
