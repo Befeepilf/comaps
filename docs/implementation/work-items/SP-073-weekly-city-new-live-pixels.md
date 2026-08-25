@@ -89,21 +89,21 @@ unique-new. SPD-064 discards that file; this item is a new counter.
 
 ## Executed test output
 
-Cwd `/workspace`. Binaries in `/home/ubuntu/omim-build-debug/`. `--data_path=data --user_resource_path=data`. HEAD at evidence time: `d0b99f29b`.
+Cwd `/workspace`. Binaries in `/home/ubuntu/omim-build-debug/`. `--data_path=data --user_resource_path=data`. Independent review re-run HEAD: `ed856e83d`.
 
 ```
 === street_pixels_areas_tests --filter=WeeklyCity ===
 Running weekly_city_live_store_tests.cpp::WeeklyCityLive_Increment
 OK
-Test took 9 ms
+Test took 5 ms
 
 Running weekly_city_live_store_tests.cpp::WeeklyCityLive_TwoCities
 OK
-Test took 4 ms
+Test took 5 ms
 
 Running weekly_city_live_store_tests.cpp::WeeklyCityLive_TzChangesWeekIdVsUtc
 OK
-Test took 4 ms
+Test took 1 ms
 
 Running weekly_city_live_store_tests.cpp::WeeklyCityLive_DefaultDbPathFilename
 OK
@@ -115,7 +115,15 @@ Test took 1 ms
 
 Running weekly_city_live_store_tests.cpp::WeeklyCityLive_UnknownCityUtcZero
 OK
-Test took 1 ms
+Test took 4 ms
+
+Running weekly_city_live_store_tests.cpp::WeeklyCityLive_MondayBoundarySeparateWeeks
+OK
+Test took 2 ms
+
+Running weekly_city_live_store_tests.cpp::WeeklyCityLive_SchemaHasNoGpsOrHealpix
+OK
+Test took 2 ms
 
 Running weekly_city_week_tests.cpp::WeeklyCityWeek_UtcMondayBoundary
 OK
@@ -152,7 +160,7 @@ StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 StreetPixels increment n 1 bumped 1 changed 1
 OK
-Test took 10 ms
+Test took 11 ms
 
 Running weekly_city_live_tests.cpp::WeeklyCityLive_SecondVisitSameCellDoesNot
 StreetPixels rebuild pix scan ms 0 sp073_second_visit
@@ -172,7 +180,26 @@ StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 StreetPixels increment n 1 bumped 1 changed 1
 OK
-Test took 7 ms
+Test took 3 ms
+
+Running weekly_city_live_tests.cpp::WeeklyCityLive_TrackReplayDoesNot
+StreetPixels rebuild pix scan ms 0 sp073_track_replay
+StreetPixels rebuild spa+resolver ms 0 sp073_track_replay
+StreetPixels AreaCompletionCache::Build ms 0 universe 3 explored 0 sentinelSlots 2 settlements 1
+StreetPixels CityCompletionCache::Build ms 0
+StreetPixels overlay push ms 0
+StreetPixels increment n 1 bumped 1 changed 1
+OK
+Test took 3 ms
+
+Running weekly_city_live_tests.cpp::WeeklyCityLive_AlreadyEverLiveDoesNot
+StreetPixels rebuild pix scan ms 0 sp073_already_live
+StreetPixels rebuild spa+resolver ms 0 sp073_already_live
+StreetPixels AreaCompletionCache::Build ms 0 universe 3 explored 0 sentinelSlots 2 settlements 1
+StreetPixels CityCompletionCache::Build ms 0
+StreetPixels overlay push ms 0
+OK
+Test took 3 ms
 
 Running weekly_city_live_tests.cpp::WeeklyCityLive_ImportedThenLiveCountsOnce
 StreetPixels rebuild pix scan ms 0 sp073_import_then_live
@@ -182,7 +209,7 @@ StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 StreetPixels increment n 1 bumped 1 changed 1
 OK
-Test took 8 ms
+Test took 7 ms
 
 Running weekly_city_live_tests.cpp::WeeklyCityLive_IdlePauseRejectedDoNot
 StreetPixels rebuild pix scan ms 0 sp073_idle_pause_reject
@@ -191,7 +218,7 @@ StreetPixels AreaCompletionCache::Build ms 0 universe 3 explored 0 sentinelSlots
 StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 OK
-Test took 4 ms
+Test took 3 ms
 
 Running weekly_city_live_tests.cpp::WeeklyCityLive_TwoCitiesIndependent
 StreetPixels rebuild pix scan ms 0 sp073_two_cities_mgr
@@ -202,7 +229,7 @@ StreetPixels overlay push ms 0
 StreetPixels increment n 1 bumped 1 changed 1
 StreetPixels increment n 1 bumped 1 changed 1
 OK
-Test took 9 ms
+Test took 4 ms
 
 Running weekly_city_live_tests.cpp::WeeklyCityLive_QueryBySettlementNotSubdivision
 StreetPixels rebuild pix scan ms 0 sp073_settlement_key
@@ -212,7 +239,7 @@ StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 StreetPixels increment n 1 bumped 1 changed 1
 OK
-Test took 7 ms
+Test took 3 ms
 
 Running weekly_city_live_tests.cpp::WeeklyCityLive_NoAreaPixelDoesNotInventCity
 StreetPixels rebuild pix scan ms 0 sp073_no_area
@@ -222,11 +249,11 @@ StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 StreetPixels increment n 1 bumped 0 changed 0
 OK
-Test took 4 ms
+Test took 6 ms
 
 Running weekly_city_live_tests.cpp::WeeklyCityLive_QueryWeekRemaining
 OK
-Test took 2 ms
+Test took 4 ms
 
 Running weekly_city_live_tests.cpp::WeeklyCityLive_InterpolationCountsOnce
 StreetPixels rebuild pix scan ms 0 sp073_interpolation
@@ -237,7 +264,7 @@ StreetPixels overlay push ms 0
 StreetPixels increment n 1 bumped 1 changed 1
 StreetPixels increment n 2 bumped 0 changed 0
 OK
-Test took 5 ms
+Test took 4 ms
 
 All tests passed.
 EXIT_WEEKLY=0
@@ -295,12 +322,12 @@ Test took 0 ms
 Running competition_ownership_tests.cpp::CompetitionOwnership_LiveFirstVisitWritesRecency
 StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
 OK
-Test took 2 ms
+Test took 4 ms
 
 Running competition_ownership_tests.cpp::CompetitionOwnership_ImportDoesNotWriteRecency
 StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
 OK
-Test took 3 ms
+Test took 1 ms
 
 Running competition_ownership_tests.cpp::CompetitionOwnership_ImportedThenLiveWritesRecency
 StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
@@ -310,20 +337,20 @@ Test took 1 ms
 Running competition_ownership_tests.cpp::CompetitionOwnership_LiveThenImportLeavesRecencyUnchanged
 StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
 OK
-Test took 1 ms
+Test took 4 ms
 
 Running competition_ownership_tests.cpp::CompetitionOwnership_RevisitUpdatesTimestamp
 StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
 OK
-Test took 2 ms
+Test took 4 ms
 
 Running competition_ownership_tests.cpp::CompetitionOwnership_IdleWritesNoRecency
 OK
-Test took 2 ms
+Test took 1 ms
 
 Running competition_ownership_tests.cpp::CompetitionOwnership_PauseWritesNoRecency
 OK
-Test took 3 ms
+Test took 1 ms
 
 Running competition_ownership_tests.cpp::CompetitionOwnership_RejectedSampleWritesNoRecency
 OK
@@ -331,7 +358,7 @@ Test took 1 ms
 
 Running competition_ownership_tests.cpp::CompetitionOwnership_SeedOnOptInAndSecondOptInDoesNotReseed
 OK
-Test took 3 ms
+Test took 2 ms
 
 Running competition_ownership_tests.cpp::CompetitionOwnership_Score100JustVisitedFullLive
 StreetPixels rebuild pix scan ms 0 sp072_score100
@@ -340,7 +367,7 @@ StreetPixels AreaCompletionCache::Build ms 0 universe 3 explored 1 sentinelSlots
 StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 OK
-Test took 6 ms
+Test took 2 ms
 
 Running competition_ownership_tests.cpp::CompetitionOwnership_ScoreUsesAreaTotalNotExploredCount
 StreetPixels rebuild pix scan ms 0 sp072_score_total
@@ -349,7 +376,7 @@ StreetPixels AreaCompletionCache::Build ms 0 universe 4 explored 1 sentinelSlots
 StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 OK
-Test took 6 ms
+Test took 2 ms
 
 Running competition_ownership_tests.cpp::CompetitionOwnership_ImportedOnlyScoreZeroFullPersonalCompletion
 StreetPixels rebuild pix scan ms 0 sp072_imported_only
@@ -358,7 +385,7 @@ StreetPixels AreaCompletionCache::Build ms 0 universe 3 explored 1 sentinelSlots
 StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 OK
-Test took 5 ms
+Test took 2 ms
 
 Running competition_ownership_tests.cpp::CompetitionOwnership_ImportedOnlyDoesNotAffectEligibilityOrContested
 StreetPixels rebuild pix scan ms 0 sp072_imported_elig
@@ -376,7 +403,7 @@ StreetPixels AreaCompletionCache::Build ms 0 universe 3 explored 1 sentinelSlots
 StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 OK
-Test took 4 ms
+Test took 3 ms
 
 Running competition_ownership_tests.cpp::CompetitionOwnership_PixFormatUnchangedV2
 StreetPixels rebuild pix scan ms 0 sp072_pix_format
@@ -386,7 +413,7 @@ StreetPixels CityCompletionCache::Build ms 0
 StreetPixels overlay push ms 0
 StreetPixels increment n 1 bumped 0 changed 0
 OK
-Test took 4 ms
+Test took 3 ms
 
 Running competition_ownership_tests.cpp::CompetitionOwnership_SeedScansPixFileEverLive
 OK
@@ -398,7 +425,7 @@ Test took 2 ms
 
 Running competition_ownership_tests.cpp::CompetitionOwnership_GrantHandlerSeedsWithoutExplicitCall
 OK
-Test took 2 ms
+Test took 6 ms
 
 Running ever_live_tests.cpp::EverLive_FirstLiveSetsEverLive
 StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
@@ -449,6 +476,7 @@ EXIT_REGRESSION=0
 
 | Finding | Proposed disposition |
 | --- | --- |
-| Spec §24.1 ranks “newly explored unique live pixels”. A first-exploration reading (`newlyExploredIds`) would give import-then-live **+0**, so imported exploration would suppress later live credit. This item counts the **ever-live flip** on the live path (imported-then-live **+1** once). Work-item “first live” and “imported exploration must not suppress later live credit” win over a newly-explored-only reading of §24.1. | Product lock: keep ever-live flip, or change spec §24.1 if newly-explored-only is intended. |
+| Spec §24.1 ranks “newly explored unique live pixels”. A first-exploration reading (`newlyExploredIds`) would give import-then-live **+0**, so imported exploration would suppress later live credit. This item counts the **ever-live flip** on the live path (imported-then-live **+1** once). Work-item “first live” and “imported exploration must not suppress later live credit” win over a newly-explored-only reading of §24.1. | Product lock: keep ever-live flip, or change spec §24.1 if newly-explored-only is intended. Independent review kept this lock. |
 | IANA zone on the city record is stored (`city_tz`) but not resolved to an offset. App ICU is transliteration-only; no TimeZone. Empty / unknown tz → UTC (SPD-060 fail closed). `WeekBoundsAtFixedOffset` is the offset path for tests. Production does not populate tz (no centroid library). | Optional follow-up: persist tz from centroid lookup onto the city record (already allowed inside this item / sidecar metadata; not a Phase 4 reopen). |
 | Device residual for weekly city display. | SP-079 / Phase 10 (already required manual validation). |
+| Ever-live is written (msync async) before `weekly_city_live.db` COMMIT. A crash in that window permanently drops the weekly increment: revisits are skipped, and this db must not store HEALPix ids (unix seconds / OSM ids / counts only). Recency recovers on the next live visit; weekly cannot. | Leave as-is unless product wants a later local uniqueness table. Do not put HEALPix or GPS in `weekly_city_live.db`. |
