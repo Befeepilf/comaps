@@ -75,11 +75,12 @@ struct CoAreaFixture
   uint32_t policyVersion = 1;
   std::vector<m2::PointD> samples;
   int64_t districtId = 0;
+  int64_t districtId2 = 0;
   int64_t cityOnlyId = 0;
   int64_t outsideId = 0;
 };
 
-CoAreaFixture MakeCoAreaFixture(std::string const & leaf, bool districtEverLive)
+CoAreaFixture MakeCoAreaFixture(std::string const & leaf, bool districtEverLive, bool twoDistrictPixels = false)
 {
   CoAreaFixture fx;
   fx.leaf = leaf;
@@ -115,6 +116,7 @@ CoAreaFixture MakeCoAreaFixture(std::string const & leaf, bool districtEverLive)
   }
 
   int64_t const districtId = street_pixels_tests::PixelIdForLatLon(60.5, 24.5);
+  int64_t const districtId2 = street_pixels_tests::PixelIdForLatLon(60.6, 24.6);
   int64_t const cityOnlyId = street_pixels_tests::PixelIdForLatLon(60.1, 24.1);
   int64_t const outsideId = street_pixels_tests::PixelIdForLatLon(70.0, 30.0);
 
@@ -123,6 +125,8 @@ CoAreaFixture MakeCoAreaFixture(std::string const & leaf, bool districtEverLive)
       {cityOnlyId, mercator::FromLatLon(60.1, 24.1)},
       {outsideId, mercator::FromLatLon(70.0, 30.0)},
   };
+  if (twoDistrictPixels)
+    universeRows.push_back({districtId2, mercator::FromLatLon(60.6, 24.6)});
   std::sort(universeRows.begin(), universeRows.end(),
             [](auto const & a, auto const & b) { return a.first < b.first; });
   std::vector<int64_t> universeIds;
@@ -145,6 +149,7 @@ CoAreaFixture MakeCoAreaFixture(std::string const & leaf, bool districtEverLive)
            fx.pixPath, std::set<int64_t>(universeIds.begin(), universeIds.end()), seed, fx.mapDataVersion),
        ());
   fx.districtId = districtId;
+  fx.districtId2 = twoDistrictPixels ? districtId2 : 0;
   fx.cityOnlyId = cityOnlyId;
   fx.outsideId = outsideId;
   return fx;
@@ -377,6 +382,36 @@ UNIT_TEST(CompetitionOwnership_Score100JustVisitedFullLive)
   CleanupCoArea(fx);
 }
 
+UNIT_TEST(CompetitionOwnership_ScoreUsesAreaTotalNotExploredCount)
+{
+  CompetitionOwnershipFixture fixture;
+  auto fx = MakeCoAreaFixture("sp072_score_total", true, true);
+  TEST(fixture.Manager().RebuildAreaCompletionCache(fx.leaf, fx.spaPath, fx.mapDataVersion), ());
+  fixture.Manager().SetStreetPixelsForTesting({
+      street_pixels_tests::MakeStreetPixel(fx.districtId, true, true),
+      street_pixels_tests::MakeStreetPixel(fx.districtId2, false, false),
+      street_pixels_tests::MakeStreetPixel(fx.cityOnlyId, false, false),
+      street_pixels_tests::MakeStreetPixel(fx.outsideId, false, false),
+  });
+  int64_t const now = static_cast<int64_t>(base::SecondsSinceEpoch());
+  street_pixels::LiveRecencyStore::Instance().TouchLiveVisits({fx.districtId}, now);
+
+  auto const personal = fixture.Manager().GetAreaCompletion(0);
+  TEST(personal.has_value(), ());
+  TEST_EQUAL(personal->m_explored, 1u, ());
+  TEST_EQUAL(personal->m_total, 2u, ());
+
+  auto const query = fixture.Manager().QueryCompetitionOwnership(10);
+  TEST_EQUAL(query.m_totalPixels, 2u, ());
+  TEST_EQUAL(query.m_uniqueLivePixels, 1u, ());
+  TEST_ALMOST_EQUAL_ABS(query.m_liveCoverageFraction, 0.5, 1e-12, ());
+  TEST_ALMOST_EQUAL_ABS(query.m_ownershipScore, 50.0, 0.01, ());
+  TEST_EQUAL(query.m_totalPixels, personal->m_total, ());
+  TEST_NOT_EQUAL(query.m_totalPixels, personal->m_explored, ());
+
+  CleanupCoArea(fx);
+}
+
 UNIT_TEST(CompetitionOwnership_ImportedOnlyScoreZeroFullPersonalCompletion)
 {
   CompetitionOwnershipFixture fixture;
@@ -479,4 +514,30 @@ UNIT_TEST(CompetitionOwnership_SeedScansPixFileEverLive)
   TEST_EQUAL(*LastVisit(fx.districtId), static_cast<int64_t>(consent), ());
   TEST(!LastVisit(fx.cityOnlyId).has_value(), ());
   CleanupCoArea(fx);
+}
+
+UNIT_TEST(CompetitionOwnership_SeedSkipsImportedOnlyPixCells)
+{
+  CompetitionOwnershipFixture fixture;
+  auto fx = MakeCoAreaFixture("sp072_seed_imported", false);
+  IdentityStore::GrantCompetitionConsent();
+  uint64_t const consent = IdentityStore::GetCompetitionConsentUnixTime();
+  fixture.Manager().MaybeSeedLiveRecency(consent);
+  TEST(!LastVisit(fx.districtId).has_value(), ());
+  TEST(!LastVisit(fx.cityOnlyId).has_value(), ());
+  CleanupCoArea(fx);
+}
+
+UNIT_TEST(CompetitionOwnership_GrantHandlerSeedsWithoutExplicitCall)
+{
+  CompetitionOwnershipFixture fixture;
+  fixture.Manager().SetStreetPixelsForTesting(
+      {street_pixels_tests::MakeStreetPixel(CompetitionOwnershipFixture::kPixelA, true, true)});
+
+  IdentityStore::SetCompetitionConsentGrantedHandler(
+      [&fixture](uint64_t unixTime) { fixture.Manager().MaybeSeedLiveRecency(unixTime); });
+  IdentityStore::GrantCompetitionConsent();
+  uint64_t const consent = IdentityStore::GetCompetitionConsentUnixTime();
+  TEST(consent != 0, ());
+  TEST_EQUAL(*LastVisit(CompetitionOwnershipFixture::kPixelA), static_cast<int64_t>(consent), ());
 }
