@@ -100,13 +100,340 @@ and §23 are V1. Friends UI must stay hidden (SPD-061, SP-071).
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Test output | |
+| Branch | `cursor/sp-078-competition-ui-and-card-copy-f95c` at `6aa8d63197968a2b1bcee53f22d39ef11776e0d9` |
+| Test output | See executed output below. Not Accepted. |
 | Accepted by | |
 | Accepted date | |
+
+## Executed test output
+
+Cwd `/workspace`. Binary `/home/ubuntu/omim-build-debug/street_pixels_tests`. Build: `./tools/unix/build_omim.sh -d -p "$HOME" street_pixels_tests`. Filter as specified for SP-078. 58 tests. Summary line: `All tests passed.`
+
+```
+Running area_milestone_presentation_tests.cpp::AreaMilestonePresentation_CompetitionLineStubEmpty
+OK
+Test took 0 ms
+
+Running backend_config_tests.cpp::BackendConfig_CompetitionAggregatesUrlEmptyWhenUnconfigured
+Settings path: /workspace/data/settings.ini
+Explore.FriendVisibilityEnabled : true
+Explore.SyncEnabled : true
+StreetPixels.CompetitionMapMode : 0
+OK
+Test took 0 ms
+
+Running backend_config_tests.cpp::BackendConfig_CompetitionAggregatesUrlWhenConfigured
+OK
+Test took 0 ms
+
+Running backend_config_tests.cpp::BackendConfig_CompetitionAggregatesUrlNeverUsesStatsUpload
+OK
+Test took 0 ms
+
+Running backend_config_tests.cpp::BackendConfig_CompetitionRegisterUrlEmptyWhenUnconfigured
+OK
+Test took 0 ms
+
+Running backend_config_tests.cpp::BackendConfig_CompetitionRegisterUrlWhenConfigured
+OK
+Test took 0 ms
+
+Running backend_config_tests.cpp::BackendConfig_CompetitionNicknameUrlEmptyWhenUnconfigured
+OK
+Test took 0 ms
+
+Running backend_config_tests.cpp::BackendConfig_CompetitionNicknameUrlWhenConfigured
+OK
+Test took 0 ms
+
+Running backend_config_tests.cpp::BackendConfig_CompetitionAreaSnapshotUrlEmptyWhenUnconfigured
+OK
+Test took 0 ms
+
+Running backend_config_tests.cpp::BackendConfig_CompetitionAreaSnapshotUrlWhenConfigured
+OK
+Test took 0 ms
+
+Running backend_config_tests.cpp::BackendConfig_CompetitionWeeklyBoardUrlEmptyWhenUnconfigured
+OK
+Test took 0 ms
+
+Running backend_config_tests.cpp::BackendConfig_CompetitionWeeklyBoardUrlWhenConfigured
+OK
+Test took 0 ms
+
+Running backend_config_tests.cpp::BackendConfig_CompetitionAreaSnapshotRequestUrlHasProfileQuery
+OK
+Test took 0 ms
+
+Running backend_config_tests.cpp::BackendConfig_CompetitionWeeklyBoardRequestUrlHasProfileQuery
+OK
+Test took 0 ms
+
+Running backend_config_tests.cpp::BackendConfig_CompetitionDeleteUrlEmptyWhenUnconfigured
+OK
+Test took 0 ms
+
+Running backend_config_tests.cpp::BackendConfig_CompetitionDeleteUrlWhenConfigured
+OK
+Test took 0 ms
+
+Running backend_config_tests.cpp::BackendConfig_CompetitionReportUrlEmptyWhenUnconfigured
+OK
+Test took 0 ms
+
+Running backend_config_tests.cpp::BackendConfig_CompetitionReportUrlWhenConfigured
+OK
+Test took 0 ms
+
+Running backend_config_tests.cpp::BackendConfig_CompetitionLeaveUrlEmptyWhenUnconfigured
+OK
+Test took 0 ms
+
+Running backend_config_tests.cpp::BackendConfig_CompetitionLeaveUrlWhenConfigured
+OK
+Test took 0 ms
+
+Running backend_config_tests.cpp::BackendConfig_CompetitionExportUrlEmptyWhenUnconfigured
+OK
+Test took 0 ms
+
+Running backend_config_tests.cpp::BackendConfig_CompetitionExportUrlWhenConfigured
+OK
+Test took 0 ms
+
+Running completion_card_tests.cpp::CompletionCard_CompetitionLineStubEmpty
+OK
+Test took 0 ms
+
+Running competition_presentation_tests.cpp::CompetitionCard_LeadingLineWhenEligibleBoss
+OK
+Test took 0 ms
+
+Running competition_presentation_tests.cpp::CompetitionCard_NotLeadingWhenEligibleButNotBoss
+OK
+Test took 0 ms
+
+Running competition_presentation_tests.cpp::CompetitionCard_EmptyWithoutConsent
+OK
+Test took 0 ms
+
+Running competition_presentation_tests.cpp::CompetitionCard_EmptyWithoutProfile
+OK
+Test took 0 ms
+
+Running competition_presentation_tests.cpp::CompetitionRanking_UserInTop3NoDuplicate
+OK
+Test took 0 ms
+
+Running competition_presentation_tests.cpp::CompetitionRanking_UserFourthAppendsRow
+OK
+Test took 0 ms
+
+Running competition_presentation_tests.cpp::CompetitionRanking_NullNicknamesStayNull
+OK
+Test took 0 ms
+
+Running competition_presentation_tests.cpp::CompetitionSparse_Nlt3AnonymousBossYouLead
+OK
+Test took 0 ms
+
+Running competition_presentation_tests.cpp::CompetitionSparse_Nlt3AnonymousBossOther
+OK
+Test took 0 ms
+
+Running competition_presentation_tests.cpp::CompetitionSparse_NeverSomeoneIsNearby
+OK
+Test took 0 ms
+
+Running competition_presentation_tests.cpp::CompetitionChrome_StaleFlagFromSnapshot
+OK
+Test took 0 ms
+
+Running competition_presentation_tests.cpp::CompetitionChrome_OfflineWhenNoSnapshot
+OK
+Test took 0 ms
+
+Running competition_presentation_tests.cpp::CompetitionCopy_DenyList
+OK
+Test took 1 ms
+
+Running first_goal_tests.cpp::FirstGoal_AppearsOnFirstRecordingStart
+OK
+Test took 0 ms
+
+Running first_goal_tests.cpp::FirstGoal_CompletesAtTenNewlyExploredLivePixels
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+OK
+Test took 7 ms
+
+Running first_goal_tests.cpp::FirstGoal_ImportDoesNotAdvance
+StreetPixels increment skipped n 2 cacheValid 0 hasResolver 0
+OK
+Test took 0 ms
+
+Running first_goal_tests.cpp::FirstGoal_PauseDoesNotIncrement
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+OK
+Test took 0 ms
+
+Running first_goal_tests.cpp::FirstGoal_IncompleteSurvivesSecondSession
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+OK
+Test took 0 ms
+
+Running first_goal_tests.cpp::FirstGoal_CompleteDoesNotReturn
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+OK
+Test took 3 ms
+
+Running first_goal_tests.cpp::FirstGoal_PersistsAcrossNewTracker
+OK
+Test took 0 ms
+
+Running first_goal_tests.cpp::FirstGoal_LiveVisitOfImportedPixelsDoesNotAdvance
+StreetPixels increment skipped n 2 cacheValid 0 hasResolver 0
+OK
+Test took 0 ms
+
+Running first_goal_tests.cpp::FirstGoal_DebugTriggerShowsBadgeAndMilestoneQueue
+OK
+Test took 0 ms
+
+Running first_goal_tests.cpp::FirstGoal_SinglePulseCanComplete
+OK
+Test took 0 ms
+
+Running competition_hint_tests.cpp::CompetitionHint_FiresAtThirtyNewlyExploredLivePixels
+OK
+Test took 0 ms
+
+Running competition_hint_tests.cpp::CompetitionHint_ImportDoesNotAdvance
+StreetPixels increment skipped n 2 cacheValid 0 hasResolver 0
+OK
+Test took 0 ms
+
+Running competition_hint_tests.cpp::CompetitionHint_DoesNotResetFirstGoalTen
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+StreetPixels increment skipped n 1 cacheValid 0 hasResolver 0
+OK
+Test took 11 ms
+
+Running competition_hint_tests.cpp::CompetitionHint_DoesNotPresentWhileRoutingFollowing
+OK
+Test took 0 ms
+
+Running competition_hint_tests.cpp::CompetitionHint_SkippedWhenAlreadyConsented
+OK
+Test took 0 ms
+
+Running competition_hint_tests.cpp::CompetitionHint_OncePerInstall
+OK
+Test took 0 ms
+
+Running competition_hint_tests.cpp::CompetitionHint_LiveVisitOfImportedPixelsDoesNotAdvance
+StreetPixels increment skipped n 2 cacheValid 0 hasResolver 0
+OK
+Test took 0 ms
+
+Running competition_snapshot_tests.cpp::CompetitionSnapshot_ParseNullNickname
+OK
+Test took 0 ms
+
+Running competition_snapshot_tests.cpp::CompetitionSnapshot_ParseNamedNickname
+OK
+Test took 0 ms
+
+Running competition_snapshot_tests.cpp::CompetitionSnapshot_EmptyApiBaseNoGet
+OK
+Test took 0 ms
+
+Running competition_snapshot_tests.cpp::CompetitionSnapshot_HttpFailUsesCacheAndStaleOrOffline
+OK
+Test took 0 ms
+
+Running competition_snapshot_tests.cpp::CompetitionSnapshot_UrlHasProfileQueryNoFriendsHeaders
+OK
+Test took 0 ms
+
+All tests passed.
+```
+
+Planner filter `CompetitionHint_` does not match `CompetitionHintCopy_*`. Those two UNIT_TESTs were run separately and passed:
+
+```
+Running competition_presentation_tests.cpp::CompetitionHintCopy_CompareGenericWithoutArea
+OK
+Test took 0 ms
+
+Running competition_presentation_tests.cpp::CompetitionHintCopy_CompareWithAreaWithoutSnapshot
+OK
+Test took 0 ms
+
+All tests passed.
+```
+
+Unity build initially failed because `competition_hint.cpp` reused anonymous-namespace identifiers `kCollectedKey` / `kCompleteKey` from `first_goal.cpp`. Settings string values were unchanged. Fixed in `6aa8d6319`. Not Accepted.
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Device walkthrough vs §20.2, card, hint, toggle | SP-079 only |
+| `friends_signup_*` still used for nickname claim toasts | Later copy cleanup; do not resurrect friends API |
+| Weekly board city OSM when focus is a subdivision not a settlement | Show weekly block only when `citySummary` is true; do not invent a city OSM. Weekly GET is not JNI-wired; sheet shows `competition_weekly_empty` |
+| Boss haptic | Still out (SPD-054) |
+| iOS | Out of V1 |
+| Drawing other users | Out |
+| Map screenshots of competition chrome | Forbidden; SP-079 must not capture the map either |
+| Leftover `pref_explore_username_summary` friends flavor | Do not rebrand in this item |
+| Planner `--filter` misses `CompetitionHintCopy_*` | Residual; both tests passed when run |
+| Unity-build redefinition of `kCollectedKey` / `kCompleteKey` | Fixed: renamed C++ identifiers only |
