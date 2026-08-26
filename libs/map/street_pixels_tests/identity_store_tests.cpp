@@ -55,7 +55,7 @@ void ExpectInvalidAndUnpersisted(std::string_view nickname)
   TEST(IdentityStore::GetUsername().empty(), ());
 }
 
-bool JsonHasQuotedKey(std::string const & json, std::string_view key)
+bool IdentityJsonHasQuotedKey(std::string const & json, std::string_view key)
 {
   std::string const needle = "\"" + std::string(key) + "\"";
   return json.find(needle) != std::string::npos;
@@ -326,10 +326,10 @@ UNIT_TEST(IdentityStore_ProductionClaimPostsRegisterJsonWithoutFriendsHeaders)
   TEST_EQUAL(posts, 1, ());
   TEST_EQUAL(lastUrl, backend::GetCompetitionRegisterUrl(), ());
   TEST_EQUAL(lastUrl, "https://example.com/api/v1/competition/register", ());
-  TEST(JsonHasQuotedKey(lastBody, "profile_id"), (lastBody));
-  TEST(JsonHasQuotedKey(lastBody, "nickname"), (lastBody));
-  TEST(JsonHasQuotedKey(lastBody, "consent_policy_version"), (lastBody));
-  TEST(JsonHasQuotedKey(lastBody, "consent_unix"), (lastBody));
+  TEST(IdentityJsonHasQuotedKey(lastBody, "profile_id"), (lastBody));
+  TEST(IdentityJsonHasQuotedKey(lastBody, "nickname"), (lastBody));
+  TEST(IdentityJsonHasQuotedKey(lastBody, "consent_policy_version"), (lastBody));
+  TEST(IdentityJsonHasQuotedKey(lastBody, "consent_unix"), (lastBody));
   TEST(lastBody.find("Alice_1") != std::string::npos, (lastBody));
   TEST(lastBody.find(IdentityStore::GetOrCreateDeviceId()) != std::string::npos, (lastBody));
   TEST(!HasForbiddenClaimHeader(lastHeaders), ());
