@@ -137,6 +137,66 @@ UNIT_TEST(BackendConfig_CompetitionWeeklyBoardUrlWhenConfigured)
   ClearApiBaseUrl();
 }
 
+UNIT_TEST(BackendConfig_CompetitionDeleteUrlEmptyWhenUnconfigured)
+{
+  ClearApiBaseUrl();
+  TEST(backend::GetCompetitionDeleteUrl().empty(), ());
+}
+
+UNIT_TEST(BackendConfig_CompetitionDeleteUrlWhenConfigured)
+{
+  ClearApiBaseUrl();
+  backend::SetApiBaseUrl("https://example.com/api/");
+  TEST_EQUAL(backend::GetCompetitionDeleteUrl(), "https://example.com/api/v1/competition/delete", ());
+  TEST(backend::GetCompetitionDeleteUrl().find("/stats/upload") == std::string::npos, ());
+  ClearApiBaseUrl();
+}
+
+UNIT_TEST(BackendConfig_CompetitionReportUrlEmptyWhenUnconfigured)
+{
+  ClearApiBaseUrl();
+  TEST(backend::GetCompetitionReportUrl().empty(), ());
+}
+
+UNIT_TEST(BackendConfig_CompetitionReportUrlWhenConfigured)
+{
+  ClearApiBaseUrl();
+  backend::SetApiBaseUrl("https://example.com/api");
+  TEST_EQUAL(backend::GetCompetitionReportUrl(), "https://example.com/api/v1/competition/reports", ());
+  TEST(backend::GetCompetitionReportUrl().find("/stats/upload") == std::string::npos, ());
+  ClearApiBaseUrl();
+}
+
+UNIT_TEST(BackendConfig_CompetitionLeaveUrlEmptyWhenUnconfigured)
+{
+  ClearApiBaseUrl();
+  TEST(backend::GetCompetitionLeaveUrl().empty(), ());
+}
+
+UNIT_TEST(BackendConfig_CompetitionLeaveUrlWhenConfigured)
+{
+  ClearApiBaseUrl();
+  backend::SetApiBaseUrl("https://example.com/api/");
+  TEST_EQUAL(backend::GetCompetitionLeaveUrl(), "https://example.com/api/v1/competition/leave", ());
+  TEST(backend::GetCompetitionLeaveUrl().find("/stats/upload") == std::string::npos, ());
+  ClearApiBaseUrl();
+}
+
+UNIT_TEST(BackendConfig_CompetitionExportUrlEmptyWhenUnconfigured)
+{
+  ClearApiBaseUrl();
+  TEST(backend::GetCompetitionExportUrl().empty(), ());
+}
+
+UNIT_TEST(BackendConfig_CompetitionExportUrlWhenConfigured)
+{
+  ClearApiBaseUrl();
+  backend::SetApiBaseUrl("https://example.com/api");
+  TEST_EQUAL(backend::GetCompetitionExportUrl(), "https://example.com/api/v1/competition/export", ());
+  TEST(backend::GetCompetitionExportUrl().find("/stats/upload") == std::string::npos, ());
+  ClearApiBaseUrl();
+}
+
 UNIT_TEST(ExploreStatsUpload_DecisionGateWhenApiUnconfigured)
 {
   ClearApiBaseUrl();

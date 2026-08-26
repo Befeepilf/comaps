@@ -15,4 +15,8 @@ std::string GetCompetitionRegisterUrl();
 std::string GetCompetitionNicknameUrl();
 std::string GetCompetitionAreaSnapshotUrl(int64_t areaOsmId);
 std::string GetCompetitionWeeklyBoardUrl(int64_t cityOsmId);
+std::string GetCompetitionDeleteUrl();
+std::string GetCompetitionReportUrl();
+std::string GetCompetitionLeaveUrl();
+std::string GetCompetitionExportUrl();
 }
