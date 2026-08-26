@@ -9,7 +9,12 @@
 #include "street_pixels_areas/focused_area_progress.hpp"
 
 #include "map/area_milestone_presentation.hpp"
+#include "map/competition_hint.hpp"
+#include "map/competition_snapshot.hpp"
 #include "map/first_goal.hpp"
+#include "map/identity_store.hpp"
+
+#include "street_pixels_areas/competition_presentation.hpp"
 
 #include "platform/local_country_file.hpp"
 #include "platform/location.hpp"
@@ -82,6 +87,52 @@ static jobject ToJavaAreaMilestonePresentation(JNIEnv * env, street_pixels::Area
                         jName.get(), jLine.get(), static_cast<jboolean>(presentation.m_debugPreview));
 }
 
+static void CallCompetitionHintReady(std::shared_ptr<jobject> const & listener)
+{
+  JNIEnv * env = jni::GetEnv();
+  env->CallVoidMethod(*listener, jni::GetMethodID(env, *listener, "onCompetitionHintReady", "()V"));
+}
+
+static jobject ToJavaCompetitionRankingRow(JNIEnv * env, street_pixels::CompetitionRankingEntry const & row,
+                                           std::string const & selfNickname)
+{
+  static jclass const rowClass =
+      jni::GetGlobalClassRef(env, "app/organicmaps/sdk/maplayer/streetpixels/CompetitionRankingRow");
+  static jmethodID const ctor = jni::GetConstructorID(env, rowClass, "(ILjava/lang/String;DZ)V");
+  std::string const name = street_pixels::RankingDisplayName(row.m_nickname, row.m_isCurrentUser, selfNickname);
+  jni::TScopedLocalRef const jName(env, jni::ToJavaString(env, name));
+  return env->NewObject(rowClass, ctor, static_cast<jint>(row.m_rank), jName.get(),
+                        static_cast<jdouble>(row.m_decayedScore), static_cast<jboolean>(row.m_isCurrentUser));
+}
+
+static jobject ToJavaCompetitionAreaChrome(JNIEnv * env, street_pixels::CompetitionAreaChrome const & chrome)
+{
+  static jclass const chromeClass =
+      jni::GetGlobalClassRef(env, "app/organicmaps/sdk/maplayer/streetpixels/CompetitionAreaChrome");
+  static jclass const rowClass =
+      jni::GetGlobalClassRef(env, "app/organicmaps/sdk/maplayer/streetpixels/CompetitionRankingRow");
+  static jmethodID const ctor = jni::GetConstructorID(
+      env, chromeClass,
+      "(ZZZZLjava/lang/String;Ljava/lang/String;[Lapp/organicmaps/sdk/maplayer/streetpixels/CompetitionRankingRow;DDZZ)V");
+  std::string const self = IdentityStore::GetUsername();
+  jni::TScopedLocalRef const jBoss(env, jni::ToJavaString(env, chrome.m_bossLine));
+  jni::TScopedLocalRef const jGap(env, jni::ToJavaString(env, chrome.m_gapLine));
+  jobjectArray rows = env->NewObjectArray(static_cast<jsize>(chrome.m_rankingRows.size()), rowClass, nullptr);
+  for (size_t i = 0; i < chrome.m_rankingRows.size(); ++i)
+  {
+    jni::TScopedLocalRef const jRow(env, ToJavaCompetitionRankingRow(env, chrome.m_rankingRows[i], self));
+    env->SetObjectArrayElement(rows, static_cast<jsize>(i), jRow.get());
+  }
+  jni::TScopedLocalRef const jRows(env, rows);
+  return env->NewObject(chromeClass, ctor, static_cast<jboolean>(chrome.m_offline),
+                        static_cast<jboolean>(chrome.m_stale), static_cast<jboolean>(chrome.m_unclaimed),
+                        static_cast<jboolean>(chrome.m_contested), jBoss.get(), jGap.get(), jRows.get(),
+                        static_cast<jdouble>(chrome.m_localOwnershipScore),
+                        static_cast<jdouble>(chrome.m_personalCompletionFraction),
+                        static_cast<jboolean>(chrome.m_localEligible),
+                        static_cast<jboolean>(chrome.m_localIsBoss));
+}
+
 static void CallAreaMilestoneCallback(std::shared_ptr<jobject> const & listener,
                                       std::optional<street_pixels::AreaMilestonePresentation> const & presentation)
 {
@@ -142,6 +193,12 @@ JNIEXPORT void JNICALL Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixe
         GetPlatform().RunTask(Platform::Thread::Gui, [globalListener, presentation]()
         { CallAreaMilestoneCallback(globalListener, presentation); });
       });
+  manager.SetCompetitionHintReadyHandler(
+      [globalListener]()
+      {
+        GetPlatform().RunTask(Platform::Thread::Gui, [globalListener]()
+        { CallCompetitionHintReady(globalListener); });
+      });
 }
 
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeRemoveListener(JNIEnv * env,
@@ -154,6 +211,7 @@ JNIEXPORT void JNICALL Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixe
   manager.SetExplorationAreaTapListener(nullptr);
   manager.SetFirstGoalProgressListener(nullptr);
   manager.SetAreaMilestonePresentationListener(nullptr);
+  manager.SetCompetitionHintReadyHandler(nullptr);
 }
 
 JNIEXPORT jboolean JNICALL
@@ -362,5 +420,56 @@ Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeRecordC
   CHECK(g_framework, ("Framework isn't created yet!"));
   auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
   manager.RecordCompletionCardShareInitiated();
+}
+
+JNIEXPORT void JNICALL
+Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeAcknowledgeCompetitionHint(JNIEnv *, jclass)
+{
+  CHECK(g_framework, ("Framework isn't created yet!"));
+  auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
+  manager.AcknowledgeCompetitionHint();
+}
+
+JNIEXPORT jstring JNICALL
+Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativePeekCompetitionHintText(JNIEnv * env, jclass)
+{
+  CHECK(g_framework, ("Framework isn't created yet!"));
+  auto const & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
+  auto const text = manager.PeekCompetitionHintText();
+  if (!text)
+    return nullptr;
+  return jni::ToJavaString(env, *text);
+}
+
+JNIEXPORT jstring JNICALL
+Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeTryConsumeOvertakingHint(
+    JNIEnv * env, jclass, jboolean routingFollowing)
+{
+  CHECK(g_framework, ("Framework isn't created yet!"));
+  auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
+  auto const text = manager.TryConsumeOvertakingHint(static_cast<bool>(routingFollowing));
+  if (!text)
+    return nullptr;
+  return jni::ToJavaString(env, *text);
+}
+
+JNIEXPORT jobject JNICALL
+Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeGetCompetitionAreaChrome(JNIEnv * env, jclass,
+                                                                                                 jlong osmId)
+{
+  CHECK(g_framework, ("Framework isn't created yet!"));
+  auto const & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
+  return ToJavaCompetitionAreaChrome(env, manager.GetCompetitionAreaChrome(static_cast<uint64_t>(osmId)));
+}
+
+JNIEXPORT jobject JNICALL
+Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeRequestCompetitionAreaSnapshot(JNIEnv * env,
+                                                                                                       jclass,
+                                                                                                       jlong osmId)
+{
+  CHECK(g_framework, ("Framework isn't created yet!"));
+  auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
+  auto const result = manager.RequestCompetitionAreaSnapshot(static_cast<uint64_t>(osmId));
+  return ToJavaCompetitionAreaChrome(env, result.m_chrome);
 }
 }

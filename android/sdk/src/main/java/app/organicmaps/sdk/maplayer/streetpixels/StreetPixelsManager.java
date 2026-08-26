@@ -40,6 +40,11 @@ public class StreetPixelsManager
     void onAreaMilestonePresentationChanged(@Nullable AreaMilestonePresentation presentation);
   }
 
+  public interface CompetitionHintCallback
+  {
+    void onCompetitionHintReady();
+  }
+
   @NonNull
   private static final java.util.List<Callback> sCallbacks = new java.util.ArrayList<>();
   @NonNull
@@ -51,6 +56,8 @@ public class StreetPixelsManager
   @NonNull
   private static final java.util.List<AreaMilestonePresentationCallback> sAreaMilestoneCallbacks =
       new java.util.ArrayList<>();
+  @NonNull
+  private static final java.util.List<CompetitionHintCallback> sCompetitionHintCallbacks = new java.util.ArrayList<>();
 
   public static void registerCallback(@NonNull Callback callback)
   {
@@ -137,6 +144,23 @@ public class StreetPixelsManager
     }
   }
 
+  public static void registerCompetitionHintCallback(@NonNull CompetitionHintCallback callback)
+  {
+    synchronized (sCompetitionHintCallbacks)
+    {
+      if (!sCompetitionHintCallbacks.contains(callback))
+        sCompetitionHintCallbacks.add(callback);
+    }
+  }
+
+  public static void unregisterCompetitionHintCallback(@NonNull CompetitionHintCallback callback)
+  {
+    synchronized (sCompetitionHintCallbacks)
+    {
+      sCompetitionHintCallbacks.remove(callback);
+    }
+  }
+
   public StreetPixelsManager()
   {
     mListener = new OnStreetPixelsChangedListener();
@@ -190,6 +214,15 @@ public class StreetPixelsManager
   @Nullable
   private static native CompletionCardSharePayload nativePrepareCompletionCardShare(boolean includeDate);
   private static native void nativeRecordCompletionCardShareInitiated();
+  private static native void nativeAcknowledgeCompetitionHint();
+  @Nullable
+  private static native String nativePeekCompetitionHintText();
+  @Nullable
+  private static native String nativeTryConsumeOvertakingHint(boolean routingFollowing);
+  @NonNull
+  private static native CompetitionAreaChrome nativeGetCompetitionAreaChrome(long osmId);
+  @NonNull
+  private static native CompetitionAreaChrome nativeRequestCompetitionAreaSnapshot(long osmId);
 
   public void attach(@NonNull StreetPixelsErrorDialogListener listener)
   {
@@ -276,6 +309,35 @@ public class StreetPixelsManager
     nativeRecordCompletionCardShareInitiated();
   }
 
+  public void acknowledgeCompetitionHint()
+  {
+    nativeAcknowledgeCompetitionHint();
+  }
+
+  @Nullable
+  public String peekCompetitionHintText()
+  {
+    return nativePeekCompetitionHintText();
+  }
+
+  @Nullable
+  public String tryConsumeOvertakingHint(boolean routingFollowing)
+  {
+    return nativeTryConsumeOvertakingHint(routingFollowing);
+  }
+
+  @NonNull
+  public CompetitionAreaChrome getCompetitionAreaChrome(long osmId)
+  {
+    return nativeGetCompetitionAreaChrome(osmId);
+  }
+
+  @NonNull
+  public CompetitionAreaChrome requestCompetitionAreaSnapshot(long osmId)
+  {
+    return nativeRequestCompetitionAreaSnapshot(osmId);
+  }
+
   @Nullable
   public RematchFractionChange takePendingRematchFractionChange(@NonNull String countryId)
   {
@@ -343,5 +405,16 @@ public class StreetPixelsManager
     }
     for (AreaMilestonePresentationCallback cb : snapshot)
       cb.onAreaMilestonePresentationChanged(presentation);
+  }
+
+  static void notifyCompetitionHintReady()
+  {
+    java.util.List<CompetitionHintCallback> snapshot;
+    synchronized (sCompetitionHintCallbacks)
+    {
+      snapshot = new java.util.ArrayList<>(sCompetitionHintCallbacks);
+    }
+    for (CompetitionHintCallback cb : snapshot)
+      cb.onCompetitionHintReady();
   }
 }

@@ -36,6 +36,8 @@ import app.organicmaps.leftbutton.LeftButton;
 import app.organicmaps.leftbutton.LeftToggleButton;
 import app.organicmaps.MwmApplication;
 import app.organicmaps.maplayer.streetpixels.FocusedAreaDetailBottomSheet;
+import app.organicmaps.settings.ExploreConsentDialogFragment;
+import app.organicmaps.settings.MyAccountDialogFragment;
 import app.organicmaps.sdk.Framework;
 import app.organicmaps.sdk.downloader.MapManager;
 import app.organicmaps.sdk.downloader.UpdateInfo;
@@ -61,6 +63,7 @@ import app.organicmaps.widget.placepage.PlacePageViewModel;
 import com.google.android.material.badge.BadgeDrawable;
 import com.google.android.material.badge.BadgeUtils;
 import com.google.android.material.badge.ExperimentalBadgeUtils;
+import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -83,6 +86,10 @@ public class MapButtonsController extends Fragment
   private ExtendedFloatingActionButton mExplorationBadge;
   @Nullable
   private ExtendedFloatingActionButton mFirstGoalBadge;
+  @Nullable
+  private MaterialButtonToggleGroup mCompetitionModeToggle;
+  @Nullable
+  private ExtendedFloatingActionButton mCompetitionHintBadge;
   @Nullable
   private View mCompletionCard;
   @Nullable
@@ -127,6 +134,10 @@ public class MapButtonsController extends Fragment
       this::applyFirstGoalBadge;
   private final StreetPixelsManager.AreaMilestonePresentationCallback mAreaMilestonePresentationCallback =
       this::applyAreaMilestonePresentation;
+  private final StreetPixelsManager.CompetitionHintCallback mCompetitionHintCallback = this::onCompetitionHintReady;
+  private final Handler mCompetitionHintHandler = new Handler(Looper.getMainLooper());
+  private final Runnable mHideCompetitionHint = this::hideCompetitionHintBadge;
+  private boolean mUpdatingCompetitionToggle;
   private final Handler mAreaMilestoneHandler = new Handler(Looper.getMainLooper());
   private final Runnable mAcknowledgeAreaMilestone = this::acknowledgeAreaMilestonePresentation;
   private boolean mCompletionCardDebugPreview;
@@ -262,7 +273,8 @@ public class MapButtonsController extends Fragment
           return;
         }
         FocusedAreaDetailBottomSheet.show(getParentFragmentManager(), progress.displayName, progress.fractionValid,
-                                          progress.fraction, progress.areaCompleted, progress.previouslyCompleted);
+                                          progress.fraction, progress.areaCompleted, progress.previouslyCompleted,
+                                          progress.osmId, progress.citySummary);
       });
     }
     mFirstGoalBadge = mFrame.findViewById(R.id.first_goal_badge);
@@ -270,6 +282,40 @@ public class MapButtonsController extends Fragment
     {
       mButtonsMap.put(MapButtons.firstGoalBanner, mFirstGoalBadge);
       showButton(false, MapButtons.firstGoalBanner);
+    }
+    mCompetitionModeToggle = mFrame.findViewById(R.id.competition_mode_toggle);
+    if (mCompetitionModeToggle != null)
+    {
+      mCompetitionModeToggle.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+        if (mUpdatingCompetitionToggle || !isChecked)
+          return;
+        int mode = checkedId == R.id.competition_mode_competition ? 1 : 0;
+        Framework.nativeSetCompetitionMapMode(mode);
+        if (mode == 1)
+          fetchCompetitionSnapshotAndMaybeOvertake();
+      });
+    }
+    mCompetitionHintBadge = mFrame.findViewById(R.id.competition_hint_badge);
+    if (mCompetitionHintBadge != null)
+    {
+      mCompetitionHintBadge.setOnClickListener(v -> {
+        ExploreConsentDialogFragment.maybeShow(getParentFragmentManager(), new ExploreConsentDialogFragment.Listener()
+        {
+          @Override
+          public void onExploreConsentGranted()
+          {
+            hideCompetitionHintBadge();
+            refreshCompetitionToggle();
+          }
+
+          @Override
+          public void onExploreConsentDeclined()
+          {
+            hideCompetitionHintBadge();
+          }
+        });
+      });
+      UiUtils.hide(mCompetitionHintBadge);
     }
     mCompletionCard = mFrame.findViewById(R.id.area_completion_card);
     if (mCompletionCard != null)
@@ -567,6 +613,8 @@ public class MapButtonsController extends Fragment
       mExplorationBadge.setText(R.string.street_pixels_no_exploration_area);
       showButton(true, MapButtons.explorationBanner);
     }
+    refreshCompetitionToggle();
+    onCompetitionHintReady();
   }
 
   private void refreshFirstGoalBadge()
@@ -606,6 +654,71 @@ public class MapButtonsController extends Fragment
       mFirstGoalBadge.animate().cancel();
       showButton(false, MapButtons.firstGoalBanner);
     }
+  }
+
+  private void refreshCompetitionToggle()
+  {
+    if (mCompetitionModeToggle == null)
+      return;
+    boolean show = Framework.nativeHasExploreConsent();
+    UiUtils.showIf(show, mCompetitionModeToggle);
+    if (!show)
+      return;
+    mUpdatingCompetitionToggle = true;
+    int mode = Framework.nativeGetCompetitionMapMode();
+    mCompetitionModeToggle.check(mode == 1 ? R.id.competition_mode_competition : R.id.competition_mode_explore);
+    mUpdatingCompetitionToggle = false;
+  }
+
+  private void fetchCompetitionSnapshotAndMaybeOvertake()
+  {
+    Context ctx = getContext();
+    if (ctx == null)
+      return;
+    StreetPixelsManager manager = MwmApplication.from(ctx).getStreetPixelsManager();
+    FocusedAreaProgress progress = manager.getFocusedAreaProgress();
+    if (progress.hasFocus && progress.osmId != 0 && Framework.nativeHasExploreConsent())
+      manager.requestCompetitionAreaSnapshot(progress.osmId);
+    maybeShowOvertakingHint(manager);
+  }
+
+  private void maybeShowOvertakingHint(@NonNull StreetPixelsManager manager)
+  {
+    Context ctx = getContext();
+    if (ctx == null)
+      return;
+    String text = manager.tryConsumeOvertakingHint(Framework.nativeIsRoutingFollowing());
+    if (text == null || text.isEmpty())
+      return;
+    Toast.makeText(ctx, text, Toast.LENGTH_LONG).show();
+  }
+
+  private void onCompetitionHintReady()
+  {
+    Context ctx = getContext();
+    if (ctx == null || mCompetitionHintBadge == null)
+      return;
+    if (Framework.nativeIsRoutingFollowing() || Framework.nativeHasExploreConsent())
+      return;
+    if (mCompetitionHintBadge.getVisibility() == View.VISIBLE)
+      return;
+    StreetPixelsManager manager = MwmApplication.from(ctx).getStreetPixelsManager();
+    String text = manager.peekCompetitionHintText();
+    if (text == null || text.isEmpty())
+      return;
+    mCompetitionHintBadge.setText(text);
+    UiUtils.show(mCompetitionHintBadge);
+    mCompetitionHintBadge.extend();
+    manager.acknowledgeCompetitionHint();
+    mCompetitionHintHandler.removeCallbacks(mHideCompetitionHint);
+    mCompetitionHintHandler.postDelayed(mHideCompetitionHint, 4000);
+  }
+
+  private void hideCompetitionHintBadge()
+  {
+    mCompetitionHintHandler.removeCallbacks(mHideCompetitionHint);
+    if (mCompetitionHintBadge != null)
+      UiUtils.hide(mCompetitionHintBadge);
   }
 
   private void refreshAreaMilestonePresentation()
@@ -877,6 +990,9 @@ public class MapButtonsController extends Fragment
     StreetPixelsManager.registerFocusedAreaProgressCallback(mFocusedAreaProgressCallback);
     StreetPixelsManager.registerFirstGoalProgressCallback(mFirstGoalProgressCallback);
     StreetPixelsManager.registerAreaMilestonePresentationCallback(mAreaMilestonePresentationCallback);
+    StreetPixelsManager.registerCompetitionHintCallback(mCompetitionHintCallback);
+    getParentFragmentManager().setFragmentResultListener(MyAccountDialogFragment.RESULT_COMPETITION_ACCOUNT, this,
+                                                         (key, bundle) -> refreshCompetitionToggle());
     mMapButtonsViewModel.getTopButtonsMarginTop().observe(activity, mTopButtonMarginObserver);
   }
 
@@ -891,6 +1007,8 @@ public class MapButtonsController extends Fragment
     updateExplorationBadge(state);
     refreshFirstGoalBadge();
     refreshAreaMilestonePresentation();
+    refreshCompetitionToggle();
+    onCompetitionHintReady();
 
     final WindowInsetUtils.PaddingInsetsListener insetsListener =
         new WindowInsetUtils.PaddingInsetsListener.Builder()
@@ -923,6 +1041,8 @@ public class MapButtonsController extends Fragment
     StreetPixelsManager.unregisterFocusedAreaProgressCallback(mFocusedAreaProgressCallback);
     StreetPixelsManager.unregisterFirstGoalProgressCallback(mFirstGoalProgressCallback);
     StreetPixelsManager.unregisterAreaMilestonePresentationCallback(mAreaMilestonePresentationCallback);
+    StreetPixelsManager.unregisterCompetitionHintCallback(mCompetitionHintCallback);
+    mCompetitionHintHandler.removeCallbacks(mHideCompetitionHint);
     mAreaMilestoneHandler.removeCallbacks(mAcknowledgeAreaMilestone);
     if (mFirstGoalBadge != null)
       mFirstGoalBadge.animate().cancel();

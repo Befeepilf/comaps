@@ -36,4 +36,8 @@ struct FetchAreaSnapshotResult
 };
 
 FetchAreaSnapshotResult FetchAreaSnapshot(int64_t areaOsmId, std::string const & profileId);
+
+bool ShouldEmitOvertakingHint(uint64_t nowUnix);
+void MarkOvertakingHintEmitted(uint64_t nowUnix);
+void ClearOvertakingHintForTesting();
 }  // namespace street_pixels
