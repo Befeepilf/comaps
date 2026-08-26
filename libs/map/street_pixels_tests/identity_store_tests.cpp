@@ -114,6 +114,10 @@ UNIT_TEST(IdentityStore_RejectsInvalidNicknames)
   zwsp += "\xE2\x80\x8B";
   zwsp += "b";
   ExpectInvalidAndUnpersisted(zwsp);
+  ExpectInvalidAndUnpersisted("comaps admin");
+  ExpectInvalidAndUnpersisted("street pixels staff");
+  ExpectInvalidAndUnpersisted("COMAPS-ADMIN");
+  ExpectInvalidAndUnpersisted("Buy Followers");
 }
 
 UNIT_TEST(IdentityStore_AcceptsUnicodeNicknames)
@@ -126,6 +130,7 @@ UNIT_TEST(IdentityStore_AcceptsUnicodeNicknames)
   TEST(IdentityStore::IsValidNickname("東京太郎"), ());
   TEST(IdentityStore::IsValidNickname("Anna Birch"), ());
   TEST(IdentityStore::IsValidNickname("O'Neil"), ());
+  TEST(IdentityStore::IsValidNickname("comapsadmin"), ());
   std::string const generated = IdentityStore::GenerateNickname();
   TEST(IdentityStore::IsValidNickname(generated), ());
   TEST(HasNoAsciiDigits(generated), ());
@@ -499,4 +504,26 @@ UNIT_TEST(IdentityStore_ReportNicknamePostsJsonWithoutFriendsHeaders)
   TEST(lastBody.find("hate") != std::string::npos, (lastBody));
   TEST(!HasForbiddenClaimHeader(lastHeaders), ());
   TEST(lastHeaders.empty(), ());
+}
+
+UNIT_TEST(IdentityStore_BlockedNicknameIsInvalidWithoutHttp)
+{
+  ScopedIdentitySettings scoped;
+  IdentityStore::GrantCompetitionConsent();
+  backend::SetApiBaseUrl("https://example.com/api");
+  int posts = 0;
+  IdentityStore::SetNicknameClaimPostFnForTesting(
+      [&](std::string const &, std::string const &,
+          std::vector<std::pair<std::string, std::string>> const &)
+      {
+        ++posts;
+        return 200;
+      });
+  TEST(!IdentityStore::IsValidNickname("comaps admin"), ());
+  TEST(IdentityStore::TryClaimNickname("comaps admin") == IdentityStore::NicknameClaimResult::Invalid, ());
+  TEST(!IdentityStore::IsValidNickname("street pixels staff"), ());
+  TEST(IdentityStore::TryClaimNickname("street pixels staff") == IdentityStore::NicknameClaimResult::Invalid, ());
+  TEST_EQUAL(posts, 0, ());
+  TEST(!IdentityStore::HasUsername(), ());
+  TEST(IdentityStore::IsValidNickname("comapsadmin"), ());
 }
