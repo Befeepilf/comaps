@@ -44,3 +44,11 @@ std::string backend::GetStatsUploadUrl()
     return {};
   return base + "/stats/upload";
 }
+
+std::string backend::GetCompetitionAggregatesUrl()
+{
+  auto const base = NormalizeBaseUrl(GetApiBaseUrl());
+  if (base.empty())
+    return {};
+  return base + "/v1/competition/aggregates";
+}
