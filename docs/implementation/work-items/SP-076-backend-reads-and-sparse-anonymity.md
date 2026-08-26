@@ -1,8 +1,8 @@
 # SP-076 — Backend reads and sparse-area anonymity
 
 **Phase:** 8 — Competition
-**Status:** Not started
-**Branch:**
+**Status:** In progress
+**Branch:** backend `cursor/sp-076-backend-reads-sparse-anonymity-f95c` (`Befeepilf/explorer`); client `cursor/sp-076-backend-reads-sparse-anonymity-f95c` (`Befeepilf/comaps`)
 **Depends on:** SP-075 ingest + decay; SPD-058, SPD-060
 **Unblocks:** SP-078 (area snapshot, weekly board, overtaking hints)
 **Repository:** `comaps_backend`

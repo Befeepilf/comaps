@@ -1,8 +1,7 @@
 # SP-075 — Backend competition core
 
 **Phase:** 8 — Competition
-**Status:** In progress (implementation recorded; independent review fixes
-  recorded; not Accepted)
+**Status:** Accepted
 **Branch:** backend `cursor/sp-075-backend-competition-core-f95c` (`Befeepilf/explorer` `a16a462b2c1c7186456b016f24f405952b4393a0`); client `cursor/sp-075-backend-competition-core-f95c` (`Befeepilf/comaps` `867c9a544`)
 **Depends on:** SP-070 (SPD-057–059, SPD-062, SPD-065); SP-074 payload
   contract
@@ -112,8 +111,8 @@ database that is not SQLite.
 | Branch (backend) | `cursor/sp-075-backend-competition-core-f95c` on `Befeepilf/explorer` at `a16a462b2c1c7186456b016f24f405952b4393a0` |
 | Branch (client) | `cursor/sp-075-backend-competition-core-f95c` on `Befeepilf/comaps` at `867c9a544` |
 | Test output | See executed output below. Independent review Explorer: cwd `/home/ubuntu/explorer-src/explorer`, `uv run pytest -q` → `31 passed`. Client: binary `/home/ubuntu/omim-build-debug/street_pixels_tests`, `--data_path=/workspace/data --user_resource_path=/workspace/data --filter='BackendConfig_|IdentityStore_|CompetitionUpload_'` → all tests passed. |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Product owner |
+| Accepted date | 2026-08-26 |
 
 ## Executed test output
 
@@ -152,7 +151,7 @@ All tests passed.
 
 Full client log: `/opt/cursor/artifacts/sp075_street_pixels_tests.log`. Explorer log: `/opt/cursor/artifacts/sp075_explorer_pytest.log`.
 
-## Independent review (not Accepted)
+## Independent review
 
 Reviewed both repos against SP-075, SPD-014/057/059/062/065, spec §21.1
 §22.8 §25.2, `competition_upload_payload.hpp`, and
