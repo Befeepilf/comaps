@@ -506,6 +506,72 @@ UNIT_TEST(IdentityStore_ReportNicknamePostsJsonWithoutFriendsHeaders)
   TEST(lastHeaders.empty(), ());
 }
 
+UNIT_TEST(IdentityStore_ReportBlockedNicknameStillPosts)
+{
+  ScopedIdentitySettings scoped;
+  IdentityStore::GrantCompetitionConsent();
+  backend::SetApiBaseUrl("https://example.com/api");
+  int posts = 0;
+  std::string lastBody;
+  IdentityStore::SetNicknameClaimPostFnForTesting(
+      [&](std::string const &, std::string const & body,
+          std::vector<std::pair<std::string, std::string>> const & headers)
+      {
+        TEST(headers.empty(), ());
+        ++posts;
+        lastBody = body;
+        return 200;
+      });
+  TEST(!IdentityStore::IsValidNickname("comaps admin"), ());
+  TEST(IdentityStore::ReportNickname("comaps admin", "impersonation") ==
+           IdentityStore::NicknameReportResult::Ok,
+       ());
+  TEST_EQUAL(posts, 1, ());
+  TEST(lastBody.find("comaps admin") != std::string::npos, (lastBody));
+  TEST(lastBody.find("impersonation") != std::string::npos, (lastBody));
+}
+
+UNIT_TEST(IdentityStore_ReportNicknameEmptyApiNoHttp)
+{
+  ScopedIdentitySettings scoped;
+  IdentityStore::GrantCompetitionConsent();
+  backend::SetApiBaseUrl("");
+  int posts = 0;
+  IdentityStore::SetNicknameClaimPostFnForTesting(
+      [&](std::string const &, std::string const &,
+          std::vector<std::pair<std::string, std::string>> const &)
+      {
+        ++posts;
+        return 200;
+      });
+  TEST(IdentityStore::ReportNickname("Bob_2", "hate") ==
+           IdentityStore::NicknameReportResult::Unavailable,
+       ());
+  TEST_EQUAL(posts, 0, ());
+}
+
+UNIT_TEST(IdentityStore_DeleteCompetitionProfileEmptyApiKeepsIdentity)
+{
+  ScopedIdentitySettings scoped;
+  IdentityStore::GrantCompetitionConsent();
+  IdentityStore::SetNicknameClaimHandlerForTesting([](std::string_view) { return 200; });
+  TEST(IdentityStore::TryClaimNickname("Alice_1") == IdentityStore::NicknameClaimResult::Ok, ());
+  backend::SetApiBaseUrl("");
+  int posts = 0;
+  IdentityStore::SetNicknameClaimPostFnForTesting(
+      [&](std::string const &, std::string const &,
+          std::vector<std::pair<std::string, std::string>> const &)
+      {
+        ++posts;
+        return 200;
+      });
+  TEST(IdentityStore::DeleteCompetitionProfile() == IdentityStore::CompetitionAccountResult::Unavailable,
+       ());
+  TEST_EQUAL(posts, 0, ());
+  TEST(IdentityStore::HasCompetitionConsent(), ());
+  TEST_EQUAL(IdentityStore::GetUsername(), "Alice_1", ());
+}
+
 UNIT_TEST(IdentityStore_BlockedNicknameIsInvalidWithoutHttp)
 {
   ScopedIdentitySettings scoped;

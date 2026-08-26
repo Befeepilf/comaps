@@ -825,7 +825,10 @@ IdentityStore::NicknameReportResult IdentityStore::ReportNickname(std::string_vi
                                                                  std::string_view reason)
 {
   std::string const normalized = NormalizeNickname(target);
-  if (!IsValidNickname(normalized) || !IsAllowedReportReason(reason))
+  if (normalized.empty() || !IsAllowedReportReason(reason))
+    return NicknameReportResult::Invalid;
+  std::vector<char32_t> cps;
+  if (!DecodeCodepoints(normalized, cps) || cps.size() > 128)
     return NicknameReportResult::Invalid;
   std::string const url = backend::GetCompetitionReportUrl();
   if (url.empty())
