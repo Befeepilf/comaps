@@ -1,8 +1,10 @@
 # Phase 8 — Competition
 
-**Status:** SP-070 Accepted; SP-071 in progress; SP-072–078 Accepted; SP-079 in progress
+**Status:** SP-070 Accepted; SP-071 in progress; SP-072–078 Accepted; SP-079 In review (exit awaiting maintainer)
 **Depends on:** Phase 4
 **Blocks:** nothing; required for release
+
+SP-079 evidence recorded 2026-08-26 (work item In review); Phase 8 exit awaits maintainer.
 
 ---
 
