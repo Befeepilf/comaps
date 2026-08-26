@@ -4,6 +4,8 @@
 **Depends on:** Phase 4
 **Blocks:** nothing; required for release
 
+SP-079 evidence recorded 2026-08-26 (work item In review); Phase 8 exit awaits maintainer.
+
 ---
 
 ## Objective
