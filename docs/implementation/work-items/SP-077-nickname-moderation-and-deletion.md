@@ -90,7 +90,7 @@ shown to others. Leaving competition must offer keep-stats vs delete.
 
 | Field | Value |
 | --- | --- |
-| Branch | backend `cursor/sp-077-nickname-moderation-deletion-f95c` (`Befeepilf/explorer`) at `6bd5c1476fccf436619090190f9e60d546172ae6`; client `cursor/sp-077-nickname-moderation-deletion-f95c` (`Befeepilf/comaps`) at `183393ecd68503dce937513aee192be4d37db1bf` |
+| Branch | backend `cursor/sp-077-nickname-moderation-deletion-f95c` (`Befeepilf/explorer`) at `a2875770bc72b68917b58356d17adfb39af2ea10`; client `cursor/sp-077-nickname-moderation-deletion-f95c` (`Befeepilf/comaps`) at `53c6118c5768a0d0242042aa8fdb78d7dc01f7d3` |
 | Test output | See executed output below. Not Accepted. |
 | Accepted by | |
 | Accepted date | |
@@ -100,9 +100,9 @@ shown to others. Leaving competition must offer keep-stats vs delete.
 Explorer (`cd /home/ubuntu/explorer-src/explorer && uv run pytest -q`):
 
 ```
-........................................................................ [ 67%]
-...................................                                      [100%]
-107 passed, 4 warnings in 1.04s
+........................................................................ [ 66%]
+....................................                                     [100%]
+108 passed, 4 warnings in 1.06s
 ```
 
 Client (`./tools/unix/build_omim.sh -d -p "$HOME" street_pixels_tests` then `/home/ubuntu/omim-build-debug/street_pixels_tests --data_path=/workspace/data --user_resource_path=/workspace/data --filter='IdentityStore_|BackendConfig_Competition|CompetitionDeletion_'`):
@@ -111,12 +111,15 @@ Client (`./tools/unix/build_omim.sh -d -p "$HOME" street_pixels_tests` then `/ho
 All tests passed.
 ```
 
-46 tests ran (19 BackendConfig_Competition, 2 CompetitionDeletion, 25 IdentityStore). Full logs: `/opt/cursor/artifacts/sp077_explorer_pytest.log`, `/opt/cursor/artifacts/sp077_street_pixels_tests.log`.
+49 tests ran (19 BackendConfig_Competition, 2 CompetitionDeletion, 28 IdentityStore). Full logs: `/opt/cursor/artifacts/sp077_review_explorer_pytest.log`, `/opt/cursor/artifacts/sp077_review_street_pixels_tests.log`.
+
+Independent review fixed client `ReportNickname` (blocked impersonation names must still POST) and tightened backend tests for leave extras plus the post-reset rename clock. Not Accepted.
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
+| Client `ReportNickname` reused `IsValidNickname`, so blocked impersonation names could not be reported | Fixed in review: report validates length/reason only |
 | V1 blocked list is a small whole-token set, not a complete §21.2 taxonomy | Residual; expand later |
 | Temporary/permanent competition suspension for repeated abuse (§21.3) | Not SP-077 |
 | Client still locally 7-day-gates after admin reset; server allows immediate POST | SP-078: when a snapshot nickname differs from local, adopt it without writing `Explore.NicknameLastChangedUnix` |
