@@ -37,6 +37,8 @@ set(SRC
   exploration_haptics.hpp
   first_goal.cpp
   first_goal.hpp
+  competition_hint.cpp
+  competition_hint.hpp
   live_sample_acceptance_filter.cpp
   live_sample_acceptance_filter.hpp
   live_segment_interpolation.cpp
