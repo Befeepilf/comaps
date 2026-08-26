@@ -19,6 +19,8 @@ set(SRC
   bg_point.hpp
   city_completion_cache.cpp
   city_completion_cache.hpp
+  competition_presentation.cpp
+  competition_presentation.hpp
   completion_card.cpp
   completion_card.hpp
   exploration_area_resolver.cpp
