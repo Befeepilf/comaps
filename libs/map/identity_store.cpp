@@ -604,10 +604,12 @@ int IdentityStore::PostNicknameClaim(std::string_view nickname)
   body.m_consentUnix = GetCompetitionConsentUnixTime();
 
   std::string json;
-  using Sink = MemWriter<std::string>;
-  Sink sink(json);
-  coding::SerializerJson<Sink> ser(sink);
-  ser(body);
+  {
+    using Sink = MemWriter<std::string>;
+    Sink sink(json);
+    coding::SerializerJson<Sink> ser(sink);
+    ser(body);
+  }
 
   NicknameClaimPostFn post;
   {
