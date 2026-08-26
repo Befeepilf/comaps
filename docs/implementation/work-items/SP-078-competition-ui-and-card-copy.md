@@ -1,7 +1,7 @@
 # SP-078 — Competition UI, card copy, and 30-pixel hint
 
 **Phase:** 8 — Competition
-**Status:** In progress
+**Status:** Accepted
 **Branch:** `cursor/sp-078-competition-ui-and-card-copy-f95c`
 **Depends on:** SP-071 identity; SP-072 scores; SP-076 reads (stubs
   allowed with stale/offline labels); SPD-052 stub; SPD-066
@@ -100,10 +100,10 @@ and §23 are V1. Friends UI must stay hidden (SPD-061, SP-071).
 
 | Field | Value |
 | --- | --- |
-| Branch | `cursor/sp-078-competition-ui-and-card-copy-f95c` at `6aa8d63197968a2b1bcee53f22d39ef11776e0d9` |
+| Branch | `cursor/sp-078-competition-ui-and-card-copy-f95c` at `179f2d0521b99a61185a8e2ba90ef0f47404956a` |
 | Test output | See executed output below. Not Accepted. |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Product owner |
+| Accepted date | 2026-08-26 |
 
 ## Executed test output
 

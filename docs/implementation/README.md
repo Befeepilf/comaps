@@ -515,15 +515,15 @@ for milestone UI coding.
 | 75 | [SP-075](work-items/SP-075-backend-competition-core.md) | Backend competition core | 8 | **Accepted** (2026-08-26) — `competition/` ingest + decay |
 | 76 | [SP-076](work-items/SP-076-backend-reads-and-sparse-anonymity.md) | Backend reads and sparse-area anonymity | 8 | **Accepted** (2026-08-26) — server-side N<3 nickname hide |
 | 77 | [SP-077](work-items/SP-077-nickname-moderation-and-deletion.md) | Nickname moderation and profile deletion | 8 | **Accepted** (2026-08-26) — filter, report, 7-day rename, delete |
-| 78 | [SP-078](work-items/SP-078-competition-ui-and-card-copy.md) | Competition UI, card copy, 30-pixel hint | 8 | In progress — §22.10; SPD-066 |
-| 79 | [SP-079](work-items/SP-079-phase8-end-to-end-validation.md) | Phase 8 end-to-end validation | 8 | Not started — exit gate |
+| 78 | [SP-078](work-items/SP-078-competition-ui-and-card-copy.md) | Competition UI, card copy, 30-pixel hint | 8 | **Accepted** (2026-08-26) — §22.10; SPD-066 |
+| 79 | [SP-079](work-items/SP-079-phase8-end-to-end-validation.md) | Phase 8 end-to-end validation | 8 | In progress — exit gate |
 
 Phase 8 work-item planning (2026-08-23) recorded in
 [`phases/phase-08-competition.md`](phases/phase-08-competition.md).
 SP-070 **Accepted** (SPD-057–066; unique nicknames per product-owner
 override of spec §20.4). SP-071 **In progress**. SP-072 **Accepted**
 (2026-08-25). SP-073 **Accepted** (2026-08-25). SP-074 **Accepted**
-(2026-08-26). SP-075 **Accepted** (2026-08-26). SP-076 **Accepted** (2026-08-26). SP-077 **Accepted** (2026-08-26). SP-078 in progress. Detailed work
+(2026-08-26). SP-075 **Accepted** (2026-08-26). SP-076 **Accepted** (2026-08-26). SP-077 **Accepted** (2026-08-26). SP-078 **Accepted** (2026-08-26). SP-079 in progress. Detailed work
 items exist for Phases 1–8. Later phases are broken down after their
 entry criteria are met, and after any spike that phase depends on has a
 recorded outcome.
