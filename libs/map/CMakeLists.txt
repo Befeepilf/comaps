@@ -39,6 +39,8 @@ set(SRC
   first_goal.hpp
   competition_hint.cpp
   competition_hint.hpp
+  competition_snapshot.cpp
+  competition_snapshot.hpp
   live_sample_acceptance_filter.cpp
   live_sample_acceptance_filter.hpp
   live_segment_interpolation.cpp

@@ -4,6 +4,7 @@
 
 #include "map/area_milestone_presentation.hpp"
 #include "map/competition_hint.hpp"
+#include "map/competition_snapshot.hpp"
 #include "map/exploration_haptics.hpp"
 #include "map/first_goal.hpp"
 #include "map/live_sample_acceptance_filter.hpp"
@@ -267,6 +268,11 @@ public:
   void AcknowledgeCompetitionHint();
   void ResetCompetitionHintForTesting();
 
+  street_pixels::CompetitionAreaChrome GetCompetitionAreaChrome(uint64_t osmId) const;
+  street_pixels::FetchAreaSnapshotResult RequestCompetitionAreaSnapshot(uint64_t osmId);
+  std::optional<street_pixels::CompetitionAreaSnapshot> LastCompetitionSnapshot() const;
+  void ResetCompetitionSnapshotForTesting();
+
   using AreaMilestonePresentationChangedFn =
       std::function<void(std::optional<street_pixels::AreaMilestonePresentation> const &)>;
   using AreaMilestoneHapticFn = std::function<void(street_pixels::AreaMilestoneHapticEvent)>;
@@ -391,6 +397,7 @@ private:
   void PushExplorationAreaOverlayUnlocked(street_pixels::SpaFile const & file);
   void RefreshFocusedAreaFractionUnlocked();
   void ClearFocusedAreaUnlocked();
+  std::string ComposeCompetitionLineForOsm(uint64_t osmId, std::string const & displayName = {}) const;
 
   struct OverlayLabel
   {
