@@ -338,6 +338,31 @@ UNIT_TEST(IdentityStore_ProductionClaimPostsRegisterJsonWithoutFriendsHeaders)
   TEST_EQUAL(IdentityStore::GetUsername(), "Alice_1", ());
 }
 
+UNIT_TEST(IdentityStore_DefaultHandlerPostsWhenApiConfigured)
+{
+  ScopedIdentitySettings scoped;
+  IdentityStore::GrantCompetitionConsent();
+  backend::SetApiBaseUrl("https://example.com/api");
+  int posts = 0;
+  std::string lastUrl;
+  std::vector<std::pair<std::string, std::string>> lastHeaders;
+  IdentityStore::SetNicknameClaimPostFnForTesting(
+      [&](std::string const & url, std::string const &,
+          std::vector<std::pair<std::string, std::string>> const & headers)
+      {
+        ++posts;
+        lastUrl = url;
+        lastHeaders = headers;
+        return 200;
+      });
+  TEST(IdentityStore::TryClaimNickname("Alice_1") == IdentityStore::NicknameClaimResult::Ok, ());
+  TEST_EQUAL(posts, 1, ());
+  TEST_EQUAL(lastUrl, "https://example.com/api/v1/competition/register", ());
+  TEST(!HasForbiddenClaimHeader(lastHeaders), ());
+  TEST(lastHeaders.empty(), ());
+  TEST_EQUAL(IdentityStore::GetUsername(), "Alice_1", ());
+}
+
 UNIT_TEST(IdentityStore_ProductionClaimRenameUsesNicknameUrl)
 {
   ScopedIdentitySettings scoped;

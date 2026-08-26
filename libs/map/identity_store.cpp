@@ -647,10 +647,7 @@ IdentityStore::NicknameClaimResult IdentityStore::TryClaimNickname(std::string_v
     handler = ClaimHandler();
   }
   if (!handler)
-  {
-    settings::Set(std::string_view(kNicknameDraftKey), normalized);
-    return NicknameClaimResult::Unavailable;
-  }
+    handler = &IdentityStore::PostNicknameClaim;
 
   int const status = handler(normalized);
   if (status == 409)
