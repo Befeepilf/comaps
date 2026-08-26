@@ -60,11 +60,12 @@ Verified 2026-07-25 against both working trees. **Re-verified 2026-08-23
 | Upload client | `libs/map/explore_stats_service.cpp` | Weekly per-region entries `{regionId, weekStartSec, exploredPixels, version}` plus device id and optional username. Periodic check every **1 minute**. Gated only by `m_syncEnabled`. Aggregation continues even when sharing is off. Persists to `explore_stats.json`. |
 | Endpoint | `libs/map/backend_config.cpp` | `GetStatsUploadUrl` remains `{apiBase}/stats/upload` (unused by competition). Competition helpers: `GetCompetitionAggregatesUrl`, `GetCompetitionRegisterUrl`, `GetCompetitionNicknameUrl`, `GetCompetitionAreaSnapshotUrl(int64_t)`, `GetCompetitionWeeklyBoardUrl(int64_t)`, `GetCompetitionDeleteUrl`, `GetCompetitionReportUrl`, `GetCompetitionLeaveUrl`, `GetCompetitionExportUrl` via `{apiBase}/v1/competition/…`. Empty apiBase → empty string. |
 | Friends client | `libs/map/friends_manager.cpp` | Full friends API client with local cache, `X-Device-Id` and `X-Username` headers |
-| Android UI | `MyAccountDialogFragment`, `ExploreConsentDialogFragment`, `Friends.java`, `item_friend_row.xml` | Friends-first account UI, consent dialog, add-friend deep links registered in the manifest |
+| Android UI | `MyAccountDialogFragment`, `ExploreConsentDialogFragment`, `MapButtonsController`, `FocusedAreaDetailBottomSheet` | Explore/Competition toggle (consent only; default Explore). Competition-mode area sheet binds snapshot chrome, ranking (max 4), offline/stale, ownership vs personal completion. 30-pixel hint badge opens consent. Leave/Delete after nickname. Friends UI stays hidden |
 | Ownership, recency, decay | — | Not found. Ever-live bit exists (`IsEverLive()`, SPD-015). |
 | Area / city ids | `street_pixels::ExplorationArea::m_osmId` | OSM ids in the sidecar. Compact index is not a wire identity. |
-| Card competition line | `CompletionCardSource::m_competitionLine` | Stub (SPD-052). |
-| First-goal counter | `kFirstGoalLivePixelThreshold = 10` | Newly explored live pixels (SPD-047). 30-pixel competition hint not implemented. |
+| Card competition line | `ComposeCompetitionCardLine` via `SetCompetitionLineProvider` | Consent+username required. Eligible boss → leading sentence; else not-leading. No consent/profile → empty (SPD-052). |
+| First-goal counter | `kFirstGoalLivePixelThreshold = 10` | Newly explored live pixels (SPD-047). Unchanged. |
+| 30-pixel competition hint | `CompetitionHintTracker`, `kCompetitionHintLivePixelThreshold = 30` | Independent of first-goal 10. Not on import. Skip present if consent or routing-following. Once per install. |
 
 ### Backend — `comaps_backend` (`Befeepilf/explorer`)
 
