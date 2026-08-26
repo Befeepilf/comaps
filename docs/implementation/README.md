@@ -2,7 +2,7 @@
 
 **Document status:** Living project index
 **Scope of this document:** Android public V1
-**Last structural update:** 2026-08-25
+**Last structural update:** 2026-08-26
 
 This file is the index for Street Pixels implementation work. It intentionally
 contains no implementation detail. Detail belongs in `phases/` and
@@ -83,7 +83,7 @@ V1 scope. Explorer Pro **purchasing** is not.
 | 5 | Area progress and map interaction | [`phases/phase-05-area-progress-and-map-interaction.md`](phases/phase-05-area-progress-and-map-interaction.md) | In progress (phase-entry planning 2026-08-07) |
 | 6 | Exploration-aware routing | [`phases/phase-06-exploration-aware-routing.md`](phases/phase-06-exploration-aware-routing.md) | Not started |
 | 7 | Milestones and share cards | [`phases/phase-07-milestones-and-share-cards.md`](phases/phase-07-milestones-and-share-cards.md) | In progress (SP-069 In review; exit awaiting maintainer) |
-| 8 | Competition | [`phases/phase-08-competition.md`](phases/phase-08-competition.md) | SP-070 Accepted; SP-071 in progress; SP-072–073 Accepted |
+| 8 | Competition | [`phases/phase-08-competition.md`](phases/phase-08-competition.md) | SP-070 Accepted; SP-071 in progress; SP-072–074 Accepted |
 | 9 | GPX and feature gating | [`phases/phase-09-gpx-and-feature-gating.md`](phases/phase-09-gpx-and-feature-gating.md) | Not started |
 | 10 | Android release hardening | [`phases/phase-10-android-release-hardening.md`](phases/phase-10-android-release-hardening.md) | Not started |
 
@@ -511,8 +511,8 @@ for milestone UI coding.
 | 71 | [SP-071](work-items/SP-071-consent-and-competition-identity.md) | Consent record and competition identity | 8 | **In progress** — re-prompt; unique nickname; hide friends |
 | 72 | [SP-072](work-items/SP-072-recency-and-ownership-scoring.md) | Recency store and ownership scoring | 8 | **Accepted** (2026-08-25) — SPD-057 / SPD-058 / SPD-063 |
 | 73 | [SP-073](work-items/SP-073-weekly-city-new-live-pixels.md) | Weekly city new-live-pixel counting | 8 | **Accepted** (2026-08-25) — SPD-060 |
-| 74 | [SP-074](work-items/SP-074-competition-upload-queue.md) | Competition upload queue | 8 | Not started — 15 min + jitter; §25.2 allow-list |
-| 75 | [SP-075](work-items/SP-075-backend-competition-core.md) | Backend competition core | 8 | Not started — `comaps_backend` `competition/` app |
+| 74 | [SP-074](work-items/SP-074-competition-upload-queue.md) | Competition upload queue | 8 | **Accepted** (2026-08-26) — 15 min + jitter; §25.2 allow-list |
+| 75 | [SP-075](work-items/SP-075-backend-competition-core.md) | Backend competition core | 8 | In progress — independent review fixes recorded; not Accepted |
 | 76 | [SP-076](work-items/SP-076-backend-reads-and-sparse-anonymity.md) | Backend reads and sparse-area anonymity | 8 | Not started — server-side N<3 nickname hide |
 | 77 | [SP-077](work-items/SP-077-nickname-moderation-and-deletion.md) | Nickname moderation and profile deletion | 8 | Not started — filter, report, 7-day rename, delete |
 | 78 | [SP-078](work-items/SP-078-competition-ui-and-card-copy.md) | Competition UI, card copy, 30-pixel hint | 8 | Not started — §22.10; SPD-066 |
@@ -522,7 +522,8 @@ Phase 8 work-item planning (2026-08-23) recorded in
 [`phases/phase-08-competition.md`](phases/phase-08-competition.md).
 SP-070 **Accepted** (SPD-057–066; unique nicknames per product-owner
 override of spec §20.4). SP-071 **In progress**. SP-072 **Accepted**
-(2026-08-25). SP-073 **Accepted** (2026-08-25). Backend items SP-075–077 land in `comaps_backend`. Detailed work
+(2026-08-25). SP-073 **Accepted** (2026-08-25). SP-074 **Accepted**
+(2026-08-26). Backend items SP-075–077 land in `comaps_backend` (`Befeepilf/explorer`). SP-075 implementation evidence is recorded; not Accepted. Detailed work
 items exist for Phases 1–8. Later phases are broken down after their
 entry criteria are met, and after any spike that phase depends on has a
 recorded outcome.

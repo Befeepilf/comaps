@@ -122,6 +122,7 @@ void ClearCompetitionUploadSettings()
   settings::Delete("Explore.NicknameDraft");
   settings::Delete("Explore.NicknameLastChangedUnix");
   IdentityStore::SetNicknameClaimHandlerForTesting({});
+  IdentityStore::SetNicknameClaimPostFnForTesting({});
   IdentityStore::SetCompetitionConsentGrantedHandler({});
   platform::SecureStorage storage;
   storage.Remove("Explore.DeviceId");

@@ -1,13 +1,19 @@
 #include "testing/testing.hpp"
 
+#include "map/backend_config.hpp"
 #include "map/identity_store.hpp"
 
+#include "platform/secure_storage.hpp"
 #include "platform/settings.hpp"
 
 #include "base/timer.hpp"
 
+#include <algorithm>
+#include <cctype>
 #include <string>
 #include <string_view>
+#include <utility>
+#include <vector>
 
 namespace
 {
@@ -21,8 +27,12 @@ void ClearIdentityKeys()
   settings::Delete("Explore.Username");
   settings::Delete("Explore.NicknameDraft");
   settings::Delete("Explore.NicknameLastChangedUnix");
+  backend::SetApiBaseUrl("");
   IdentityStore::SetNicknameClaimHandlerForTesting({});
+  IdentityStore::SetNicknameClaimPostFnForTesting({});
   IdentityStore::SetCompetitionConsentGrantedHandler({});
+  platform::SecureStorage storage;
+  storage.Remove("Explore.DeviceId");
 }
 
 class ScopedIdentitySettings
@@ -43,6 +53,27 @@ void ExpectInvalidAndUnpersisted(std::string_view nickname)
   TEST(IdentityStore::TryClaimNickname(nickname) == IdentityStore::NicknameClaimResult::Invalid, ());
   TEST(!IdentityStore::HasUsername(), ());
   TEST(IdentityStore::GetUsername().empty(), ());
+}
+
+bool IdentityJsonHasQuotedKey(std::string const & json, std::string_view key)
+{
+  std::string const needle = "\"" + std::string(key) + "\"";
+  return json.find(needle) != std::string::npos;
+}
+
+bool HasForbiddenClaimHeader(std::vector<std::pair<std::string, std::string>> const & headers)
+{
+  for (auto const & header : headers)
+  {
+    std::string name = header.first;
+    std::transform(name.begin(), name.end(), name.begin(),
+                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    if (name == "x-device-id" || name == "x-username")
+      return true;
+    if (name.find("friend") != std::string::npos)
+      return true;
+  }
+  return false;
 }
 }  // namespace
 
@@ -249,4 +280,110 @@ UNIT_TEST(IdentityStore_SameNicknameReclaimIsNotLimited)
   TEST(!IdentityStore::CanRenameNickname(), ());
   TEST(IdentityStore::TryClaimNickname("Alice_1") == IdentityStore::NicknameClaimResult::Ok, ());
   TEST_EQUAL(IdentityStore::GetUsername(), "Alice_1", ());
+}
+
+UNIT_TEST(IdentityStore_ProductionClaimEmptyApiNoHttp)
+{
+  ScopedIdentitySettings scoped;
+  IdentityStore::GrantCompetitionConsent();
+  backend::SetApiBaseUrl("");
+  IdentityStore::SetNicknameClaimHandlerForTesting(&IdentityStore::PostNicknameClaim);
+  int posts = 0;
+  IdentityStore::SetNicknameClaimPostFnForTesting(
+      [&](std::string const &, std::string const &,
+          std::vector<std::pair<std::string, std::string>> const &)
+      {
+        ++posts;
+        return 200;
+      });
+  TEST(IdentityStore::TryClaimNickname("Alice_1") == IdentityStore::NicknameClaimResult::Unavailable, ());
+  TEST_EQUAL(posts, 0, ());
+  TEST(!IdentityStore::HasUsername(), ());
+  TEST_EQUAL(IdentityStore::GetNicknameDraft(), "Alice_1", ());
+}
+
+UNIT_TEST(IdentityStore_ProductionClaimPostsRegisterJsonWithoutFriendsHeaders)
+{
+  ScopedIdentitySettings scoped;
+  IdentityStore::GrantCompetitionConsent();
+  backend::SetApiBaseUrl("https://example.com/api");
+  IdentityStore::SetNicknameClaimHandlerForTesting(&IdentityStore::PostNicknameClaim);
+  int posts = 0;
+  std::string lastUrl;
+  std::string lastBody;
+  std::vector<std::pair<std::string, std::string>> lastHeaders;
+  IdentityStore::SetNicknameClaimPostFnForTesting(
+      [&](std::string const & url, std::string const & body,
+          std::vector<std::pair<std::string, std::string>> const & headers)
+      {
+        ++posts;
+        lastUrl = url;
+        lastBody = body;
+        lastHeaders = headers;
+        return 200;
+      });
+  TEST(IdentityStore::TryClaimNickname("Alice_1") == IdentityStore::NicknameClaimResult::Ok, ());
+  TEST_EQUAL(posts, 1, ());
+  TEST_EQUAL(lastUrl, backend::GetCompetitionRegisterUrl(), ());
+  TEST_EQUAL(lastUrl, "https://example.com/api/v1/competition/register", ());
+  TEST(IdentityJsonHasQuotedKey(lastBody, "profile_id"), (lastBody));
+  TEST(IdentityJsonHasQuotedKey(lastBody, "nickname"), (lastBody));
+  TEST(IdentityJsonHasQuotedKey(lastBody, "consent_policy_version"), (lastBody));
+  TEST(IdentityJsonHasQuotedKey(lastBody, "consent_unix"), (lastBody));
+  TEST(lastBody.find("Alice_1") != std::string::npos, (lastBody));
+  TEST(lastBody.find(IdentityStore::GetOrCreateDeviceId()) != std::string::npos, (lastBody));
+  TEST(!HasForbiddenClaimHeader(lastHeaders), ());
+  TEST(lastHeaders.empty(), ());
+  TEST(IdentityStore::HasUsername(), ());
+  TEST_EQUAL(IdentityStore::GetUsername(), "Alice_1", ());
+}
+
+UNIT_TEST(IdentityStore_DefaultHandlerPostsWhenApiConfigured)
+{
+  ScopedIdentitySettings scoped;
+  IdentityStore::GrantCompetitionConsent();
+  backend::SetApiBaseUrl("https://example.com/api");
+  int posts = 0;
+  std::string lastUrl;
+  std::vector<std::pair<std::string, std::string>> lastHeaders;
+  IdentityStore::SetNicknameClaimPostFnForTesting(
+      [&](std::string const & url, std::string const &,
+          std::vector<std::pair<std::string, std::string>> const & headers)
+      {
+        ++posts;
+        lastUrl = url;
+        lastHeaders = headers;
+        return 200;
+      });
+  TEST(IdentityStore::TryClaimNickname("Alice_1") == IdentityStore::NicknameClaimResult::Ok, ());
+  TEST_EQUAL(posts, 1, ());
+  TEST_EQUAL(lastUrl, "https://example.com/api/v1/competition/register", ());
+  TEST(!HasForbiddenClaimHeader(lastHeaders), ());
+  TEST(lastHeaders.empty(), ());
+  TEST_EQUAL(IdentityStore::GetUsername(), "Alice_1", ());
+}
+
+UNIT_TEST(IdentityStore_ProductionClaimRenameUsesNicknameUrl)
+{
+  ScopedIdentitySettings scoped;
+  IdentityStore::GrantCompetitionConsent();
+  backend::SetApiBaseUrl("https://example.com/api");
+  IdentityStore::SetNicknameClaimHandlerForTesting(&IdentityStore::PostNicknameClaim);
+  std::string lastUrl;
+  IdentityStore::SetNicknameClaimPostFnForTesting(
+      [&](std::string const & url, std::string const &,
+          std::vector<std::pair<std::string, std::string>> const & headers)
+      {
+        TEST(!HasForbiddenClaimHeader(headers), ());
+        lastUrl = url;
+        return 200;
+      });
+  TEST(IdentityStore::TryClaimNickname("Alice_1") == IdentityStore::NicknameClaimResult::Ok, ());
+  TEST_EQUAL(lastUrl, backend::GetCompetitionRegisterUrl(), ());
+  uint64_t const aged = base::SecondsSinceEpoch() - IdentityStore::kNicknameRenameIntervalSeconds;
+  settings::Set("Explore.NicknameLastChangedUnix", aged);
+  TEST(IdentityStore::TryClaimNickname("Alice Birch") == IdentityStore::NicknameClaimResult::Ok, ());
+  TEST_EQUAL(lastUrl, backend::GetCompetitionNicknameUrl(), ());
+  TEST_EQUAL(lastUrl, "https://example.com/api/v1/competition/nickname", ());
+  TEST_EQUAL(IdentityStore::GetUsername(), "Alice Birch", ());
 }

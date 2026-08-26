@@ -1,7 +1,7 @@
 # SP-074 — Competition upload queue
 
 **Phase:** 8 — Competition
-**Status:** In progress
+**Status:** Accepted
 **Branch:** `cursor/sp-074-competition-upload-queue-f95c`
 **Depends on:** SP-070 (SPD-014, SPD-062, SPD-064, SPD-065); SP-071
   consent; SP-072 scores; SP-073 weekly counts
@@ -101,8 +101,8 @@ exists so competition cannot act as a live-location signal.
 | Branch | `cursor/sp-074-competition-upload-queue-f95c` |
 | Test output | See executed output below. Cwd `/workspace`. Binary `/home/ubuntu/omim-build-debug/street_pixels_tests`. `--data_path=data --user_resource_path=data`. `EXIT_UPLOAD=0`, `EXIT_REGRESSION=0`. Tests run at `3b3f3c07c`. |
 | Endpoint path | `{apiBase}/v1/competition/aggregates` (`backend::GetCompetitionAggregatesUrl()`). Empty `apiBase` → empty URL. Does not call `GetStatsUploadUrl()`. |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Product owner |
+| Accepted date | 2026-08-26 |
 
 ## Executed test output
 

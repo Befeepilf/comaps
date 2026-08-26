@@ -76,6 +76,36 @@ UNIT_TEST(BackendConfig_CompetitionAggregatesUrlNeverUsesStatsUpload)
   ClearApiBaseUrl();
 }
 
+UNIT_TEST(BackendConfig_CompetitionRegisterUrlEmptyWhenUnconfigured)
+{
+  ClearApiBaseUrl();
+  TEST(backend::GetCompetitionRegisterUrl().empty(), ());
+}
+
+UNIT_TEST(BackendConfig_CompetitionRegisterUrlWhenConfigured)
+{
+  ClearApiBaseUrl();
+  backend::SetApiBaseUrl("https://example.com/api/");
+  TEST_EQUAL(backend::GetCompetitionRegisterUrl(), "https://example.com/api/v1/competition/register", ());
+  TEST(backend::GetCompetitionRegisterUrl().find("/stats/upload") == std::string::npos, ());
+  ClearApiBaseUrl();
+}
+
+UNIT_TEST(BackendConfig_CompetitionNicknameUrlEmptyWhenUnconfigured)
+{
+  ClearApiBaseUrl();
+  TEST(backend::GetCompetitionNicknameUrl().empty(), ());
+}
+
+UNIT_TEST(BackendConfig_CompetitionNicknameUrlWhenConfigured)
+{
+  ClearApiBaseUrl();
+  backend::SetApiBaseUrl("https://example.com/api");
+  TEST_EQUAL(backend::GetCompetitionNicknameUrl(), "https://example.com/api/v1/competition/nickname", ());
+  TEST(backend::GetCompetitionNicknameUrl().find("/stats/upload") == std::string::npos, ());
+  ClearApiBaseUrl();
+}
+
 UNIT_TEST(ExploreStatsUpload_DecisionGateWhenApiUnconfigured)
 {
   ClearApiBaseUrl();
