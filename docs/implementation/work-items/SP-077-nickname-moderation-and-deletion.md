@@ -1,8 +1,8 @@
 # SP-077 — Nickname moderation and profile deletion
 
 **Phase:** 8 — Competition
-**Status:** Not started
-**Branch:**
+**Status:** In progress
+**Branch:** backend `cursor/sp-077-nickname-moderation-deletion-f95c` (`Befeepilf/explorer`); client `cursor/sp-077-nickname-moderation-deletion-f95c` (`Befeepilf/comaps`)
 **Depends on:** SP-071 identity; SP-075 profiles
 **Unblocks:** SP-079 deletion / rename checks
 **Repositories:** `comaps` (client) and `comaps_backend`
