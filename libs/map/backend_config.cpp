@@ -67,3 +67,13 @@ std::string backend::GetCompetitionNicknameUrl()
 {
   return CompetitionUrl("nickname");
 }
+
+std::string backend::GetCompetitionAreaSnapshotUrl(int64_t areaOsmId)
+{
+  return CompetitionUrl("areas/" + std::to_string(areaOsmId));
+}
+
+std::string backend::GetCompetitionWeeklyBoardUrl(int64_t cityOsmId)
+{
+  return CompetitionUrl("weekly/" + std::to_string(cityOsmId));
+}
