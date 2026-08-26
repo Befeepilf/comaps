@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <string_view>
 
@@ -12,4 +13,6 @@ std::string GetStatsUploadUrl();
 std::string GetCompetitionAggregatesUrl();
 std::string GetCompetitionRegisterUrl();
 std::string GetCompetitionNicknameUrl();
+std::string GetCompetitionAreaSnapshotUrl(int64_t areaOsmId);
+std::string GetCompetitionWeeklyBoardUrl(int64_t cityOsmId);
 }
