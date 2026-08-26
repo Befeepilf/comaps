@@ -22,14 +22,14 @@ namespace
 {
 std::string Writable(std::string const & name) { return base::JoinPath(GetPlatform().WritableDir(), name); }
 
-void RemoveRecencyDb(std::string const & path)
+void RemoveDeletionRecencyDb(std::string const & path)
 {
   Platform::RemoveFileIfExists(path);
   Platform::RemoveFileIfExists(path + "-wal");
   Platform::RemoveFileIfExists(path + "-shm");
 }
 
-void ClearIdentityKeys()
+void ClearDeletionIdentityKeys()
 {
   settings::Delete("Explore.ConsentGiven");
   settings::Delete("Explore.CompetitionEnabled");
@@ -55,15 +55,16 @@ public:
   ScopedDeletionFixture()
     : m_pixPath(Writable("sp077_delete.pix"))
     , m_dbPath(Writable("sp077_delete_recency.db"))
+    , m_store(m_dbPath)
   {
-    ClearIdentityKeys();
+    ClearDeletionIdentityKeys();
     Platform::RemoveFileIfExists(m_pixPath);
-    RemoveRecencyDb(m_dbPath);
+    RemoveDeletionRecencyDb(m_dbPath);
+    m_store.Reopen(m_dbPath);
 
     street_pixels_file::ExploredEverLiveMap seed{{kPixelId, true}};
     TEST(street_pixels_file::SaveRematchedUniverse(m_pixPath, std::set<int64_t>{kPixelId}, seed, 42), ());
     m_before = street_pixels_file::ProbeFile(m_pixPath);
-    m_store.Reopen(m_dbPath);
     m_store.TouchLiveVisits({kPixelId}, 12345);
     TEST_EQUAL(*m_store.GetLastLiveVisit(kPixelId), 12345, ());
 
@@ -75,9 +76,9 @@ public:
 
   ~ScopedDeletionFixture()
   {
-    ClearIdentityKeys();
+    ClearDeletionIdentityKeys();
     Platform::RemoveFileIfExists(m_pixPath);
-    RemoveRecencyDb(m_dbPath);
+    RemoveDeletionRecencyDb(m_dbPath);
   }
 
   std::string const & PixPath() const { return m_pixPath; }
