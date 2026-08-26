@@ -22,6 +22,20 @@ public:
     Unavailable
   };
 
+  enum class CompetitionAccountResult
+  {
+    Ok,
+    Unavailable
+  };
+
+  enum class NicknameReportResult
+  {
+    Ok,
+    Invalid,
+    NotFound,
+    Unavailable
+  };
+
   using NicknameClaimHandler = std::function<int(std::string_view)>;
   using NicknameClaimPostFn =
       std::function<int(std::string const & url, std::string const & body,
@@ -60,6 +74,9 @@ public:
   static int PostNicknameClaim(std::string_view nickname);
   static NicknameClaimResult TryClaimNickname(std::string_view nickname);
   static bool CanRenameNickname();
+  static CompetitionAccountResult LeaveCompetitionRetain();
+  static CompetitionAccountResult DeleteCompetitionProfile();
+  static NicknameReportResult ReportNickname(std::string_view target, std::string_view reason);
 
 private:
   static std::string GenerateDeviceId();

@@ -77,3 +77,23 @@ std::string backend::GetCompetitionWeeklyBoardUrl(int64_t cityOsmId)
 {
   return CompetitionUrl("weekly/" + std::to_string(cityOsmId));
 }
+
+std::string backend::GetCompetitionDeleteUrl()
+{
+  return CompetitionUrl("delete");
+}
+
+std::string backend::GetCompetitionReportUrl()
+{
+  return CompetitionUrl("reports");
+}
+
+std::string backend::GetCompetitionLeaveUrl()
+{
+  return CompetitionUrl("leave");
+}
+
+std::string backend::GetCompetitionExportUrl()
+{
+  return CompetitionUrl("export");
+}

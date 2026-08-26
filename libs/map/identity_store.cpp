@@ -77,6 +77,26 @@ int DefaultNicknameClaimPost(std::string const & url, std::string const & body,
   return req.ErrorCode();
 }
 
+int PostCompetitionJson(std::string const & url, std::string const & json)
+{
+  if (url.empty())
+    return 0;
+  IdentityStore::NicknameClaimPostFn post;
+  {
+    std::lock_guard<std::mutex> lock(ClaimPostMutex());
+    post = ClaimPostFn();
+  }
+  if (!post)
+    post = &DefaultNicknameClaimPost;
+  return post(url, json, {});
+}
+
+bool IsAllowedReportReason(std::string_view reason)
+{
+  return reason == "hate" || reason == "threats" || reason == "harassment" ||
+         reason == "impersonation" || reason == "spam" || reason == "other";
+}
+
 struct NicknameClaimBody
 {
   std::string m_profileId;
@@ -86,6 +106,23 @@ struct NicknameClaimBody
 
   DECLARE_VISITOR(visitor(m_profileId, "profile_id"), visitor(m_nickname, "nickname"),
                   visitor(m_consentPolicyVersion, "consent_policy_version"), visitor(m_consentUnix, "consent_unix"))
+};
+
+struct ProfileIdBody
+{
+  std::string m_profileId;
+
+  DECLARE_VISITOR(visitor(m_profileId, "profile_id"))
+};
+
+struct NicknameReportBody
+{
+  std::string m_profileId;
+  std::string m_targetNickname;
+  std::string m_reason;
+
+  DECLARE_VISITOR(visitor(m_profileId, "profile_id"), visitor(m_targetNickname, "target_nickname"),
+                  visitor(m_reason, "reason"))
 };
 
 IdentityStore::CompetitionConsentGrantedHandler & ConsentGrantedHandler()
@@ -676,6 +713,81 @@ bool IdentityStore::CanRenameNickname()
     return true;
   uint64_t const now = base::SecondsSinceEpoch();
   return now >= lastChanged && (now - lastChanged) >= kNicknameRenameIntervalSeconds;
+}
+
+IdentityStore::CompetitionAccountResult IdentityStore::LeaveCompetitionRetain()
+{
+  std::string const url = backend::GetCompetitionLeaveUrl();
+  int status = 200;
+  if (!url.empty())
+  {
+    ProfileIdBody body;
+    body.m_profileId = GetOrCreateDeviceId();
+    std::string json;
+    {
+      using Sink = MemWriter<std::string>;
+      Sink sink(json);
+      coding::SerializerJson<Sink> ser(sink);
+      ser(body);
+    }
+    status = PostCompetitionJson(url, json);
+  }
+  RevokeCompetitionConsent();
+  if (url.empty() || status == 200)
+    return CompetitionAccountResult::Ok;
+  return CompetitionAccountResult::Unavailable;
+}
+
+IdentityStore::CompetitionAccountResult IdentityStore::DeleteCompetitionProfile()
+{
+  std::string const url = backend::GetCompetitionDeleteUrl();
+  if (url.empty())
+    return CompetitionAccountResult::Unavailable;
+  ProfileIdBody body;
+  body.m_profileId = GetOrCreateDeviceId();
+  std::string json;
+  {
+    using Sink = MemWriter<std::string>;
+    Sink sink(json);
+    coding::SerializerJson<Sink> ser(sink);
+    ser(body);
+  }
+  int const status = PostCompetitionJson(url, json);
+  if (status == 200 || status == 404)
+  {
+    RevokeCompetitionConsent();
+    ClearUsername();
+    return CompetitionAccountResult::Ok;
+  }
+  return CompetitionAccountResult::Unavailable;
+}
+
+IdentityStore::NicknameReportResult IdentityStore::ReportNickname(std::string_view target,
+                                                                 std::string_view reason)
+{
+  std::string const normalized = NormalizeNickname(target);
+  if (!IsValidNickname(normalized) || !IsAllowedReportReason(reason))
+    return NicknameReportResult::Invalid;
+  std::string const url = backend::GetCompetitionReportUrl();
+  if (url.empty())
+    return NicknameReportResult::Unavailable;
+  NicknameReportBody body;
+  body.m_profileId = GetOrCreateDeviceId();
+  body.m_targetNickname = normalized;
+  body.m_reason = std::string(reason);
+  std::string json;
+  {
+    using Sink = MemWriter<std::string>;
+    Sink sink(json);
+    coding::SerializerJson<Sink> ser(sink);
+    ser(body);
+  }
+  int const status = PostCompetitionJson(url, json);
+  if (status == 200)
+    return NicknameReportResult::Ok;
+  if (status == 404)
+    return NicknameReportResult::NotFound;
+  return NicknameReportResult::Unavailable;
 }
 
 std::string IdentityStore::GenerateDeviceId()
