@@ -106,6 +106,37 @@ UNIT_TEST(BackendConfig_CompetitionNicknameUrlWhenConfigured)
   ClearApiBaseUrl();
 }
 
+UNIT_TEST(BackendConfig_CompetitionAreaSnapshotUrlEmptyWhenUnconfigured)
+{
+  ClearApiBaseUrl();
+  TEST(backend::GetCompetitionAreaSnapshotUrl(10).empty(), ());
+}
+
+UNIT_TEST(BackendConfig_CompetitionAreaSnapshotUrlWhenConfigured)
+{
+  ClearApiBaseUrl();
+  backend::SetApiBaseUrl("https://example.com/api/");
+  TEST_EQUAL(backend::GetCompetitionAreaSnapshotUrl(10), "https://example.com/api/v1/competition/areas/10", ());
+  TEST_EQUAL(backend::GetCompetitionAreaSnapshotUrl(-123), "https://example.com/api/v1/competition/areas/-123", ());
+  TEST(backend::GetCompetitionAreaSnapshotUrl(10).find("/stats/upload") == std::string::npos, ());
+  ClearApiBaseUrl();
+}
+
+UNIT_TEST(BackendConfig_CompetitionWeeklyBoardUrlEmptyWhenUnconfigured)
+{
+  ClearApiBaseUrl();
+  TEST(backend::GetCompetitionWeeklyBoardUrl(20).empty(), ());
+}
+
+UNIT_TEST(BackendConfig_CompetitionWeeklyBoardUrlWhenConfigured)
+{
+  ClearApiBaseUrl();
+  backend::SetApiBaseUrl("https://example.com/api");
+  TEST_EQUAL(backend::GetCompetitionWeeklyBoardUrl(20), "https://example.com/api/v1/competition/weekly/20", ());
+  TEST(backend::GetCompetitionWeeklyBoardUrl(20).find("/stats/upload") == std::string::npos, ());
+  ClearApiBaseUrl();
+}
+
 UNIT_TEST(ExploreStatsUpload_DecisionGateWhenApiUnconfigured)
 {
   ClearApiBaseUrl();

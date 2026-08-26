@@ -1,8 +1,8 @@
 # SP-076 — Backend reads and sparse-area anonymity
 
 **Phase:** 8 — Competition
-**Status:** Not started
-**Branch:**
+**Status:** In progress
+**Branch:** backend `cursor/sp-076-backend-reads-sparse-anonymity-f95c` (`Befeepilf/explorer`); client `cursor/sp-076-backend-reads-sparse-anonymity-f95c` (`Befeepilf/comaps`)
 **Depends on:** SP-075 ingest + decay; SPD-058, SPD-060
 **Unblocks:** SP-078 (area snapshot, weekly board, overtaking hints)
 **Repository:** `comaps_backend`
@@ -85,13 +85,46 @@ counts (SP-073 / SP-074); the server must not reintroduce those.
 
 | Field | Value |
 | --- | --- |
-| Branch (backend) | |
-| Test output | |
+| Branch (backend) | `cursor/sp-076-backend-reads-sparse-anonymity-f95c` on `Befeepilf/explorer` at `06e5c067f8c506bc9c66e9473b495cf44d84fc34` |
+| Branch (client) | `cursor/sp-076-backend-reads-sparse-anonymity-f95c` on `Befeepilf/comaps` at `ac4cd5ec4cb2a6d999c695f15ac9ccdec9a0884f` |
+| Test output | Independent review added leak/ineligible/throttle tests. Explorer `uv run pytest -q` → `81 passed, 4 warnings in 0.87s`. Client C++ not changed; prior `street_pixels_tests --filter='BackendConfig_Competition'` still applies. Full log: `/opt/cursor/artifacts/sp076_review_explorer_pytest.log`. |
 | Accepted by | |
 | Accepted date | |
+
+## Executed test output
+
+Independent review re-run (`cd /home/ubuntu/explorer-src/explorer && uv run pytest -q`):
+
+```
+........................................................................ [ 88%]
+.........                                                                [100%]
+81 passed, 4 warnings in 0.87s
+```
+
+Client C++ was not modified in this review. Prior client filter run remains:
+
+```
+=== street_pixels_tests --filter='BackendConfig_Competition' ===
+Running backend_config_tests.cpp::BackendConfig_CompetitionAggregatesUrlEmptyWhenUnconfigured
+OK
+...
+Running backend_config_tests.cpp::BackendConfig_CompetitionAreaSnapshotUrlEmptyWhenUnconfigured
+OK
+Running backend_config_tests.cpp::BackendConfig_CompetitionAreaSnapshotUrlWhenConfigured
+OK
+Running backend_config_tests.cpp::BackendConfig_CompetitionWeeklyBoardUrlEmptyWhenUnconfigured
+OK
+Running backend_config_tests.cpp::BackendConfig_CompetitionWeeklyBoardUrlWhenConfigured
+OK
+
+All tests passed.
+```
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| `competition/city_timezones.py` starts as an empty dict; missing/invalid IANA names fall back to UTC (never Europe/Helsinki). Production city→IANA mapping is not loaded from sidecar/city records. | Keep UTC fallback (SPD-060). Persist/register city IANA zones when city records exist. |
+| `ninja_extra.DynamicRateThrottle()` overwrote subclass `scope` with `None`, so register/nickname/ingest/read shared one cache key. SP-076 passes class `rate`/`scope` into `__init__`. | Keep. |
+| Ingest still stores `week_start_unix` as UTC Monday of `last_update_unix`. Reads ignore that column and recompute membership from `last_update_unix` in the city zone. | Keep. |
+| Independent review (2026-08-26): required hunt coverage for raw JSON nickname/`profile_id` leaks, ineligible runner-up contested, weekly N from current-week rows only, friends headers, `/stats/upload` alias, and distinct throttle scopes was missing. Tests added; implementation held (`81 passed, 4 warnings in 0.87s`). | Keep. |
