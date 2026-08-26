@@ -90,13 +90,39 @@ shown to others. Leaving competition must offer keep-stats vs delete.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Test output | |
+| Branch | backend `cursor/sp-077-nickname-moderation-deletion-f95c` (`Befeepilf/explorer`) at `6bd5c1476fccf436619090190f9e60d546172ae6`; client `cursor/sp-077-nickname-moderation-deletion-f95c` (`Befeepilf/comaps`) at `183393ecd68503dce937513aee192be4d37db1bf` |
+| Test output | See executed output below. Not Accepted. |
 | Accepted by | |
 | Accepted date | |
+
+## Executed test output
+
+Explorer (`cd /home/ubuntu/explorer-src/explorer && uv run pytest -q`):
+
+```
+........................................................................ [ 67%]
+...................................                                      [100%]
+107 passed, 4 warnings in 1.04s
+```
+
+Client (`./tools/unix/build_omim.sh -d -p "$HOME" street_pixels_tests` then `/home/ubuntu/omim-build-debug/street_pixels_tests --data_path=/workspace/data --user_resource_path=/workspace/data --filter='IdentityStore_|BackendConfig_Competition|CompetitionDeletion_'`):
+
+```
+All tests passed.
+```
+
+46 tests ran (19 BackendConfig_Competition, 2 CompetitionDeletion, 25 IdentityStore). Full logs: `/opt/cursor/artifacts/sp077_explorer_pytest.log`, `/opt/cursor/artifacts/sp077_street_pixels_tests.log`.
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| V1 blocked list is a small whole-token set, not a complete §21.2 taxonomy | Residual; expand later |
+| Temporary/permanent competition suspension for repeated abuse (§21.3) | Not SP-077 |
+| Client still locally 7-day-gates after admin reset; server allows immediate POST | SP-078: when a snapshot nickname differs from local, adopt it without writing `Explore.NicknameLastChangedUnix` |
+| HTTP 409 `rename_limited` currently mapped to `Collision` if it ever reaches the client | Residual; local gate should hide it |
+| Failed `POST /leave` after local revoke has no retry queue | Follow-up retry |
+| `TryClaimNickname` does not parse conflict `type` | Residual |
+| Report expiry purge has no cron | Ops; command `competition_purge_silent` exists |
+| Exact EU region string for privacy policy | SPD-062 ops lock |
+| Unicode script-table vs category gaps between client and server | Residual; server remains authority (SP-075) |
