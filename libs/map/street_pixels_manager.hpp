@@ -272,6 +272,8 @@ public:
   street_pixels::FetchAreaSnapshotResult RequestCompetitionAreaSnapshot(uint64_t osmId);
   std::optional<street_pixels::CompetitionAreaSnapshot> LastCompetitionSnapshot() const;
   void ResetCompetitionSnapshotForTesting();
+  std::optional<std::string> PeekCompetitionHintText() const;
+  std::optional<std::string> TryConsumeOvertakingHint(bool routingFollowing);
 
   using AreaMilestonePresentationChangedFn =
       std::function<void(std::optional<street_pixels::AreaMilestonePresentation> const &)>;

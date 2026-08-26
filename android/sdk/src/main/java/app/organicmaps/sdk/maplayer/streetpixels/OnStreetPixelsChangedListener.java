@@ -55,6 +55,13 @@ class OnStreetPixelsChangedListener
     StreetPixelsManager.notifyAreaMilestonePresentation(presentation);
   }
 
+  @Keep
+  @SuppressWarnings("unused")
+  public void onCompetitionHintReady()
+  {
+    StreetPixelsManager.notifyCompetitionHintReady();
+  }
+
   public void attach(@NonNull StreetPixelsErrorDialogListener listener)
   {
     mListener = listener;

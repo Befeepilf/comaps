@@ -41,4 +41,88 @@
     tools:text="Personal pixels still work."
     tools:visibility="visible" />
 
+  <LinearLayout
+    android:id="@+id/competition_block"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:visibility="gone"
+    android:layout_marginStart="@dimen/margin_base"
+    android:layout_marginEnd="@dimen/margin_base">
+
+    <com.google.android.material.textview.MaterialTextView
+      android:id="@+id/competition_status"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="@dimen/margin_half"
+      android:textAppearance="@style/MwmTextAppearance.Body3"
+      android:visibility="gone" />
+
+    <com.google.android.material.textview.MaterialTextView
+      android:id="@+id/competition_state_label"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="@dimen/margin_half"
+      android:textAppearance="@style/MwmTextAppearance.Body1"
+      android:visibility="gone" />
+
+    <com.google.android.material.textview.MaterialTextView
+      android:id="@+id/competition_boss_line"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="@dimen/margin_half"
+      android:textAppearance="@style/MwmTextAppearance.Body1"
+      android:visibility="gone" />
+
+    <com.google.android.material.textview.MaterialTextView
+      android:id="@+id/competition_gap_line"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="@dimen/margin_half"
+      android:textAppearance="@style/MwmTextAppearance.Body3"
+      android:visibility="gone" />
+
+    <com.google.android.material.textview.MaterialTextView
+      android:id="@+id/competition_ownership_score"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="@dimen/margin_half"
+      android:textAppearance="@style/MwmTextAppearance.Body3"
+      android:visibility="gone" />
+
+    <com.google.android.material.textview.MaterialTextView
+      android:id="@+id/competition_personal_completion"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="@dimen/margin_half"
+      android:textAppearance="@style/MwmTextAppearance.Body3"
+      android:visibility="gone" />
+
+    <LinearLayout
+      android:id="@+id/competition_ranking_rows"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:layout_marginTop="@dimen/margin_half"
+      android:visibility="gone" />
+
+    <com.google.android.material.textview.MaterialTextView
+      android:id="@+id/competition_weekly_title"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="@dimen/margin_base"
+      android:text="@string/competition_weekly_title"
+      android:textAppearance="@style/MwmTextAppearance.Headline6"
+      android:visibility="gone" />
+
+    <com.google.android.material.textview.MaterialTextView
+      android:id="@+id/competition_weekly_body"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="@dimen/margin_half"
+      android:layout_marginBottom="@dimen/margin_base"
+      android:textAppearance="@style/MwmTextAppearance.Body3"
+      android:visibility="gone" />
+  </LinearLayout>
+
 </LinearLayout>

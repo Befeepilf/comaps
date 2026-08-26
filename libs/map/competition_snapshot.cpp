@@ -15,6 +15,7 @@ namespace street_pixels
 namespace
 {
 constexpr char kMapModeKey[] = "StreetPixels.CompetitionMapMode";
+constexpr char kOvertakingLastUnixKey[] = "StreetPixels.OvertakingHintLastUnix";
 
 street_pixels::CompetitionGetFn & GetFn()
 {
@@ -313,5 +314,26 @@ FetchAreaSnapshotResult FetchAreaSnapshot(int64_t areaOsmId, std::string const &
   result.m_snapshot = parsed;
   result.m_chrome = BuildCompetitionAreaChrome(parsed);
   return result;
+}
+
+bool ShouldEmitOvertakingHint(uint64_t nowUnix)
+{
+  uint64_t last = 0;
+  settings::TryGet(kOvertakingLastUnixKey, last);
+  if (last == 0)
+    return true;
+  if (nowUnix < last)
+    return true;
+  return (nowUnix - last) >= kOvertakingHintMinIntervalSeconds;
+}
+
+void MarkOvertakingHintEmitted(uint64_t nowUnix)
+{
+  settings::Set(kOvertakingLastUnixKey, nowUnix);
+}
+
+void ClearOvertakingHintForTesting()
+{
+  settings::Delete(kOvertakingLastUnixKey);
 }
 }  // namespace street_pixels

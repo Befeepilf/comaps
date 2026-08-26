@@ -561,6 +561,55 @@ void StreetPixelsManager::ResetCompetitionSnapshotForTesting()
   street_pixels::ClearCompetitionSnapshotCacheForTesting();
   street_pixels::SetCompetitionGetFnForTesting({});
   street_pixels::SetCompetitionMapMode(street_pixels::CompetitionMapMode::Explore);
+  street_pixels::ClearOvertakingHintForTesting();
+}
+
+std::optional<std::string> StreetPixelsManager::PeekCompetitionHintText() const
+{
+  auto const progress = m_competitionHintTracker.Snapshot();
+  if (!progress.m_complete || progress.m_presented || IdentityStore::HasCompetitionConsent())
+    return std::nullopt;
+  auto const focused = GetFocusedAreaProgress();
+  bool const hasName = focused.m_hasFocus && !focused.m_displayName.empty();
+  std::optional<street_pixels::CompetitionAreaSnapshot> snap = street_pixels::LastAreaSnapshot();
+  bool approaching = false;
+  bool isBoss = false;
+  if (focused.m_hasFocus && focused.m_osmId != 0)
+  {
+    auto const query = QueryCompetitionOwnership(focused.m_osmId);
+    approaching = !query.m_eligible && query.m_uniqueLivePixels > 0;
+    isBoss = query.m_localIsBoss;
+    if (snap.has_value() && snap->m_areaOsmId != static_cast<int64_t>(focused.m_osmId))
+      snap.reset();
+  }
+  auto const kind = street_pixels::SelectCompetitionHintKind(snap, approaching, isBoss, hasName);
+  return street_pixels::ComposeCompetitionHintText(kind, focused.m_displayName);
+}
+
+std::optional<std::string> StreetPixelsManager::TryConsumeOvertakingHint(bool routingFollowing)
+{
+  if (routingFollowing || !IdentityStore::HasCompetitionConsent())
+    return std::nullopt;
+  uint64_t const now = static_cast<uint64_t>(base::SecondsSinceEpoch());
+  if (!street_pixels::ShouldEmitOvertakingHint(now))
+    return std::nullopt;
+  auto const focused = GetFocusedAreaProgress();
+  std::optional<street_pixels::CompetitionAreaSnapshot> snap = street_pixels::LastAreaSnapshot();
+  bool approaching = false;
+  bool isBoss = false;
+  if (focused.m_hasFocus && focused.m_osmId != 0)
+  {
+    auto const query = QueryCompetitionOwnership(focused.m_osmId);
+    approaching = !query.m_eligible && query.m_uniqueLivePixels > 0;
+    isBoss = query.m_localIsBoss;
+    if (snap.has_value() && snap->m_areaOsmId != static_cast<int64_t>(focused.m_osmId))
+      snap.reset();
+  }
+  auto const kind = street_pixels::SelectOvertakingHintKind(snap, approaching, isBoss);
+  if (!kind.has_value())
+    return std::nullopt;
+  street_pixels::MarkOvertakingHintEmitted(now);
+  return street_pixels::ComposeOvertakingHintText(*kind, focused.m_displayName);
 }
 
 void StreetPixelsManager::SetAreaMilestonePresentationListener(AreaMilestonePresentationChangedFn const & fn)

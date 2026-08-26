@@ -24,12 +24,15 @@ import app.organicmaps.R;
 public class MyAccountDialogFragment extends DialogFragment
 {
   public static final String ARG_ADD_FRIEND_USERNAME = "add_friend_username";
+  public static final String RESULT_COMPETITION_ACCOUNT = "competition_account_changed";
 
   private MaterialSwitch mSyncSwitch;
   private TextInputLayout mUsernameLayout;
   private TextInputEditText mUsernameEdit;
   private MaterialButton mBtnSignup;
   private MaterialButton mBtnChangeUsername;
+  private MaterialButton mBtnLeaveCompetition;
+  private MaterialButton mBtnDeleteCompetition;
 
   public static void show(@NonNull FragmentManager fm)
   {
@@ -56,6 +59,8 @@ public class MyAccountDialogFragment extends DialogFragment
     mUsernameEdit.setFilters(new InputFilter[]{ new InputFilter.LengthFilter(24) });
     mBtnSignup = view.findViewById(R.id.btn_signup);
     mBtnChangeUsername = view.findViewById(R.id.btn_change_username);
+    mBtnLeaveCompetition = view.findViewById(R.id.btn_leave_competition);
+    mBtnDeleteCompetition = view.findViewById(R.id.btn_delete_competition);
 
     prefillNickname();
     updateSignupVisibility();
@@ -71,6 +76,18 @@ public class MyAccountDialogFragment extends DialogFragment
         mBtnChangeUsername.setText(R.string.save);
       }
     });
+    mBtnLeaveCompetition.setOnClickListener(v -> new MaterialAlertDialogBuilder(requireContext())
+        .setTitle(R.string.competition_leave_confirm_title)
+        .setMessage(R.string.competition_leave_confirm_message)
+        .setPositiveButton(R.string.competition_leave, (d, w) -> leaveCompetition())
+        .setNegativeButton(R.string.cancel, null)
+        .show());
+    mBtnDeleteCompetition.setOnClickListener(v -> new MaterialAlertDialogBuilder(requireContext())
+        .setTitle(R.string.competition_delete_confirm_title)
+        .setMessage(R.string.competition_delete_confirm_message)
+        .setPositiveButton(R.string.competition_delete, (d, w) -> deleteCompetition())
+        .setNegativeButton(R.string.cancel, null)
+        .show());
 
     return new MaterialAlertDialogBuilder(requireContext())
         .setTitle(R.string.my_account)
@@ -165,5 +182,28 @@ public class MyAccountDialogFragment extends DialogFragment
       mBtnSignup.setEnabled(true);
       mBtnChangeUsername.setVisibility(View.GONE);
     }
+    boolean showCompetitionActions = Framework.nativeHasExploreConsent() || Framework.nativeHasUsername();
+    mBtnLeaveCompetition.setVisibility(showCompetitionActions ? View.VISIBLE : View.GONE);
+    mBtnDeleteCompetition.setVisibility(showCompetitionActions ? View.VISIBLE : View.GONE);
+  }
+
+  private void leaveCompetition()
+  {
+    Framework.nativeLeaveCompetitionRetain();
+    Toast.makeText(requireContext(), R.string.competition_leave_done, Toast.LENGTH_LONG).show();
+    getParentFragmentManager().setFragmentResult(RESULT_COMPETITION_ACCOUNT, new Bundle());
+    dismiss();
+  }
+
+  private void deleteCompetition()
+  {
+    int result = Framework.nativeDeleteCompetitionProfile();
+    if (result != 0)
+    {
+      Toast.makeText(requireContext(), R.string.competition_delete_unavailable, Toast.LENGTH_LONG).show();
+      return;
+    }
+    getParentFragmentManager().setFragmentResult(RESULT_COMPETITION_ACCOUNT, new Bundle());
+    dismiss();
   }
 }
