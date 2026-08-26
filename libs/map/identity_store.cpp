@@ -304,6 +304,63 @@ bool HasTenOrMoreAsciiDigits(std::string const & s)
   return false;
 }
 
+std::vector<std::string> NicknameTokens(std::string const & folded)
+{
+  std::vector<char32_t> cps;
+  if (!DecodeCodepoints(folded, cps))
+    return {};
+  std::vector<std::string> tokens;
+  std::string current;
+  for (char32_t const cp : cps)
+  {
+    if (IsAllowedPunctuation(cp))
+    {
+      if (!current.empty())
+      {
+        tokens.push_back(std::move(current));
+        current.clear();
+      }
+    }
+    else
+      utf8::unchecked::append(static_cast<uint32_t>(cp), std::back_inserter(current));
+  }
+  if (!current.empty())
+    tokens.push_back(std::move(current));
+  return tokens;
+}
+
+bool HasBlockedNicknameTerm(std::string const & nickname)
+{
+  static constexpr std::string_view kBlockedPhrases[] = {
+      "street pixels staff", "street pixels admin", "comaps admin", "comaps staff",
+      "official comaps",     "buy followers",       "nigger",       "faggot",
+      "kike",                "retard",              "tranny"};
+  std::string const folded = strings::MakeLowerCase(nickname);
+  auto const tokens = NicknameTokens(folded);
+  for (auto const phrase : kBlockedPhrases)
+  {
+    auto const phraseTokens = NicknameTokens(std::string(phrase));
+    if (phraseTokens.empty() || phraseTokens.size() > tokens.size())
+      continue;
+    size_t const limit = tokens.size() - phraseTokens.size();
+    for (size_t i = 0; i <= limit; ++i)
+    {
+      bool match = true;
+      for (size_t j = 0; j < phraseTokens.size(); ++j)
+      {
+        if (tokens[i + j] != phraseTokens[j])
+        {
+          match = false;
+          break;
+        }
+      }
+      if (match)
+        return true;
+    }
+  }
+  return false;
+}
+
 bool HasUrlLikeTld(std::string const & s)
 {
   std::string lower = s;
@@ -578,6 +635,8 @@ bool IdentityStore::IsValidNickname(std::string_view nickname)
     return false;
   if (normalized.find('/') != std::string::npos || normalized.find('\\') != std::string::npos ||
       normalized.find(':') != std::string::npos)
+    return false;
+  if (HasBlockedNicknameTerm(normalized))
     return false;
   return true;
 }
