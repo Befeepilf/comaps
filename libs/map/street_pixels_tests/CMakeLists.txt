@@ -14,6 +14,7 @@ set(SRC
   completion_card_share_tests.cpp
   country_config_tests.cpp
   competition_deletion_tests.cpp
+  competition_presentation_tests.cpp
   competition_ownership_tests.cpp
   eligibility_tests.cpp
   ever_live_tests.cpp
