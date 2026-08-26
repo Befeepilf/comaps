@@ -1,8 +1,9 @@
 # SP-075 — Backend competition core
 
 **Phase:** 8 — Competition
-**Status:** In progress (implementation recorded; not Accepted)
-**Branch:** backend `cursor/sp-075-backend-competition-core-f95c` (`Befeepilf/explorer` `fdd2b1613ff192b6d29104b82bb43aa95706ef93`); client `cursor/sp-075-backend-competition-core-f95c` (`Befeepilf/comaps`)
+**Status:** In progress (implementation recorded; independent review fixes
+  recorded; not Accepted)
+**Branch:** backend `cursor/sp-075-backend-competition-core-f95c` (`Befeepilf/explorer` `a16a462b2c1c7186456b016f24f405952b4393a0`); client `cursor/sp-075-backend-competition-core-f95c` (`Befeepilf/comaps` `867c9a544`)
 **Depends on:** SP-070 (SPD-057–059, SPD-062, SPD-065); SP-074 payload
   contract
 **Unblocks:** SP-076, SP-077
@@ -108,9 +109,9 @@ database that is not SQLite.
 
 | Field | Value |
 | --- | --- |
-| Branch (backend) | `cursor/sp-075-backend-competition-core-f95c` on `Befeepilf/explorer` at `fdd2b1613ff192b6d29104b82bb43aa95706ef93` |
-| Branch (client) | `cursor/sp-075-backend-competition-core-f95c` on `Befeepilf/comaps` |
-| Test output | See executed output below. Explorer: cwd `/home/ubuntu/explorer-src/explorer`, `uv sync --extra dev && uv run pytest -q` → `25 passed`. Client: binary `/home/ubuntu/omim-build-debug/street_pixels_tests`, `--data_path=/workspace/data --user_resource_path=/workspace/data --filter='BackendConfig_|IdentityStore_|CompetitionUpload_'` → all tests passed. |
+| Branch (backend) | `cursor/sp-075-backend-competition-core-f95c` on `Befeepilf/explorer` at `a16a462b2c1c7186456b016f24f405952b4393a0` |
+| Branch (client) | `cursor/sp-075-backend-competition-core-f95c` on `Befeepilf/comaps` at `867c9a544` |
+| Test output | See executed output below. Independent review Explorer: cwd `/home/ubuntu/explorer-src/explorer`, `uv run pytest -q` → `31 passed`. Client: binary `/home/ubuntu/omim-build-debug/street_pixels_tests`, `--data_path=/workspace/data --user_resource_path=/workspace/data --filter='BackendConfig_|IdentityStore_|CompetitionUpload_'` → all tests passed. |
 | Accepted by | |
 | Accepted date | |
 
@@ -151,6 +152,27 @@ All tests passed.
 
 Full client log: `/opt/cursor/artifacts/sp075_street_pixels_tests.log`. Explorer log: `/opt/cursor/artifacts/sp075_explorer_pytest.log`.
 
+## Independent review (not Accepted)
+
+Reviewed both repos against SP-075, SPD-014/057/059/062/065, spec §21.1
+§22.8 §25.2, `competition_upload_payload.hpp`, and
+`backend-and-privacy.mdc`. Charter items already held: nested
+`ClosedSchema` `extra="forbid"`; ingest/register `auth=None` (no
+DeviceIdAuth); success 200 not 201; no `/stats/upload` alias; scores in
+`competition/` not on `Explorer`; Unicode nickname rules not the friends
+ASCII regex; 30-day half-life replace not blend; clamp + 1% coverage
+ineligible; `prod.py` rejects SQLite.
+
+Fixed:
+
+| Severity | Finding | Fix |
+| --- | --- | --- |
+| High | Nickname uniqueness used SQL `Lower()` / `iexact`, so casefold pairs such as `Straße` / `STRASSE` both registered. | Stored `nickname_key` from `str.casefold()` with a unique constraint. |
+| High | `IntegrityError` races on unique nickname could skip atomic write and hit the global handler as HTTP 422. | `transaction.atomic()` around create/save; map leftover `IntegrityError` to 409 (`nickname_taken` or `profile_registered`). |
+| Medium | `TryClaimNickname` returned `Unavailable` unless a test handler was injected. Production JNI does not go through a Framework instance method, so a missing ctor wire skipped HTTP. | Default handler is `PostNicknameClaim` when no test override is set. |
+| Low | `SerializeCompetitionUploadPayload` relied on NRVO for `SerializerJson` destructor flush. | Scope the serializer before returning the body. |
+| Low | Ingest `update_or_create` uniqueness races could leak `IntegrityError` as 422. | Retry once after `IntegrityError`; wrap the write loop in `atomic()`. |
+
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
@@ -162,3 +184,27 @@ Full client log: `/opt/cursor/artifacts/sp075_street_pixels_tests.log`. Explorer
 | Ingest ignores `nickname` for identity (auth is `profile_id` only) and does not rename. | Keep. Uniqueness stays on register/nickname. |
 | Production settings module exists and rejects SQLite; no Postgres is deployed from this item. | Ops / Phase 10. |
 | `GetStatsUploadUrl` (`/stats/upload`) remains in the client tree and is unused by competition. Competition API has no `/stats/upload`. | Leave unused. Do not add a compatibility alias. |
+| Decayed eligibility is not recomputed on the stored row; `decayed_score()` is for reads. | SP-076. |
+| Global `integrity_error_handler` in `comaps/api_services.py` still returns 422 for friends-app leaks. Competition views catch locally. | Leave; friends surface is SPD-061 unused. |
+
+## Independent review executed test output
+
+Explorer (`cd /home/ubuntu/explorer-src/explorer && uv run pytest -q`):
+
+```
+...............................                                          [100%]
+31 passed, 4 warnings in 0.28s
+```
+
+Added coverage in this review: `Straße`/`STRASSE` 409; IntegrityError nickname 409; duplicate `profile_id` 409; weekly-city extra lat/lon 422; nested `extra="forbid"`; score 0.49 ineligible; ingest without friends headers.
+
+Client (`./tools/unix/build_omim.sh -d -p "$HOME" street_pixels_tests` then the filter):
+
+```
+Running identity_store_tests.cpp::IdentityStore_DefaultHandlerPostsWhenApiConfigured
+OK
+...
+All tests passed.
+```
+
+Review logs: `/opt/cursor/artifacts/sp075_review_explorer_pytest.log`, `/opt/cursor/artifacts/sp075_review_street_pixels_tests.log`.
