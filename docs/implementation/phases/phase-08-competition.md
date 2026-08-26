@@ -79,7 +79,7 @@ Verified 2026-07-25 against both working trees. **Re-verified 2026-08-23
 | `/stats/upload` | — | **Does not exist.** Do not add a compatibility alias |
 | Throttles | `competition/throttling.py` plus `apis/throttling.py` | Competition register 5/h, nickname 10/h, ingest 10/h, **reads 30/min** (`competition_read`, shared by both GETs). Friends throttles unchanged |
 | Base path | `comaps/urls.py` | `/api/` friends/account; `/api/v1/competition/` competition |
-| Tests | `tests/`, `competition/tests/` | pytest harness; **71 passed** on 2026-08-26 |
+| Tests | `tests/`, `competition/tests/` | pytest harness; **81 passed** on 2026-08-26 |
 | Linting | — | No ruff, black, or pre-commit configuration |
 
 **Differences from the technical audit:** the backend has been restructured
