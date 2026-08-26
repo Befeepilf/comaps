@@ -1,5 +1,7 @@
 #include "map/backend_config.hpp"
 
+#include "coding/url.hpp"
+
 #include "platform/settings.hpp"
 
 #include <string>
@@ -76,6 +78,22 @@ std::string backend::GetCompetitionAreaSnapshotUrl(int64_t areaOsmId)
 std::string backend::GetCompetitionWeeklyBoardUrl(int64_t cityOsmId)
 {
   return CompetitionUrl("weekly/" + std::to_string(cityOsmId));
+}
+
+std::string backend::GetCompetitionAreaSnapshotRequestUrl(int64_t areaOsmId, std::string_view profileId)
+{
+  auto const path = GetCompetitionAreaSnapshotUrl(areaOsmId);
+  if (path.empty())
+    return {};
+  return path + "?profile_id=" + url::UrlEncode(std::string(profileId));
+}
+
+std::string backend::GetCompetitionWeeklyBoardRequestUrl(int64_t cityOsmId, std::string_view profileId)
+{
+  auto const path = GetCompetitionWeeklyBoardUrl(cityOsmId);
+  if (path.empty())
+    return {};
+  return path + "?profile_id=" + url::UrlEncode(std::string(profileId));
 }
 
 std::string backend::GetCompetitionDeleteUrl()
