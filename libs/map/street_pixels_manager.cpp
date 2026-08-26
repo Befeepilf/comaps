@@ -2446,6 +2446,65 @@ street_pixels::CompetitionAreaQuery StreetPixelsManager::QueryCompetitionOwnersh
   return query;
 }
 
+CompetitionUploadPayload StreetPixelsManager::BuildCompetitionUploadSnapshot(int64_t nowUnix) const
+{
+  CompetitionUploadPayload payload;
+  payload.m_scoreCalcVersion = street_pixels::kScoreCalcVersion;
+
+  std::vector<uint64_t> osmIds;
+  {
+    std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+    if (m_areaCompletionCache.IsValid())
+    {
+      payload.m_mapDataVersion = m_areaCompletionCache.MapDataVersion();
+      for (auto const & row : m_areaCompletionCache.Rows())
+      {
+        if (row.m_osmId != 0)
+          osmIds.push_back(row.m_osmId);
+      }
+    }
+  }
+
+  std::sort(osmIds.begin(), osmIds.end());
+  osmIds.erase(std::unique(osmIds.begin(), osmIds.end()), osmIds.end());
+
+  int64_t lastUpdate = 0;
+  for (uint64_t const osmId : osmIds)
+  {
+    auto const query = QueryCompetitionOwnership(osmId);
+    if (query.m_uniqueLivePixels == 0)
+      continue;
+    CompetitionUploadArea area;
+    area.m_areaOsmId = query.m_osmId;
+    area.m_ownershipScore = query.m_ownershipScore;
+    area.m_liveCoveragePct = query.m_liveCoveragePct;
+    area.m_eligible = query.m_eligible;
+    payload.m_areas.push_back(area);
+    if (query.m_lastLocalUpdateUnix > lastUpdate)
+      lastUpdate = query.m_lastLocalUpdateUnix;
+  }
+  std::sort(payload.m_areas.begin(), payload.m_areas.end(),
+            [](CompetitionUploadArea const & a, CompetitionUploadArea const & b)
+            { return a.m_areaOsmId < b.m_areaOsmId; });
+
+  auto const weeks = street_pixels::WeeklyCityLiveStore::Instance().ListCurrentWeekCounts(nowUnix);
+  for (auto const & row : weeks)
+  {
+    if (row.m_newLiveCount <= 0)
+      continue;
+    CompetitionUploadWeeklyCity city;
+    city.m_cityOsmId = row.m_cityOsmId;
+    city.m_newLiveCount = row.m_newLiveCount;
+    payload.m_weeklyCities.push_back(city);
+  }
+  std::sort(payload.m_weeklyCities.begin(), payload.m_weeklyCities.end(),
+            [](CompetitionUploadWeeklyCity const & a, CompetitionUploadWeeklyCity const & b)
+            { return a.m_cityOsmId < b.m_cityOsmId; });
+
+  payload.m_lastUpdateUnix = lastUpdate == 0 ? nowUnix : lastUpdate;
+  return payload;
+}
+
 street_pixels::CompetitionWeeklyCityQuery StreetPixelsManager::QueryWeeklyCityLive(int64_t settlementOsmId) const
 {
   return QueryWeeklyCityLive(settlementOsmId, static_cast<int64_t>(base::SecondsSinceEpoch()));

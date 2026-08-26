@@ -2,6 +2,7 @@
 
 #include "map/api_mark_point.hpp"
 #include "map/bookmark_manager.hpp"
+#include "map/competition_upload_service.hpp"
 #include "map/explore_stats_service.hpp"
 #include "map/features_fetcher.hpp"
 #include "map/isolines_manager.hpp"
@@ -220,6 +221,7 @@ protected:
 
   std::unique_ptr<StreetPixelsManager> m_streetPixelsManager;
   std::unique_ptr<ExploreStatsService> m_exploreStatsService;
+  std::unique_ptr<CompetitionUploadService> m_competitionUploadService;
   std::unique_ptr<RecordingSession> m_recordingSession;
   RecordingSession::StateChangedFn m_recordingSessionPlatformListener;
 
@@ -437,6 +439,7 @@ private:
 
   void ActivateMapSelection();
   void InvalidateUserMarks();
+  void ScheduleCompetitionUploadChecks();
 
   void DeactivateHotelSearchMark();
 

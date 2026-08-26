@@ -1,7 +1,7 @@
 # SP-073 — Weekly city new-live-pixel counting
 
 **Phase:** 8 — Competition
-**Status:** Not started
+**Status:** Accepted
 **Branch:** `cursor/sp-073-weekly-city-new-live-pixels-f95c`
 **Depends on:** SP-070 (SPD-060); SP-072 recency/live writes; Phase 4
   settlement OSM ids
@@ -84,8 +84,8 @@ unique-new. SPD-064 discards that file; this item is a new counter.
 | Branch | `cursor/sp-073-weekly-city-new-live-pixels-f95c` |
 | Test output | Pasted under **Executed test output** below. Binaries in `/home/ubuntu/omim-build-debug/`. Debug build: `./tools/unix/build_omim.sh -d -p "$HOME" street_pixels_areas_tests street_pixels_tests`. |
 | Store location | `weekly_city_live.db` via `GetPlatform().WritablePathForFile` (`WeeklyCityLiveStore::DefaultDbPath()`). Not `live_recency.db`, not `area_milestones.db`, not `explore_stats.json`. |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Product owner |
+| Accepted date | 2026-08-25 |
 
 ## Executed test output
 

@@ -7,6 +7,7 @@
 #include "map/first_goal.hpp"
 #include "map/live_sample_acceptance_filter.hpp"
 #include "map/live_segment_interpolation.hpp"
+#include "map/competition_upload_payload.hpp"
 
 #include "platform/location.hpp"
 
@@ -194,6 +195,7 @@ public:
   street_pixels::CompetitionAreaQuery QueryCompetitionOwnership(uint64_t osmId) const;
   street_pixels::CompetitionWeeklyCityQuery QueryWeeklyCityLive(int64_t settlementOsmId) const;
   street_pixels::CompetitionWeeklyCityQuery QueryWeeklyCityLive(int64_t settlementOsmId, int64_t nowUnix) const;
+  CompetitionUploadPayload BuildCompetitionUploadSnapshot(int64_t nowUnix) const;
 
   // Focused-area progress for the primary badge (SP-035 / SP-036 §12.5).
   street_pixels::FocusedAreaProgress GetFocusedAreaProgress() const;
