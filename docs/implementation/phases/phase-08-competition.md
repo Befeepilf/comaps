@@ -48,17 +48,17 @@ This phase spans both repositories: `comaps` (client) and `comaps_backend`
 ## Current code locations
 
 Verified 2026-07-25 against both working trees. **Re-verified 2026-08-23
-(SP-070)** on the client tree. **Re-verified 2026-08-26 (SP-076)** on
-`Befeepilf/explorer` (`51e8fd9f7f34f55ed7e7b7280f76fd385f18b40d`) and
-`Befeepilf/comaps` (`ac4cd5ec4cb2a6d999c695f15ac9ccdec9a0884f`).
+(SP-070)** on the client tree. **Re-verified 2026-08-26 (SP-077)** on
+`Befeepilf/explorer` (`6bd5c1476fccf436619090190f9e60d546172ae6`) and
+`Befeepilf/comaps` (`183393ecd68503dce937513aee192be4d37db1bf`).
 
 ### Client — `comaps`
 
 | Concern | Location | Observed state |
 | --- | --- | --- |
-| Identity | `libs/map/identity_store.cpp` | Device id in `SecureStorage` under `Explore.DeviceId`, 24 random bytes base64url; username in settings under `Explore.Username` (ASCII `[a-z0-9_]{3,20}` after lowercasing); consent as a **boolean only** under `Explore.ConsentGiven`. No policy version, no timestamp. |
+| Identity | `libs/map/identity_store.cpp` | Device id in `SecureStorage` under `Explore.DeviceId`. Public nickname in `Explore.Username` after a successful claim. Consent is `Explore.CompetitionEnabled` + `Explore.AggregateSharingEnabled` + policy version + unix timestamp. `LeaveCompetitionRetain`, `DeleteCompetitionProfile`, and `ReportNickname` POST under `/v1/competition/` with empty headers. Delete 200/404 revokes consent and clears username; leave always revokes consent and keeps username. `IsValidNickname` rejects the same whole-token blocked list as the server. Local 7-day `CanRenameNickname` remains. |
 | Upload client | `libs/map/explore_stats_service.cpp` | Weekly per-region entries `{regionId, weekStartSec, exploredPixels, version}` plus device id and optional username. Periodic check every **1 minute**. Gated only by `m_syncEnabled`. Aggregation continues even when sharing is off. Persists to `explore_stats.json`. |
-| Endpoint | `libs/map/backend_config.cpp` | `GetStatsUploadUrl` remains `{apiBase}/stats/upload` (unused by competition). Competition helpers: `GetCompetitionAggregatesUrl`, `GetCompetitionRegisterUrl`, `GetCompetitionNicknameUrl`, `GetCompetitionAreaSnapshotUrl(int64_t)`, `GetCompetitionWeeklyBoardUrl(int64_t)` via `{apiBase}/v1/competition/…`. Empty apiBase → empty string. |
+| Endpoint | `libs/map/backend_config.cpp` | `GetStatsUploadUrl` remains `{apiBase}/stats/upload` (unused by competition). Competition helpers: `GetCompetitionAggregatesUrl`, `GetCompetitionRegisterUrl`, `GetCompetitionNicknameUrl`, `GetCompetitionAreaSnapshotUrl(int64_t)`, `GetCompetitionWeeklyBoardUrl(int64_t)`, `GetCompetitionDeleteUrl`, `GetCompetitionReportUrl`, `GetCompetitionLeaveUrl`, `GetCompetitionExportUrl` via `{apiBase}/v1/competition/…`. Empty apiBase → empty string. |
 | Friends client | `libs/map/friends_manager.cpp` | Full friends API client with local cache, `X-Device-Id` and `X-Username` headers |
 | Android UI | `MyAccountDialogFragment`, `ExploreConsentDialogFragment`, `Friends.java`, `item_friend_row.xml` | Friends-first account UI, consent dialog, add-friend deep links registered in the manifest |
 | Ownership, recency, decay | — | Not found. Ever-live bit exists (`IsEverLive()`, SPD-015). |
@@ -73,13 +73,13 @@ Verified 2026-07-25 against both working trees. **Re-verified 2026-08-23
 | Stack | `pyproject.toml` | Python ≥3.12, Django 5.2.4, django-ninja 1.4.3, django-ninja-extra 0.30.1, psycopg, orjson. Dev extra: pytest, pytest-django |
 | Settings | `comaps/settings/base.py`, `dev.py`, `prod.py` | Dev still SQLite-default. **`prod.py` requires `DJANGO_DB_URL` and raises `ImproperlyConfigured` if the engine is SQLite** |
 | Models | `core/models.py` | `Explorer` + `Friendship` unchanged |
-| Competition models | `competition/models.py` | `CompetitionProfile` (unique `profile_id`; `Lower(nickname)` unique), `AreaAggregate`, `WeeklyCityAggregate` |
+| Competition models | `competition/models.py` | `CompetitionProfile` (unique `profile_id` / `nickname_key`; `nickname_changed_unix`; `admin_reset_pending`; `uploads_stopped_unix`), `AreaAggregate`, `WeeklyCityAggregate`, `NicknameReport` (no FK; 365-day `expires_at`) |
 | Auth | `apis/auth.py` `DeviceIdAuth` | Friends/account still `X-Device-Id` + `X-Username`. Competition API is a separate `NinjaExtraAPI` with `auth=None`. Ingest authenticates with JSON `profile_id` |
-| Endpoints | `competition/api.py` | `POST /api/v1/competition/register`, `POST /api/v1/competition/nickname`, `POST /api/v1/competition/aggregates`, `GET /api/v1/competition/areas/{area_osm_id}?profile_id=`, `GET /api/v1/competition/weekly/{city_osm_id}?profile_id=`. Success HTTP 200. Empty area/city is 200 empty snapshot. No `/stats/upload` |
+| Endpoints | `competition/api.py` | `POST /api/v1/competition/register`, `POST /api/v1/competition/nickname`, `POST /api/v1/competition/aggregates`, `GET /api/v1/competition/areas/{area_osm_id}?profile_id=`, `GET /api/v1/competition/weekly/{city_osm_id}?profile_id=`, `POST /api/v1/competition/reports`, `POST /api/v1/competition/delete`, `POST /api/v1/competition/leave`, `GET /api/v1/competition/export?profile_id=`. Success HTTP 200. Empty area/city is 200 empty snapshot. No `/stats/upload` |
 | `/stats/upload` | — | **Does not exist.** Do not add a compatibility alias |
-| Throttles | `competition/throttling.py` plus `apis/throttling.py` | Competition register 5/h, nickname 10/h, ingest 10/h, **reads 30/min** (`competition_read`, shared by both GETs). Friends throttles unchanged |
+| Throttles | `competition/throttling.py` plus `apis/throttling.py` | Competition register 5/h, nickname 10/h, ingest 10/h, **reads 30/min** (`competition_read`, shared by area/weekly/export GETs), report 10/h, delete 5/h, leave 5/h. Friends throttles unchanged |
 | Base path | `comaps/urls.py` | `/api/` friends/account; `/api/v1/competition/` competition |
-| Tests | `tests/`, `competition/tests/` | pytest harness; **81 passed** on 2026-08-26 |
+| Tests | `tests/`, `competition/tests/` | pytest harness; **107 passed** on 2026-08-26 |
 | Linting | — | No ruff, black, or pre-commit configuration |
 
 **Differences from the technical audit:** the backend has been restructured
@@ -87,8 +87,9 @@ since the audit. The `explorer/` package is gone, replaced by `comaps/`
 (settings, urls, shared API services), `apis/` (controllers, auth, schemas,
 throttling), and `core/` (models, admin, migrations). Authentication changed
 from JWT to device-id header auth. Competition now has register, nickname,
-aggregate ingest, area snapshot, and weekly board reads under
-`/api/v1/competition/`. `/stats/upload` is still missing.
+aggregate ingest, area snapshot, weekly board reads, nickname reports, leave,
+delete, export, and silent purge under `/api/v1/competition/`. `/stats/upload`
+is still missing.
 
 ## Intended outcome
 
