@@ -1,7 +1,7 @@
 # SP-077 — Nickname moderation and profile deletion
 
 **Phase:** 8 — Competition
-**Status:** In progress
+**Status:** Accepted
 **Branch:** backend `cursor/sp-077-nickname-moderation-deletion-f95c` (`Befeepilf/explorer`); client `cursor/sp-077-nickname-moderation-deletion-f95c` (`Befeepilf/comaps`)
 **Depends on:** SP-071 identity; SP-075 profiles
 **Unblocks:** SP-079 deletion / rename checks
@@ -92,8 +92,8 @@ shown to others. Leaving competition must offer keep-stats vs delete.
 | --- | --- |
 | Branch | backend `cursor/sp-077-nickname-moderation-deletion-f95c` (`Befeepilf/explorer`) at `a2875770bc72b68917b58356d17adfb39af2ea10`; client `cursor/sp-077-nickname-moderation-deletion-f95c` (`Befeepilf/comaps`) at `53c6118c5768a0d0242042aa8fdb78d7dc01f7d3` |
 | Test output | See executed output below. Not Accepted. |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Product owner |
+| Accepted date | 2026-08-26 |
 
 ## Executed test output
 

@@ -1,6 +1,6 @@
 # Phase 8 — Competition
 
-**Status:** SP-070 Accepted; SP-071 in progress; SP-072–076 Accepted; SP-077 in progress
+**Status:** SP-070 Accepted; SP-071 in progress; SP-072–077 Accepted; SP-078 in progress
 **Depends on:** Phase 4
 **Blocks:** nothing; required for release
 

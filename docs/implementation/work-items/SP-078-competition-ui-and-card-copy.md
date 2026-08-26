@@ -1,8 +1,8 @@
 # SP-078 — Competition UI, card copy, and 30-pixel hint
 
 **Phase:** 8 — Competition
-**Status:** Not started
-**Branch:**
+**Status:** In progress
+**Branch:** `cursor/sp-078-competition-ui-and-card-copy-f95c`
 **Depends on:** SP-071 identity; SP-072 scores; SP-076 reads (stubs
   allowed with stale/offline labels); SPD-052 stub; SPD-066
 **Unblocks:** SP-079
