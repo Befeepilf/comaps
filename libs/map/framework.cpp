@@ -534,6 +534,7 @@ Framework::Framework(FrameworkParams const & params, bool loadMaps)
   }
   IdentityStore::SetCompetitionConsentGrantedHandler(
       [this](uint64_t unixTime) { m_streetPixelsManager->MaybeSeedLiveRecency(unixTime); });
+  IdentityStore::SetNicknameClaimHandlerForTesting(&IdentityStore::PostNicknameClaim);
   m_recordingSession->SetStateListener([this](RecordingSession::State previous, RecordingSession::State current)
   {
     ApplyRecordingPauseResumeEffects(previous, current, &GpsTracker::Instance(), m_streetPixelsManager.get());
@@ -584,6 +585,8 @@ Framework::Framework(FrameworkParams const & params, bool loadMaps)
 Framework::~Framework()
 {
   IdentityStore::SetCompetitionConsentGrantedHandler({});
+  IdentityStore::SetNicknameClaimHandlerForTesting({});
+  IdentityStore::SetNicknameClaimPostFnForTesting({});
 
   GetPowerManager().UnsubscribeAll();
 

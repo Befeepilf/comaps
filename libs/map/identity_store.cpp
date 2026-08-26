@@ -1,12 +1,18 @@
 #include "map/identity_store.hpp"
 
+#include "map/backend_config.hpp"
+
+#include "platform/http_client.hpp"
 #include "platform/secure_storage.hpp"
 #include "platform/settings.hpp"
 
 #include "base/string_utils.hpp"
 #include "base/timer.hpp"
+#include "base/visitor.hpp"
 
 #include "coding/base64.hpp"
+#include "coding/serdes_json.hpp"
+#include "coding/writer.hpp"
 
 #include <utf8.h>
 
@@ -18,6 +24,7 @@
 #include <random>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 namespace
@@ -43,6 +50,43 @@ std::mutex & ClaimHandlerMutex()
   static std::mutex mutex;
   return mutex;
 }
+
+IdentityStore::NicknameClaimPostFn & ClaimPostFn()
+{
+  static IdentityStore::NicknameClaimPostFn fn;
+  return fn;
+}
+
+std::mutex & ClaimPostMutex()
+{
+  static std::mutex mutex;
+  return mutex;
+}
+
+int DefaultNicknameClaimPost(std::string const & url, std::string const & body,
+                             std::vector<std::pair<std::string, std::string>> const & headers)
+{
+  platform::HttpClient req(url);
+  req.SetBodyData(body, "application/json");
+  for (auto const & header : headers)
+    req.SetRawHeader(header.first, header.second);
+  std::string response;
+  bool const ok = req.RunHttpRequest(response);
+  if (!ok && req.ErrorCode() == platform::HttpClient::kNoError)
+    return 0;
+  return req.ErrorCode();
+}
+
+struct NicknameClaimBody
+{
+  std::string m_profileId;
+  std::string m_nickname;
+  std::string m_consentPolicyVersion;
+  uint64_t m_consentUnix = 0;
+
+  DECLARE_VISITOR(visitor(m_profileId, "profile_id"), visitor(m_nickname, "nickname"),
+                  visitor(m_consentPolicyVersion, "consent_policy_version"), visitor(m_consentUnix, "consent_unix"))
+};
 
 IdentityStore::CompetitionConsentGrantedHandler & ConsentGrantedHandler()
 {
@@ -535,6 +579,44 @@ void IdentityStore::SetNicknameClaimHandlerForTesting(NicknameClaimHandler handl
 {
   std::lock_guard<std::mutex> lock(ClaimHandlerMutex());
   ClaimHandler() = std::move(handler);
+}
+
+void IdentityStore::SetNicknameClaimPostFnForTesting(NicknameClaimPostFn fn)
+{
+  std::lock_guard<std::mutex> lock(ClaimPostMutex());
+  ClaimPostFn() = std::move(fn);
+}
+
+int IdentityStore::PostNicknameClaim(std::string_view nickname)
+{
+  bool const first = GetUsername().empty();
+  std::string const url = first ? backend::GetCompetitionRegisterUrl() : backend::GetCompetitionNicknameUrl();
+  if (url.empty())
+    return 0;
+
+  NicknameClaimBody body;
+  body.m_profileId = GetOrCreateDeviceId();
+  body.m_nickname = std::string(nickname);
+  std::string version = GetSettingString(kConsentPolicyVersionKey);
+  if (version.empty())
+    version = std::string(kCompetitionPrivacyPolicyVersion);
+  body.m_consentPolicyVersion = std::move(version);
+  body.m_consentUnix = GetCompetitionConsentUnixTime();
+
+  std::string json;
+  using Sink = MemWriter<std::string>;
+  Sink sink(json);
+  coding::SerializerJson<Sink> ser(sink);
+  ser(body);
+
+  NicknameClaimPostFn post;
+  {
+    std::lock_guard<std::mutex> lock(ClaimPostMutex());
+    post = ClaimPostFn();
+  }
+  if (!post)
+    post = &DefaultNicknameClaimPost;
+  return post(url, json, {});
 }
 
 void IdentityStore::SetCompetitionConsentGrantedHandler(CompetitionConsentGrantedHandler handler)

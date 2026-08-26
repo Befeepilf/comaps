@@ -16,6 +16,14 @@ std::string NormalizeBaseUrl(std::string_view url)
     out.pop_back();
   return out;
 }
+
+std::string CompetitionUrl(std::string_view path)
+{
+  auto const base = NormalizeBaseUrl(backend::GetApiBaseUrl());
+  if (base.empty())
+    return {};
+  return base + "/v1/competition/" + std::string(path);
+}
 }  // namespace
 
 void backend::SetApiBaseUrl(std::string_view url)
@@ -47,8 +55,15 @@ std::string backend::GetStatsUploadUrl()
 
 std::string backend::GetCompetitionAggregatesUrl()
 {
-  auto const base = NormalizeBaseUrl(GetApiBaseUrl());
-  if (base.empty())
-    return {};
-  return base + "/v1/competition/aggregates";
+  return CompetitionUrl("aggregates");
+}
+
+std::string backend::GetCompetitionRegisterUrl()
+{
+  return CompetitionUrl("register");
+}
+
+std::string backend::GetCompetitionNicknameUrl()
+{
+  return CompetitionUrl("nickname");
 }
