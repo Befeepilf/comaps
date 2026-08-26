@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <cstdint>
+#include <functional>
 #include <mutex>
 #include <string>
 #include <unordered_map>
@@ -9,9 +10,8 @@
 
 #include "base/visitor.hpp"
 
-// Aggregates per-region weekly exploration deltas and uploads them.
-// - Aggregation continues even when sharing is disabled
-// - Uploads only when sharing is enabled and server URL is configured
+// Local per-region weekly exploration deltas. Not a competition source of truth
+// (SPD-064). TryUpload is a no-op; competition uses CompetitionUploadService.
 class ExploreStatsService
 {
 public:
@@ -44,6 +44,9 @@ public:
 
   void TryUpload();
 
+  using StatsUploadAttemptHook = std::function<void()>;
+  void SetStatsUploadAttemptHookForTesting(StatsUploadAttemptHook hook);
+
 private:
   struct Snapshot
   {
@@ -65,8 +68,8 @@ private:
   void EnsureLoaded();
   void ScheduleSave();
   void Save();
-  void SchedulePeriodicUpload();
 
+  bool ShouldAttemptStatsUpload() const;
   std::string BuildUploadJson() const;
 
   static uint64_t ToWeekBucket(uint64_t secondsSinceEpoch);
@@ -80,6 +83,7 @@ private:
   bool m_syncEnabled = false;
   bool m_friendVisibilityEnabled = false;
   bool m_saveScheduled = false;
+  StatsUploadAttemptHook m_statsUploadAttemptHook;
   std::chrono::steady_clock::time_point m_changedAt = std::chrono::steady_clock::time_point::min();
   std::chrono::steady_clock::time_point m_lastUploadAt = std::chrono::steady_clock::time_point::min();
 };

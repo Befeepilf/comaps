@@ -8,6 +8,7 @@ set(SRC
   assignment_persist_tests.cpp
   backend_config_tests.cpp
   collection_gate_tests.cpp
+  competition_upload_tests.cpp
   collection_radius_tests.cpp
   completion_card_tests.cpp
   completion_card_share_tests.cpp
