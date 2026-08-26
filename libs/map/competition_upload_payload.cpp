@@ -13,9 +13,11 @@ bool CompetitionUploadPayloadIsEmpty(CompetitionUploadPayload const & payload)
 std::string SerializeCompetitionUploadPayload(CompetitionUploadPayload const & payload)
 {
   std::string json;
-  using Sink = MemWriter<std::string>;
-  Sink sink(json);
-  coding::SerializerJson<Sink> ser(sink);
-  ser(payload);
+  {
+    using Sink = MemWriter<std::string>;
+    Sink sink(json);
+    coding::SerializerJson<Sink> ser(sink);
+    ser(payload);
+  }
   return json;
 }
