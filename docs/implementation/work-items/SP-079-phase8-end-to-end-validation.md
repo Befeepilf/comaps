@@ -1,8 +1,8 @@
 # SP-079 — Phase 8 end-to-end validation
 
 **Phase:** 8 — Competition
-**Status:** Not started
-**Branch:**
+**Status:** In progress
+**Branch:** `cursor/sp-079-phase8-end-to-end-validation-f95c`
 **Depends on:** SP-070–078 implemented or explicitly residualled
 **Notes:** Exit gate. Device residual → Phase 10 pattern (SP-014 / SP-041
   / SP-061 / SP-069). Maintainer decides Phase 8 exit; agent does not
