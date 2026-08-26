@@ -4,6 +4,8 @@
 #include <functional>
 #include <string>
 #include <string_view>
+#include <utility>
+#include <vector>
 
 class IdentityStore
 {
@@ -21,6 +23,9 @@ public:
   };
 
   using NicknameClaimHandler = std::function<int(std::string_view)>;
+  using NicknameClaimPostFn =
+      std::function<int(std::string const & url, std::string const & body,
+                        std::vector<std::pair<std::string, std::string>> const & headers)>;
   using CompetitionConsentGrantedHandler = std::function<void(uint64_t)>;
 
   static std::string GetOrCreateDeviceId();
@@ -51,6 +56,8 @@ public:
   static std::string GenerateNickname(uint32_t attempt);
 
   static void SetNicknameClaimHandlerForTesting(NicknameClaimHandler handler);
+  static void SetNicknameClaimPostFnForTesting(NicknameClaimPostFn fn);
+  static int PostNicknameClaim(std::string_view nickname);
   static NicknameClaimResult TryClaimNickname(std::string_view nickname);
   static bool CanRenameNickname();
 
