@@ -1,13 +1,13 @@
 # SP-075 — Backend competition core
 
 **Phase:** 8 — Competition
-**Status:** Not started
-**Branch:**
+**Status:** In progress (implementation recorded; not Accepted)
+**Branch:** backend `cursor/sp-075-backend-competition-core-f95c` (`Befeepilf/explorer` `fdd2b1613ff192b6d29104b82bb43aa95706ef93`); client `cursor/sp-075-backend-competition-core-f95c` (`Befeepilf/comaps`)
 **Depends on:** SP-070 (SPD-057–059, SPD-062, SPD-065); SP-074 payload
   contract
 **Unblocks:** SP-076, SP-077
-**Repository:** `comaps_backend` (not this checkout). Re-verify models
-  and URLconf there before coding.
+**Repository:** `comaps_backend` (`Befeepilf/explorer`) plus a tiny client
+  claim HTTP path in this checkout.
 
 ---
 
@@ -108,13 +108,57 @@ database that is not SQLite.
 
 | Field | Value |
 | --- | --- |
-| Branch (backend) | |
-| Test output | |
+| Branch (backend) | `cursor/sp-075-backend-competition-core-f95c` on `Befeepilf/explorer` at `fdd2b1613ff192b6d29104b82bb43aa95706ef93` |
+| Branch (client) | `cursor/sp-075-backend-competition-core-f95c` on `Befeepilf/comaps` |
+| Test output | See executed output below. Explorer: cwd `/home/ubuntu/explorer-src/explorer`, `uv sync --extra dev && uv run pytest -q` → `25 passed`. Client: binary `/home/ubuntu/omim-build-debug/street_pixels_tests`, `--data_path=/workspace/data --user_resource_path=/workspace/data --filter='BackendConfig_|IdentityStore_|CompetitionUpload_'` → all tests passed. |
 | Accepted by | |
 | Accepted date | |
+
+## Executed test output
+
+Explorer (`cd /home/ubuntu/explorer-src/explorer && uv sync --extra dev && uv run pytest -q`):
+
+```
+.........................                                                [100%]
+25 passed, 4 warnings in 0.24s
+```
+
+Required cases covered: register 200; Alice/alice 409; ingest allow-list; extra lat/lon 422; decay 30/60/90; newer replaces; clamp 101→100; 1% coverage ineligible; 6th register 429; prod rejects SQLite.
+
+Client (`./tools/unix/build_omim.sh -d -p "$HOME" street_pixels_tests` then the filter below):
+
+```
+=== street_pixels_tests --filter='BackendConfig_|IdentityStore_|CompetitionUpload_' ===
+...
+Running backend_config_tests.cpp::BackendConfig_CompetitionRegisterUrlEmptyWhenUnconfigured
+OK
+Running backend_config_tests.cpp::BackendConfig_CompetitionRegisterUrlWhenConfigured
+OK
+Running backend_config_tests.cpp::BackendConfig_CompetitionNicknameUrlEmptyWhenUnconfigured
+OK
+Running backend_config_tests.cpp::BackendConfig_CompetitionNicknameUrlWhenConfigured
+OK
+...
+Running identity_store_tests.cpp::IdentityStore_ProductionClaimEmptyApiNoHttp
+OK
+Running identity_store_tests.cpp::IdentityStore_ProductionClaimPostsRegisterJsonWithoutFriendsHeaders
+OK
+Running identity_store_tests.cpp::IdentityStore_ProductionClaimRenameUsesNicknameUrl
+OK
+
+All tests passed.
+```
+
+Full client log: `/opt/cursor/artifacts/sp075_street_pixels_tests.log`. Explorer log: `/opt/cursor/artifacts/sp075_explorer_pytest.log`.
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Seven-day rename interval is client-only (`IdentityStore::CanRenameNickname`). Server nickname POST does not enforce §21.4. | SP-077 |
+| Weekly ingest stores `week_start_unix` as Monday 00:00 UTC of `last_update_unix`. Payload has no city TZ or `week_id` (deny-listed). | Keep UTC fallback (SPD-060). City IANA zone belongs with SP-076 / city records. |
+| Server nickname rules use Unicode categories; the client uses script letter tables. Some scripts may pass one side and fail the other. | Residual; server remains authority. SP-077 if a script gap is product-visible. |
+| `profile_id` is the device id. Device-id auth remains an accepted V1 weakness. | Keep. Rate-limit and clamp are the controls. |
+| Ingest ignores `nickname` for identity (auth is `profile_id` only) and does not rename. | Keep. Uniqueness stays on register/nickname. |
+| Production settings module exists and rejects SQLite; no Postgres is deployed from this item. | Ops / Phase 10. |
+| `GetStatsUploadUrl` (`/stats/upload`) remains in the client tree and is unused by competition. Competition API has no `/stats/upload`. | Leave unused. Do not add a compatibility alias. |

@@ -1,6 +1,6 @@
 # Phase 8 — Competition
 
-**Status:** SP-070 Accepted; SP-071 in progress; SP-072–074 Accepted
+**Status:** SP-070 Accepted; SP-071 in progress; SP-072–074 Accepted; SP-075 in progress (not Accepted)
 **Depends on:** Phase 4
 **Blocks:** nothing; required for release
 
@@ -48,8 +48,8 @@ This phase spans both repositories: `comaps` (client) and `comaps_backend`
 ## Current code locations
 
 Verified 2026-07-25 against both working trees. **Re-verified 2026-08-23
-(SP-070)** on the client tree; backend still not in this checkout (2026-07-25
-snapshot stands until SP-075).
+(SP-070)** on the client tree. **Re-verified 2026-08-26 (SP-075)** on
+`Befeepilf/explorer` (`fdd2b1613ff192b6d29104b82bb43aa95706ef93`).
 
 ### Client — `comaps`
 
@@ -65,19 +65,20 @@ snapshot stands until SP-075).
 | Card competition line | `CompletionCardSource::m_competitionLine` | Stub (SPD-052). |
 | First-goal counter | `kFirstGoalLivePixelThreshold = 10` | Newly explored live pixels (SPD-047). 30-pixel competition hint not implemented. |
 
-### Backend — `comaps_backend`
+### Backend — `comaps_backend` (`Befeepilf/explorer`)
 
 | Concern | Location | Observed state |
 | --- | --- | --- |
-| Stack | `pyproject.toml` | Python ≥3.12, Django 5.2.4, django-ninja 1.4.3, django-ninja-extra 0.30.1, psycopg, orjson |
-| Settings | `comaps/settings/base.py`, `dev.py` | `django-environ`; SQLite by default; **no `prod.py`** |
-| Models | `core/models.py` | `Explorer(AbstractUser + unique device_id)` and `Friendship`. **No competition, area, ownership, or stats models.** |
-| Auth | `apis/auth.py` `DeviceIdAuth` | `X-Device-Id` plus `X-Username` headers resolve an `Explorer` |
-| Endpoints | `apis/api.py` | `POST /signup`, `POST /update_username`, `GET /account/export`, `DELETE /account`, and five friends endpoints |
-| `/stats/upload` | — | **Does not exist.** The client posts to an endpoint the server does not implement. |
-| Throttles | `apis/throttling.py` | signup 5/h, username 10/h, delete 3/h, friends search 30/min, friends actions 60/h |
-| Base path | `comaps/urls.py`, `apis/urls.py` | `/api/`, not `/api/v1/` |
-| Tests, CI, deployment | — | No tests, no pytest config, no `.github/`, no Dockerfile, no Makefile |
+| Stack | `pyproject.toml` | Python ≥3.12, Django 5.2.4, django-ninja 1.4.3, django-ninja-extra 0.30.1, psycopg, orjson. Dev extra: pytest, pytest-django |
+| Settings | `comaps/settings/base.py`, `dev.py`, `prod.py` | Dev still SQLite-default. **`prod.py` requires `DJANGO_DB_URL` and raises `ImproperlyConfigured` if the engine is SQLite** |
+| Models | `core/models.py` | `Explorer` + `Friendship` unchanged |
+| Competition models | `competition/models.py` | `CompetitionProfile` (unique `profile_id`; `Lower(nickname)` unique), `AreaAggregate`, `WeeklyCityAggregate` |
+| Auth | `apis/auth.py` `DeviceIdAuth` | Friends/account still `X-Device-Id` + `X-Username`. Competition API is a separate `NinjaExtraAPI` with `auth=None`. Ingest authenticates with JSON `profile_id` |
+| Endpoints | `competition/api.py` | `POST /api/v1/competition/register`, `POST /api/v1/competition/nickname`, `POST /api/v1/competition/aggregates`. Success HTTP 200. No `/stats/upload` |
+| `/stats/upload` | — | **Does not exist.** Do not add a compatibility alias |
+| Throttles | `competition/throttling.py` plus `apis/throttling.py` | Competition register 5/h, nickname 10/h, ingest 10/h. Friends throttles unchanged |
+| Base path | `comaps/urls.py` | `/api/` friends/account; `/api/v1/competition/` competition |
+| Tests | `tests/`, `competition/tests/` | pytest harness; 25 passed on 2026-08-26 |
 | Linting | — | No ruff, black, or pre-commit configuration |
 
 **Differences from the technical audit:** the backend has been restructured
@@ -221,8 +222,10 @@ Backend (needs a test setup that does not exist yet):
   (SP-070 Accepted 2026-08-23).
 - OQ-4 and OQ-7 answered. **Met** — SPD-059, SPD-062.
 - A deployable backend environment exists, with a production settings module
-  and a database that is not SQLite. **Unmet** — owned by SP-075 / ops;
-  does not reopen scoring formulas. Client items may use fakes.
+  and a database that is not SQLite. **Partial** — `comaps.settings.prod`
+  exists (2026-08-26, SP-075) and rejects SQLite; Postgres deploy remains
+  ops / Phase 10. Does not reopen scoring formulas. Client items may use
+  fakes.
 
 ## Exit criteria
 
