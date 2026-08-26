@@ -1,7 +1,7 @@
 # SP-076 — Backend reads and sparse-area anonymity
 
 **Phase:** 8 — Competition
-**Status:** In progress
+**Status:** Accepted
 **Branch:** backend `cursor/sp-076-backend-reads-sparse-anonymity-f95c` (`Befeepilf/explorer`); client `cursor/sp-076-backend-reads-sparse-anonymity-f95c` (`Befeepilf/comaps`)
 **Depends on:** SP-075 ingest + decay; SPD-058, SPD-060
 **Unblocks:** SP-078 (area snapshot, weekly board, overtaking hints)
@@ -88,8 +88,8 @@ counts (SP-073 / SP-074); the server must not reintroduce those.
 | Branch (backend) | `cursor/sp-076-backend-reads-sparse-anonymity-f95c` on `Befeepilf/explorer` at `06e5c067f8c506bc9c66e9473b495cf44d84fc34` |
 | Branch (client) | `cursor/sp-076-backend-reads-sparse-anonymity-f95c` on `Befeepilf/comaps` at `ac4cd5ec4cb2a6d999c695f15ac9ccdec9a0884f` |
 | Test output | Independent review added leak/ineligible/throttle tests. Explorer `uv run pytest -q` → `81 passed, 4 warnings in 0.87s`. Client C++ not changed; prior `street_pixels_tests --filter='BackendConfig_Competition'` still applies. Full log: `/opt/cursor/artifacts/sp076_review_explorer_pytest.log`. |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | Product owner |
+| Accepted date | 2026-08-26 |
 
 ## Executed test output
 
