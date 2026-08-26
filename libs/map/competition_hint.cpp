@@ -10,19 +10,19 @@ namespace street_pixels
 {
 namespace
 {
-constexpr char kCollectedKey[] = "StreetPixels.CompetitionHintCollected";
-constexpr char kCompleteKey[] = "StreetPixels.CompetitionHintComplete";
-constexpr char kPresentedKey[] = "StreetPixels.CompetitionHintPresented";
+constexpr char kHintCollectedKey[] = "StreetPixels.CompetitionHintCollected";
+constexpr char kHintCompleteKey[] = "StreetPixels.CompetitionHintComplete";
+constexpr char kHintPresentedKey[] = "StreetPixels.CompetitionHintPresented";
 }  // namespace
 
 void CompetitionHintTracker::LoadUnlocked() const
 {
   if (m_loaded)
     return;
-  settings::TryGet(kCompleteKey, m_complete);
-  settings::TryGet(kPresentedKey, m_presented);
+  settings::TryGet(kHintCompleteKey, m_complete);
+  settings::TryGet(kHintPresentedKey, m_presented);
   uint64_t collected = 0;
-  settings::TryGet(kCollectedKey, collected);
+  settings::TryGet(kHintCollectedKey, collected);
   if (collected > kCompetitionHintLivePixelThreshold)
     collected = kCompetitionHintLivePixelThreshold;
   m_collected = static_cast<uint32_t>(collected);
@@ -33,9 +33,9 @@ void CompetitionHintTracker::LoadUnlocked() const
 
 void CompetitionHintTracker::SaveUnlocked() const
 {
-  settings::Set(kCompleteKey, m_complete);
-  settings::Set(kPresentedKey, m_presented);
-  settings::Set(kCollectedKey, static_cast<uint64_t>(m_collected));
+  settings::Set(kHintCompleteKey, m_complete);
+  settings::Set(kHintPresentedKey, m_presented);
+  settings::Set(kHintCollectedKey, static_cast<uint64_t>(m_collected));
 }
 
 CompetitionHintProgress CompetitionHintTracker::Snapshot() const
@@ -102,9 +102,9 @@ void CompetitionHintTracker::ResetForTesting()
 
 void CompetitionHintTracker::ClearPersistedForTesting()
 {
-  settings::Delete(kCompleteKey);
-  settings::Delete(kPresentedKey);
-  settings::Delete(kCollectedKey);
+  settings::Delete(kHintCompleteKey);
+  settings::Delete(kHintPresentedKey);
+  settings::Delete(kHintCollectedKey);
 }
 
 std::string DebugPrint(CompetitionHintProgress const & progress)
