@@ -37,6 +37,7 @@
 #include "map/live_segment_interpolation.hpp"
 #include "map/identity_store.hpp"
 #include "map/completion_card_analytics.hpp"
+#include "map/competition_hint.hpp"
 
 #include "street_pixels_areas/exploration_area_tap.hpp"
 #include "street_pixels_areas/area_completion_cache.hpp"
@@ -465,6 +466,26 @@ void StreetPixelsManager::ResetFirstGoalForTesting()
   m_lastNotifiedFirstGoalProgress = {};
   m_debugFirstGoalOverride.reset();
   NotifyFirstGoalProgressIfChanged();
+}
+
+void StreetPixelsManager::SetCompetitionHintReadyHandler(CompetitionHintReadyFn const & fn)
+{
+  m_competitionHintReadyHandler = fn;
+}
+
+street_pixels::CompetitionHintProgress StreetPixelsManager::GetCompetitionHintProgress() const
+{
+  return m_competitionHintTracker.Snapshot();
+}
+
+void StreetPixelsManager::AcknowledgeCompetitionHint()
+{
+  m_competitionHintTracker.MarkPresented();
+}
+
+void StreetPixelsManager::ResetCompetitionHintForTesting()
+{
+  m_competitionHintTracker.ResetForTesting();
 }
 
 void StreetPixelsManager::SetAreaMilestonePresentationListener(AreaMilestonePresentationChangedFn const & fn)
@@ -2106,13 +2127,18 @@ void StreetPixelsManager::OnLocationUpdate(location::GpsInfo const & info)
   }
 
   bool justCompleted = false;
+  bool hintReady = false;
   if (numNewlyExploredPixels > 0)
   {
     justCompleted =
         m_firstGoalTracker.AddNewlyExploredLivePixels(static_cast<uint32_t>(numNewlyExploredPixels));
+    hintReady =
+        m_competitionHintTracker.AddNewlyExploredLivePixels(static_cast<uint32_t>(numNewlyExploredPixels));
     NotifyFirstGoalProgressIfChanged();
     if (justCompleted && m_firstGoalCompleteHandler)
       m_firstGoalCompleteHandler();
+    if (hintReady && m_competitionHintReadyHandler)
+      m_competitionHintReadyHandler();
   }
   if (justCompleted)
     PlayExplorationHaptic(street_pixels::ExplorationHapticKind::FirstGoalComplete);

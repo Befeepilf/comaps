@@ -3,6 +3,7 @@
 #include "map/bookmark_manager.hpp"
 
 #include "map/area_milestone_presentation.hpp"
+#include "map/competition_hint.hpp"
 #include "map/exploration_haptics.hpp"
 #include "map/first_goal.hpp"
 #include "map/live_sample_acceptance_filter.hpp"
@@ -260,6 +261,12 @@ public:
   void OnRecordingSessionStateChanged();
   void ResetFirstGoalForTesting();
 
+  using CompetitionHintReadyFn = std::function<void()>;
+  void SetCompetitionHintReadyHandler(CompetitionHintReadyFn const & fn);
+  street_pixels::CompetitionHintProgress GetCompetitionHintProgress() const;
+  void AcknowledgeCompetitionHint();
+  void ResetCompetitionHintForTesting();
+
   using AreaMilestonePresentationChangedFn =
       std::function<void(std::optional<street_pixels::AreaMilestonePresentation> const &)>;
   using AreaMilestoneHapticFn = std::function<void(street_pixels::AreaMilestoneHapticEvent)>;
@@ -345,6 +352,8 @@ private:
   FirstGoalProgressChangedFn m_firstGoalProgressListener;
   FirstGoalCompleteFn m_firstGoalCompleteHandler;
   street_pixels::FirstGoalTracker m_firstGoalTracker;
+  street_pixels::CompetitionHintTracker m_competitionHintTracker;
+  CompetitionHintReadyFn m_competitionHintReadyHandler;
   street_pixels::FirstGoalProgress m_lastNotifiedFirstGoalProgress;
   std::optional<street_pixels::FirstGoalProgress> m_debugFirstGoalOverride;
   AreaMilestonePresentationChangedFn m_areaMilestonePresentationListener;
