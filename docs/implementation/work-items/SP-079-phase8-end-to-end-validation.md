@@ -106,7 +106,7 @@ presence leak.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| No handset: opt-in walk, traffic capture, opt-out zero upload, offline queue, N&lt;3, decay-without-app, delete+local intact, presence eyeball | Phase 10. Map screenshots remain forbidden. |
+| No handset: opt-in walk, traffic capture, opt-out zero upload, offline queue, `N < 3`, decay-without-app, delete+local intact, presence eyeball | Phase 10. Map screenshots remain forbidden. |
 | SP-071 still In progress / not accepted | Maintainer; residual on exits 1–3 |
 | friends_signup_* nickname toasts | Later copy cleanup; SPD-061 |
 | Weekly GET not JNI-wired | Later client WI / Phase 10 |

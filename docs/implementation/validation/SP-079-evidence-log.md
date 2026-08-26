@@ -11,7 +11,7 @@
 | Date | 2026-08-26 |
 | Client git SHA (suite run tip) | `b8fec313eacf28641e66b57b947a2c106cb6c804` (`[docs] Add SP-079 Phase 8 validation plan` on `cursor/sp-079-phase8-end-to-end-validation-f95c`; parent `dcad9abd2` `[docs] Accept SP-078 and start SP-079`) |
 | Explorer git SHA | `a2875770bc72b68917b58356d17adfb39af2ea10` on `cursor/sp-077-nickname-moderation-deletion-f95c` (not `main`) |
-| Build | `./tools/unix/build_omim.sh -d -p "$HOME" street_pixels_tests street_pixels_areas_tests` → `/home/ubuntu/omim-build-debug/` `BUILD_EXIT=0` |
+| Build | `./tools/unix/build_omim.sh -d -p "$HOME" street_pixels_tests street_pixels_areas_tests` → `/home/ubuntu/omim-build-debug/` (no dedicated `sp079_build.log`; binaries mtime 2026-08-26 19:55; suites started 19:55:47 against those binaries) |
 | `data/classificator.txt` at run time | Present (`-rw-r--r--` 35452 bytes, 2026-08-25) |
 | `adb devices` | `adb: command not found` — no handset |
 | `IdentityStore_|FriendsManager_|ExploreStatsUpload_` | **31/31** All tests passed |
@@ -56,9 +56,11 @@ $ ls -la /workspace/data/classificator.txt
 -rw-r--r-- 1 ubuntu ubuntu 35452 Aug 25 14:02 /workspace/data/classificator.txt
 
 $ ./tools/unix/build_omim.sh -d -p "$HOME" street_pixels_tests street_pixels_areas_tests
-BUILD_EXIT=0
-# binaries: /home/ubuntu/omim-build-debug/street_pixels_tests
-#           /home/ubuntu/omim-build-debug/street_pixels_areas_tests
+# no dedicated sp079_build.log; independent reviewer did not re-run the build
+$ ls -la /home/ubuntu/omim-build-debug/street_pixels_tests /home/ubuntu/omim-build-debug/street_pixels_areas_tests
+-rwxr-xr-x 1 ubuntu ubuntu 234387984 Aug 26 19:55 /home/ubuntu/omim-build-debug/street_pixels_tests
+-rwxr-xr-x 1 ubuntu ubuntu  28307592 Aug 26 19:55 /home/ubuntu/omim-build-debug/street_pixels_areas_tests
+# suites started 19:55:47 against those binaries (see per-suite START lines)
 
 BIN=/home/ubuntu/omim-build-debug
 DATA_ARGS="--data_path=/workspace/data --user_resource_path=/workspace/data"
@@ -164,7 +166,7 @@ Map screenshots remain **forbidden**. No walks, packet captures, or fabricated t
 | H30 Ever-live-flip vs newly-explored-only §24.1 | — | **Residual** | SP-073 product lock |
 | H31 Weekly crash window drops increment | — | **Residual** | SP-073 |
 | I1–I14 Sparse N=0..4 server + client parse/copy | agent | **Pass** | area/weekly snapshot pytest + CompetitionSparse/Ranking/Snapshot |
-| I15 / M5 N&lt;3 on device | — | **Residual** | Phase 10 |
+| I15 / M5 `N < 3` on device | — | **Residual** | Phase 10 |
 | J1–J20 Nickname filter / report / 7-day / admin reset | agent | **Pass** | IdentityStore report/rename + `test_nickname_moderation` + `test_reports` |
 | J21 Client 7-day-gates after admin reset | — | **Residual** | SP-077 follow-up still open |
 | J22 HTTP 409 `rename_limited` mapped to Collision | — | **Residual** | SP-077 |
@@ -195,7 +197,7 @@ Map screenshots remain **forbidden**. No walks, packet captures, or fabricated t
 | 6 | Ownership, eligibility, boss selection, contested and unclaimed states work | **Pass (automated) + Residual (boss haptic out SPD-054; QueryCompetitionOwnership loaded-span; device)** | F1–F38; N4; N12; N13; N15. Highway `Eligibility_*` not this exit (ran green because classificator present). Do not fail for SPD-054 |
 | 7 | Server-side decay works between uploads | **Pass (automated) + Residual (decay-without-app device Phase 10)** | G1–G9; N15; M6 → Phase 10 |
 | 8 | The weekly city leaderboard excludes revisits and imports and resets weekly | **Pass (automated) + Residual (Weekly GET JNI; city_timezones empty dict; SP-073 crash window / ever-live-flip)** | H1–H27; N10; N12; N15. JNI not wired on this branch |
-| 9 | Sparse-area anonymity is enforced server-side | **Pass (automated) + Residual (N&lt;3 device Phase 10)** | I1–I14; N6; N9; N15; M5 → Phase 10 |
+| 9 | Sparse-area anonymity is enforced server-side | **Pass (automated) + Residual (`N < 3` device Phase 10)** | I1–I14; N6; N9; N15; M5 → Phase 10 |
 | 10 | Nickname validation, filtering, reporting, administrative reset, and the seven-day rename limit work | **Pass (automated) + Residual (SP-077: client 7-day after admin reset; 409 rename_limited→Collision; small blocked-list; unicode table)** | J1–J20; N1; N15 |
 | 11 | Profile and aggregate deletion works and leaves local exploration intact | **Pass (automated) + Residual (leave retry queue; live_recency rows on revoke; device delete Phase 10)** | K1–K17; N5; N15; M7 → Phase 10 |
 | 12 | No surface reveals another user's live location, exact location, or presence | **Pass (automated) + Residual (friends_signup_* copy; presence eyeball Phase 10)** | L1–L12; N7; N8; N9; M8 → Phase 10. Map screenshots forbidden |
@@ -204,7 +206,7 @@ Map screenshots remain **forbidden**. No walks, packet captures, or fabricated t
 
 | ID | Finding | Disposition |
 | --- | --- | --- |
-| R1 | No handset: opt-in walk, traffic capture, opt-out zero upload, offline queue, N&lt;3, decay-without-app, delete+local intact, presence eyeball | Phase 10. Map screenshots remain forbidden. |
+| R1 | No handset: opt-in walk, traffic capture, opt-out zero upload, offline queue, `N < 3`, decay-without-app, delete+local intact, presence eyeball | Phase 10. Map screenshots remain forbidden. |
 | R2 | SP-071 still In progress / not accepted | Maintainer; residual on exits 1–3 |
 | R3 | friends_signup_* nickname toasts | Later copy cleanup; SPD-061 |
 | R4 | Weekly GET not JNI-wired | Later client WI / Phase 10 |
@@ -228,7 +230,7 @@ Map screenshots remain **forbidden**. No walks, packet captures, or fabricated t
 
 Explorer pytest warnings: four `PydanticDeprecatedSince20` class-based `config` messages from the venv. Not a product fail.
 
-Dirty tree left unstaged (never committed): `3party/healpix/healpix`, `data/area_milestones.db`, `data/live_recency.db`.
+Dirty tree left unstaged (never committed): `3party/healpix/healpix`, `data/area_milestones.db`, `data/live_recency.db`, `data/street_stats.db`, `data/weekly_city_live.db`.
 
 ## Phase 8 exit recommendation (agent)
 
