@@ -1223,7 +1223,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
     if (progress.hasFocus && !TextUtils.isEmpty(progress.displayName))
     {
       FocusedAreaDetailBottomSheet.show(getSupportFragmentManager(), progress.displayName, progress.fractionValid,
-                                        progress.fraction, progress.areaCompleted, progress.previouslyCompleted);
+                                        progress.fraction, progress.areaCompleted, progress.previouslyCompleted,
+                                        progress.osmId, progress.citySummary);
       return;
     }
     FocusedAreaDetailBottomSheet.showEmpty(getSupportFragmentManager());

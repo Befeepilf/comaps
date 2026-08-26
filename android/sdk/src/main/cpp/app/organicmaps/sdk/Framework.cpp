@@ -26,6 +26,7 @@
 #include "map/everywhere_search_params.hpp"
 #include "map/friends_manager.hpp"
 #include "map/identity_store.hpp"
+#include "map/competition_snapshot.hpp"
 #include "map/user_mark.hpp"
 
 #include "storage/storage_defines.hpp"
@@ -954,6 +955,39 @@ JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_Framework_nativeCanRenameNic
 JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_Framework_nativeShouldUploadCompetitionIdentity(JNIEnv *, jclass)
 {
   return static_cast<jboolean>(IdentityStore::ShouldUploadCompetitionIdentity());
+}
+
+JNIEXPORT jint JNICALL Java_app_organicmaps_sdk_Framework_nativeLeaveCompetitionRetain(JNIEnv *, jclass)
+{
+  auto const result = IdentityStore::LeaveCompetitionRetain();
+  street_pixels::SetCompetitionMapMode(street_pixels::CompetitionMapMode::Explore);
+  return static_cast<jint>(result);
+}
+
+JNIEXPORT jint JNICALL Java_app_organicmaps_sdk_Framework_nativeDeleteCompetitionProfile(JNIEnv *, jclass)
+{
+  auto const result = IdentityStore::DeleteCompetitionProfile();
+  if (result == IdentityStore::CompetitionAccountResult::Ok)
+    street_pixels::SetCompetitionMapMode(street_pixels::CompetitionMapMode::Explore);
+  return static_cast<jint>(result);
+}
+
+JNIEXPORT jint JNICALL Java_app_organicmaps_sdk_Framework_nativeGetCompetitionMapMode(JNIEnv *, jclass)
+{
+  return static_cast<jint>(street_pixels::GetCompetitionMapMode());
+}
+
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeSetCompetitionMapMode(JNIEnv *, jclass, jint mode)
+{
+  auto const parsed = mode == 1 ? street_pixels::CompetitionMapMode::Competition
+                                : street_pixels::CompetitionMapMode::Explore;
+  street_pixels::SetCompetitionMapMode(parsed);
+}
+
+JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_Framework_nativeIsRoutingFollowing(JNIEnv *, jclass)
+{
+  auto & rm = frm()->GetRoutingManager();
+  return static_cast<jboolean>(rm.IsRoutingActive() && rm.IsRoutingFollowing());
 }
 
 JNIEXPORT jstring JNICALL Java_app_organicmaps_sdk_Framework_nativeGetNicknameDraft(JNIEnv * env, jclass)

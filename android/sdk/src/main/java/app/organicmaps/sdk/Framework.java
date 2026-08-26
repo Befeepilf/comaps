@@ -400,6 +400,11 @@ public class Framework
   public static native int nativeTryClaimNickname(@NonNull String nickname);
   public static native boolean nativeCanRenameNickname();
   public static native boolean nativeShouldUploadCompetitionIdentity();
+  public static native int nativeLeaveCompetitionRetain();
+  public static native int nativeDeleteCompetitionProfile();
+  public static native int nativeGetCompetitionMapMode();
+  public static native void nativeSetCompetitionMapMode(int mode);
+  public static native boolean nativeIsRoutingFollowing();
   @Nullable
   public static native String nativeGetNicknameDraft();
   public static native void nativeSetExploreApiBaseUrl(@NonNull String url);
