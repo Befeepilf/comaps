@@ -137,6 +137,29 @@ UNIT_TEST(BackendConfig_CompetitionWeeklyBoardUrlWhenConfigured)
   ClearApiBaseUrl();
 }
 
+UNIT_TEST(BackendConfig_CompetitionAreaSnapshotRequestUrlHasProfileQuery)
+{
+  ClearApiBaseUrl();
+  TEST(backend::GetCompetitionAreaSnapshotRequestUrl(10, "pid-1").empty(), ());
+  backend::SetApiBaseUrl("https://example.com/api/");
+  auto const url = backend::GetCompetitionAreaSnapshotRequestUrl(10, "pid-1");
+  TEST_EQUAL(url, "https://example.com/api/v1/competition/areas/10?profile_id=pid-1", ());
+  TEST(url.find("/stats/upload") == std::string::npos, ());
+  TEST(url.find("profile_id=") != std::string::npos, ());
+  ClearApiBaseUrl();
+}
+
+UNIT_TEST(BackendConfig_CompetitionWeeklyBoardRequestUrlHasProfileQuery)
+{
+  ClearApiBaseUrl();
+  backend::SetApiBaseUrl("https://example.com/api");
+  auto const url = backend::GetCompetitionWeeklyBoardRequestUrl(20, "pid 1");
+  TEST(url.find("https://example.com/api/v1/competition/weekly/20?profile_id=") == 0, (url));
+  TEST(url.find("/stats/upload") == std::string::npos, ());
+  TEST(url.find("profile_id=") != std::string::npos, ());
+  ClearApiBaseUrl();
+}
+
 UNIT_TEST(BackendConfig_CompetitionDeleteUrlEmptyWhenUnconfigured)
 {
   ClearApiBaseUrl();

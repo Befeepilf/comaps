@@ -38,6 +38,8 @@
 #include "map/identity_store.hpp"
 #include "map/completion_card_analytics.hpp"
 #include "map/competition_hint.hpp"
+#include "map/competition_snapshot.hpp"
+#include "street_pixels_areas/competition_presentation.hpp"
 
 #include "street_pixels_areas/exploration_area_tap.hpp"
 #include "street_pixels_areas/area_completion_cache.hpp"
@@ -276,6 +278,8 @@ void AppendEverLiveFromScan(std::optional<street_pixels_file::ExploredEverLiveMa
 
 StreetPixelsManager::StreetPixelsManager(DataSource const & dataSource) : m_dataSource(dataSource)
 {
+  m_areaMilestonePresenter.SetCompetitionLineProvider(
+      [this](uint64_t osmId) { return ComposeCompetitionLineForOsm(osmId); });
   if (IdentityStore::HasCompetitionConsent())
     MaybeSeedLiveRecency(IdentityStore::GetCompetitionConsentUnixTime());
 }
@@ -488,6 +492,77 @@ void StreetPixelsManager::ResetCompetitionHintForTesting()
   m_competitionHintTracker.ResetForTesting();
 }
 
+std::string StreetPixelsManager::ComposeCompetitionLineForOsm(uint64_t osmId, std::string const & displayName) const
+{
+  if (!IdentityStore::HasCompetitionConsent() || !IdentityStore::HasUsername())
+    return {};
+  auto const query = QueryCompetitionOwnership(osmId);
+  bool boss = query.m_localIsBoss;
+  auto const snap = street_pixels::LastAreaSnapshot();
+  if (snap.has_value() && snap->m_areaOsmId == static_cast<int64_t>(osmId) && snap->m_boss.has_value())
+    boss = boss || snap->m_boss->m_isCurrentUser;
+  std::string name = displayName;
+  if (name.empty())
+  {
+    auto const focused = GetFocusedAreaProgress();
+    if (focused.m_hasFocus && focused.m_osmId == osmId)
+      name = focused.m_displayName;
+  }
+  street_pixels::CompetitionCardContext ctx;
+  ctx.m_hasConsent = true;
+  ctx.m_hasProfile = true;
+  ctx.m_isEligibleBoss = boss;
+  return street_pixels::ComposeCompetitionCardLine(name, ctx);
+}
+
+street_pixels::CompetitionAreaChrome StreetPixelsManager::GetCompetitionAreaChrome(uint64_t osmId) const
+{
+  std::optional<street_pixels::CompetitionAreaSnapshot> snap = street_pixels::LastAreaSnapshot();
+  if (snap.has_value() && snap->m_areaOsmId != static_cast<int64_t>(osmId))
+    snap.reset();
+  auto chrome = street_pixels::BuildCompetitionAreaChrome(snap);
+  auto const query = QueryCompetitionOwnership(osmId);
+  chrome.m_localOwnershipScore = query.m_ownershipScore;
+  chrome.m_localEligible = query.m_eligible;
+  chrome.m_localIsBoss = query.m_localIsBoss;
+  auto const focused = GetFocusedAreaProgress();
+  if (focused.m_hasFocus && focused.m_osmId == osmId && focused.m_fractionValid)
+    chrome.m_personalCompletionFraction = focused.m_fraction;
+  return chrome;
+}
+
+street_pixels::FetchAreaSnapshotResult StreetPixelsManager::RequestCompetitionAreaSnapshot(uint64_t osmId)
+{
+  if (!IdentityStore::HasCompetitionConsent())
+  {
+    street_pixels::FetchAreaSnapshotResult result;
+    result.m_chrome = GetCompetitionAreaChrome(osmId);
+    result.m_chrome.m_offline = true;
+    return result;
+  }
+  auto result = street_pixels::FetchAreaSnapshot(static_cast<int64_t>(osmId), IdentityStore::GetOrCreateDeviceId());
+  auto const query = QueryCompetitionOwnership(osmId);
+  result.m_chrome.m_localOwnershipScore = query.m_ownershipScore;
+  result.m_chrome.m_localEligible = query.m_eligible;
+  result.m_chrome.m_localIsBoss = query.m_localIsBoss;
+  auto const focused = GetFocusedAreaProgress();
+  if (focused.m_hasFocus && focused.m_osmId == osmId && focused.m_fractionValid)
+    result.m_chrome.m_personalCompletionFraction = focused.m_fraction;
+  return result;
+}
+
+std::optional<street_pixels::CompetitionAreaSnapshot> StreetPixelsManager::LastCompetitionSnapshot() const
+{
+  return street_pixels::LastAreaSnapshot();
+}
+
+void StreetPixelsManager::ResetCompetitionSnapshotForTesting()
+{
+  street_pixels::ClearCompetitionSnapshotCacheForTesting();
+  street_pixels::SetCompetitionGetFnForTesting({});
+  street_pixels::SetCompetitionMapMode(street_pixels::CompetitionMapMode::Explore);
+}
+
 void StreetPixelsManager::SetAreaMilestonePresentationListener(AreaMilestonePresentationChangedFn const & fn)
 {
   m_areaMilestonePresentationListener = fn;
@@ -524,6 +599,13 @@ std::optional<street_pixels::CompletionCardModel> StreetPixelsManager::GetComple
     options.nickname = IdentityStore::GetUsername();
 
   auto model = street_pixels::ComposeCompletionCard(*source, options);
+  if (model)
+  {
+    std::string name = peek->m_displayName;
+    if (name.empty())
+      name = model->m_areaDisplayName;
+    model->m_competitionLine = ComposeCompetitionLineForOsm(peek->m_osmId, name);
+  }
   if (model && recordGenerated && m_completionCardGeneratedFn)
     m_completionCardGeneratedFn();
   return model;
