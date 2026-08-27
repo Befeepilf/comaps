@@ -111,7 +111,7 @@ void StreetPixelRenderer::Render(ref_ptr<dp::GraphicsContext> context, ref_ptr<g
     // Check if there are render data.
     if (m_renderData.empty() && !m_waitForRenderData)
     {
-      m_dataRequestFn(kAveragePointsCount);
+      m_dataRequestFn(kAveragePointsCount, m_subID++);
       m_waitForRenderData = true;
     }
 
@@ -185,7 +185,7 @@ void StreetPixelRenderer::Render(ref_ptr<dp::GraphicsContext> context, ref_ptr<g
 
                           if (cacheIndex >= m_handlesCache.size())
                           {
-                            m_dataRequestFn(kAveragePointsCount);
+                            m_dataRequestFn(kAveragePointsCount, m_subID++);
                             m_waitForRenderData = true;
                             return;
                           }

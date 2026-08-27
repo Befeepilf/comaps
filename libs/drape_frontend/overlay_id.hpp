@@ -12,6 +12,7 @@ enum OverlayIDNonMapIndex : uint32_t
 {
   CirclesPackHandleRoutePreview = 1,
   CirclesPackHandleGpsTrack,
+  CirclesPackHandleStreetPixel,
   GuiHandleScaleLabel,
   GuiHandleCopyright,
   GuiHandleCompass,
