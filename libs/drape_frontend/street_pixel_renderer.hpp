@@ -40,7 +40,7 @@ class StreetPixelRenderer final
 public:
   void SetEnabled(bool enabled);
 
-  using TRenderDataRequestFn = std::function<void(uint32_t)>;
+  using TRenderDataRequestFn = std::function<void(uint32_t, uint8_t)>;
   explicit StreetPixelRenderer(TRenderDataRequestFn const & dataRequestFn);
 
   void AddRenderData(ref_ptr<dp::GraphicsContext> context, ref_ptr<gpu::ProgramManager> mng,
@@ -67,5 +67,6 @@ private:
   float m_radius;
   m2::PointD m_pivot;
   bool m_enabled;
+  uint8_t m_subID = 0;
 };
 }  // namespace df

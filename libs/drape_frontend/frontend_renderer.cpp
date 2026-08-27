@@ -227,11 +227,12 @@ FrontendRenderer::FrontendRenderer(Params && params)
                               MessagePriority::Normal);
   });
 
-  m_streetPixelRenderer = make_unique_dp<StreetPixelRenderer>([this](uint32_t pointsCount)
+  m_streetPixelRenderer = make_unique_dp<StreetPixelRenderer>([this](uint32_t pointsCount, uint8_t subID)
   {
     m_commutator->PostMessage(
       ThreadsCommutator::ResourceUploadThread,
-      make_unique_dp<CacheCirclesPackMessage>(pointsCount, CacheCirclesPackMessage::StreetPixel),
+      make_unique_dp<CacheCirclesPackMessage>(pointsCount, CirclesPackHandleStreetPixel, subID,
+                                              CacheCirclesPackMessage::StreetPixel),
       MessagePriority::Normal);
   });
 
