@@ -678,7 +678,14 @@ public class MapButtonsController extends Fragment
     StreetPixelsManager manager = MwmApplication.from(ctx).getStreetPixelsManager();
     FocusedAreaProgress progress = manager.getFocusedAreaProgress();
     if (progress.hasFocus && progress.osmId != 0 && Framework.nativeHasExploreConsent())
-      manager.requestCompetitionAreaSnapshot(progress.osmId);
+    {
+      manager.requestCompetitionAreaSnapshot(progress.osmId, chrome -> {
+        if (getContext() == null)
+          return;
+        maybeShowOvertakingHint(manager);
+      });
+      return;
+    }
     maybeShowOvertakingHint(manager);
   }
 

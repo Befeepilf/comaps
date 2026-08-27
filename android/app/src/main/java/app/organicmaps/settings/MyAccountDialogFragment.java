@@ -19,6 +19,8 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import app.organicmaps.sdk.Framework;
+import app.organicmaps.sdk.util.concurrency.ThreadPool;
+import app.organicmaps.sdk.util.concurrency.UiThread;
 import app.organicmaps.R;
 
 public class MyAccountDialogFragment extends DialogFragment
@@ -141,7 +143,20 @@ public class MyAccountDialogFragment extends DialogFragment
       return;
     }
     mUsernameLayout.setError(null);
-    int result = Framework.nativeTryClaimNickname(name);
+    setAccountActionsEnabled(false);
+    ThreadPool.getWorker().execute(() -> {
+      int result = Framework.nativeTryClaimNickname(name);
+      UiThread.run(() -> {
+        if (!isAdded())
+          return;
+        setAccountActionsEnabled(true);
+        applyClaimResult(result);
+      });
+    });
+  }
+
+  private void applyClaimResult(int result)
+  {
     if (result == 0)
     {
       Toast.makeText(requireContext(), R.string.friends_signup_success, Toast.LENGTH_SHORT).show();
@@ -162,6 +177,14 @@ public class MyAccountDialogFragment extends DialogFragment
       return;
     }
     mUsernameLayout.setError(getString(R.string.friends_signup_error));
+  }
+
+  private void setAccountActionsEnabled(boolean enabled)
+  {
+    mBtnSignup.setEnabled(enabled);
+    mBtnChangeUsername.setEnabled(enabled);
+    mBtnLeaveCompetition.setEnabled(enabled);
+    mBtnDeleteCompetition.setEnabled(enabled);
   }
 
   private void updateSignupVisibility()
@@ -189,21 +212,36 @@ public class MyAccountDialogFragment extends DialogFragment
 
   private void leaveCompetition()
   {
-    Framework.nativeLeaveCompetitionRetain();
-    Toast.makeText(requireContext(), R.string.competition_leave_done, Toast.LENGTH_LONG).show();
-    getParentFragmentManager().setFragmentResult(RESULT_COMPETITION_ACCOUNT, new Bundle());
-    dismiss();
+    setAccountActionsEnabled(false);
+    ThreadPool.getWorker().execute(() -> {
+      Framework.nativeLeaveCompetitionRetain();
+      UiThread.run(() -> {
+        if (!isAdded())
+          return;
+        Toast.makeText(requireContext(), R.string.competition_leave_done, Toast.LENGTH_LONG).show();
+        getParentFragmentManager().setFragmentResult(RESULT_COMPETITION_ACCOUNT, new Bundle());
+        dismiss();
+      });
+    });
   }
 
   private void deleteCompetition()
   {
-    int result = Framework.nativeDeleteCompetitionProfile();
-    if (result != 0)
-    {
-      Toast.makeText(requireContext(), R.string.competition_delete_unavailable, Toast.LENGTH_LONG).show();
-      return;
-    }
-    getParentFragmentManager().setFragmentResult(RESULT_COMPETITION_ACCOUNT, new Bundle());
-    dismiss();
+    setAccountActionsEnabled(false);
+    ThreadPool.getWorker().execute(() -> {
+      int result = Framework.nativeDeleteCompetitionProfile();
+      UiThread.run(() -> {
+        if (!isAdded())
+          return;
+        setAccountActionsEnabled(true);
+        if (result != 0)
+        {
+          Toast.makeText(requireContext(), R.string.competition_delete_unavailable, Toast.LENGTH_LONG).show();
+          return;
+        }
+        getParentFragmentManager().setFragmentResult(RESULT_COMPETITION_ACCOUNT, new Bundle());
+        dismiss();
+      });
+    });
   }
 }

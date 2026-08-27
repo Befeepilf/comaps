@@ -31,6 +31,12 @@ Android is the public V1 platform (`DECISIONS.md` SPD-001).
 - No coordinates in logs reachable from a release build.
 - Analytics are aggregate and contain no location values (spec §32, §34).
 
+## Network threading
+
+- Blocking HTTP must not run on the UI thread. Use `ThreadPool.getWorker()` then
+  `UiThread.run()` for results. Mark HTTP natives `@WorkerThread`. See
+  `.cursor/rules/network-threading.mdc`.
+
 ## Build configuration
 
 - Product flavors are `google`, `web`, `fdroid`, `huawei`; build types are

@@ -40,6 +40,8 @@ globs: libs/**/*.cpp,libs/**/*.hpp,libs/**/CMakeLists.txt
 - Be careful with concurrency: `StreetStatsDB` uses a recursive mutex, the
   `.pix` mapping uses a shared mutex plus `msync`, and the renderer reads spans
   concurrently.
+- Blocking HTTP uses `GetPlatform().RunTask(Platform::Thread::Network, ...)`,
+  not the GUI thread. See `.cursor/rules/network-threading.mdc`.
 
 ## Divergence from upstream
 

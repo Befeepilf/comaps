@@ -6,6 +6,7 @@ import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.Size;
+import androidx.annotation.WorkerThread;
 import app.organicmaps.sdk.api.ParsedRoutingData;
 import app.organicmaps.sdk.api.ParsedSearchRequest;
 import app.organicmaps.sdk.api.RequestType;
@@ -412,10 +413,13 @@ public class Framework
   public static native String nativeGenerateNickname();
   public static native boolean nativeIsValidNickname(@NonNull String nickname);
   public static native boolean nativeSetNicknameDraft(@NonNull String nickname);
+  @WorkerThread
   public static native int nativeTryClaimNickname(@NonNull String nickname);
   public static native boolean nativeCanRenameNickname();
   public static native boolean nativeShouldUploadCompetitionIdentity();
+  @WorkerThread
   public static native int nativeLeaveCompetitionRetain();
+  @WorkerThread
   public static native int nativeDeleteCompetitionProfile();
   public static native int nativeGetCompetitionMapMode();
   public static native void nativeSetCompetitionMapMode(int mode);
