@@ -438,8 +438,11 @@ std::optional<ref_ptr<dp::AccessibilityPresenter>> DrapeEngine::GetAccessibility
   return make_ref(*m_accessibilityPresenter);
 }
 
-void DrapeEngine::UpdateMapStyle()
+void DrapeEngine::UpdateMapStyle(bool const forceRerendering)
 {
+  if (forceRerendering)
+    m_frontend->ForceMapStyleRerendering();
+
   m_threadCommutator->PostMessage(ThreadsCommutator::RenderThread, make_unique_dp<UpdateMapStyleMessage>(),
                                   MessagePriority::High);
 }
@@ -968,6 +971,11 @@ drape_ptr<UserLineRenderParams> DrapeEngine::GenerateLineRenderInfo(UserLineMark
                                       mark->GetDepth(layerIndex));
   }
   return renderInfo;
+}
+
+double DrapeEngine::GetVisualScale()
+{
+  return VisualParams::Instance().GetVisualScale();
 }
 
 void DrapeEngine::UpdateVisualScale(double vs, bool needStopRendering)

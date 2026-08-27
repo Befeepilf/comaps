@@ -2238,7 +2238,6 @@ public class MwmActivity extends BaseMwmFragmentActivity
   {
     // Create and show 'Manage Route' Bottom Sheet panel.
     mManageRouteBottomSheet = new ManageRouteBottomSheet();
-    mManageRouteBottomSheet.setCancelable(false);
     mManageRouteBottomSheet.show(getSupportFragmentManager(), "ManageRouteBottomSheet");
   }
 
@@ -2574,8 +2573,23 @@ public class MwmActivity extends BaseMwmFragmentActivity
   {
     super.onTrimMemory(level);
     Logger.d(TAG, "trim memory, level = " + level);
-    if (level >= TRIM_MEMORY_RUNNING_LOW)
-      Framework.nativeMemoryWarning();
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM)
+    {
+      // With API Level >= 35, only TRIM_MEMORY_BACKGROUND and TRIM_MEMORY_UI_HIDDEN memory
+      // levels are reported.
+      if (level >= TRIM_MEMORY_BACKGROUND)
+        Framework.nativeMemoryWarning();
+    }
+    else
+    {
+      // Suppress warning of deprecated TRIM_MEMORY_RUNNING_LOW trim memory level
+      // with API level < 35.
+      @SuppressWarnings("deprecation")
+      int WARNING_LEVEL = TRIM_MEMORY_RUNNING_LOW;
+      if (level >= WARNING_LEVEL)
+        Framework.nativeMemoryWarning();
+    }
   }
 
   private void makeNavigationBarTransparentInLightMode()

@@ -45,7 +45,8 @@ set(SRC
   app/organicmaps/sdk/routing/TransitRouteInfo.hpp
   app/organicmaps/sdk/routing/TransitStepInfo.hpp
   app/organicmaps/sdk/ChoosePositionMode.cpp
-  app/organicmaps/sdk/MapStyle.cpp
+  app/organicmaps/sdk/MapMode.cpp
+  app/organicmaps/sdk/MapAppearance.cpp
   app/organicmaps/sdk/OrganicMaps.cpp
   app/organicmaps/sdk/Router.cpp
   app/organicmaps/sdk/core/jni_helper.cpp
@@ -146,7 +147,8 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 #target_link_options(${PROJECT_NAME} PRIVATE "-fuse-ld=gold")
-if(ANDROID_ABI STREQUAL "arm64-v8a")
+if(ENABLE_ASAN AND ANDROID_ABI STREQUAL "arm64-v8a")
   target_compile_options(${PROJECT_NAME} PUBLIC -fsanitize=hwaddress -fno-omit-frame-pointer)
   target_link_options(${PROJECT_NAME} PUBLIC -fsanitize=hwaddress)
 endif()
+
