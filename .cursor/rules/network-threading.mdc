@@ -1,0 +1,31 @@
+---
+description: Never perform HTTP or other blocking network I/O on the GUI thread
+globs: android/**/*.java,android/**/*.cpp,libs/map/**,libs/platform/**
+alwaysApply: false
+---
+
+# Network threading
+
+Blocking network I/O must not run on the GUI / main thread. On Android this
+throws `NetworkOnMainThreadException` and the request never leaves the device.
+
+## C++
+
+Use `GetPlatform().RunTask(Platform::Thread::Network, ...)` for
+`platform::HttpClient` and any other blocking fetch. Hop results that mutate
+UI-owned state back with `Platform::Thread::Gui`. Follow `FriendsManager`.
+
+Do not call `HttpClient`, `IdentityStore` HTTP (claim / leave / delete /
+report), `FetchAreaSnapshot`, or similar from a GUI-thread JNI entry unless
+that entry is documented `@WorkerThread` and the Java caller has already hopped.
+
+## Android Java
+
+- Call HTTP JNI from `ThreadPool.getWorker()`, then `UiThread.run()` for UI.
+  Follow `MyAccountDialogFragment`, `OsmLoginFragment`, and
+  `StreetPixelsManager.requestCompetitionAreaSnapshot`.
+- Mark blocking HTTP natives `@WorkerThread`.
+- Bind cached / local state on the UI thread first; refresh when the worker
+  returns. Do not `get()` or wait on the UI thread.
+- Map downloads already use `ChunkTask` / WorkManager; do not add a new
+  GUI-thread download path.

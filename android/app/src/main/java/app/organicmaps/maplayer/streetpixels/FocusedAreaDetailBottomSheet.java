@@ -157,23 +157,36 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
     boolean citySummary = args.getBoolean(ARG_CITY_SUMMARY, false);
     boolean showCompetition = Framework.nativeHasExploreConsent() && Framework.nativeGetCompetitionMapMode() == 1
                               && osmId != 0;
+    StreetPixelsManager manager = MwmApplication.from(requireContext()).getStreetPixelsManager();
     if (!showCompetition)
     {
       UiUtils.hide(competitionBlock);
       if (Framework.nativeHasExploreConsent() && osmId != 0)
       {
-        StreetPixelsManager manager = MwmApplication.from(requireContext()).getStreetPixelsManager();
-        manager.requestCompetitionAreaSnapshot(osmId);
-        maybeShowOvertakingHint(manager);
+        manager.requestCompetitionAreaSnapshot(osmId, chrome -> {
+          if (!isAdded())
+            return;
+          maybeShowOvertakingHint(manager);
+        });
       }
       return;
     }
 
     UiUtils.show(competitionBlock);
-    StreetPixelsManager manager = MwmApplication.from(requireContext()).getStreetPixelsManager();
-    CompetitionAreaChrome chrome = manager.requestCompetitionAreaSnapshot(osmId);
-    maybeShowOvertakingHint(manager);
+    applyCompetitionChrome(view, manager.getCompetitionAreaChrome(osmId), citySummary);
+    manager.requestCompetitionAreaSnapshot(osmId, chrome -> {
+      if (!isAdded())
+        return;
+      View bound = getView();
+      if (bound == null)
+        return;
+      applyCompetitionChrome(bound, chrome, citySummary);
+      maybeShowOvertakingHint(manager);
+    });
+  }
 
+  private void applyCompetitionChrome(@NonNull View view, @NonNull CompetitionAreaChrome chrome, boolean citySummary)
+  {
     MaterialTextView statusView = view.findViewById(R.id.competition_status);
     if (chrome.offline)
     {

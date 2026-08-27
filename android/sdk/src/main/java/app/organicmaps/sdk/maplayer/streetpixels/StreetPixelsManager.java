@@ -5,8 +5,11 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
 
 import app.organicmaps.sdk.Framework;
+import app.organicmaps.sdk.util.concurrency.ThreadPool;
+import app.organicmaps.sdk.util.concurrency.UiThread;
 
 public class StreetPixelsManager
 {
@@ -43,6 +46,11 @@ public class StreetPixelsManager
   public interface CompetitionHintCallback
   {
     void onCompetitionHintReady();
+  }
+
+  public interface CompetitionAreaSnapshotCallback
+  {
+    void onCompetitionAreaSnapshot(@NonNull CompetitionAreaChrome chrome);
   }
 
   @NonNull
@@ -221,6 +229,7 @@ public class StreetPixelsManager
   private static native String nativeTryConsumeOvertakingHint(boolean routingFollowing);
   @NonNull
   private static native CompetitionAreaChrome nativeGetCompetitionAreaChrome(long osmId);
+  @WorkerThread
   @NonNull
   private static native CompetitionAreaChrome nativeRequestCompetitionAreaSnapshot(long osmId);
 
@@ -332,10 +341,19 @@ public class StreetPixelsManager
     return nativeGetCompetitionAreaChrome(osmId);
   }
 
-  @NonNull
-  public CompetitionAreaChrome requestCompetitionAreaSnapshot(long osmId)
+  public void requestCompetitionAreaSnapshot(long osmId)
   {
-    return nativeRequestCompetitionAreaSnapshot(osmId);
+    requestCompetitionAreaSnapshot(osmId, null);
+  }
+
+  public void requestCompetitionAreaSnapshot(long osmId, @Nullable CompetitionAreaSnapshotCallback callback)
+  {
+    ThreadPool.getWorker().execute(() -> {
+      CompetitionAreaChrome chrome = nativeRequestCompetitionAreaSnapshot(osmId);
+      if (callback == null)
+        return;
+      UiThread.run(() -> callback.onCompetitionAreaSnapshot(chrome));
+    });
   }
 
   @Nullable
