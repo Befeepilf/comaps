@@ -1,8 +1,8 @@
 # SP-084 — GPX settings surface
 
 **Phase:** 9 — GPX and feature gating
-**Status:** Planned
-**Branch:** `cursor/phase-09-work-items-db9d`
+**Status:** Accepted
+**Branch:** `cursor/sp-084-gpx-settings-surface-db9d`
 **Depends on:** SP-080 G4, G6, G8; SP-083 gate and JNI getters
 **Unblocks:** SP-087 settings and public-build checks
 
@@ -96,13 +96,15 @@ pricing settings (SPD-010).
 
 | Field | Value |
 | --- | --- |
-| Branch | — |
-| Test output | — |
-| Accepted by | — |
-| Accepted date | — |
+| Branch | `cursor/sp-084-gpx-settings-surface-db9d` |
+| Test output | `ExplorerProGateTest` **10/10**; `GpxSettingsVisibilityTest` **12/12**. `BookmarkManagerGpxGateTest` still `UnsatisfiedLinkError` on this host (`nativeGetBookmarksFilesExts`, unchanged class). |
+| Accepted by | Product owner |
+| Accepted date | 2026-08-28 |
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Instrumented settings dumps and public vs internal Pro device walks | SP-087 (repo has no Espresso harness) |
+| `prefs_gpx.xml` and English GPX/Pro strings exist in the public APK | SP-087 must dump the inflated Preference tree, not `aapt` of all prefs XML or a `strings.xml` grep |
+| `BookmarkManagerGpxGateTest` cannot load JNI in this JVM | Environment residual; not a product-logic failure of SP-084 |
