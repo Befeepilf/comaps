@@ -3,10 +3,17 @@ package app.organicmaps.sdk;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.After;
 import org.junit.Test;
 
 public class ExplorerProGateTest
 {
+  @After
+  public void resetNativeReady()
+  {
+    ExplorerPro.setNativeReady(false);
+  }
+
   @Test
   public void combine_closedWhenNativeNotReady()
   {
@@ -29,5 +36,26 @@ public class ExplorerProGateTest
   public void combine_openWhenReadyAndEnabled()
   {
     assertTrue(ExplorerPro.combine(true, true));
+  }
+
+  @Test
+  public void isGpxImportEnabled_closedWhenNativeNotReady()
+  {
+    ExplorerPro.setNativeReady(false);
+    assertFalse(ExplorerPro.isGpxImportEnabled());
+  }
+
+  @Test
+  public void isGpxExportEnabled_closedWhenNativeNotReady()
+  {
+    ExplorerPro.setNativeReady(false);
+    assertFalse(ExplorerPro.isGpxExportEnabled());
+  }
+
+  @Test
+  public void isAdvancedTrackManagementEnabled_closedWhenNativeNotReady()
+  {
+    ExplorerPro.setNativeReady(false);
+    assertFalse(ExplorerPro.isAdvancedTrackManagementEnabled());
   }
 }
