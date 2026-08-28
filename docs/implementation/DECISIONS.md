@@ -1922,6 +1922,231 @@ SP-078.
 
 ---
 
+## SPD-067 — Dedicated historical-import path is the only imported-pixel writer
+
+**Decision.** Imported pixels are written only by a dedicated historical-
+import path. Free KML/KMZ bookmark import does not paint pixels. Finished
+live recordings stored as tracks do not replay through that path. GPX
+track import is Explorer Pro. `UpdateExploredPixels` must not remain a
+catch-all painter over every bookmark track.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-28 via SP-080 (G1; recommended
+position). Closes OQ-20.
+
+**Consequences.**
+
+- SP-081 owns `ImportHistoricalTrack` and retires catch-all replay.
+- Isolation stays in `MarkExploredPixelIds` / live-only side effects,
+  never inside `IsCapabilityEnabled` (SPD-011).
+- Personal completion includes imported (SPD-026); routing uses
+  `IsExplored()` (SPD-040). Import may fire 25/50/100 with no haptic.
+- Waypoints-only GPX does not paint. With SPD-072, a closed gate still
+  refuses the GPX file rather than a bookmarks-only GPX mode in V1.
+
+**Related documents.** Spec §29.2, §15.3, §16.1; OQ-20; SPD-011, SPD-015,
+SPD-026, SPD-040; SP-080; SP-081.
+
+---
+
+## SPD-068 — Historical import stores a local track; delete does not un-explore
+
+**Decision.** Historical import stores a local track the user can inspect
+and delete. Deleting the track does not un-explore pixels and does not
+remove the `processed_tracks` ledger row.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-28 via SP-080 (G2; recommended
+position). Closes OQ-21. Exploration is permanent (spec §3.6, §15.2).
+
+**Consequences.**
+
+- SP-081 materialises the bookmark/track on successful GPX save.
+- Un-exploring on delete is out of V1.
+
+**Related documents.** Spec §3.6, §15.2; OQ-21; SP-080; SP-081.
+
+---
+
+## SPD-069 — Duplicate skip is mercator x,y `geometry_hash` per country
+
+**Decision.** Duplicate skip stays `(geometry_hash, country_id)` with a
+hash of mercator x,y only. Timestamp- or metadata-only re-export is a
+skip. Geometry edits reprocess.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-28 via SP-080 (G3; recommended
+position). Closes OQ-22.
+
+**Consequences.**
+
+- Do not hash timestamps, altitude, name, or file bytes.
+- Tiny GPS-noise re-import is acceptable (already-explored pixels are
+  no-ops).
+
+**Related documents.** OQ-22; SP-080; SP-081.
+
+---
+
+## SPD-070 — V1 advanced track management is batch GPX import
+
+**Decision.** V1 advanced track management is batch GPX import plus the
+Pro import/export surfaces. No merge/split/join feature. Own-recording
+list/edit/delete remains free.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-28 via SP-080 (G4; recommended
+position). Closes OQ-23.
+
+**Consequences.**
+
+- `Capability::AdvancedTrackManagement` gates batch import;
+  `GpxImport` / `GpxExport` gate single-file tools.
+- Multi-category export stays KMZ; it is not GPX usage (SPD-075).
+
+**Related documents.** Spec §29.1–§29.2, §30; OQ-23; SP-080; SP-083;
+SP-084.
+
+---
+
+## SPD-071 — Historical sampling is 15 m per segment, no live GPS rules
+
+**Decision.** Historical import samples each track segment at 15 m
+(SPD-019). It does not apply live GPS acceptance, pause, or gap filters,
+does not sample across segment joins, and does not use GPX timestamp
+interpolation to place pixels. Invalid coordinates are skipped.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-28 via SP-080 (G5; recommended
+position). Closes OQ-24. Spec §16 is live-only.
+
+**Consequences.**
+
+- SP-081 samples per `trkseg` / stored segment, not `Track::GetGeometry`.
+- Global `FromLatLon` clamp is unchanged; the GPX parser skips invalid
+  lat/lon before conversion.
+
+**Related documents.** Spec §16; SPD-019; OQ-24; SP-080; SP-081; SP-085.
+
+---
+
+## SPD-072 — Closed GPX gate refuses VIEW/SEND/document import
+
+**Decision.** When `GpxImport` is not enabled, GPX VIEW/SEND/document
+import refuses the file: no pixel paint, no track materialisation, no
+purchase CTA. KML/KMZ bookmark import remains free.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-28 via SP-080 (G6; recommended
+position). Closes OQ-25. Public V1 must expose no GPX tooling (phase-09
+exit #4). SPD-010 forbids a buy button.
+
+**Consequences.**
+
+- Manifest filters may stay (the OS still offers the app); the handler
+  no-ops GPX when `IsCapabilityEnabled(GpxImport)` is false.
+- Desktop/Qt GPX prepare stays ungated in Android V1.
+
+**Related documents.** Spec §30, §34; SPD-010; OQ-25; SP-080; SP-083.
+
+---
+
+## SPD-073 — Debug entitlement only in capabilities-on debug builds
+
+**Decision.** Internal Pro tooling uses a debug entitlement source
+reachable only when Pro capabilities are on in that build **and** a
+debug-only override is set. `StubEntitlementSource` never grants.
+Public release/beta with capabilities off has no grant path.
+`DebugEntitlementSource`, `InstallDebugEntitlementSource`, and the JNI
+`nativeInstallExplorerProDebugEntitlement` grant path are compiled out
+of non-debug Android (`#ifdef DEBUG`). `UnfreezeConfigurationForTesting`
+remains for tests.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-28 via SP-080 (G7; recommended
+position) plus the compile-out residual lock the same day. Closes OQ-26.
+
+**Consequences.**
+
+- `BuildConfig.EXPLORER_PRO_DEBUG_ENTITLE` is property-driven only in
+  the Android `debug` build type; release/beta hardcode false.
+- Desktop `street_pixels_tests` (Debug) may still install the debug
+  source.
+
+**Related documents.** SPD-011; OQ-26; SP-005; SP-080; SP-083.
+
+---
+
+## SPD-074 — Explorer Pro information page has no purchase action
+
+**Decision.** V1 may show an Explorer Pro information page only in builds
+where Pro capabilities are available. The page has no price, buy, or
+restore control.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-28 via SP-080 (G8; recommended
+position). Closes OQ-27.
+
+**Consequences.**
+
+- Flag-off public builds have no page.
+- SP-084 shows the page on **Available**, not Enabled.
+
+**Related documents.** Spec §32.5; SPD-010; OQ-27; SP-080; SP-084.
+
+---
+
+## SPD-075 — Monetisation analytics are count-only local counters
+
+**Decision.** Monetisation analytics are count-only local counters for
+info-page viewed, GPX import usage, and GPX export usage, incremented
+only when the matching capability is available in the build. No location-
+shaped fields. Upload residual Phase 10. Absent when Pro is off.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-28 via SP-080 (G9; recommended
+position). Closes OQ-28.
+
+**Consequences.**
+
+- Keys: `Explore.ProInfoViewed`, `Explore.GpxImportUsage`,
+  `Explore.GpxExportUsage`.
+- Not Sentry. No lat/lon, file name, track geometry, area id, or pixel id.
+- Multi-category KMZ export does not increment GPX export usage.
+
+**Related documents.** Spec §32.5; SPD-044, SPD-055; OQ-28; SP-080;
+SP-086.
+
+---
+
+## SPD-076 — Audit Spike 9 is not a Phase 9 entry spike
+
+**Decision.** Audit Spike 9 is not a Phase 9 entry spike. Competition
+isolation is proven on the dedicated path in SP-082. Large-import memory
+is SP-085.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-28 via SP-080 (G10; recommended
+position). Closes OQ-29.
+
+**Consequences.**
+
+- Do not block gating on a separate isolation/memory spike.
+
+**Related documents.** Audit §27 Q9; OQ-29; SP-080; SP-082; SP-085.
+
+---
+
 ## 15. Recorded open questions (not decisions)
 
 These are carried from existing project documents. They are listed so they are
@@ -1931,8 +2156,8 @@ treated as authorisation.
 Phase 7 M1–M10 were locked 2026-08-19 via SP-062 as **SPD-046–055** (see
 numbered sections above). **SPD-056** (2026-08-23) supersedes SPD-051’s
 card/share date opt-in. Phase 8 product locks 2026-08-23 via SP-070 as
-**SPD-057–066**. Phase 9 G1–G10 recorded 2026-08-28 via SP-080 as
-**OQ-20–OQ-29** (draft SPD-067–076; not Accepted). Remaining open
+**SPD-057–066**. Phase 9 G1–G10 locked 2026-08-28 via SP-080 as
+**SPD-067–076**. Remaining open
 questions:
 
 | Ref | Question | Source | Blocks |
@@ -1956,16 +2181,16 @@ questions:
 | OQ-17 | ~~Phase 7 M9: exploration haptics predicate?~~ | SP-062 (2026-08-19); spec §28.1–§28.4 | **Closed by SPD-054** — recording ∧ foreground ∧ toggle; one pulse per update. |
 | OQ-18 | ~~Phase 7 M10: growth analytics for cards?~~ | SP-062 (2026-08-19); spec §32.4 | **Closed by SPD-055** — count-only; no area id. |
 | OQ-19 | ~~Should the 100% card always include the stored completion date, with no share-time checkbox?~~ | Device review 2026-08-22; SP-068 | **Closed by SPD-056** — always include the stored date; no checkbox. |
-| OQ-20 | Phase 9 G1: dedicated historical-import path vs flagged bookmark-track replay; which tracks paint pixels? | SP-080 (2026-08-28); spec §29.2; `UpdateExploredPixels` | **Open.** Draft SPD-067: dedicated path only; free KML/KMZ does not paint; live-saved tracks do not replay. Blocks SP-081. |
-| OQ-21 | Phase 9 G2: does GPX import create a stored track, and does delete un-explore? | SP-080 (2026-08-28); spec §3.6, §15.2 | **Open.** Draft SPD-068: store a local track; delete does not un-explore. |
-| OQ-22 | Phase 9 G3: is `processed_tracks.geometry_hash` enough to skip duplicate imports? | SP-080 (2026-08-28); phase-09 | **Open.** Draft SPD-069: keep mercator x,y-only hash per country. |
-| OQ-23 | Phase 9 G4: V1 scope of “advanced local track-management tools”? | SP-080 (2026-08-28); spec §29.1–§29.2 | **Open.** Draft SPD-070: batch GPX import; no merge/split; own-recording list/edit/delete stays free. |
-| OQ-24 | Phase 9 G5: historical sampling vs live GPS interpolation / pause / gap rules? | SP-080 (2026-08-28); spec §16; SPD-019; `Track::GetGeometry` | **Open.** Draft SPD-071: 15 m per segment; no live filters; no cross-segment fill; no timestamp-placed pixels. Blocks SP-081. |
-| OQ-25 | Phase 9 G6: share-sheet / VIEW / SEND GPX when the Pro gate is closed? | SP-080 (2026-08-28); spec §30, §34; SPD-010 | **Open.** Draft SPD-072: refuse GPX; no pixel paint; no purchase CTA; KML/KMZ remains. Blocks SP-083. |
-| OQ-26 | Phase 9 G7: how do internal Pro-capable builds become entitled without a public grant path? | SP-080 (2026-08-28); SPD-011; SP-005 stub | **Open.** Draft SPD-073: debug entitlement source only when capabilities are on and a debug-only override is set; stub never grants. Blocks SP-083. |
-| OQ-27 | Phase 9 G8: Explorer Pro information page in V1? | SP-080 (2026-08-28); spec §32.5; SPD-010 | **Open.** Draft SPD-074: explanation page only when capabilities are available; no price, buy, or restore. |
-| OQ-28 | Phase 9 G9: monetisation analytics shape and when they fire? | SP-080 (2026-08-28); spec §32.5; SPD-044, SPD-055 | **Open.** Draft SPD-075: count-only local uint64; increment only when the matching capability is available; upload residual Phase 10. |
-| OQ-29 | Phase 9 G10: is audit Spike 9 a separate Phase 9 entry spike? | SP-080 (2026-08-28); audit §27 Q9 | **Open.** Draft SPD-076: no; isolation → SP-082; 10k-point memory → SP-085. |
+| OQ-20 | ~~Phase 9 G1: dedicated historical-import path vs flagged bookmark-track replay; which tracks paint pixels?~~ | SP-080 (2026-08-28); spec §29.2; `UpdateExploredPixels` | **Closed by SPD-067** — dedicated path only; free KML/KMZ does not paint; live-saved tracks do not replay. |
+| OQ-21 | ~~Phase 9 G2: does GPX import create a stored track, and does delete un-explore?~~ | SP-080 (2026-08-28); spec §3.6, §15.2 | **Closed by SPD-068** — store a local track; delete does not un-explore. |
+| OQ-22 | ~~Phase 9 G3: is `processed_tracks.geometry_hash` enough to skip duplicate imports?~~ | SP-080 (2026-08-28); phase-09 | **Closed by SPD-069** — keep mercator x,y-only hash per country. |
+| OQ-23 | ~~Phase 9 G4: V1 scope of “advanced local track-management tools”?~~ | SP-080 (2026-08-28); spec §29.1–§29.2 | **Closed by SPD-070** — batch GPX import; no merge/split; own-recording list/edit/delete stays free. |
+| OQ-24 | ~~Phase 9 G5: historical sampling vs live GPS interpolation / pause / gap rules?~~ | SP-080 (2026-08-28); spec §16; SPD-019; `Track::GetGeometry` | **Closed by SPD-071** — 15 m per segment; no live filters; no cross-segment fill; no timestamp-placed pixels. |
+| OQ-25 | ~~Phase 9 G6: share-sheet / VIEW / SEND GPX when the Pro gate is closed?~~ | SP-080 (2026-08-28); spec §30, §34; SPD-010 | **Closed by SPD-072** — refuse GPX; no pixel paint; no purchase CTA; KML/KMZ remains. |
+| OQ-26 | ~~Phase 9 G7: how do internal Pro-capable builds become entitled without a public grant path?~~ | SP-080 (2026-08-28); SPD-011; SP-005 stub | **Closed by SPD-073** — debug entitlement source only when capabilities are on and a debug-only override is set; stub never grants; grant symbols compiled out of non-debug Android. |
+| OQ-27 | ~~Phase 9 G8: Explorer Pro information page in V1?~~ | SP-080 (2026-08-28); spec §32.5; SPD-010 | **Closed by SPD-074** — explanation page only when capabilities are available; no price, buy, or restore. |
+| OQ-28 | ~~Phase 9 G9: monetisation analytics shape and when they fire?~~ | SP-080 (2026-08-28); spec §32.5; SPD-044, SPD-055 | **Closed by SPD-075** — count-only local uint64; increment only when the matching capability is available; upload residual Phase 10. |
+| OQ-29 | ~~Phase 9 G10: is audit Spike 9 a separate Phase 9 entry spike?~~ | SP-080 (2026-08-28); audit §27 Q9 | **Closed by SPD-076** — no; isolation → SP-082; 10k-point memory → SP-085. |
 
 When one of these is answered, add a new `SPD-NNN` entry above and strike the
 row here with a reference to it.

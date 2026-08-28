@@ -2,7 +2,8 @@
 
 **Date:** 2026-08-28
 **Branch:** `cursor/phase-09-work-items-db9d`
-**Locks:** none yet (recommended positions only)
+**Locks:** product-owner 2026-08-28 → **SPD-067–076** (recommended G1–G10).
+This note remains a dated investigation snapshot, not a decision.
 
 This note is the investigation companion to
 [`SP-080-gpx-feature-gating-architecture-decisions.md`](../work-items/SP-080-gpx-feature-gating-architecture-decisions.md).

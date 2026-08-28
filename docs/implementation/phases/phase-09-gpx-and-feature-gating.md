@@ -1,6 +1,6 @@
 # Phase 9 — GPX and feature gating
 
-**Status:** SP-087 Accepted 2026-08-28 (evidence recorded). G1–G10 still Open (OQ-20–OQ-29). Phase 9 exit awaiting maintainer (not Met).
+**Status:** SP-080 Accepted 2026-08-28 (SPD-067–076). SP-081–087 Accepted. Phase 9 exit awaiting residual code in this branch, then Met with residuals.
 **Depends on:** Phase 3, Phase 1 (SP-005)
 **Blocks:** nothing; required for release
 
@@ -42,8 +42,8 @@ purchase action.
 Verified 2026-07-25 against the working tree. **Re-verified 2026-08-28
 post SP-086 `d0d815832` / SP-087 evidence `5ed5e6df2`.** Extra detail in
 [`notes/SP-080-gpx-feature-gating-architecture.md`](../notes/SP-080-gpx-feature-gating-architecture.md).
-Observed-state only; G1–G10 remain Open. Do not read this table as Phase 9
-exit Met.
+Observed-state only. G1–G10 are **SPD-067–076**. Do not read this table as
+Phase 9 exit Met until residual code in this branch is recorded.
 
 | Concern | Location | Observed state |
 | --- | --- | --- |
@@ -70,7 +70,7 @@ BuildConfig defaults are false. A debug grant path **exists** for internal
 debug builds only; grant symbols remain in the native binary. Isolation is
 asserted on the dedicated path (SP-082) regardless of gate. 10k/50k RSS
 measured under 256 MiB; no chunking (SP-085). Worldwide; no city allowlist.
-G1–G10 still Open (OQ-20–OQ-29).
+G1–G10 closed as **SPD-067–076**.
 
 ## Intended outcome
 
@@ -93,11 +93,9 @@ G1–G10 still Open (OQ-20–OQ-29).
 
 ## Work-item breakdown
 
-Work-item planning 2026-08-28. Recommended locks G1–G10 live in
+Work-item planning 2026-08-28. Locks G1–G10 live in
 [`SP-080`](../work-items/SP-080-gpx-feature-gating-architecture-decisions.md)
-as draft **SPD-067–076** / **OQ-20–OQ-29**. Coding SP-081+ waits on
-maintainer lock of G1, G5, G6, and G7 (those four block binary work).
-Audit Spike 9 is **not** a separate item (G10).
+as **SPD-067–076**. Audit Spike 9 is **not** a separate item (G10 / SPD-076).
 
 | Order | ID | Title |
 | --- | --- | --- |
@@ -123,15 +121,15 @@ Audit Spike 9 is **not** a separate item (G10).
   single **ever-live** bit (SPD-015): import clears it only on first explore;
   live sets it and import must not clear it. No separate `both` state.
 - `processed_tracks` prevents duplicate processing by geometry hash.
-  **Proposed G3:** keep mercator x,y-only hash; timestamp-only re-export
+  **G3 / SPD-069:** keep mercator x,y-only hash; timestamp-only re-export
   skips; geometry edits reprocess.
 - Large imports (10,000-plus points) must not exhaust memory. **SP-085**
-  measures; chunks only if needed (G10).
+  measures; chunks only if needed (G10 / SPD-076).
 - Historical GPX timestamps are sparse and irregular. Live interpolation
-  rules from Phase 2 must not be applied blindly to imports. **Proposed
-  G5:** 15 m geometric sampling per segment; no cross-segment fill.
+  rules from Phase 2 must not be applied blindly to imports. **G5 /
+  SPD-071:** 15 m geometric sampling per segment; no cross-segment fill.
 - Catch-all bookmark replay of live-saved tracks can paint across pause
-  segment joins via `Track::GetGeometry`. **Proposed G1:** stop that
+  segment joins via `Track::GetGeometry`. **G1 / SPD-067:** stop that
   painter; live collection remains the only free pixel writer.
 
 ## Privacy and security implications
@@ -182,7 +180,8 @@ Audit Spike 9 is **not** a separate item (G10).
   **Met 2026-08-03.**
 - SP-005 merged.
   **Met 2026-07-27.**
-- G1, G5, G6, G7 locked before binary coding (SP-080). **Not met.**
+- G1, G5, G6, G7 locked before binary coding (SP-080). **Met 2026-08-28**
+  (SPD-067, SPD-071, SPD-072, SPD-073).
 
 ## Exit criteria
 
@@ -216,23 +215,24 @@ Audit Spike 9 is **not** a separate item (G10).
 - ~~How to treat pixels explored before the source flag existed.~~ Default
   imported-only (ever-live clear) per SPD-015 / SP-016.
 - ~~Whether the existing bookmark import path can be reused with a flag, or
-  whether a separate import entry point is cleaner.~~ **Proposed G1 / OQ-20
-  (draft SPD-067):** dedicated historical path; free KML/KMZ does not paint;
-  live-saved tracks do not replay. Awaiting maintainer lock.
+  whether a separate import entry point is cleaner.~~ **Closed by SPD-067
+  (G1 / OQ-20):** dedicated historical path; free KML/KMZ does not paint;
+  live-saved tracks do not replay.
 - ~~Whether importing a GPX track should also create a stored track.~~
-  **Proposed G2 / OQ-21 (draft SPD-068):** yes; delete does not un-explore.
-- ~~Whether `geometry_hash` is robust enough.~~ **Proposed G3 / OQ-22
-  (draft SPD-069):** keep x,y-only hash.
+  **Closed by SPD-068 (G2 / OQ-21):** yes; delete does not un-explore.
+- ~~Whether `geometry_hash` is robust enough.~~ **Closed by SPD-069
+  (G3 / OQ-22):** keep x,y-only hash.
 - ~~What the entitlement stub looks like in a public build.~~ SP-005 stub
-  is always-false. **Proposed G7 / OQ-26 (draft SPD-073):** debug
-  entitlement for internal Pro builds only; stub never grants.
-- Historical sampling vs live GPS rules — **Proposed G5 / OQ-24 (draft
-  SPD-071):** 15 m per segment; no live filters; no cross-segment fill.
-- Share-sheet GPX when the gate is closed — **Proposed G6 / OQ-25 (draft
-  SPD-072):** refuse GPX; no purchase CTA.
-- V1 advanced track management scope — **Proposed G4 / OQ-23 (draft
-  SPD-070):** batch import; no merge/split; own recordings stay free.
-- Information page and monetisation counters — **Proposed G8–G9 / OQ-27–
-  OQ-28.**
-- Separate Spike 9 — **Proposed G10 / OQ-29:** no; isolation → SP-082;
-  memory → SP-085.
+  is always-false. **Closed by SPD-073 (G7 / OQ-26):** debug
+  entitlement for internal Pro builds only; stub never grants; grant
+  symbols compiled out of non-debug Android.
+- ~~Historical sampling vs live GPS rules.~~ **Closed by SPD-071 (G5 /
+  OQ-24):** 15 m per segment; no live filters; no cross-segment fill.
+- ~~Share-sheet GPX when the gate is closed.~~ **Closed by SPD-072 (G6 /
+  OQ-25):** refuse GPX; no purchase CTA.
+- ~~V1 advanced track management scope.~~ **Closed by SPD-070 (G4 /
+  OQ-23):** batch import; no merge/split; own recordings stay free.
+- ~~Information page and monetisation counters.~~ **Closed by SPD-074–
+  075 (G8–G9 / OQ-27–OQ-28).**
+- ~~Separate Spike 9.~~ **Closed by SPD-076 (G10 / OQ-29):** no;
+  isolation → SP-082; memory → SP-085.
