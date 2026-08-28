@@ -21,6 +21,7 @@
 #include "i18n/localisation.hpp"
 
 #include "base/file_name_utils.hpp"
+#include "base/logging.hpp"
 #include "base/scope_guard.hpp"
 
 #include <cstring>
@@ -916,4 +917,41 @@ UNIT_TEST(Kml_BadTracks)
     TEST_EQUAL(geom.m_lines[0].size(), 2, ());
     TEST_EQUAL(geom.m_lines[0].size(), geom.m_timestamps[0].size(), ());
   }
+}
+
+std::string g_kmlCapturedLog;
+
+void KmlCaptureLogMessage(base::LogLevel, base::SrcPoint const &, std::string const & msg)
+{
+  g_kmlCapturedLog.append(msg);
+}
+
+class KmlLogCaptureGuard
+{
+public:
+  KmlLogCaptureGuard()
+  {
+    g_kmlCapturedLog.clear();
+    m_prev = base::SetLogMessageFn(&KmlCaptureLogMessage);
+  }
+
+  KmlLogCaptureGuard(KmlLogCaptureGuard const &) = delete;
+  KmlLogCaptureGuard & operator=(KmlLogCaptureGuard const &) = delete;
+
+  ~KmlLogCaptureGuard() { base::SetLogMessageFn(m_prev); }
+
+  std::string const & Text() const { return g_kmlCapturedLog; }
+
+private:
+  base::LogMessageFn m_prev = nullptr;
+};
+
+UNIT_TEST(Kml_ParseFailure_DoesNotLogWholePayload)
+{
+  std::string const payload(64 * 1024, '<');
+  KmlLogCaptureGuard capture;
+  kml::FileData data;
+  TEST_ANY_THROW(kml::DeserializerKml(data).Deserialize(MemReader(payload)), ());
+  TEST_LESS(capture.Text().size(), 1024, (capture.Text().size()));
+  TEST(capture.Text().find("size_bytes") != std::string::npos, (capture.Text()));
 }
