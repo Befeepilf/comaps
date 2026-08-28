@@ -107,7 +107,6 @@ public:
 
   void SetBookmarkManager(BookmarkManager * bmManager);
 
-  void OnBookmarksCreated();
   void LoadStreetPixels(storage::LocalFilePtr const & localFile);
 
   std::set<std::int64_t> DeriveStreetPixelsFromFeatures(FeaturesVectorTest & featuresVector);
@@ -290,6 +289,7 @@ public:
 
   void SetStreetPixelsForTesting(std::vector<df::StreetPixel> pixels);
   void SetStreetPixelsOverlayForTesting(storage::CountryId const & countryId, std::vector<df::StreetPixel> pixels);
+  void SetCountryIdForTesting(storage::CountryId const & countryId);
   void ClearLeafPixCacheForTesting();
   void EvictLeafPixForTesting(storage::CountryId const & countryId);
   size_t MarkTrackPixelsForTesting(std::set<std::int64_t> const & pixelIds);

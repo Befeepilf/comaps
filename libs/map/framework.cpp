@@ -495,11 +495,7 @@ Framework::Framework(FrameworkParams const & params, bool loadMaps)
   
   m_bmManager->AddAsyncLoadingCallbacks({
     []() { LOG(LINFO, ("Started loading bookmarks")); },
-    [this]()
-    {
-      LOG(LINFO, ("Finnished loading bookmarks"));
-      GetStreetPixelsManager().OnBookmarksCreated();
-    },
+    []() { LOG(LINFO, ("Finnished loading bookmarks")); },
     [](std::string const & filePath, bool isTemporaryFile)
     {
       LOG(LINFO, ("Finnished loading bookmarks file", filePath));
