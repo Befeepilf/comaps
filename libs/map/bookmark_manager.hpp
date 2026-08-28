@@ -194,6 +194,8 @@ public:
 
   void SetBookmarksChangedCallback(BookmarksChangedCallback && callback);
   void SetCategoriesChangedCallback(CategoriesChangedCallback && callback);
+  using HistoricalTrackImportHandler = std::function<void(std::vector<kml::MultiGeometry::LineT> const &)>;
+  void SetHistoricalTrackImportHandler(HistoricalTrackImportHandler && handler);
   void AddAsyncLoadingCallbacks(AsyncLoadingCallbacks && callbacks);
   bool IsAsyncLoadingInProgress() const { return m_asyncLoadingInProgress; }
 
@@ -665,7 +667,9 @@ private:
 
   std::string GenerateSavedRouteName(std::string const & from, std::string const & to);
   void NotifyAboutStartAsyncLoading();
-  void NotifyAboutFinishAsyncLoading(KMLDataCollectionPtr && collection);
+  void NotifyAboutFinishAsyncLoading(
+      KMLDataCollectionPtr && collection,
+      std::vector<std::vector<kml::MultiGeometry::LineT>> historicalTracks = {});
   void NotifyAboutFile(bool success, std::string const & filePath, bool isTemporaryFile);
   void LoadBookmarkRoutine(std::string const & filePath, bool isTemporaryFile);
   void ReloadBookmarkRoutine(std::string const & filePath);
@@ -784,6 +788,7 @@ private:
   bool m_symbolSizesAcquired = false;
 
   std::vector<AsyncLoadingCallbacks> m_asyncLoadingCallbacks;
+  HistoricalTrackImportHandler m_historicalTrackImportHandler;
   std::atomic<bool> m_needTeardown;
   size_t m_openedEditSessionsCount = 0;
   bool m_loadBookmarksCalled = false;

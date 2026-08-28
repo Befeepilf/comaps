@@ -1,10 +1,10 @@
 # SP-081 — Dedicated historical-import pipeline
 
 **Phase:** 9 — GPX and feature gating
-**Status:** Planned
-**Branch:** `cursor/phase-09-work-items-db9d`
-**Depends on:** SP-080 Accepted locks for G1, G2, G3, G5 (draft
-  SPD-067–069, SPD-071)
+**Status:** Accepted
+**Branch:** `cursor/sp-081-historical-import-db9d`
+**Depends on:** SP-080 recommended locks for G1, G2, G3, G5 (draft
+  SPD-067–069, SPD-071; OQ-20–OQ-23 still Open in DECISIONS.md)
 **Unblocks:** SP-082 (isolation proofs on this API), SP-083 (call-site
   gate), SP-085 (chunking on this path)
 
@@ -130,13 +130,26 @@ In `street_pixels_tests` (and `gpx_tests` regression):
 
 | Field | Value |
 | --- | --- |
-| Branch | — |
-| Test output | — |
-| Accepted by | — |
-| Accepted date | — |
+| Branch | `cursor/sp-081-historical-import-db9d` |
+| Test output | See executed output below |
+| Accepted by | Product owner |
+| Accepted date | 2026-08-28 |
+
+## Executed test output
+
+Cwd `/workspace`. Binary `/home/ubuntu/omim-build-debug/street_pixels_tests`. SHA `b33e8bc58`. `--data_path=/workspace/data --user_resource_path=/workspace/data`.
+
+- `--filter=HistoricalImport` **9/9** All tests passed
+- `--filter=EverLive` **18/18** All tests passed (includes `EverLive_TrackAloneLeavesClear` and `EverLive_TrackAfterLiveRemainsSet`)
+- `--suppress=Eligibility` **420/420** All tests passed (pre-review SHA `2287e0541`; Eligibility abort is missing `data/classificator.txt`)
+- Device GPX import residual → SP-087 / Phase 10
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Import still runs on the GUI thread | SP-085 chunking |
+| Isolation vs recency / weekly / upload not asserted on this API | SP-082 |
+| Live-save non-paint covered by call-site (`SaveTrackRecording` never invokes the handler), not a BookmarkManager unit test | SP-087 if a device proof is needed |
+| Public GPX surfaces still ungated | SP-083 |
+| A-NaN-B geometry hashes equal to A-B (paint does not fill the gap) | Leave; distinguishing would change `HistoricalImport_InvalidCoordinatesAreSkipped` |

@@ -67,13 +67,6 @@ namespace hp
 T_Healpix_Base<std::int64_t> const & GetHealpixBase();
 }  // namespace hp
 
-struct TrackInfo
-{
-  kml::TrackId id;
-  kml::MultiGeometry::LineT geom;
-  kml::Timestamp ts;
-};
-
 class RecordingSession;
 
 bool IsExplorableFeature(feature::GeomType geomType, feature::TypesHolder const & types);
@@ -114,7 +107,6 @@ public:
 
   void SetBookmarkManager(BookmarkManager * bmManager);
 
-  void OnBookmarksCreated();
   void LoadStreetPixels(storage::LocalFilePtr const & localFile);
 
   std::set<std::int64_t> DeriveStreetPixelsFromFeatures(FeaturesVectorTest & featuresVector);
@@ -167,6 +159,7 @@ public:
   void ClearPixels();
 
   void UpdateExploredPixels();
+  size_t ImportHistoricalTrack(std::vector<kml::MultiGeometry::LineT> const & segments);
 
   std::int64_t GetPixMapDataVersion() const;
 
@@ -296,12 +289,15 @@ public:
 
   void SetStreetPixelsForTesting(std::vector<df::StreetPixel> pixels);
   void SetStreetPixelsOverlayForTesting(storage::CountryId const & countryId, std::vector<df::StreetPixel> pixels);
+  void SetCountryIdForTesting(storage::CountryId const & countryId);
   void ClearLeafPixCacheForTesting();
   void EvictLeafPixForTesting(storage::CountryId const & countryId);
   size_t MarkTrackPixelsForTesting(std::set<std::int64_t> const & pixelIds);
   size_t MarkImportedPixelsForTesting(std::set<std::int64_t> const & pixelIds);
   bool IsPixelExploredForTesting(std::int64_t pixelId) const;
   bool IsPixelEverLiveForTesting(std::int64_t pixelId) const;
+  std::int64_t ComputeHistoricalGeometryHashForTesting(
+      std::vector<kml::MultiGeometry::LineT> const & segments) const;
 
 private:
   DataSource const & m_dataSource;
@@ -334,8 +330,6 @@ private:
   df::StreetPixel const * FindStreetPixel(std::int64_t pixelId) const;
   df::StreetPixel * FindStreetPixel(std::int64_t pixelId);
 
-  bool m_tracksLoaded = false;
-
   void UpdateStreetStatsForTrack(kml::MultiGeometry::LineT const & line);
 
   void SegmentizeStreet(m2::PointD const & p1, m2::PointD const & p2,
@@ -344,8 +338,9 @@ private:
   double ExploredRatioForSegment(std::string const & mwmCountryName, routing::Segment const & segment,
                                  routing::RoadGeometry const & road) const;
 
-  std::int64_t ComputeGeometryHash(TrackInfo const & trackInfo);
-  std::set<std::int64_t> ComputeTrackPixels(TrackInfo const & trackInfo) const;
+  std::int64_t ComputeGeometryHash(std::vector<kml::MultiGeometry::LineT> const & segments) const;
+  std::set<std::int64_t> ComputeTrackPixels(std::vector<kml::MultiGeometry::LineT> const & segments) const;
+  bool IsImportableMercatorPoint(m2::PointD const & point) const;
   void AddPixelsInRadius(double lat, double lon, std::set<std::int64_t> & pixels) const;
   bool IsExplorable(FeatureType & ft) const;
 
