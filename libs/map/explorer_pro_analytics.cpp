@@ -9,7 +9,7 @@ namespace street_pixels
 {
 namespace
 {
-void IncrementCounter(std::string_view key)
+void IncrementExplorerProCounter(std::string_view key)
 {
   uint64_t value = 0;
   settings::TryGet(key, value);
@@ -23,21 +23,21 @@ void ExplorerProAnalytics::RecordInfoPageViewed()
       && !explorer_pro::IsCapabilityAvailable(explorer_pro::Capability::GpxExport)
       && !explorer_pro::IsCapabilityAvailable(explorer_pro::Capability::AdvancedTrackManagement))
     return;
-  IncrementCounter(kInfoPageViewedKey);
+  IncrementExplorerProCounter(kInfoPageViewedKey);
 }
 
 void ExplorerProAnalytics::RecordGpxImportUsage()
 {
   if (!explorer_pro::IsCapabilityAvailable(explorer_pro::Capability::GpxImport))
     return;
-  IncrementCounter(kGpxImportUsageKey);
+  IncrementExplorerProCounter(kGpxImportUsageKey);
 }
 
 void ExplorerProAnalytics::RecordGpxExportUsage()
 {
   if (!explorer_pro::IsCapabilityAvailable(explorer_pro::Capability::GpxExport))
     return;
-  IncrementCounter(kGpxExportUsageKey);
+  IncrementExplorerProCounter(kGpxExportUsageKey);
 }
 
 ExplorerProAnalyticsSnapshot ExplorerProAnalytics::LoadSnapshot()
