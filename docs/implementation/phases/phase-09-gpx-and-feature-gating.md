@@ -1,6 +1,6 @@
 # Phase 9 — GPX and feature gating
 
-**Status:** Work-item planning 2026-08-28; coding waits on SP-080 locks
+**Status:** SP-081 Accepted 2026-08-28; SP-082 next. G1–G10 still Open (OQ-20–OQ-29).
 **Depends on:** Phase 3, Phase 1 (SP-005)
 **Blocks:** nothing; required for release
 
