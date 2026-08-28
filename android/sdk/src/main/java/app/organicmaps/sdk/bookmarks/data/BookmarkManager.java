@@ -425,6 +425,11 @@ public enum BookmarkManager {
     return filename.toLowerCase(java.util.Locale.ROOT).endsWith(".gpx");
   }
 
+  static boolean allowGpxInBatch(int gpxCount, boolean gpxImportEnabled, boolean advancedTrackManagementEnabled)
+  {
+    return gpxImportEnabled && (gpxCount <= 1 || advancedTrackManagementEnabled);
+  }
+
   @WorkerThread
   public boolean importBookmarksFile(@NonNull ContentResolver resolver, @NonNull Uri uri, @NonNull File tempDir)
   {
@@ -464,7 +469,7 @@ public enum BookmarkManager {
   }
 
   @WorkerThread
-  public void importBookmarksFiles(@NonNull ContentResolver resolver, @NonNull List<Uri> uris, @NonNull File tempDir)
+  public int importBookmarksFiles(@NonNull ContentResolver resolver, @NonNull List<Uri> uris, @NonNull File tempDir)
   {
     int gpxCount = 0;
     for (Uri uri : uris)
@@ -473,15 +478,18 @@ public enum BookmarkManager {
       if (isGpxFilename(filename))
         ++gpxCount;
     }
-    final boolean allowGpx = ExplorerPro.isGpxImportEnabled()
-        && (gpxCount <= 1 || ExplorerPro.isAdvancedTrackManagementEnabled());
+    final boolean allowGpx = allowGpxInBatch(gpxCount, ExplorerPro.isGpxImportEnabled(),
+                                             ExplorerPro.isAdvancedTrackManagementEnabled());
+    int imported = 0;
     for (Uri uri : uris)
     {
       String filename = getBookmarksFilenameFromUri(resolver, uri);
       if (isGpxFilename(filename) && !allowGpx)
         continue;
-      importBookmarksFile(resolver, uri, tempDir);
+      if (importBookmarksFile(resolver, uri, tempDir))
+        ++imported;
     }
+    return imported;
   }
 
   public boolean isAsyncBookmarksLoadingInProgress()

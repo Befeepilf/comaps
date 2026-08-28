@@ -547,8 +547,7 @@ public class BookmarkCategoriesFragment extends BaseMwmRecyclerFragment<Bookmark
     ThreadPool.getStorage().execute(() -> {
       List<Uri> uris = new ArrayList<>();
       StorageUtils.listContentProviderFilesRecursively(resolver, rootUri, uris::add);
-      BookmarkManager.INSTANCE.importBookmarksFiles(resolver, uris, tempDir);
-      int found_val = uris.size();
+      int found_val = BookmarkManager.INSTANCE.importBookmarksFiles(resolver, uris, tempDir);
       UiThread.run(() -> {
         if (dialog.isShowing())
           dialog.dismiss();
