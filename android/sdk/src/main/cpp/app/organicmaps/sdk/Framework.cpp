@@ -1099,6 +1099,53 @@ JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeSetExplorerProCa
                                        static_cast<bool>(advancedTrackManagement));
 }
 
+JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_Framework_nativeIsGpxImportEnabled(JNIEnv *, jclass)
+{
+  return static_cast<jboolean>(explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport));
+}
+
+JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_Framework_nativeIsGpxExportEnabled(JNIEnv *, jclass)
+{
+  return static_cast<jboolean>(explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxExport));
+}
+
+JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_Framework_nativeIsAdvancedTrackManagementEnabled(JNIEnv *, jclass)
+{
+  return static_cast<jboolean>(explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::AdvancedTrackManagement));
+}
+
+JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_Framework_nativeIsGpxImportAvailable(JNIEnv *, jclass)
+{
+  return static_cast<jboolean>(explorer_pro::IsCapabilityAvailable(explorer_pro::Capability::GpxImport));
+}
+
+JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_Framework_nativeIsGpxExportAvailable(JNIEnv *, jclass)
+{
+  return static_cast<jboolean>(explorer_pro::IsCapabilityAvailable(explorer_pro::Capability::GpxExport));
+}
+
+JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_Framework_nativeIsAdvancedTrackManagementAvailable(JNIEnv *, jclass)
+{
+  return static_cast<jboolean>(
+      explorer_pro::IsCapabilityAvailable(explorer_pro::Capability::AdvancedTrackManagement));
+}
+
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeInstallExplorerProDebugEntitlement(JNIEnv *, jclass)
+{
+  if (!explorer_pro::IsCapabilityAvailable(explorer_pro::Capability::GpxImport)
+      && !explorer_pro::IsCapabilityAvailable(explorer_pro::Capability::GpxExport)
+      && !explorer_pro::IsCapabilityAvailable(explorer_pro::Capability::AdvancedTrackManagement))
+  {
+    return;
+  }
+  explorer_pro::InstallDebugEntitlementSource();
+}
+
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeClearExplorerProEntitlementSource(JNIEnv *, jclass)
+{
+  explorer_pro::SetEntitlementSource(nullptr);
+}
+
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeTriggerExploreStatsUpload(JNIEnv *, jclass)
 {
   frm()->TriggerExploreStatsUpload();
