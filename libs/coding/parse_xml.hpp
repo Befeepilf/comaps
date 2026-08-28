@@ -38,6 +38,12 @@ public:
     return m_numRead == kBufferSize;
   }
 
+  void Finish()
+  {
+    if (m_parser.ParseBuffer(0, true) == XML_STATUS_ERROR)
+      MYTHROW(XmlParseError, (m_parser.GetErrorMessage()));
+  }
+
 private:
   uint32_t static constexpr kBufferSize = 16 * 1024;
 
@@ -73,6 +79,7 @@ bool ParseXML(Source & source, XMLDispatcher & dispatcher, bool useCharData = fa
   {
     while (parser.Read()) /* empty */
       ;
+    parser.Finish();
   }
   catch (std::exception const & e)
   {

@@ -92,6 +92,7 @@ UNIT_TEST(Gpx_Test_Point_With_Valid_Timestamp)
   <time>2022-09-05T08:39:39.3700Z</time>
   <name>Waypoint 1</name>
  </wpt>
+</gpx>
 )";
 
   kml::FileData data;
@@ -115,6 +116,7 @@ UNIT_TEST(Gpx_Test_Point_With_Invalid_Timestamp)
   <time>2022-09-05T08:39:39.3700X</time>
   <name>Waypoint 1</name>
  </wpt>
+</gpx>
 )";
 
   kml::FileData const dataFromText = LoadGpxFromString(input);
@@ -388,6 +390,7 @@ d5
   <cmt>c4</cmt>
  </wpt>
  <wpt lat="1" lon="2"><name>5</name><cmt>qqq</cmt><desc>qqq</desc></wpt>
+</gpx>
 )";
   kml::FileData const dataFromText = LoadGpxFromString(input);
   TEST_EQUAL("d1", dataFromText.m_bookmarksData[0].m_description.at(kml::kDefaultLang), ());
