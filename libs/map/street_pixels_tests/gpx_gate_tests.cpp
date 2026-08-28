@@ -26,10 +26,10 @@ public:
   ~GpxGateBreadcrumbCleanup() { settings::Delete("RecordingSessionActive"); }
 };
 
-class FakeEntitlementSource : public explorer_pro::EntitlementSource
+class GpxGateFakeEntitlementSource : public explorer_pro::EntitlementSource
 {
 public:
-  explicit FakeEntitlementSource(bool entitled) : m_entitled(entitled) {}
+  explicit GpxGateFakeEntitlementSource(bool entitled) : m_entitled(entitled) {}
 
   bool IsEntitled() const override { return m_entitled; }
 
@@ -37,28 +37,28 @@ private:
   bool m_entitled;
 };
 
-class EntitlementSourceScope
+class GpxGateEntitlementSourceScope
 {
 public:
-  explicit EntitlementSourceScope(explorer_pro::EntitlementSource * source)
+  explicit GpxGateEntitlementSourceScope(explorer_pro::EntitlementSource * source)
   {
     explorer_pro::SetEntitlementSource(source);
   }
 
-  ~EntitlementSourceScope() { explorer_pro::SetEntitlementSource(nullptr); }
+  ~GpxGateEntitlementSourceScope() { explorer_pro::SetEntitlementSource(nullptr); }
 };
 
-class CapabilityAvailabilityScope
+class GpxGateCapabilityAvailabilityScope
 {
 public:
-  CapabilityAvailabilityScope(explorer_pro::Capability capability, bool available)
+  GpxGateCapabilityAvailabilityScope(explorer_pro::Capability capability, bool available)
     : m_capability(capability)
     , m_previous(explorer_pro::IsCapabilityAvailable(capability))
   {
     explorer_pro::SetCapabilityAvailable(capability, available);
   }
 
-  ~CapabilityAvailabilityScope() { explorer_pro::SetCapabilityAvailable(m_capability, m_previous); }
+  ~GpxGateCapabilityAvailabilityScope() { explorer_pro::SetCapabilityAvailable(m_capability, m_previous); }
 
 private:
   explorer_pro::Capability m_capability;
@@ -89,7 +89,7 @@ kml::MultiGeometry::LineT ShortLineAt(double lat, double lon)
           geometry::PointWithAltitude(mercator::FromLatLon(lat2, lon2))};
 }
 
-void ResetCapabilities()
+void GpxGateResetCapabilities()
 {
   explorer_pro::SetCapabilityAvailable(explorer_pro::Capability::GpxImport, false);
   explorer_pro::SetCapabilityAvailable(explorer_pro::Capability::GpxExport, false);
@@ -108,8 +108,8 @@ void HandleHistoricalTrackImport(StreetPixelsManager & manager,
 UNIT_TEST(GpxGate_HandlerClosedDoesNotPaint)
 {
   GpxGateBreadcrumbCleanup cleanup;
-  ResetCapabilities();
-  EntitlementSourceScope scope(nullptr);
+  GpxGateResetCapabilities();
+  GpxGateEntitlementSourceScope scope(nullptr);
   TEST(!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport), ());
 
   GpxGateFixture fixture;
@@ -125,10 +125,10 @@ UNIT_TEST(GpxGate_HandlerClosedDoesNotPaint)
 UNIT_TEST(GpxGate_HandlerOpenPaints)
 {
   GpxGateBreadcrumbCleanup cleanup;
-  ResetCapabilities();
-  CapabilityAvailabilityScope availability(explorer_pro::Capability::GpxImport, true);
-  FakeEntitlementSource entitled(true);
-  EntitlementSourceScope scope(&entitled);
+  GpxGateResetCapabilities();
+  GpxGateCapabilityAvailabilityScope availability(explorer_pro::Capability::GpxImport, true);
+  GpxGateFakeEntitlementSource entitled(true);
+  GpxGateEntitlementSourceScope scope(&entitled);
   TEST(explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport), ());
 
   GpxGateFixture fixture;
@@ -144,8 +144,8 @@ UNIT_TEST(GpxGate_HandlerOpenPaints)
 UNIT_TEST(GpxGate_DirectImportClosedStillPaints)
 {
   GpxGateBreadcrumbCleanup cleanup;
-  ResetCapabilities();
-  EntitlementSourceScope scope(nullptr);
+  GpxGateResetCapabilities();
+  GpxGateEntitlementSourceScope scope(nullptr);
   TEST(!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport), ());
 
   GpxGateFixture fixture;
