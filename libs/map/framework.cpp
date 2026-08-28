@@ -480,7 +480,6 @@ Framework::Framework(FrameworkParams const & params, bool loadMaps)
     [this](vector<BookmarkInfo> const & marks) {
       LOG(LINFO, ("Bookmarks created", marks.size()));
       GetSearchAPI().OnBookmarksCreated(marks);
-      GetStreetPixelsManager().UpdateExploredPixels();
     },
     [this](vector<BookmarkInfo> const & marks) {
       LOG(LINFO, ("Bookmarks updated", marks.size()));
@@ -517,6 +516,9 @@ Framework::Framework(FrameworkParams const & params, bool loadMaps)
   m_searchMarks.SetBookmarkManager(m_bmManager.get());
 
   m_streetPixelsManager->SetBookmarkManager(m_bmManager.get());
+  m_bmManager->SetHistoricalTrackImportHandler(
+      [this](std::vector<kml::MultiGeometry::LineT> const & segments)
+      { GetStreetPixelsManager().ImportHistoricalTrack(segments); });
   m_streetPixelsManager->SetCompletionCardGeneratedHandler(
       [] { street_pixels::CompletionCardAnalytics::RecordGenerated(); });
   m_streetPixelsManager->SetExplorationListener(
