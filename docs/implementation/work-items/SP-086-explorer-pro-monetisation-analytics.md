@@ -99,4 +99,8 @@ post-V1 (SPD-010).
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| `ReloadBookmarkRoutine` does not pass `historicalTracks`, so a `.gpx` reload neither paints nor counts | Pre-existing; not SP-086. File under SP-081/085 if a reload path should paint. |
+| Multi-category “GPX” export is actually KMZ (`GetFileForSharing` size>1) | Do not count. Product question if V1 should refuse multi-cat GPX; out of scope. |
+| Phase-09 “current code locations” still describes ungated GPX / no analytics | Stale vs SP-083–085; SP-087/docs refresh, not this coding item. |
+| G1–G10 still Open | Coding uses recommended G8/G9; maintainer lock is not this item. |
+| Upload / debug device readout | Phase 10 / SP-087. |

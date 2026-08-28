@@ -20,6 +20,7 @@ set(SRC
   ever_live_tests.cpp
   exploration_haptics_tests.cpp
   explorer_pro_tests.cpp
+  explorer_pro_analytics_tests.cpp
   first_goal_tests.cpp
   gpx_gate_tests.cpp
   competition_hint_tests.cpp

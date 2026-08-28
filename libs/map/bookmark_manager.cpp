@@ -1,5 +1,6 @@
 #include "map/bookmark_manager.hpp"
 #include "map/explorer_pro.hpp"
+#include "map/explorer_pro_analytics.hpp"
 #include "map/gps_tracker.hpp"
 #include "map/search_api.hpp"
 #include "map/track_mark.hpp"
@@ -123,6 +124,7 @@ BookmarkManager::SharingResult ExportSingleFileGpx(
   auto const categoryId = kmlToShare.second->m_categoryData.m_id;
   if (!SaveKmlFileSafe(*kmlToShare.second, filePath, KmlFileType::Gpx))
     return {{categoryId}, BookmarkManager::SharingResult::Code::FileError, "Bookmarks file does not exist."};
+  street_pixels::ExplorerProAnalytics::RecordGpxExportUsage();
   return {{categoryId}, std::move(filePath), kGPXMimeType};
 }
 
