@@ -3,8 +3,7 @@
 **Phase:** 9 — GPX and feature gating
 **Status:** Accepted
 **Branch:** `cursor/sp-081-historical-import-db9d`
-**Depends on:** SP-080 recommended locks for G1, G2, G3, G5 (draft
-  SPD-067–069, SPD-071; OQ-20–OQ-23 still Open in DECISIONS.md)
+**Depends on:** SP-080 locks for G1, G2, G3, G5 (**SPD-067–069**, **SPD-071**)
 **Unblocks:** SP-082 (isolation proofs on this API), SP-083 (call-site
   gate), SP-085 (chunking on this path)
 
@@ -148,8 +147,9 @@ Cwd `/workspace`. Binary `/home/ubuntu/omim-build-debug/street_pixels_tests`. SH
 
 | Finding | Proposed disposition |
 | --- | --- |
-| Import still runs on the GUI thread | SP-085 chunking |
+| Import still runs on the GUI thread | **Closed** 2026-08-28: Framework handler gates on GUI then `Platform::Thread::File` |
 | Isolation vs recency / weekly / upload not asserted on this API | SP-082 |
 | Live-save non-paint covered by call-site (`SaveTrackRecording` never invokes the handler), not a BookmarkManager unit test | SP-087 if a device proof is needed |
 | Public GPX surfaces still ungated | SP-083 |
+| `ReloadBookmarkRoutine` omits `historicalTracks` | **Accepted residual** 2026-08-28: reload loads gated GPX but does not paint |
 | A-NaN-B geometry hashes equal to A-B (paint does not fill the gap) | Leave; distinguishing would change `HistoricalImport_InvalidCoordinatesAreSkipped` |

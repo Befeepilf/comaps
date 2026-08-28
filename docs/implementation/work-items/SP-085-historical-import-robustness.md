@@ -112,8 +112,8 @@ measured (G10).
 
 | Finding | Proposed disposition |
 | --- | --- |
-| `DeserializerKml` still `ReadAsString`-logs the whole file | Later robustness; switch to the GPX prefix helper |
-| `WITH_SYSTEM_PROVIDED_3PARTY` may link libexpat with GE/DTD on | Residual; in-tree Expat is `EXPAT_GE OFF` / `EXPAT_DTD OFF` |
-| `FromLatLon` clamp can still resurrect lat>90 for non-GPX `LineT` | Do not change global mercator; GPX parser skip is the untrusted-input fix |
+| `DeserializerKml` still `ReadAsString`-logs the whole file | **Closed** 2026-08-28: `LogXmlParseFailurePrefix` |
+| `WITH_SYSTEM_PROVIDED_3PARTY` may link libexpat with GE/DTD on | **Accepted residual**; in-tree Expat is `EXPAT_GE OFF` / `EXPAT_DTD OFF` |
+| `FromLatLon` clamp can still resurrect lat>90 for non-GPX `LineT` | **Accepted residual.** Do not change global mercator; GPX parser skip is the untrusted-input fix |
 | Device multi-hour GPX memory | SP-087 / Phase 10 |
-| `Gpx_ImportExport_*` creator mismatch (`CoMaps` vs `Organic Maps`) | Pre-existing; not this item |
+| `Gpx_ImportExport_*` creator mismatch (`CoMaps` vs `Organic Maps`) | **Closed** 2026-08-28: goldens updated to `CoMaps`; writer unchanged |

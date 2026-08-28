@@ -5,8 +5,8 @@
 **Branch:** `cursor/sp-087-phase9-validation-db9d`
 **Depends on:** SP-080–086 implemented or explicitly residualled
 **Notes:** Exit gate. Device residual → Phase 10 pattern (SP-014 / SP-041
-  / SP-061 / SP-069 / SP-079). Maintainer still decides Phase 9 **exit**;
-  this work item records evidence only.
+  / SP-061 / SP-069 / SP-079). Product owner locked Phase 9 **Met with
+  residuals** 2026-08-28.
 
 ---
 
@@ -104,12 +104,12 @@ monetisation counters only when Pro is on.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| No handset: M1–M7; public APK inflated settings dump; share-sheet VIEW; debug-entitle `nm` | Phase 10. Map screenshots forbidden |
-| `Gpx_ImportExport_*` / `Gpx_ColorMapExport_Test` / `ImportExportWptColor` / `PointWithPredefinedColor` `creator="CoMaps"` vs golden `Organic Maps` | Pre-existing; do not change writer. Owning kml goldens / later rebrand WI |
-| `BookmarkManagerGpxGateTest` UnsatisfiedLinkError | Environment residual (SP-084). Do not fix JNI loading here |
-| `data/classificator.txt` missing; Eligibility not run | Environment residual. Do not weaken Eligibility |
-| `--suppress=Eligibility` 464/465: `PauseResume_TrackBoundary_SaveProducesSeparateLines` missing `sp010_gpstrack_test.bin` | Environment residual; not a Phase 9 exit |
-| Debug-entitle symbols still in native binary | SP-083 follow-up; public APK `nm` → Phase 10 |
-| G1–G10 still Open | Maintainer lock (OQ-20–OQ-29) |
-| README §4 Phase 9 “Not started” vs SP-081–086 Accepted | Independent review 2026-08-28 refreshed README §4 to In progress / evidence recorded; **not** Met |
-| Analytics upload; Desktop/Qt ungated C++ GPX; iOS GPX; `ReloadBookmarkRoutine` omits `historicalTracks`; multi-category “GPX” export is KMZ | Phase 10 / owning SP-081–086 follow-ups |
+| No handset: M1–M7; public APK inflated settings dump; share-sheet VIEW; internal Pro walk; analytics upload | Phase 10. Map screenshots forbidden |
+| `Gpx_ImportExport_*` / `Gpx_ColorMapExport_Test` / `ImportExportWptColor` / `PointWithPredefinedColor` goldens | **Closed** 2026-08-28: goldens `creator="CoMaps"`; writer unchanged |
+| `BookmarkManagerGpxGateTest` UnsatisfiedLinkError | **Closed** 2026-08-28: lazy bookmark extensions |
+| `data/classificator.txt` missing; Eligibility not run | Environment residual. Do not weaken Eligibility. Do not invent the file |
+| `--suppress=Eligibility` 464/465: `PauseResume_TrackBoundary_SaveProducesSeparateLines` missing `sp010_gpstrack_test.bin` | Environment residual; not a Phase 9 exit. Do not invent the bin |
+| Debug-entitle symbols in non-debug Android | **Closed** 2026-08-28: `#ifdef DEBUG`. Public APK `nm` still Phase 10 |
+| G1–G10 still Open | **Closed** 2026-08-28: SPD-067–076; SP-080 Accepted |
+| README §4 Phase 9 status | **Closed** 2026-08-28: Exit criteria met with residuals |
+| Analytics upload; Desktop/Qt ungated C++ GPX; iOS GPX; `ReloadBookmarkRoutine` omits `historicalTracks`; multi-category export is KMZ; FromLatLon; system expat | Qt / reload / KMZ / FromLatLon / expat **accepted residuals**. Upload / iOS / device → Phase 10 |
