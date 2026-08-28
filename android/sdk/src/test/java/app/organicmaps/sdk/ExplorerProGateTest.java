@@ -58,4 +58,25 @@ public class ExplorerProGateTest
     ExplorerPro.setNativeReady(false);
     assertFalse(ExplorerPro.isAdvancedTrackManagementEnabled());
   }
+
+  @Test
+  public void isGpxImportAvailable_closedWhenNativeNotReady()
+  {
+    ExplorerPro.setNativeReady(false);
+    assertFalse(ExplorerPro.isGpxImportAvailable());
+  }
+
+  @Test
+  public void isGpxExportAvailable_closedWhenNativeNotReady()
+  {
+    ExplorerPro.setNativeReady(false);
+    assertFalse(ExplorerPro.isGpxExportAvailable());
+  }
+
+  @Test
+  public void isAdvancedTrackManagementAvailable_closedWhenNativeNotReady()
+  {
+    ExplorerPro.setNativeReady(false);
+    assertFalse(ExplorerPro.isAdvancedTrackManagementAvailable());
+  }
 }

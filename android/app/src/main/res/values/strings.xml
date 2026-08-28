@@ -1061,6 +1061,18 @@
     <string name="backup_interval_every_day">Daily</string>
     <string name="backup_interval_every_week">Weekly</string>
     <string name="backup_interval_manual_only">Off (manual only)</string>
+    <string name="pref_gpx_screen_title">GPX tools</string>
+    <string name="pref_gpx_screen_summary">Import and export tracks</string>
+    <string name="pref_gpx_import_title">Import GPX</string>
+    <string name="pref_gpx_import_summary">Import one GPX track from a file</string>
+    <string name="pref_gpx_batch_import_title">Import multiple GPX files</string>
+    <string name="pref_gpx_batch_import_summary">Import several GPX files at once</string>
+    <string name="pref_gpx_export_title">Export GPX</string>
+    <string name="pref_gpx_export_summary">Export a local list as GPX</string>
+    <string name="explorer_pro_info_title">Explorer Pro</string>
+    <string name="explorer_pro_info_pref_summary">What Explorer Pro includes</string>
+    <string name="explorer_pro_info_body">Explorer Pro adds GPX track import, GPX track export, and batch GPX import where supported.\n\nImported tracks update personal exploration only. They do not affect competitive recency, ownership, eligibility, or weekly rankings.\n\nLive recording, local track storage, the exploration map, area progress, and optional competition remain available without these GPX tools.</string>
+    <string name="pref_gpx_export_pick_list">Choose a list to export</string>
     <string name="dialog_report_error_missing_folder">The selected backup location is not available or writable. Select a different location, please.</string>
     <string name="dialog_report_error_with_logs">Please send us an error report:\n
     - \"Enable logging\" in the settings\n

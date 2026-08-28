@@ -30,4 +30,19 @@ public final class ExplorerPro
   {
     return combine(sNativeReady, sNativeReady && Framework.nativeIsAdvancedTrackManagementEnabled());
   }
+
+  public static boolean isGpxImportAvailable()
+  {
+    return combine(sNativeReady, sNativeReady && Framework.nativeIsGpxImportAvailable());
+  }
+
+  public static boolean isGpxExportAvailable()
+  {
+    return combine(sNativeReady, sNativeReady && Framework.nativeIsGpxExportAvailable());
+  }
+
+  public static boolean isAdvancedTrackManagementAvailable()
+  {
+    return combine(sNativeReady, sNativeReady && Framework.nativeIsAdvancedTrackManagementAvailable());
+  }
 }
