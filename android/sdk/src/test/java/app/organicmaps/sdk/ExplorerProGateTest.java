@@ -79,4 +79,11 @@ public class ExplorerProGateTest
     ExplorerPro.setNativeReady(false);
     assertFalse(ExplorerPro.isAdvancedTrackManagementAvailable());
   }
+
+  @Test
+  public void isNativeReady_closedWhenNativeNotReady()
+  {
+    ExplorerPro.setNativeReady(false);
+    assertFalse(ExplorerPro.isNativeReady());
+  }
 }

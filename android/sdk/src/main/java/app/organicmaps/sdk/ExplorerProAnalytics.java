@@ -14,16 +14,22 @@ public final class ExplorerProAnalytics
 
   public static long getInfoPageViewed()
   {
+    if (!ExplorerPro.isNativeReady())
+      return 0;
     return nativeGetInfoPageViewed();
   }
 
   public static long getGpxImportUsage()
   {
+    if (!ExplorerPro.isNativeReady())
+      return 0;
     return nativeGetGpxImportUsage();
   }
 
   public static long getGpxExportUsage()
   {
+    if (!ExplorerPro.isNativeReady())
+      return 0;
     return nativeGetGpxExportUsage();
   }
 
