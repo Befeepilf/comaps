@@ -32,7 +32,8 @@ monetisation counters only when Pro is on.
 - Map each Phase 9 exit criterion (1–8) to pass / fail / residual.
 - Re-run relevant automated suites; record counts. Minimum:
   `street_pixels_tests` (import, ever-live, recency, weekly, upload
-  pending, explorer_pro matrix, analytics) and `gpx_tests`.
+  pending, explorer_pro matrix, analytics) and `gpx_tests.cpp` (binary
+  **`kml_tests`**, not a separate `gpx_tests` target).
 - Manual (phase-09 strategy):
   - Real multi-hour GPX: green pixels, area % up
   - Competition on: no ownership change, no weekly movement
@@ -110,5 +111,5 @@ monetisation counters only when Pro is on.
 | `--suppress=Eligibility` 464/465: `PauseResume_TrackBoundary_SaveProducesSeparateLines` missing `sp010_gpstrack_test.bin` | Environment residual; not a Phase 9 exit |
 | Debug-entitle symbols still in native binary | SP-083 follow-up; public APK `nm` → Phase 10 |
 | G1–G10 still Open | Maintainer lock (OQ-20–OQ-29) |
-| README §4 Phase 9 “Not started” vs SP-081–086 Accepted | Report; do not edit README §4 |
+| README §4 Phase 9 “Not started” vs SP-081–086 Accepted | Independent review 2026-08-28 refreshed README §4 to In progress / evidence recorded; **not** Met |
 | Analytics upload; Desktop/Qt ungated C++ GPX; iOS GPX; `ReloadBookmarkRoutine` omits `historicalTracks`; multi-category “GPX” export is KMZ | Phase 10 / owning SP-081–086 follow-ups |
