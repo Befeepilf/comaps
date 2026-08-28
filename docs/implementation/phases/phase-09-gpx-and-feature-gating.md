@@ -1,6 +1,6 @@
 # Phase 9 — GPX and feature gating
 
-**Status:** SP-084 Accepted 2026-08-28; SP-085 next. G1–G10 still Open (OQ-20–OQ-29).
+**Status:** SP-085 Accepted 2026-08-28; SP-086 next. G1–G10 still Open (OQ-20–OQ-29).
 **Depends on:** Phase 3, Phase 1 (SP-005)
 **Blocks:** nothing; required for release
 
@@ -45,7 +45,7 @@ Verified 2026-07-25 against the working tree. **Re-verified 2026-08-28
 
 | Concern | Location | Observed state |
 | --- | --- | --- |
-| GPX serialisation | `libs/kml/serdes_gpx.cpp` | Import and export both present. No file-size cap. Parse failure may `ReadAsString` the whole file. Timestamp repair is display/metadata, not pixel placement. |
+| GPX serialisation | `libs/kml/serdes_gpx.cpp` | Import and export both present. No file-size cap (10k/50k in budget). Parse failure logs size + 256-byte prefix, not the whole file. Invalid lat/lon skipped before `FromLatLon`. Truncated/empty XML fails (`ParseXML` `isFinal`). Timestamp repair is display/metadata, not pixel placement. |
 | GPX tests | `libs/kml/kml_tests/gpx_tests.cpp` | Substantial existing coverage. No OOM / oversized cases. |
 | Android import | `Factory.KmzKmlProcessor`, `BookmarkManager.importBookmarksFiles`, Favorites Import, manifest VIEW/SEND `application/gpx` | Ungated. Batch multi-URI exists. GPX re-saved as a KML category with tracks. |
 | Android export | `PlacePageView`, `BookmarksListFragment`, `BookmarkCategoriesFragment` `export_file_gpx` | Ungated. |

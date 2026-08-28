@@ -1,8 +1,8 @@
 # SP-085 — Historical-import robustness
 
 **Phase:** 9 — GPX and feature gating
-**Status:** Planned
-**Branch:** `cursor/phase-09-work-items-db9d`
+**Status:** Accepted
+**Branch:** `cursor/sp-085-historical-import-robustness-db9d`
 **Depends on:** SP-080 G5, G10; SP-081 dedicated path
 **Unblocks:** SP-087 exit 5–6 (large import, malformed input)
 
@@ -101,15 +101,19 @@ measured (G10).
 
 | Field | Value |
 | --- | --- |
-| Branch | — |
-| 10k-point measurement | — |
-| Chunking implemented? | — |
-| Test output | — |
-| Accepted by | — |
-| Accepted date | — |
+| Branch | `cursor/sp-085-historical-import-robustness-db9d` |
+| 10k-point measurement | Parse 10k Δ RSS **+1.3 MiB**; parse 50k **+3.0 MiB**; import 10k **+9.4 MiB**; import 50k **+45.1 MiB**. Budget 256 MiB. Filtered-alone runs. |
+| Chunking implemented? | **No.** Cap **no.** G10: measurement did not require it. |
+| Test output | `XmlParser_` **5/5**; new `Gpx_Malformed_*` / skip / log / entity / 10k/50k parse pass; `HistoricalImport` (11) pass; `IsolationHistoricalImport` **16/16**. Pre-existing `Gpx_ImportExport_*` creator mismatch (`CoMaps` vs `Organic Maps`) unchanged. |
+| Accepted by | Product owner |
+| Accepted date | 2026-08-28 |
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| `DeserializerKml` still `ReadAsString`-logs the whole file | Later robustness; switch to the GPX prefix helper |
+| `WITH_SYSTEM_PROVIDED_3PARTY` may link libexpat with GE/DTD on | Residual; in-tree Expat is `EXPAT_GE OFF` / `EXPAT_DTD OFF` |
+| `FromLatLon` clamp can still resurrect lat>90 for non-GPX `LineT` | Do not change global mercator; GPX parser skip is the untrusted-input fix |
+| Device multi-hour GPX memory | SP-087 / Phase 10 |
+| `Gpx_ImportExport_*` creator mismatch (`CoMaps` vs `Organic Maps`) | Pre-existing; not this item |
