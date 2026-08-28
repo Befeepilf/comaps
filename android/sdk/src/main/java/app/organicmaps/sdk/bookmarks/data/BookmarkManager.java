@@ -52,7 +52,14 @@ public enum BookmarkManager {
   // These values have to match the values of kml::CompilationType from kml/types.hpp
   public static final int CATEGORY = 0;
 
-  private static final String[] BOOKMARKS_EXTENSIONS = Framework.nativeGetBookmarksFilesExts();
+  private static String[] bookmarksExtensions;
+
+  private static String[] getBookmarksExtensions()
+  {
+    if (bookmarksExtensions == null)
+      bookmarksExtensions = Framework.nativeGetBookmarksFilesExts();
+    return bookmarksExtensions;
+  }
 
   private static final String TAG = BookmarkManager.class.getSimpleName();
 
@@ -381,7 +388,7 @@ public enum BookmarkManager {
 
     final String lowerCaseFilename = filename.toLowerCase(java.util.Locale.ROOT);
     // Check that filename contains bookmarks extension.
-    for (String ext : BOOKMARKS_EXTENSIONS)
+    for (String ext : getBookmarksExtensions())
     {
       if (lowerCaseFilename.endsWith(ext))
         return filename;
