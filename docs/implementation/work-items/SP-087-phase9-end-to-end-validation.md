@@ -1,8 +1,8 @@
 # SP-087 — Phase 9 end-to-end validation
 
 **Phase:** 9 — GPX and feature gating
-**Status:** Planned
-**Branch:** `cursor/phase-09-work-items-db9d`
+**Status:** In progress
+**Branch:** `cursor/sp-087-phase9-validation-db9d`
 **Depends on:** SP-080–086 implemented or explicitly residualled
 **Notes:** Exit gate. Device residual → Phase 10 pattern (SP-014 / SP-041
   / SP-061 / SP-069 / SP-079). Maintainer decides Phase 9 exit; agent
@@ -92,9 +92,9 @@ monetisation counters only when Pro is on.
 
 | Field | Value |
 | --- | --- |
-| Branch | — |
-| Validation plan | — |
-| Evidence log | — |
+| Branch | `cursor/sp-087-phase9-validation-db9d` |
+| Validation plan | `docs/implementation/validation/SP-087-validation-plan.md` |
+| Evidence log | `docs/implementation/validation/SP-087-evidence-log.md` (template; filled after suites) |
 | Accepted by | — |
 | Accepted date | — |
 
