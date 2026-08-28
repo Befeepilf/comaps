@@ -2032,7 +2032,7 @@ void StreetPixelsManager::UpdateStreetStatsForTrack(kml::MultiGeometry::LineT co
 
 bool StreetPixelsManager::IsImportableMercatorPoint(m2::PointD const & point) const
 {
-  if (!std::isfinite(point.x) || !std::isfinite(point.y))
+  if (!math::is_finite(point.x) || !math::is_finite(point.y))
     return false;
   auto const ll = mercator::ToLatLon(point);
   return mercator::ValidLat(ll.m_lat) && mercator::ValidLon(ll.m_lon);
