@@ -134,6 +134,7 @@ public:
     if (!ParseXML(src, parser, true) || !parser.SawGpxRoot())
     {
       LogXmlParseFailurePrefix(reader, "GPX", 256);
+      m_fileData = {};
       MYTHROW(DeserializeException, ("Could not parse GPX."));
     }
   }

@@ -454,6 +454,7 @@ void GpxExpectDeserializeThrows(std::string_view content)
   kml::FileData data;
   TEST_ANY_THROW(kml::DeserializerGpx(data).Deserialize(MemReader(content)), ());
   TEST(data.m_tracksData.empty(), ());
+  TEST(data.m_bookmarksData.empty(), ());
 }
 
 void GpxExpectPointAbsent(kml::FileData const & data, m2::PointD const & point)
@@ -515,14 +516,14 @@ std::string GpxMakeSpacedTrack(size_t n)
   std::string s;
   s.reserve(n * 48 + 80);
   s += "<?xml version=\"1.0\"?><gpx><trk><trkseg>";
-  double lat = 48.0;
+  double lon = 16.37;
   constexpr double kStepDeg = 1.35e-4;
   for (size_t i = 0; i < n; ++i)
   {
     char buf[80];
-    std::snprintf(buf, sizeof(buf), "<trkpt lat=\"%.8f\" lon=\"16.37000000\"/>", lat);
+    std::snprintf(buf, sizeof(buf), "<trkpt lat=\"48.20000000\" lon=\"%.8f\"/>", lon);
     s += buf;
-    lat += kStepDeg;
+    lon += kStepDeg;
   }
   s += "</trkseg></trk></gpx>";
   return s;
@@ -544,6 +545,9 @@ public:
     m_prev = base::SetLogMessageFn(&GpxCaptureLogMessage);
   }
 
+  GpxLogCaptureGuard(GpxLogCaptureGuard const &) = delete;
+  GpxLogCaptureGuard & operator=(GpxLogCaptureGuard const &) = delete;
+
   ~GpxLogCaptureGuard() { base::SetLogMessageFn(m_prev); }
 
   std::string const & Text() const { return g_gpxCapturedLog; }
@@ -555,6 +559,12 @@ private:
 UNIT_TEST(Gpx_Malformed_TruncatedXml)
 {
   GpxExpectDeserializeThrows(R"(<?xml version="1.0"?><gpx><trk><trkseg><trkpt lat="1" lon="1")");
+}
+
+UNIT_TEST(Gpx_Malformed_TruncatedXmlClosedInnerTags)
+{
+  GpxExpectDeserializeThrows(
+      R"(<?xml version="1.0"?><gpx><trk><trkseg><trkpt lat="1" lon="1"></trkpt><trkpt lat="2" lon="2"></trkpt></trkseg></trk>)");
 }
 
 UNIT_TEST(Gpx_Malformed_EmptyFile)
@@ -573,22 +583,28 @@ UNIT_TEST(Gpx_Malformed_NonGpxBytes)
 UNIT_TEST(Gpx_OutOfRangeCoordinatesAreSkipped)
 {
   {
-    kml::FileData const data = LoadGpxFromString(GpxTrk(R"(<trkpt lat="91" lon="16.37"/>)"));
+    kml::FileData const data =
+        LoadGpxFromString(GpxTrk(R"(<trkpt lat="91" lon="16.37"/><trkpt lat="91" lon="17.37"/>)"));
     TEST(data.m_tracksData.empty(), ());
     GpxExpectPointAbsent(data, mercator::FromLatLon(86.0, 16.37));
+    GpxExpectPointAbsent(data, mercator::FromLatLon(86.0, 17.37));
     GpxExpectPointAbsent(data, mercator::FromLatLon(90.0, 16.37));
   }
   {
-    kml::FileData const data = LoadGpxFromString(GpxTrk(R"(<trkpt lat="-91" lon="16.37"/>)"));
+    kml::FileData const data =
+        LoadGpxFromString(GpxTrk(R"(<trkpt lat="-91" lon="16.37"/><trkpt lat="-91" lon="17.37"/>)"));
     TEST(data.m_tracksData.empty(), ());
     GpxExpectPointAbsent(data, mercator::FromLatLon(-86.0, 16.37));
+    GpxExpectPointAbsent(data, mercator::FromLatLon(-86.0, 17.37));
   }
   {
-    kml::FileData const data = LoadGpxFromString(GpxTrk(R"(<trkpt lat="48.2" lon="181"/>)"));
+    kml::FileData const data =
+        LoadGpxFromString(GpxTrk(R"(<trkpt lat="48.2" lon="181"/><trkpt lat="48.3" lon="181"/>)"));
     TEST(data.m_tracksData.empty(), ());
   }
   {
-    kml::FileData const data = LoadGpxFromString(GpxTrk(R"(<trkpt lat="48.2" lon="-181"/>)"));
+    kml::FileData const data =
+        LoadGpxFromString(GpxTrk(R"(<trkpt lat="48.2" lon="-181"/><trkpt lat="48.3" lon="-181"/>)"));
     TEST(data.m_tracksData.empty(), ());
   }
 }
@@ -597,19 +613,25 @@ UNIT_TEST(Gpx_NonFiniteCoordinatesAreSkipped)
 {
   base::ScopedLogAbortLevelChanger abortLevel(LCRITICAL);
   {
-    kml::FileData const data = LoadGpxFromString(GpxTrk(R"(<trkpt lat="NaN" lon="16.37"/>)"));
+    kml::FileData const data =
+        LoadGpxFromString(GpxTrk(R"(<trkpt lat="NaN" lon="16.37"/><trkpt lat="NaN" lon="17.37"/>)"));
     TEST(data.m_tracksData.empty(), ());
     GpxExpectPointAbsent(data, mercator::FromLatLon(0.0, 16.37));
+    GpxExpectPointAbsent(data, mercator::FromLatLon(0.0, 17.37));
   }
   {
-    kml::FileData const data = LoadGpxFromString(GpxTrk(R"(<trkpt lat="Inf" lon="16.37"/>)"));
+    kml::FileData const data =
+        LoadGpxFromString(GpxTrk(R"(<trkpt lat="Inf" lon="16.37"/><trkpt lat="Inf" lon="17.37"/>)"));
     TEST(data.m_tracksData.empty(), ());
     GpxExpectPointAbsent(data, mercator::FromLatLon(86.0, 16.37));
+    GpxExpectPointAbsent(data, mercator::FromLatLon(86.0, 17.37));
   }
   {
-    kml::FileData const data = LoadGpxFromString(GpxTrk(R"(<trkpt lat="-Inf" lon="16.37"/>)"));
+    kml::FileData const data =
+        LoadGpxFromString(GpxTrk(R"(<trkpt lat="-Inf" lon="16.37"/><trkpt lat="-Inf" lon="17.37"/>)"));
     TEST(data.m_tracksData.empty(), ());
     GpxExpectPointAbsent(data, mercator::FromLatLon(-86.0, 16.37));
+    GpxExpectPointAbsent(data, mercator::FromLatLon(-86.0, 17.37));
   }
 }
 
@@ -620,6 +642,9 @@ UNIT_TEST(Gpx_ValidPointAmongInvalidsIsKept)
       R"(<trkpt lat="91" lon="16.37"/><trkpt lat="48.2" lon="16.37"/><trkpt lat="48.20135" lon="16.37"/><trkpt lat="NaN" lon="16.37"/>)"));
   TEST(GpxLineContains(data, mercator::FromLatLon(48.2, 16.37)), ());
   TEST(GpxLineContains(data, mercator::FromLatLon(48.20135, 16.37)), ());
+  TEST_EQUAL(data.m_tracksData.size(), 1, ());
+  TEST_EQUAL(data.m_tracksData[0].m_geometry.m_lines.size(), 1, ());
+  TEST_EQUAL(data.m_tracksData[0].m_geometry.m_lines[0].size(), 2, ());
   GpxExpectPointAbsent(data, mercator::FromLatLon(86.0, 16.37));
   GpxExpectPointAbsent(data, mercator::FromLatLon(0.0, 16.37));
 }
@@ -671,22 +696,24 @@ UNIT_TEST(Gpx_BillionLaughs_DoesNotExpand)
 <gpx><metadata><name>&lol9;</name></metadata></gpx>
 )";
   kml::FileData data;
-  bool threw = false;
   try
   {
     kml::DeserializerGpx(data).Deserialize(MemReader(input));
   }
   catch (...)
-  {
-    threw = true;
-  }
-  if (threw)
-    return;
+  {}
   size_t maxLen = 0;
   for (auto const & kv : data.m_categoryData.m_name)
     maxLen = std::max(maxLen, kv.second.size());
   for (auto const & kv : data.m_categoryData.m_description)
     maxLen = std::max(maxLen, kv.second.size());
+  for (auto const & track : data.m_tracksData)
+  {
+    for (auto const & kv : track.m_name)
+      maxLen = std::max(maxLen, kv.second.size());
+    for (auto const & kv : track.m_description)
+      maxLen = std::max(maxLen, kv.second.size());
+  }
   TEST_LESS(maxLen, 1024, (maxLen));
 }
 
