@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto">
+
+  <Preference
+    android:key="@string/pref_gpx_import"
+    android:persistent="false"
+    android:summary="@string/pref_gpx_import_summary"
+    android:title="@string/pref_gpx_import_title"
+    app:icon="@drawable/ic_import"
+    app:singleLineTitle="false" />
+  <Preference
+    android:key="@string/pref_gpx_batch_import"
+    android:persistent="false"
+    android:summary="@string/pref_gpx_batch_import_summary"
+    android:title="@string/pref_gpx_batch_import_title"
+    app:icon="@drawable/ic_import"
+    app:singleLineTitle="false" />
+  <Preference
+    android:key="@string/pref_gpx_export"
+    android:persistent="false"
+    android:summary="@string/pref_gpx_export_summary"
+    android:title="@string/pref_gpx_export_title"
+    app:icon="@drawable/ic_export"
+    app:singleLineTitle="false" />
+  <Preference
+    android:key="@string/pref_gpx_info"
+    android:persistent="false"
+    android:summary="@string/explorer_pro_info_pref_summary"
+    android:title="@string/explorer_pro_info_title"
+    app:icon="@drawable/ic_file_gpx"
+    app:singleLineTitle="false" />
+
+</androidx.preference.PreferenceScreen>
