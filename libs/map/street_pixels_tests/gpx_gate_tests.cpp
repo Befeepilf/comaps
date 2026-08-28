@@ -1,6 +1,7 @@
 #include "testing/testing.hpp"
 
 #include "map/explorer_pro.hpp"
+#include "map/explorer_pro_analytics.hpp"
 #include "map/recording_session.hpp"
 #include "map/street_pixels_manager.hpp"
 #include "map/street_pixels_tests/street_pixels_test_helpers.hpp"
@@ -97,14 +98,6 @@ void GpxGateResetCapabilities()
   explorer_pro::SetCapabilityAvailable(explorer_pro::Capability::AdvancedTrackManagement, false);
 }
 
-void HandleHistoricalTrackImport(StreetPixelsManager & manager,
-                                   std::vector<kml::MultiGeometry::LineT> const & segments)
-{
-  if (!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport))
-    return;
-  manager.ImportHistoricalTrack(segments);
-}
-
 bool GpxGateShouldWriteExport(bool isGpx)
 {
   return !isGpx || explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxExport);
@@ -130,7 +123,7 @@ UNIT_TEST(GpxGate_HandlerClosedDoesNotPaint)
   auto const pixelA = street_pixels_tests::PixelIdForLatLon(lat, lon);
   fixture.Manager().SetStreetPixelsForTesting(street_pixels_tests::MakePixelSet({{pixelA, false}}));
 
-  HandleHistoricalTrackImport(fixture.Manager(), {ShortLineAt(lat, lon)});
+  street_pixels::RunHistoricalImportIfEnabled(fixture.Manager(), {ShortLineAt(lat, lon)});
 
   TEST(!fixture.Manager().IsPixelExploredForTesting(pixelA), ());
 }
@@ -148,7 +141,7 @@ UNIT_TEST(GpxGate_HandlerUnavailableEntitledDoesNotPaint)
   auto const pixelA = street_pixels_tests::PixelIdForLatLon(lat, lon);
   fixture.Manager().SetStreetPixelsForTesting(street_pixels_tests::MakePixelSet({{pixelA, false}}));
 
-  HandleHistoricalTrackImport(fixture.Manager(), {ShortLineAt(lat, lon)});
+  street_pixels::RunHistoricalImportIfEnabled(fixture.Manager(), {ShortLineAt(lat, lon)});
 
   TEST(!fixture.Manager().IsPixelExploredForTesting(pixelA), ());
 }
@@ -166,7 +159,7 @@ UNIT_TEST(GpxGate_HandlerAvailableNotEntitledDoesNotPaint)
   auto const pixelA = street_pixels_tests::PixelIdForLatLon(lat, lon);
   fixture.Manager().SetStreetPixelsForTesting(street_pixels_tests::MakePixelSet({{pixelA, false}}));
 
-  HandleHistoricalTrackImport(fixture.Manager(), {ShortLineAt(lat, lon)});
+  street_pixels::RunHistoricalImportIfEnabled(fixture.Manager(), {ShortLineAt(lat, lon)});
 
   TEST(!fixture.Manager().IsPixelExploredForTesting(pixelA), ());
 }
@@ -185,7 +178,7 @@ UNIT_TEST(GpxGate_HandlerOpenPaints)
   auto const pixelA = street_pixels_tests::PixelIdForLatLon(lat, lon);
   fixture.Manager().SetStreetPixelsForTesting(street_pixels_tests::MakePixelSet({{pixelA, false}}));
 
-  HandleHistoricalTrackImport(fixture.Manager(), {ShortLineAt(lat, lon)});
+  street_pixels::RunHistoricalImportIfEnabled(fixture.Manager(), {ShortLineAt(lat, lon)});
 
   TEST(fixture.Manager().IsPixelExploredForTesting(pixelA), ());
 }
