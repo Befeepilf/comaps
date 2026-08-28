@@ -533,7 +533,7 @@ override of spec §20.4). SP-071 **In progress**. SP-072 **Accepted**
 | 83 | [SP-083](work-items/SP-083-apply-pro-gate-to-gpx-surfaces.md) | Apply Pro gate to GPX surfaces | 9 | **Accepted** (2026-08-28) — call-site gate; debug entitle freeze; KML/KMZ stays |
 | 84 | [SP-084](work-items/SP-084-gpx-settings-surface.md) | GPX settings surface | 9 | **Accepted** (2026-08-28) — settings rows on Enabled; G8 info on Available |
 | 85 | [SP-085](work-items/SP-085-historical-import-robustness.md) | Historical-import robustness | 9 | **Accepted** (2026-08-28) — malformed reject; 10k/50k RSS; no chunking |
-| 86 | [SP-086](work-items/SP-086-explorer-pro-monetisation-analytics.md) | Explorer Pro monetisation analytics | 9 | **Planned** — count-only; only when Pro available in the build |
+| 86 | [SP-086](work-items/SP-086-explorer-pro-monetisation-analytics.md) | Explorer Pro monetisation analytics | 9 | **Accepted** (2026-08-28) — count-only; Available gate; upload → Phase 10 |
 | 87 | [SP-087](work-items/SP-087-phase9-end-to-end-validation.md) | Phase 9 end-to-end validation | 9 | **Planned** — exit gate |
 
 Phase 9 work-item planning (2026-08-28) recorded in
@@ -541,6 +541,6 @@ Phase 9 work-item planning (2026-08-28) recorded in
 Entry criteria Phase 3 + SP-005 are met. SP-081 **Accepted** (2026-08-28)
 using recommended G1/G5 locks (OQ-20–OQ-29 still Open). SP-082 **Accepted**
 (2026-08-28). SP-083 **Accepted** (2026-08-28). SP-084 **Accepted**
-(2026-08-28). SP-085 **Accepted** (2026-08-28). Next: SP-086.
+(2026-08-28). SP-085 **Accepted** (2026-08-28). SP-086 **Accepted** (2026-08-28). Next: SP-087.
 Detailed work items exist for Phases 1–9. Phase 10 is broken down after
 other phases meet exit.

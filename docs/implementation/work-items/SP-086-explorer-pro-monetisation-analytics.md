@@ -1,8 +1,8 @@
 # SP-086 — Explorer Pro monetisation analytics
 
 **Phase:** 9 — GPX and feature gating
-**Status:** Planned
-**Branch:** `cursor/phase-09-work-items-db9d`
+**Status:** Accepted
+**Branch:** `cursor/sp-086-pro-monetisation-analytics-db9d`
 **Depends on:** SP-080 G8, G9 (draft SPD-074, SPD-075); SP-083/084
   surfaces that fire the events
 **Unblocks:** SP-087 exit 8
@@ -89,11 +89,11 @@ post-V1 (SPD-010).
 
 | Field | Value |
 | --- | --- |
-| Branch | — |
-| Test output | — |
+| Branch | `cursor/sp-086-pro-monetisation-analytics-db9d` |
+| Test output | `ExplorerProAnalytics` **13/13**; `IsolationHistoricalImport` **16/16**; `ExplorerPro_` **12/12**; JVM `ExplorerProAnalyticsTest` **2/2** (after fail-closed getters). |
 | Upload residual | Phase 10 |
-| Accepted by | — |
-| Accepted date | — |
+| Accepted by | Product owner |
+| Accepted date | 2026-08-28 |
 
 ## Discovered follow-up
 
