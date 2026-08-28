@@ -91,6 +91,7 @@ kml::MultiGeometry::LineT ShortLineAt(double lat, double lon)
 
 void GpxGateResetCapabilities()
 {
+  explorer_pro::UnfreezeConfigurationForTesting();
   explorer_pro::SetCapabilityAvailable(explorer_pro::Capability::GpxImport, false);
   explorer_pro::SetCapabilityAvailable(explorer_pro::Capability::GpxExport, false);
   explorer_pro::SetCapabilityAvailable(explorer_pro::Capability::AdvancedTrackManagement, false);
@@ -103,12 +104,60 @@ void HandleHistoricalTrackImport(StreetPixelsManager & manager,
     return;
   manager.ImportHistoricalTrack(segments);
 }
+
+bool GpxGateShouldWriteExport(bool isGpx)
+{
+  return !isGpx || explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxExport);
+}
+
+bool GpxGateAllowImportBatch(size_t gpxCount)
+{
+  if (!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport))
+    return false;
+  return gpxCount <= 1 || explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::AdvancedTrackManagement);
+}
 }  // namespace
 
 UNIT_TEST(GpxGate_HandlerClosedDoesNotPaint)
 {
   GpxGateBreadcrumbCleanup cleanup;
   GpxGateResetCapabilities();
+  GpxGateEntitlementSourceScope scope(nullptr);
+  TEST(!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport), ());
+
+  GpxGateFixture fixture;
+  auto const [lat, lon] = street_pixels_tests::LatLonForPixelId(street_pixels_tests::PixelIdForLatLon(48.2, 16.37));
+  auto const pixelA = street_pixels_tests::PixelIdForLatLon(lat, lon);
+  fixture.Manager().SetStreetPixelsForTesting(street_pixels_tests::MakePixelSet({{pixelA, false}}));
+
+  HandleHistoricalTrackImport(fixture.Manager(), {ShortLineAt(lat, lon)});
+
+  TEST(!fixture.Manager().IsPixelExploredForTesting(pixelA), ());
+}
+
+UNIT_TEST(GpxGate_HandlerUnavailableEntitledDoesNotPaint)
+{
+  GpxGateBreadcrumbCleanup cleanup;
+  GpxGateResetCapabilities();
+  GpxGateFakeEntitlementSource entitled(true);
+  GpxGateEntitlementSourceScope scope(&entitled);
+  TEST(!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport), ());
+
+  GpxGateFixture fixture;
+  auto const [lat, lon] = street_pixels_tests::LatLonForPixelId(street_pixels_tests::PixelIdForLatLon(48.2, 16.37));
+  auto const pixelA = street_pixels_tests::PixelIdForLatLon(lat, lon);
+  fixture.Manager().SetStreetPixelsForTesting(street_pixels_tests::MakePixelSet({{pixelA, false}}));
+
+  HandleHistoricalTrackImport(fixture.Manager(), {ShortLineAt(lat, lon)});
+
+  TEST(!fixture.Manager().IsPixelExploredForTesting(pixelA), ());
+}
+
+UNIT_TEST(GpxGate_HandlerAvailableNotEntitledDoesNotPaint)
+{
+  GpxGateBreadcrumbCleanup cleanup;
+  GpxGateResetCapabilities();
+  GpxGateCapabilityAvailabilityScope availability(explorer_pro::Capability::GpxImport, true);
   GpxGateEntitlementSourceScope scope(nullptr);
   TEST(!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport), ());
 
@@ -139,6 +188,66 @@ UNIT_TEST(GpxGate_HandlerOpenPaints)
   HandleHistoricalTrackImport(fixture.Manager(), {ShortLineAt(lat, lon)});
 
   TEST(fixture.Manager().IsPixelExploredForTesting(pixelA), ());
+}
+
+UNIT_TEST(GpxGate_ExportFourCell)
+{
+  GpxGateResetCapabilities();
+  {
+    GpxGateEntitlementSourceScope scope(nullptr);
+    TEST(!GpxGateShouldWriteExport(true), ());
+    TEST(GpxGateShouldWriteExport(false), ());
+  }
+  {
+    GpxGateFakeEntitlementSource entitled(true);
+    GpxGateEntitlementSourceScope scope(&entitled);
+    TEST(!GpxGateShouldWriteExport(true), ());
+    TEST(GpxGateShouldWriteExport(false), ());
+  }
+  {
+    GpxGateCapabilityAvailabilityScope availability(explorer_pro::Capability::GpxExport, true);
+    GpxGateEntitlementSourceScope scope(nullptr);
+    TEST(!GpxGateShouldWriteExport(true), ());
+    TEST(GpxGateShouldWriteExport(false), ());
+  }
+  {
+    GpxGateCapabilityAvailabilityScope availability(explorer_pro::Capability::GpxExport, true);
+    GpxGateFakeEntitlementSource entitled(true);
+    GpxGateEntitlementSourceScope scope(&entitled);
+    TEST(GpxGateShouldWriteExport(true), ());
+    TEST(GpxGateShouldWriteExport(false), ());
+  }
+}
+
+UNIT_TEST(GpxGate_BatchFourCell)
+{
+  GpxGateResetCapabilities();
+  {
+    GpxGateEntitlementSourceScope scope(nullptr);
+    TEST(!GpxGateAllowImportBatch(1), ());
+    TEST(!GpxGateAllowImportBatch(2), ());
+  }
+  {
+    GpxGateFakeEntitlementSource entitled(true);
+    GpxGateEntitlementSourceScope scope(&entitled);
+    TEST(!GpxGateAllowImportBatch(1), ());
+    TEST(!GpxGateAllowImportBatch(2), ());
+  }
+  {
+    GpxGateCapabilityAvailabilityScope importAvail(explorer_pro::Capability::GpxImport, true);
+    GpxGateEntitlementSourceScope scope(nullptr);
+    TEST(!GpxGateAllowImportBatch(1), ());
+    TEST(!GpxGateAllowImportBatch(2), ());
+  }
+  {
+    GpxGateCapabilityAvailabilityScope importAvail(explorer_pro::Capability::GpxImport, true);
+    GpxGateFakeEntitlementSource entitled(true);
+    GpxGateEntitlementSourceScope scope(&entitled);
+    TEST(GpxGateAllowImportBatch(1), ());
+    TEST(!GpxGateAllowImportBatch(2), ());
+    GpxGateCapabilityAvailabilityScope atmAvail(explorer_pro::Capability::AdvancedTrackManagement, true);
+    TEST(GpxGateAllowImportBatch(2), ());
+  }
 }
 
 UNIT_TEST(GpxGate_DirectImportClosedStillPaints)
