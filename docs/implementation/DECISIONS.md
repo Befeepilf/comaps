@@ -1931,7 +1931,9 @@ treated as authorisation.
 Phase 7 M1–M10 were locked 2026-08-19 via SP-062 as **SPD-046–055** (see
 numbered sections above). **SPD-056** (2026-08-23) supersedes SPD-051’s
 card/share date opt-in. Phase 8 product locks 2026-08-23 via SP-070 as
-**SPD-057–066**. Remaining open questions:
+**SPD-057–066**. Phase 9 G1–G10 recorded 2026-08-28 via SP-080 as
+**OQ-20–OQ-29** (draft SPD-067–076; not Accepted). Remaining open
+questions:
 
 | Ref | Question | Source | Blocks |
 | --- | --- | --- | --- |
@@ -1954,6 +1956,16 @@ card/share date opt-in. Phase 8 product locks 2026-08-23 via SP-070 as
 | OQ-17 | ~~Phase 7 M9: exploration haptics predicate?~~ | SP-062 (2026-08-19); spec §28.1–§28.4 | **Closed by SPD-054** — recording ∧ foreground ∧ toggle; one pulse per update. |
 | OQ-18 | ~~Phase 7 M10: growth analytics for cards?~~ | SP-062 (2026-08-19); spec §32.4 | **Closed by SPD-055** — count-only; no area id. |
 | OQ-19 | ~~Should the 100% card always include the stored completion date, with no share-time checkbox?~~ | Device review 2026-08-22; SP-068 | **Closed by SPD-056** — always include the stored date; no checkbox. |
+| OQ-20 | Phase 9 G1: dedicated historical-import path vs flagged bookmark-track replay; which tracks paint pixels? | SP-080 (2026-08-28); spec §29.2; `UpdateExploredPixels` | **Open.** Draft SPD-067: dedicated path only; free KML/KMZ does not paint; live-saved tracks do not replay. Blocks SP-081. |
+| OQ-21 | Phase 9 G2: does GPX import create a stored track, and does delete un-explore? | SP-080 (2026-08-28); spec §3.6, §15.2 | **Open.** Draft SPD-068: store a local track; delete does not un-explore. |
+| OQ-22 | Phase 9 G3: is `processed_tracks.geometry_hash` enough to skip duplicate imports? | SP-080 (2026-08-28); phase-09 | **Open.** Draft SPD-069: keep mercator x,y-only hash per country. |
+| OQ-23 | Phase 9 G4: V1 scope of “advanced local track-management tools”? | SP-080 (2026-08-28); spec §29.1–§29.2 | **Open.** Draft SPD-070: batch GPX import; no merge/split; own-recording list/edit/delete stays free. |
+| OQ-24 | Phase 9 G5: historical sampling vs live GPS interpolation / pause / gap rules? | SP-080 (2026-08-28); spec §16; SPD-019; `Track::GetGeometry` | **Open.** Draft SPD-071: 15 m per segment; no live filters; no cross-segment fill; no timestamp-placed pixels. Blocks SP-081. |
+| OQ-25 | Phase 9 G6: share-sheet / VIEW / SEND GPX when the Pro gate is closed? | SP-080 (2026-08-28); spec §30, §34; SPD-010 | **Open.** Draft SPD-072: refuse GPX; no pixel paint; no purchase CTA; KML/KMZ remains. Blocks SP-083. |
+| OQ-26 | Phase 9 G7: how do internal Pro-capable builds become entitled without a public grant path? | SP-080 (2026-08-28); SPD-011; SP-005 stub | **Open.** Draft SPD-073: debug entitlement source only when capabilities are on and a debug-only override is set; stub never grants. Blocks SP-083. |
+| OQ-27 | Phase 9 G8: Explorer Pro information page in V1? | SP-080 (2026-08-28); spec §32.5; SPD-010 | **Open.** Draft SPD-074: explanation page only when capabilities are available; no price, buy, or restore. |
+| OQ-28 | Phase 9 G9: monetisation analytics shape and when they fire? | SP-080 (2026-08-28); spec §32.5; SPD-044, SPD-055 | **Open.** Draft SPD-075: count-only local uint64; increment only when the matching capability is available; upload residual Phase 10. |
+| OQ-29 | Phase 9 G10: is audit Spike 9 a separate Phase 9 entry spike? | SP-080 (2026-08-28); audit §27 Q9 | **Open.** Draft SPD-076: no; isolation → SP-082; 10k-point memory → SP-085. |
 
 When one of these is answered, add a new `SPD-NNN` entry above and strike the
 row here with a reference to it.
