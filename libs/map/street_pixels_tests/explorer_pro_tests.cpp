@@ -44,6 +44,12 @@ private:
   bool m_previous;
 };
 
+class RestoreStubOnExit
+{
+public:
+  ~RestoreStubOnExit() { explorer_pro::SetEntitlementSource(nullptr); }
+};
+
 void ResetCapabilities()
 {
   explorer_pro::SetCapabilityAvailable(explorer_pro::Capability::GpxImport, false);
@@ -113,10 +119,60 @@ UNIT_TEST(ExplorerPro_GateMatrixAllCapabilities)
 
   for (auto const capability : capabilities)
   {
-    ResetCapabilities();
-    CapabilityAvailabilityScope availability(capability, true);
-    FakeEntitlementSource entitled(true);
-    EntitlementSourceScope scope(&entitled);
-    TEST(explorer_pro::IsCapabilityEnabled(capability), ());
+    {
+      ResetCapabilities();
+      EntitlementSourceScope scope(nullptr);
+      TEST(!explorer_pro::IsCapabilityEnabled(capability), ());
+    }
+    {
+      ResetCapabilities();
+      FakeEntitlementSource entitled(true);
+      EntitlementSourceScope scope(&entitled);
+      TEST(!explorer_pro::IsCapabilityEnabled(capability), ());
+    }
+    {
+      ResetCapabilities();
+      CapabilityAvailabilityScope availability(capability, true);
+      EntitlementSourceScope scope(nullptr);
+      TEST(!explorer_pro::IsCapabilityEnabled(capability), ());
+    }
+    {
+      ResetCapabilities();
+      CapabilityAvailabilityScope availability(capability, true);
+      FakeEntitlementSource entitled(true);
+      EntitlementSourceScope scope(&entitled);
+      TEST(explorer_pro::IsCapabilityEnabled(capability), ());
+    }
   }
+}
+
+UNIT_TEST(ExplorerPro_DebugEntitlementSourceUsed)
+{
+  ResetCapabilities();
+  CapabilityAvailabilityScope availability(explorer_pro::Capability::GpxImport, true);
+  RestoreStubOnExit restore;
+  explorer_pro::InstallDebugEntitlementSource();
+  TEST(explorer_pro::IsEntitled(), ());
+  TEST(explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport), ());
+}
+
+UNIT_TEST(ExplorerPro_DebugEntitlementSourceNotUsed)
+{
+  ResetCapabilities();
+  CapabilityAvailabilityScope availability(explorer_pro::Capability::GpxImport, true);
+  explorer_pro::SetEntitlementSource(nullptr);
+  TEST(!explorer_pro::IsEntitled(), ());
+  TEST(!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport), ());
+}
+
+UNIT_TEST(ExplorerPro_DebugEntitlementSourceStubRestored)
+{
+  ResetCapabilities();
+  CapabilityAvailabilityScope availability(explorer_pro::Capability::GpxImport, true);
+  RestoreStubOnExit restore;
+  explorer_pro::InstallDebugEntitlementSource();
+  TEST(explorer_pro::IsEntitled(), ());
+  explorer_pro::SetEntitlementSource(nullptr);
+  TEST(!explorer_pro::IsEntitled(), ());
+  TEST(!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport), ());
 }
