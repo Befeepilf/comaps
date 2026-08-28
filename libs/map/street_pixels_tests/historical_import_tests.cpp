@@ -70,6 +70,26 @@ geometry::PointWithAltitude PointAt(double lat, double lon)
 {
   return geometry::PointWithAltitude(mercator::FromLatLon(lat, lon));
 }
+
+class ProcessedTracksCleanup
+{
+public:
+  explicit ProcessedTracksCleanup(std::string countryId)
+    : m_countryId(std::move(countryId))
+  {
+    street_stats::StreetStatsDB::Instance().DeleteProcessedTracksForCountry(m_countryId);
+  }
+
+  ~ProcessedTracksCleanup()
+  {
+    street_stats::StreetStatsDB::Instance().DeleteProcessedTracksForCountry(m_countryId);
+  }
+
+  std::string const & CountryId() const { return m_countryId; }
+
+private:
+  std::string m_countryId;
+};
 }  // namespace
 
 UNIT_TEST(HistoricalImport_FirstImportEverLiveClear)
@@ -80,8 +100,9 @@ UNIT_TEST(HistoricalImport_FirstImportEverLiveClear)
   auto const pixelA = street_pixels_tests::PixelIdForLatLon(lat, lon);
   fixture.SetupPixels({{pixelA, false}});
 
-  fixture.Manager().ImportHistoricalTrack({ShortLineAt(lat, lon)});
+  size_t const marked = fixture.Manager().ImportHistoricalTrack({ShortLineAt(lat, lon)});
 
+  TEST_GREATER(marked, 0, ());
   TEST(fixture.Manager().IsPixelExploredForTesting(pixelA), ());
   TEST(!fixture.Manager().IsPixelEverLiveForTesting(pixelA), ());
 }
@@ -119,6 +140,8 @@ UNIT_TEST(HistoricalImport_MultiSegmentGapIsNotFilled)
   TEST_NOT_EQUAL(pixelA, pixelB, ());
   TEST_NOT_EQUAL(pixelA, pixelMid, ());
   TEST_NOT_EQUAL(pixelB, pixelMid, ());
+  TEST_GREATER(mercator::DistanceOnEarth(mercator::FromLatLon(latA, lonA), mercator::FromLatLon(latMid, lonMid)),
+               2.0 * street_pixels_tests::kExploreRadiusMeters, ());
 
   fixture.SetupPixels({{pixelA, false}, {pixelB, false}, {pixelMid, false}});
 
@@ -134,15 +157,16 @@ UNIT_TEST(HistoricalImport_DuplicateGeometryHashSkipsSecondPaint)
 {
   HistoricalImportBreadcrumbCleanup cleanup;
   HistoricalImportFixture fixture;
-  std::string const countryId = "sp081_dup";
+  ProcessedTracksCleanup tracks("HistoricalImport_DuplicateGeometryHashSkipsSecondPaint");
+  auto const & countryId = tracks.CountryId();
   auto const [lat, lon] = street_pixels_tests::LatLonForPixelId(street_pixels_tests::PixelIdForLatLon(48.21, 16.38));
   auto const pixelA = street_pixels_tests::PixelIdForLatLon(lat, lon);
   auto const segments = std::vector<kml::MultiGeometry::LineT>{ShortLineAt(lat, lon)};
 
-  street_stats::StreetStatsDB::Instance().DeleteProcessedTracksForCountry(countryId);
   fixture.Manager().SetStreetPixelsOverlayForTesting(countryId, street_pixels_tests::MakePixelSet({{pixelA, false}}));
 
-  fixture.Manager().ImportHistoricalTrack(segments);
+  size_t const firstMarked = fixture.Manager().ImportHistoricalTrack(segments);
+  TEST_GREATER(firstMarked, 0, ());
   TEST(fixture.Manager().IsPixelExploredForTesting(pixelA), ());
   auto const geometryHash = fixture.Manager().ComputeHistoricalGeometryHashForTesting(segments);
   TEST(street_stats::StreetStatsDB::Instance().IsTrackProcessed(geometryHash, countryId), ());
@@ -153,8 +177,6 @@ UNIT_TEST(HistoricalImport_DuplicateGeometryHashSkipsSecondPaint)
   size_t const marked = fixture.Manager().ImportHistoricalTrack(segments);
   TEST_EQUAL(marked, 0, ());
   TEST(!fixture.Manager().IsPixelExploredForTesting(pixelA), ());
-
-  street_stats::StreetStatsDB::Instance().DeleteProcessedTracksForCountry(countryId);
 }
 
 UNIT_TEST(HistoricalImport_UpdateExploredPixelsDoesNotPaint)
@@ -217,4 +239,44 @@ UNIT_TEST(HistoricalImport_EmptyOrInvalidGeometryDoesNotPaint)
                                       std::numeric_limits<double>::infinity()));
   TEST_EQUAL(fixture.Manager().ImportHistoricalTrack({invalidOnly}), 0, ());
   TEST(!fixture.Manager().IsPixelExploredForTesting(pixelA), ());
+}
+
+UNIT_TEST(HistoricalImport_SegmentBoundariesChangeGeometryHash)
+{
+  HistoricalImportBreadcrumbCleanup cleanup;
+  HistoricalImportFixture fixture;
+  auto const [lat, lon] = street_pixels_tests::LatLonForPixelId(street_pixels_tests::PixelIdForLatLon(48.2, 16.37));
+  auto const [latB, lonB] = street_pixels_tests::OffsetLatLonByMeters(lat, lon, 20.0, 0.0);
+  auto const [latC, lonC] = street_pixels_tests::OffsetLatLonByMeters(lat, lon, 40.0, 0.0);
+  auto const a = PointAt(lat, lon);
+  auto const b = PointAt(latB, lonB);
+  auto const c = PointAt(latC, lonC);
+
+  auto const concatenated =
+      fixture.Manager().ComputeHistoricalGeometryHashForTesting({{a, b, c}});
+  auto const segmented =
+      fixture.Manager().ComputeHistoricalGeometryHashForTesting({{a, b}, {c}});
+  TEST_NOT_EQUAL(concatenated, segmented, ());
+}
+
+UNIT_TEST(HistoricalImport_NotReadyDoesNotWriteLedger)
+{
+  HistoricalImportBreadcrumbCleanup cleanup;
+  HistoricalImportFixture fixture;
+  ProcessedTracksCleanup tracks("HistoricalImport_NotReadyDoesNotWriteLedger");
+  auto const & countryId = tracks.CountryId();
+  auto const [lat, lon] = street_pixels_tests::LatLonForPixelId(street_pixels_tests::PixelIdForLatLon(48.22, 16.39));
+  auto const pixelA = street_pixels_tests::PixelIdForLatLon(lat, lon);
+  auto const segments = std::vector<kml::MultiGeometry::LineT>{ShortLineAt(lat, lon)};
+
+  fixture.SetupPixels({{pixelA, false}});
+  fixture.Manager().SetCountryIdForTesting(countryId);
+  TEST_EQUAL(static_cast<int>(fixture.Manager().GetState().status),
+             static_cast<int>(StreetPixelsManager::StreetPixelsStatus::NotReady), ());
+
+  size_t const marked = fixture.Manager().ImportHistoricalTrack(segments);
+  TEST_EQUAL(marked, 0, ());
+  TEST(!fixture.Manager().IsPixelExploredForTesting(pixelA), ());
+  auto const geometryHash = fixture.Manager().ComputeHistoricalGeometryHashForTesting(segments);
+  TEST(!street_stats::StreetStatsDB::Instance().IsTrackProcessed(geometryHash, countryId), ());
 }

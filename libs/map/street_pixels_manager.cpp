@@ -399,10 +399,6 @@ void StreetPixelsManager::SetBookmarkManager(BookmarkManager * bmManager)
   m_bmManager = bmManager;
 }
 
-void StreetPixelsManager::OnBookmarksCreated()
-{
-}
-
 void StreetPixelsManager::SetExplorationListener(ExplorationListener const & listener)
 {
   m_explorationListener = listener;
@@ -880,11 +876,14 @@ void StreetPixelsManager::SetStreetPixelsOverlayForTesting(storage::CountryId co
                                                            std::vector<df::StreetPixel> pixels)
 {
   SetStreetPixelsForTesting(std::move(pixels));
-  {
-    std::lock_guard<std::mutex> lock(m_countryIdMutex);
-    m_countryId = countryId;
-  }
+  SetCountryIdForTesting(countryId);
   ChangeState({true, StreetPixelsStatus::Ready});
+}
+
+void StreetPixelsManager::SetCountryIdForTesting(storage::CountryId const & countryId)
+{
+  std::lock_guard<std::mutex> lock(m_countryIdMutex);
+  m_countryId = countryId;
 }
 
 void StreetPixelsManager::ClearLeafPixCacheForTesting()
@@ -976,7 +975,7 @@ size_t StreetPixelsManager::MarkExploredPixelIds(std::set<std::int64_t> const & 
     m_explorationListener(d);
   }
 
-  return statsNew;
+  return newlyExplored.size();
 }
 
 void StreetPixelsManager::TriggerCollectionVibration(size_t numNewlyExploredPixels)
@@ -1978,35 +1977,61 @@ size_t StreetPixelsManager::ImportHistoricalTrack(std::vector<kml::MultiGeometry
     return 0;
 
   storage::CountryId countryId;
+  StreetPixelsStatus status;
   {
     std::lock_guard<std::mutex> lock(m_countryIdMutex);
     countryId = m_countryId;
   }
+  {
+    std::lock_guard<std::mutex> lock(m_stateMutex);
+    status = m_state.status;
+  }
+
+  if (!countryId.empty() && status != StreetPixelsStatus::Ready)
+    return 0;
 
   std::int64_t const geometryHash = ComputeGeometryHash(segments);
   if (!countryId.empty() && street_stats::StreetStatsDB::Instance().IsTrackProcessed(geometryHash, countryId))
     return 0;
 
   auto const trackPixels = ComputeTrackPixels(segments);
+
+  if (!countryId.empty())
+  {
+    storage::CountryId currentCountry;
+    StreetPixelsStatus currentStatus;
+    {
+      std::lock_guard<std::mutex> lock(m_countryIdMutex);
+      currentCountry = m_countryId;
+    }
+    {
+      std::lock_guard<std::mutex> lock(m_stateMutex);
+      currentStatus = m_state.status;
+    }
+    if (currentCountry != countryId || currentStatus != StreetPixelsStatus::Ready)
+      return 0;
+  }
+
   size_t const marked = MarkExploredPixelIds(trackPixels, 0.0);
 
   if (!countryId.empty())
     street_stats::StreetStatsDB::Instance().MarkTrackProcessed(geometryHash, countryId);
 
-  if (m_accountedDirty)
+  bool const accountedDirty = m_accountedDirty;
+  if (accountedDirty)
     SaveAccountedBits();
 
-  if (m_onStateChangedFn)
+  if ((marked > 0 || accountedDirty) && m_onStateChangedFn)
   {
     bool enabled;
-    StreetPixelsStatus status;
+    StreetPixelsStatus notifyStatus;
     {
       std::lock_guard<std::mutex> lock(m_stateMutex);
       enabled = m_state.enabled;
-      status = m_state.status;
+      notifyStatus = m_state.status;
     }
-    GetPlatform().RunTask(Platform::Thread::Gui, [this, enabled, status, countryId]()
-    { m_onStateChangedFn(enabled, status, countryId); });
+    GetPlatform().RunTask(Platform::Thread::Gui, [this, enabled, notifyStatus, countryId]()
+    { m_onStateChangedFn(enabled, notifyStatus, countryId); });
   }
 
   return marked;
@@ -2040,15 +2065,22 @@ bool StreetPixelsManager::IsImportableMercatorPoint(m2::PointD const & point) co
 
 std::int64_t StreetPixelsManager::ComputeGeometryHash(std::vector<kml::MultiGeometry::LineT> const & segments) const
 {
+  std::size_t constexpr kSegmentBoundary = static_cast<std::size_t>(-1);
   std::size_t seed = 0;
   bool hashedAny = false;
   for (auto const & line : segments)
   {
+    bool hashedInSegment = false;
     for (auto const & pt : line)
     {
       auto const & p = pt.GetPoint();
       if (!IsImportableMercatorPoint(p))
         continue;
+      if (!hashedInSegment)
+      {
+        boost::hash_combine(seed, kSegmentBoundary);
+        hashedInSegment = true;
+      }
       boost::hash_combine(seed, p.x);
       boost::hash_combine(seed, p.y);
       hashedAny = true;
