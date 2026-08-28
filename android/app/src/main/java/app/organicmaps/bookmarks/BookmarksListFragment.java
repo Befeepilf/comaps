@@ -28,6 +28,7 @@ import app.organicmaps.MwmActivity;
 import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
 import app.organicmaps.base.BaseMwmRecyclerFragment;
+import app.organicmaps.sdk.ExplorerPro;
 import app.organicmaps.sdk.bookmarks.data.BookmarkCategory;
 import app.organicmaps.sdk.bookmarks.data.BookmarkInfo;
 import app.organicmaps.sdk.bookmarks.data.BookmarkManager;
@@ -784,8 +785,11 @@ public class BookmarksListFragment extends BaseMwmRecyclerFragment<ConcatAdapter
         items.add(new MenuBottomSheetItem(R.string.sort, R.drawable.ic_sort, this::onSortOptionSelected));
       items.add(new MenuBottomSheetItem(R.string.export_file, R.drawable.ic_file_kmz,
                                         () -> onShareOptionSelected(KmlFileType.Text)));
-      items.add(new MenuBottomSheetItem(R.string.export_file_gpx, R.drawable.ic_file_gpx,
-                                        () -> onShareOptionSelected(KmlFileType.Gpx)));
+      if (ExplorerPro.isGpxExportEnabled())
+      {
+        items.add(new MenuBottomSheetItem(R.string.export_file_gpx, R.drawable.ic_file_gpx,
+                                          () -> onShareOptionSelected(KmlFileType.Gpx)));
+      }
     }
     items.add(new MenuBottomSheetItem(R.string.edit, R.drawable.ic_edit, this::onSettingsOptionSelected));
     if (!isLastOwnedCategory())
@@ -808,8 +812,11 @@ public class BookmarksListFragment extends BaseMwmRecyclerFragment<ConcatAdapter
     items.add(new MenuBottomSheetItem(R.string.edit, R.drawable.ic_edit, this::onTrackEditActionSelected));
     items.add(new MenuBottomSheetItem(R.string.export_file, R.drawable.ic_file_kmz,
                                       () -> onShareTrackSelected(track.getTrackId(), KmlFileType.Text)));
-    items.add(new MenuBottomSheetItem(R.string.export_file_gpx, R.drawable.ic_file_gpx,
-                                      () -> onShareTrackSelected(track.getTrackId(), KmlFileType.Gpx)));
+    if (ExplorerPro.isGpxExportEnabled())
+    {
+      items.add(new MenuBottomSheetItem(R.string.export_file_gpx, R.drawable.ic_file_gpx,
+                                        () -> onShareTrackSelected(track.getTrackId(), KmlFileType.Gpx)));
+    }
     items.add(new MenuBottomSheetItem(R.string.delete, R.drawable.ic_delete,
                                       () -> onDeleteTrackSelected(track.getTrackId())));
     return items;
