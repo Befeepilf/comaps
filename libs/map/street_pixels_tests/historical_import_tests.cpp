@@ -123,7 +123,7 @@ void HistLogRss(char const * name, size_t n, long rssBeforeKb)
               "ru_maxrss_kb =", usage.ru_maxrss));
 }
 
-kml::MultiGeometry::LineT SpacedLine(size_t n)
+kml::MultiGeometry::LineT HistSpacedLine(size_t n)
 {
   kml::MultiGeometry::LineT line;
   line.reserve(n);
@@ -334,7 +334,7 @@ UNIT_TEST(HistoricalImport_TenThousandPointsCompletes)
   HistoricalImportBreadcrumbCleanup cleanup;
   HistoricalImportFixture fixture;
   size_t constexpr kN = 10000;
-  auto const line = SpacedLine(kN);
+  auto const line = HistSpacedLine(kN);
   long const rssBefore = HistReadProcStatusKb("VmRSS:");
   size_t const marked = fixture.Manager().ImportHistoricalTrack({line});
   TEST_GREATER_OR_EQUAL(marked, 0, (marked));
@@ -346,7 +346,7 @@ UNIT_TEST(HistoricalImport_FiftyThousandPointsCompletes)
   HistoricalImportBreadcrumbCleanup cleanup;
   HistoricalImportFixture fixture;
   size_t constexpr kN = 50000;
-  auto const line = SpacedLine(kN);
+  auto const line = HistSpacedLine(kN);
   long const rssBefore = HistReadProcStatusKb("VmRSS:");
   size_t const marked = fixture.Manager().ImportHistoricalTrack({line});
   TEST_GREATER_OR_EQUAL(marked, 0, (marked));

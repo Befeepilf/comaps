@@ -117,7 +117,7 @@ UNIT_TEST(XmlParser_LongTest)
               "landscape", "compass", "root"});
 }
 
-bool ParseXmlString(std::string const & xmlStr, SmokeDispatcher & dispatcher)
+bool XmlParserParseString(std::string const & xmlStr, SmokeDispatcher & dispatcher)
 {
   MemReader reader(xmlStr);
   ReaderSource<MemReader> source(reader);
@@ -127,18 +127,18 @@ bool ParseXmlString(std::string const & xmlStr, SmokeDispatcher & dispatcher)
 UNIT_TEST(XmlParser_WellFormedPopsRoot)
 {
   SmokeDispatcher d;
-  TEST(ParseXmlString(smokeXml, d), ());
+  TEST(XmlParserParseString(smokeXml, d), ());
 }
 
 UNIT_TEST(XmlParser_TruncatedDocument)
 {
   SmokeDispatcher d;
-  TEST(!ParseXmlString("<root>", d), ());
+  TEST(!XmlParserParseString("<root>", d), ());
 }
 
 UNIT_TEST(XmlParser_EmptyDocument)
 {
   SmokeDispatcher d;
-  TEST(!ParseXmlString({}, d), ());
+  TEST(!XmlParserParseString({}, d), ());
 }
 }  // namespace
