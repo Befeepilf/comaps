@@ -1,8 +1,8 @@
 # SP-083 — Apply Explorer Pro gate to GPX surfaces
 
 **Phase:** 9 — GPX and feature gating
-**Status:** Planned
-**Branch:** `cursor/phase-09-work-items-db9d`
+**Status:** Accepted
+**Branch:** `cursor/sp-083-gpx-pro-gate-db9d`
 **Depends on:** SP-080 G4, G6, G7, G8 (draft SPD-070, SPD-072–074);
   SP-005 composition point; SP-081 path exists so gating cannot leave a
   free bookmark-replay painter
@@ -126,10 +126,10 @@ share, and VIEW/SEND intents still import and export GPX for everyone.
 
 | Field | Value |
 | --- | --- |
-| Branch | — |
-| Test output | — |
-| Accepted by | — |
-| Accepted date | — |
+| Branch | `cursor/sp-083-gpx-pro-gate-db9d` |
+| Test output | `--filter='ExplorerPro_|GpxGate|IsolationHistoricalImport_Gate'` **23/23** All tests passed |
+| Accepted by | Product owner |
+| Accepted date | 2026-08-28 |
 
 ## Discovered follow-up
 
