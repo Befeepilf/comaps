@@ -11,6 +11,11 @@ public final class ExplorerPro
     sNativeReady = ready;
   }
 
+  static boolean isNativeReady()
+  {
+    return sNativeReady;
+  }
+
   static boolean combine(boolean nativeReady, boolean nativeEnabled)
   {
     return nativeReady && nativeEnabled;
