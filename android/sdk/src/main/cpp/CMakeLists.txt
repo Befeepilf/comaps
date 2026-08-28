@@ -48,6 +48,7 @@ set(SRC
   app/organicmaps/sdk/routing/TrailRoutingOptions.cpp
   app/organicmaps/sdk/routing/StreetExplorationRoutingOptions.cpp
   app/organicmaps/sdk/routing/StreetExplorationRoutingAnalytics.cpp
+  app/organicmaps/sdk/ExplorerProAnalytics.cpp
   app/organicmaps/sdk/routing/TransitRouteInfo.hpp
   app/organicmaps/sdk/routing/TransitStepInfo.hpp
   app/organicmaps/sdk/ChoosePositionMode.cpp
