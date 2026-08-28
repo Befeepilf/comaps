@@ -192,6 +192,7 @@ public final class OrganicMaps implements DefaultLifecycleObserver
     {
       Framework.nativeInstallExplorerProDebugEntitlement();
     }
+    Framework.nativeFreezeExplorerProConfiguration();
     ExplorerPro.setNativeReady(true);
 
     mPlatformInitialized = true;
