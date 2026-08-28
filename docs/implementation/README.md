@@ -2,7 +2,7 @@
 
 **Document status:** Living project index
 **Scope of this document:** Android public V1
-**Last structural update:** 2026-08-26
+**Last structural update:** 2026-08-28
 
 This file is the index for Street Pixels implementation work. It intentionally
 contains no implementation detail. Detail belongs in `phases/` and
@@ -523,7 +523,21 @@ Phase 8 work-item planning (2026-08-23) recorded in
 SP-070 **Accepted** (SPD-057–066; unique nicknames per product-owner
 override of spec §20.4). SP-071 **In progress**. SP-072 **Accepted**
 (2026-08-25). SP-073 **Accepted** (2026-08-25). SP-074 **Accepted**
-(2026-08-26). SP-075 **Accepted** (2026-08-26). SP-076 **Accepted** (2026-08-26). SP-077 **Accepted** (2026-08-26). SP-078 **Accepted** (2026-08-26). SP-079 in progress. Detailed work
-items exist for Phases 1–8. Later phases are broken down after their
-entry criteria are met, and after any spike that phase depends on has a
-recorded outcome.
+(2026-08-26). SP-075 **Accepted** (2026-08-26). SP-076 **Accepted** (2026-08-26). SP-077 **Accepted** (2026-08-26). SP-078 **Accepted** (2026-08-26). SP-079 in progress.
+
+| Order | ID | Title | Phase | Why first |
+| --- | --- | --- | --- | --- |
+| 80 | [SP-080](work-items/SP-080-gpx-feature-gating-architecture-decisions.md) | GPX and feature-gating architecture decisions | 9 | **Planned** — G1–G10 / draft SPD-067–076; coding waits on G1, G5, G6, G7 |
+| 81 | [SP-081](work-items/SP-081-dedicated-historical-import-pipeline.md) | Dedicated historical-import pipeline | 9 | **Planned** — retire catch-all bookmark replay; 15 m per segment |
+| 82 | [SP-082](work-items/SP-082-competition-isolation-historical-import.md) | Competition isolation on historical import | 9 | **Planned** — GPX-path proofs; isolation holds for all gate combinations |
+| 83 | [SP-083](work-items/SP-083-apply-pro-gate-to-gpx-surfaces.md) | Apply Pro gate to GPX surfaces | 9 | **Planned** — import/export/batch/share-sheet; debug entitle (G7) |
+| 84 | [SP-084](work-items/SP-084-gpx-settings-surface.md) | GPX settings surface | 9 | **Planned** — §30 rows only when gate opens; no purchase settings |
+| 85 | [SP-085](work-items/SP-085-historical-import-robustness.md) | Historical-import robustness | 9 | **Planned** — malformed/untrusted GPX; 10k-point measure; chunk if needed |
+| 86 | [SP-086](work-items/SP-086-explorer-pro-monetisation-analytics.md) | Explorer Pro monetisation analytics | 9 | **Planned** — count-only; only when Pro available in the build |
+| 87 | [SP-087](work-items/SP-087-phase9-end-to-end-validation.md) | Phase 9 end-to-end validation | 9 | **Planned** — exit gate |
+
+Phase 9 work-item planning (2026-08-28) recorded in
+[`phases/phase-09-gpx-and-feature-gating.md`](phases/phase-09-gpx-and-feature-gating.md).
+Entry criteria Phase 3 + SP-005 are met. Coding waits on SP-080 locks
+(G1, G5, G6, G7). Detailed work items exist for Phases 1–9. Phase 10 is
+broken down after other phases meet exit.

@@ -1,6 +1,6 @@
 # Phase 9 — GPX and feature gating
 
-**Status:** Not started
+**Status:** Work-item planning 2026-08-28; coding waits on SP-080 locks
 **Depends on:** Phase 3, Phase 1 (SP-005)
 **Blocks:** nothing; required for release
 
@@ -39,27 +39,38 @@ purchase action.
 
 ## Current code locations
 
-Verified 2026-07-25 against the working tree.
+Verified 2026-07-25 against the working tree. **Re-verified 2026-08-28
+(Phase 9 work-item planning / SP-080).** Extra detail in
+[`notes/SP-080-gpx-feature-gating-architecture.md`](../notes/SP-080-gpx-feature-gating-architecture.md).
 
 | Concern | Location | Observed state |
 | --- | --- | --- |
-| GPX serialisation | `libs/kml/serdes_gpx.cpp` | Import and export both present |
-| GPX tests | `libs/kml/kml_tests/gpx_tests.cpp` | Substantial existing coverage |
-| Android import | multi-URI `importBookmarksFiles` | Batch import path exists |
-| Track-to-pixel replay | `libs/map/street_pixels_manager.cpp` `UpdateExploredPixels`, `UpdateStreetStatsForTrack` | Imported tracks set explored (ever-live clear per SP-016). Sampling currently every 10 m via `kInterpolationStepMeters` / hard-coded `10.0`; **SP-019 / SPD-019 unifies to 15 m** with derivation. |
-| Processed-track ledger | `street_stats.db` table `processed_tracks(geometry_hash, country_id)` | Prevents reprocessing the same track geometry |
-| Imported marking | — | Not found. No source distinction exists. |
-| Pro gate | — | Not found. GPX import and export are currently free and always available. |
-| Entitlement | — | Not found |
-| Android billing | — | Not found |
+| GPX serialisation | `libs/kml/serdes_gpx.cpp` | Import and export both present. No file-size cap. Parse failure may `ReadAsString` the whole file. Timestamp repair is display/metadata, not pixel placement. |
+| GPX tests | `libs/kml/kml_tests/gpx_tests.cpp` | Substantial existing coverage. No OOM / oversized cases. |
+| Android import | `Factory.KmzKmlProcessor`, `BookmarkManager.importBookmarksFiles`, Favorites Import, manifest VIEW/SEND `application/gpx` | Ungated. Batch multi-URI exists. GPX re-saved as a KML category with tracks. |
+| Android export | `PlacePageView`, `BookmarksListFragment`, `BookmarkCategoriesFragment` `export_file_gpx` | Ungated. |
+| Track-to-pixel replay | `StreetPixelsManager::UpdateExploredPixels` → `ComputeTrackPixels` → `MarkExploredPixelIds` | Catch-all over every bookmark track. Explored only; never ever-live, recency, weekly, or upload. Sampling **15 m** (`kPathSamplingStepMeters`, SPD-019). `UpdateStreetStatsForTrack` exists but is commented out at the call site. `Track::GetGeometry` concatenates segments (possible corridor across a `trkseg` / pause gap). |
+| Processed-track ledger | `street_stats.db` `processed_tracks(geometry_hash, country_id)` | Mercator x,y hash. Identical geometry skips; timestamp-only re-export skips; point edits reprocess. Track delete does not drop the row. |
+| Imported marking | `.pix` ever-live bit (SPD-015 / SP-016) | Import-first → ever-live clear; live sets; import cannot clear. No `source=imported` enum. |
+| Recency / weekly / upload | `LiveRecencyStore`, `WeeklyCityLiveStore`, `CompetitionUploadService` | Live path and recording **Finished** only. Import helpers already isolated; no GPX-file fixture yet. |
+| Pro gate | `libs/map/explorer_pro.*` | `GpxImport` / `GpxExport` / `AdvancedTrackManagement`. `IsCapabilityEnabled` = available ∧ entitled. **No production call site.** Java setter JNI only. BuildConfig `EXPLORER_PRO_*` default false; `-PenableExplorerProCapabilities=true` sets all true. |
+| Entitlement | `StubEntitlementSource` | Always false. Documented `ExplorerPro.Entitled` key unused. No debug grant path — internal capability-on builds still cannot open the gate. |
+| Settings GPX | prefs XML | **None.** Tools live in Favorites / share intents. |
+| Monetisation analytics | — | **Not found.** Count-only pattern exists for cards and routing. |
+| Android billing | — | **Not found** (SPD-010). |
 
-**Difference from the technical audit:** none material.
+**Difference from the technical audit (2026-07-20):** entitlement
+abstraction **exists** (SP-005, 2026-07-27). Imported marking **exists**
+as ever-live-clear (SP-016). Sampling is 15 m, not 10 m (SP-019). GPX UX
+is still ungated. Catch-all bookmark replay is still not a dedicated
+importer. Spike 9 isolation is largely a data-layer property; 10k-point
+memory is unmeasured.
 
 ## Intended outcome
 
-- A dedicated GPX import pipeline distinct from live collection, which sets
-  `source = imported`, never writes recency, and never enqueues a competition
-  upload.
+- A dedicated GPX import pipeline distinct from live collection, which
+  explores with ever-live clear (imported-only), never writes recency, and
+  never enqueues a competition upload.
 - GPX import and export gated by build flag plus entitlement, with public V1
   shipping the flag off.
 - No purchase action visible in public builds.
@@ -68,20 +79,30 @@ Verified 2026-07-25 against the working tree.
 ## Dependencies
 
 - Phase 3, for the per-pixel source flag. Without it there is nothing to mark.
+  **Met 2026-08-03.**
 - Phase 1 SP-005, for the flag and entitlement abstraction.
+  **Met 2026-07-27.**
+- Phase 8 stores (recency, weekly, upload) are used by SP-082 assertions
+  when present; they are not an entry gate for SP-081.
 
-## Proposed work-item breakdown
+## Work-item breakdown
 
-Not yet decomposed. Likely shape:
+Work-item planning 2026-08-28. Recommended locks G1–G10 live in
+[`SP-080`](../work-items/SP-080-gpx-feature-gating-architecture-decisions.md)
+as draft **SPD-067–076** / **OQ-20–OQ-29**. Coding SP-081+ waits on
+maintainer lock of G1, G5, G6, and G7 (those four block binary work).
+Audit Spike 9 is **not** a separate item (G10).
 
-1. Dedicated imported-track pipeline setting `source = imported`.
-2. Competition isolation: imports never create or refresh recency and never
-   enqueue an upload.
-3. Apply the build-flag plus entitlement gate to import, export, and
-   track-management surfaces.
-4. Settings surface for GPX tooling, shown only when the gate opens.
-5. Chunked processing for large imports, if measurement shows it is needed.
-6. Monetisation analytics, active only when the flag is on.
+| Order | ID | Title |
+| --- | --- | --- |
+| 1 | [SP-080](../work-items/SP-080-gpx-feature-gating-architecture-decisions.md) | Architecture decisions (**entry gate**) |
+| 2 | [SP-081](../work-items/SP-081-dedicated-historical-import-pipeline.md) | Dedicated historical-import pipeline |
+| 3 | [SP-082](../work-items/SP-082-competition-isolation-historical-import.md) | Competition isolation on the dedicated path |
+| 4 | [SP-083](../work-items/SP-083-apply-pro-gate-to-gpx-surfaces.md) | Apply Pro gate to import, export, batch, share-sheet |
+| 5 | [SP-084](../work-items/SP-084-gpx-settings-surface.md) | Settings surface when the gate opens |
+| 6 | [SP-085](../work-items/SP-085-historical-import-robustness.md) | Untrusted input and large-import measurement |
+| 7 | [SP-086](../work-items/SP-086-explorer-pro-monetisation-analytics.md) | Count-only monetisation analytics |
+| 8 | [SP-087](../work-items/SP-087-phase9-end-to-end-validation.md) | Phase 9 end-to-end validation (**exit gate**) |
 
 ## Data and migration concerns
 
@@ -95,11 +116,17 @@ Not yet decomposed. Likely shape:
   later live visits to become competition-eligible. Phase 3 stores this as a
   single **ever-live** bit (SPD-015): import clears it only on first explore;
   live sets it and import must not clear it. No separate `both` state.
-- `processed_tracks` prevents duplicate processing by geometry hash. Confirm the
-  hash is stable and that reimporting a modified track behaves sensibly.
-- Large imports (10,000-plus points) must not exhaust memory.
-- Historical GPX timestamps are sparse and irregular. Live interpolation rules
-  from Phase 2 must not be applied blindly to imports.
+- `processed_tracks` prevents duplicate processing by geometry hash.
+  **Proposed G3:** keep mercator x,y-only hash; timestamp-only re-export
+  skips; geometry edits reprocess.
+- Large imports (10,000-plus points) must not exhaust memory. **SP-085**
+  measures; chunks only if needed (G10).
+- Historical GPX timestamps are sparse and irregular. Live interpolation
+  rules from Phase 2 must not be applied blindly to imports. **Proposed
+  G5:** 15 m geometric sampling per segment; no cross-segment fill.
+- Catch-all bookmark replay of live-saved tracks can paint across pause
+  segment joins via `Track::GetGeometry`. **Proposed G1:** stop that
+  painter; live collection remains the only free pixel writer.
 
 ## Privacy and security implications
 
@@ -146,7 +173,10 @@ Not yet decomposed. Likely shape:
 ## Entry criteria
 
 - Phase 3 exit criteria met, with the source flag in place.
+  **Met 2026-08-03.**
 - SP-005 merged.
+  **Met 2026-07-27.**
+- G1, G5, G6, G7 locked before binary coding (SP-080). **Not met.**
 
 ## Exit criteria
 
@@ -179,12 +209,24 @@ Not yet decomposed. Likely shape:
   ever-live bit; no `both` state.
 - ~~How to treat pixels explored before the source flag existed.~~ Default
   imported-only (ever-live clear) per SPD-015 / SP-016.
-- Whether the existing bookmark import path can be reused with a flag, or
-  whether a separate import entry point is cleaner. Ordinary bookmark import
-  must remain free.
-- Whether importing a GPX track should also create a stored track the user can
-  inspect and delete, or only affect pixels.
-- Whether `geometry_hash` in `processed_tracks` is robust enough to prevent
-  duplicate imports of a re-exported track.
-- What the entitlement stub looks like such that it is obviously inert in a
-  public build.
+- ~~Whether the existing bookmark import path can be reused with a flag, or
+  whether a separate import entry point is cleaner.~~ **Proposed G1 / OQ-20
+  (draft SPD-067):** dedicated historical path; free KML/KMZ does not paint;
+  live-saved tracks do not replay. Awaiting maintainer lock.
+- ~~Whether importing a GPX track should also create a stored track.~~
+  **Proposed G2 / OQ-21 (draft SPD-068):** yes; delete does not un-explore.
+- ~~Whether `geometry_hash` is robust enough.~~ **Proposed G3 / OQ-22
+  (draft SPD-069):** keep x,y-only hash.
+- ~~What the entitlement stub looks like in a public build.~~ SP-005 stub
+  is always-false. **Proposed G7 / OQ-26 (draft SPD-073):** debug
+  entitlement for internal Pro builds only; stub never grants.
+- Historical sampling vs live GPS rules — **Proposed G5 / OQ-24 (draft
+  SPD-071):** 15 m per segment; no live filters; no cross-segment fill.
+- Share-sheet GPX when the gate is closed — **Proposed G6 / OQ-25 (draft
+  SPD-072):** refuse GPX; no purchase CTA.
+- V1 advanced track management scope — **Proposed G4 / OQ-23 (draft
+  SPD-070):** batch import; no merge/split; own recordings stay free.
+- Information page and monetisation counters — **Proposed G8–G9 / OQ-27–
+  OQ-28.**
+- Separate Spike 9 — **Proposed G10 / OQ-29:** no; isolation → SP-082;
+  memory → SP-085.
