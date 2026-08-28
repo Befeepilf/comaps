@@ -35,6 +35,8 @@ bool IsEntitled();
 
 void SetEntitlementSource(EntitlementSource * source);
 void InstallDebugEntitlementSource();
+void FreezeConfiguration();
+void UnfreezeConfigurationForTesting();
 
 bool IsCapabilityEnabled(Capability capability);
 }

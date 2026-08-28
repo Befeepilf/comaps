@@ -50,8 +50,15 @@ public:
   ~RestoreStubOnExit() { explorer_pro::SetEntitlementSource(nullptr); }
 };
 
+class ExplorerProUnfreezeOnExit
+{
+public:
+  ~ExplorerProUnfreezeOnExit() { explorer_pro::UnfreezeConfigurationForTesting(); }
+};
+
 void ResetCapabilities()
 {
+  explorer_pro::UnfreezeConfigurationForTesting();
   explorer_pro::SetCapabilityAvailable(explorer_pro::Capability::GpxImport, false);
   explorer_pro::SetCapabilityAvailable(explorer_pro::Capability::GpxExport, false);
   explorer_pro::SetCapabilityAvailable(explorer_pro::Capability::AdvancedTrackManagement, false);
@@ -175,4 +182,35 @@ UNIT_TEST(ExplorerPro_DebugEntitlementSourceStubRestored)
   explorer_pro::SetEntitlementSource(nullptr);
   TEST(!explorer_pro::IsEntitled(), ());
   TEST(!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport), ());
+}
+
+UNIT_TEST(ExplorerPro_FrozenKeepsEnabledState)
+{
+  ResetCapabilities();
+  ExplorerProUnfreezeOnExit unfreeze;
+  CapabilityAvailabilityScope availability(explorer_pro::Capability::GpxImport, true);
+  RestoreStubOnExit restore;
+  explorer_pro::InstallDebugEntitlementSource();
+  TEST(explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport), ());
+  explorer_pro::FreezeConfiguration();
+  explorer_pro::SetCapabilityAvailable(explorer_pro::Capability::GpxImport, false);
+  explorer_pro::SetEntitlementSource(nullptr);
+  TEST(explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport), ());
+  explorer_pro::UnfreezeConfigurationForTesting();
+}
+
+UNIT_TEST(ExplorerPro_FrozenIgnoresDebugInstall)
+{
+  ResetCapabilities();
+  ExplorerProUnfreezeOnExit unfreeze;
+  CapabilityAvailabilityScope availability(explorer_pro::Capability::GpxImport, true);
+  explorer_pro::SetEntitlementSource(nullptr);
+  TEST(!explorer_pro::IsEntitled(), ());
+  explorer_pro::FreezeConfiguration();
+  explorer_pro::InstallDebugEntitlementSource();
+  explorer_pro::SetCapabilityAvailable(explorer_pro::Capability::GpxExport, true);
+  TEST(!explorer_pro::IsEntitled(), ());
+  TEST(!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport), ());
+  TEST(!explorer_pro::IsCapabilityAvailable(explorer_pro::Capability::GpxExport), ());
+  explorer_pro::UnfreezeConfigurationForTesting();
 }
