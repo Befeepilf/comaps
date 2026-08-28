@@ -30,6 +30,7 @@ set(SRC
   focus_selection_engine_tests.cpp
   historical_import_tests.cpp
   interrupted_session_tests.cpp
+  isolation_historical_import_tests.cpp
   live_sample_acceptance_filter_tests.cpp
   pause_resume_semantics_tests.cpp
   recording_session_tests.cpp
