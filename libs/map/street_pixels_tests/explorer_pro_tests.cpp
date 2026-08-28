@@ -153,6 +153,7 @@ UNIT_TEST(ExplorerPro_GateMatrixAllCapabilities)
   }
 }
 
+#ifdef DEBUG
 UNIT_TEST(ExplorerPro_DebugEntitlementSourceUsed)
 {
   ResetCapabilities();
@@ -162,6 +163,7 @@ UNIT_TEST(ExplorerPro_DebugEntitlementSourceUsed)
   TEST(explorer_pro::IsEntitled(), ());
   TEST(explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport), ());
 }
+#endif
 
 UNIT_TEST(ExplorerPro_DebugEntitlementSourceNotUsed)
 {
@@ -172,6 +174,7 @@ UNIT_TEST(ExplorerPro_DebugEntitlementSourceNotUsed)
   TEST(!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport), ());
 }
 
+#ifdef DEBUG
 UNIT_TEST(ExplorerPro_DebugEntitlementSourceStubRestored)
 {
   ResetCapabilities();
@@ -183,6 +186,7 @@ UNIT_TEST(ExplorerPro_DebugEntitlementSourceStubRestored)
   TEST(!explorer_pro::IsEntitled(), ());
   TEST(!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport), ());
 }
+#endif
 
 UNIT_TEST(ExplorerPro_FrozenKeepsEnabledState)
 {
@@ -190,7 +194,8 @@ UNIT_TEST(ExplorerPro_FrozenKeepsEnabledState)
   ExplorerProUnfreezeOnExit unfreeze;
   CapabilityAvailabilityScope availability(explorer_pro::Capability::GpxImport, true);
   RestoreStubOnExit restore;
-  explorer_pro::InstallDebugEntitlementSource();
+  static FakeEntitlementSource entitled(true);
+  explorer_pro::SetEntitlementSource(&entitled);
   TEST(explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport), ());
   explorer_pro::FreezeConfiguration();
   explorer_pro::SetCapabilityAvailable(explorer_pro::Capability::GpxImport, false);
@@ -199,6 +204,7 @@ UNIT_TEST(ExplorerPro_FrozenKeepsEnabledState)
   explorer_pro::UnfreezeConfigurationForTesting();
 }
 
+#ifdef DEBUG
 UNIT_TEST(ExplorerPro_FrozenIgnoresDebugInstall)
 {
   ResetCapabilities();
@@ -214,3 +220,4 @@ UNIT_TEST(ExplorerPro_FrozenIgnoresDebugInstall)
   TEST(!explorer_pro::IsCapabilityAvailable(explorer_pro::Capability::GpxExport), ());
   explorer_pro::UnfreezeConfigurationForTesting();
 }
+#endif

@@ -10,7 +10,9 @@ bool g_advancedTrackManagementAvailable = false;
 std::atomic<bool> g_configurationFrozen{false};
 
 explorer_pro::StubEntitlementSource g_stubEntitlementSource;
+#ifdef DEBUG
 explorer_pro::DebugEntitlementSource g_debugEntitlementSource;
+#endif
 explorer_pro::EntitlementSource * g_entitlementSource = &g_stubEntitlementSource;
 
 bool & AvailabilityFor(explorer_pro::Capability capability)
@@ -27,7 +29,9 @@ bool & AvailabilityFor(explorer_pro::Capability capability)
 
 bool explorer_pro::StubEntitlementSource::IsEntitled() const { return false; }
 
+#ifdef DEBUG
 bool explorer_pro::DebugEntitlementSource::IsEntitled() const { return true; }
+#endif
 
 void explorer_pro::SetCapabilityAvailable(Capability capability, bool available)
 {
@@ -47,12 +51,14 @@ void explorer_pro::SetEntitlementSource(EntitlementSource * source)
   g_entitlementSource = source != nullptr ? source : &g_stubEntitlementSource;
 }
 
+#ifdef DEBUG
 void explorer_pro::InstallDebugEntitlementSource()
 {
   if (g_configurationFrozen)
     return;
   SetEntitlementSource(&g_debugEntitlementSource);
 }
+#endif
 
 void explorer_pro::FreezeConfiguration()
 {
