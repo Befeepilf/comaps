@@ -1,4 +1,5 @@
 #include "map/bookmark_manager.hpp"
+#include "map/explorer_pro.hpp"
 #include "map/gps_tracker.hpp"
 #include "map/search_api.hpp"
 #include "map/track_mark.hpp"
@@ -2141,7 +2142,10 @@ void BookmarkManager::LoadBookmarkRoutine(std::string const & filePath, bool isT
       if (ext == kKmlExtension)
         kmlData = LoadKmlFile(fileToLoad, KmlFileType::Text);
       else if (ext == kGpxExtension)
-        kmlData = LoadKmlFile(fileToLoad, KmlFileType::Gpx);
+      {
+        if (explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport))
+          kmlData = LoadKmlFile(fileToLoad, KmlFileType::Gpx);
+      }
       else
         ASSERT(false, ("Unsupported bookmarks extension", ext));
 
@@ -2192,7 +2196,10 @@ void BookmarkManager::ReloadBookmarkRoutine(std::string const & filePath)
     if (ext == kKmlExtension)
       kmlData = LoadKmlFile(filePath, KmlFileType::Text);
     else if (ext == kGpxExtension)
-      kmlData = LoadKmlFile(filePath, KmlFileType::Gpx);
+    {
+      if (explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport))
+        kmlData = LoadKmlFile(filePath, KmlFileType::Gpx);
+    }
     else
       ASSERT(false, ("Unsupported bookmarks extension", ext));
 
