@@ -9,6 +9,7 @@ import androidx.preference.Preference;
 import androidx.preference.TwoStatePreference;
 import app.organicmaps.R;
 import app.organicmaps.downloader.OnmapDownloader;
+import app.organicmaps.sdk.ExplorerPro;
 import app.organicmaps.sdk.util.Config;
 
 @Keep
@@ -28,6 +29,41 @@ public class DataManagementSettingsFragment extends BaseXmlSettingsFragment
     initStoragePrefCallbacks();
     initBackupPrefCallback();
     initAutoDownloadPrefsCallbacks();
+    initGpxToolsPref();
+  }
+
+  private void initGpxToolsPref()
+  {
+    boolean showImport = GpxSettingsVisibility.showImportRow(ExplorerPro.isGpxImportEnabled());
+    boolean showExport = GpxSettingsVisibility.showExportRow(ExplorerPro.isGpxExportEnabled());
+    boolean showBatch = GpxSettingsVisibility.showBatchImportRow(
+        ExplorerPro.isGpxImportEnabled(), ExplorerPro.isAdvancedTrackManagementEnabled());
+    boolean showInfo = GpxSettingsVisibility.showInfoPage(
+        ExplorerPro.isGpxImportAvailable(), ExplorerPro.isGpxExportAvailable(),
+        ExplorerPro.isAdvancedTrackManagementAvailable());
+    boolean showScreen = GpxSettingsVisibility.showGpxScreen(showImport, showExport, showBatch, showInfo);
+    String key = getString(R.string.pref_gpx_screen);
+    Preference existing = getPreferenceScreen().findPreference(key);
+    if (!showScreen)
+    {
+      if (existing != null)
+        getPreferenceScreen().removePreference(existing);
+      return;
+    }
+    if (existing != null)
+      return;
+
+    Preference pref = new Preference(requireContext());
+    pref.setKey(key);
+    pref.setTitle(R.string.pref_gpx_screen_title);
+    pref.setSummary(R.string.pref_gpx_screen_summary);
+    pref.setIcon(R.drawable.ic_file_gpx);
+    pref.setPersistent(false);
+    pref.setOnPreferenceClickListener(preference -> {
+      getSettingsActivity().stackFragment(GpxSettingsFragment.class, getString(R.string.pref_gpx_screen_title), null);
+      return true;
+    });
+    getPreferenceScreen().addPreference(pref);
   }
 
   private void initStoragePrefCallbacks()

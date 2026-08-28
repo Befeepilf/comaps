@@ -1,6 +1,6 @@
 # Phase 9 — GPX and feature gating
 
-**Status:** SP-083 Accepted 2026-08-28; SP-084 next. G1–G10 still Open (OQ-20–OQ-29).
+**Status:** SP-084 Accepted 2026-08-28; SP-085 next. G1–G10 still Open (OQ-20–OQ-29).
 **Depends on:** Phase 3, Phase 1 (SP-005)
 **Blocks:** nothing; required for release
 
@@ -55,7 +55,7 @@ Verified 2026-07-25 against the working tree. **Re-verified 2026-08-28
 | Recency / weekly / upload | `LiveRecencyStore`, `WeeklyCityLiveStore`, `CompetitionUploadService` | Live path and recording **Finished** only. Import helpers already isolated; no GPX-file fixture yet. |
 | Pro gate | `libs/map/explorer_pro.*` | `GpxImport` / `GpxExport` / `AdvancedTrackManagement`. `IsCapabilityEnabled` = available ∧ entitled. **No production call site.** Java setter JNI only. BuildConfig `EXPLORER_PRO_*` default false; `-PenableExplorerProCapabilities=true` sets all true. |
 | Entitlement | `StubEntitlementSource` | Always false. Documented `ExplorerPro.Entitled` key unused. No debug grant path — internal capability-on builds still cannot open the gate. |
-| Settings GPX | prefs XML | **None.** Tools live in Favorites / share intents. |
+| Settings GPX | `DataManagementSettingsFragment` + `GpxSettingsFragment` | Nested Data Management entry added only when `GpxSettingsVisibility.showGpxScreen`. Tool rows use Enabled; G8 info page uses Available. Public (all Available false) adds nothing. |
 | Monetisation analytics | — | **Not found.** Count-only pattern exists for cards and routing. |
 | Android billing | — | **Not found** (SPD-010). |
 
