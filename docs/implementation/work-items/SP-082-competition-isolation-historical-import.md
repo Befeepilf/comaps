@@ -1,8 +1,8 @@
 # SP-082 — Competition isolation on historical import
 
 **Phase:** 9 — GPX and feature gating
-**Status:** Planned
-**Branch:** `cursor/phase-09-work-items-db9d`
+**Status:** Accepted
+**Branch:** `cursor/sp-082-competition-isolation-db9d`
 **Depends on:** SP-080 (G1; isolation remains a data rule). SP-081
   dedicated path. Phase 8 recency / weekly / upload stores when present
   (SP-072–074); if a store is missing, residual that assertion rather
@@ -108,13 +108,23 @@ must not be able to “import live” by toggling Pro.
 
 | Field | Value |
 | --- | --- |
-| Branch | — |
-| Test output | — |
-| Accepted by | — |
-| Accepted date | — |
+| Branch | `cursor/sp-082-competition-isolation-db9d` |
+| Test output | See executed output below |
+| Accepted by | Product owner |
+| Accepted date | 2026-08-28 |
+
+## Executed test output
+
+Cwd `/workspace`. Binary `/home/ubuntu/omim-build-debug/street_pixels_tests`. SHA `145cc7f65`. `--data_path=/workspace/data --user_resource_path=/workspace/data`.
+
+- `--filter=IsolationHistoricalImport` **14/14** All tests passed
+- Named Phase 8 regressions (`CompetitionUpload_ImportedOnlyZeroCompetitiveHttp`, `WeeklyCityLive_ImportOnlyDoesNot`, `CompetitionOwnership_ImportDoesNotWriteRecency`, `FirstGoal_ImportDoesNotAdvance`, `CompetitionHint_ImportDoesNotAdvance`, `ExplorerPro_`) **12/12** All tests passed
+- Device residual → SP-087 / Phase 10
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| Isolation already holds on `ImportHistoricalTrack`; this item is tests-only confirmation of SPD-011 | Recorded |
+| Device check (imported area, no ownership/weekly movement) unrun | SP-087 / Phase 10 |
+| Public GPX surfaces still ungated | SP-083 |

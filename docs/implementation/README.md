@@ -529,7 +529,7 @@ override of spec §20.4). SP-071 **In progress**. SP-072 **Accepted**
 | --- | --- | --- | --- | --- |
 | 80 | [SP-080](work-items/SP-080-gpx-feature-gating-architecture-decisions.md) | GPX and feature-gating architecture decisions | 9 | **Planned** — G1–G10 / draft SPD-067–076; coding waits on G1, G5, G6, G7 |
 | 81 | [SP-081](work-items/SP-081-dedicated-historical-import-pipeline.md) | Dedicated historical-import pipeline | 9 | **Accepted** (2026-08-28) — `ImportHistoricalTrack`; catch-all replay retired |
-| 82 | [SP-082](work-items/SP-082-competition-isolation-historical-import.md) | Competition isolation on historical import | 9 | **Planned** — GPX-path proofs; isolation holds for all gate combinations |
+| 82 | [SP-082](work-items/SP-082-competition-isolation-historical-import.md) | Competition isolation on historical import | 9 | **Accepted** (2026-08-28) — `ImportHistoricalTrack` store assertions; four-gate matrix |
 | 83 | [SP-083](work-items/SP-083-apply-pro-gate-to-gpx-surfaces.md) | Apply Pro gate to GPX surfaces | 9 | **Planned** — import/export/batch/share-sheet; debug entitle (G7) |
 | 84 | [SP-084](work-items/SP-084-gpx-settings-surface.md) | GPX settings surface | 9 | **Planned** — §30 rows only when gate opens; no purchase settings |
 | 85 | [SP-085](work-items/SP-085-historical-import-robustness.md) | Historical-import robustness | 9 | **Planned** — malformed/untrusted GPX; 10k-point measure; chunk if needed |
@@ -539,6 +539,7 @@ override of spec §20.4). SP-071 **In progress**. SP-072 **Accepted**
 Phase 9 work-item planning (2026-08-28) recorded in
 [`phases/phase-09-gpx-and-feature-gating.md`](phases/phase-09-gpx-and-feature-gating.md).
 Entry criteria Phase 3 + SP-005 are met. SP-081 **Accepted** (2026-08-28)
-using recommended G1/G5 locks (OQ-20–OQ-29 still Open). Next: SP-082.
+using recommended G1/G5 locks (OQ-20–OQ-29 still Open). SP-082 **Accepted**
+(2026-08-28). Next: SP-083.
 Detailed work items exist for Phases 1–9. Phase 10 is broken down after
 other phases meet exit.
