@@ -264,7 +264,8 @@ public:
     auto const city = m_manager.GetAreaCompletion(1);
     TEST(city.has_value(), ());
     TEST_EQUAL(city->m_osmId, static_cast<uint64_t>(kIsoCityAOsm), ());
-    TEST_EQUAL(city->m_total, 2u, ());
+    TEST_EQUAL(city->m_total, 1u, ());
+    TEST_EQUAL(city->m_explored, 0u, ());
   }
 
   ~IsoFixture()
