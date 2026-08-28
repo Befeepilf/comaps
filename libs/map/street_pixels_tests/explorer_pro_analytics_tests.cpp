@@ -144,10 +144,7 @@ kml::MultiGeometry::LineT EpaShortLineAt(double lat, double lon)
 void EpaFrameworkHistoricalImportHandler(StreetPixelsManager & manager,
                                          std::vector<kml::MultiGeometry::LineT> const & segments)
 {
-  if (!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport))
-    return;
-  manager.ImportHistoricalTrack(segments);
-  ExplorerProAnalytics::RecordGpxImportUsage();
+  RunHistoricalImportIfEnabled(manager, segments);
 }
 
 void EpaRunDirectImport(StreetPixelsManager & manager, double lat, double lon)

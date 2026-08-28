@@ -1,10 +1,15 @@
 #pragma once
 
+#include "kml/types.hpp"
+
 #include <array>
 #include <cstdint>
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
+
+class StreetPixelsManager;
 
 namespace street_pixels
 {
@@ -32,6 +37,9 @@ public:
   static std::array<std::pair<std::string_view, uint64_t>, 3> SerializedSnapshot();
   static void ResetForTesting();
 };
+
+void RunHistoricalImportIfEnabled(StreetPixelsManager & manager,
+                                  std::vector<kml::MultiGeometry::LineT> const & segments);
 
 std::string DebugPrint(ExplorerProAnalyticsSnapshot const & snapshot);
 }  // namespace street_pixels
