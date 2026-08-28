@@ -29,6 +29,7 @@ import app.organicmaps.util.SharingUtils;
 import app.organicmaps.util.Utils;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -36,19 +37,23 @@ import java.util.List;
 public class GpxSettingsFragment extends BaseXmlSettingsFragment
     implements BookmarkManager.BookmarksSharingListener, BookmarkManager.BookmarksLoadingListener
 {
-  private static final String[] GPX_MIME_TYPES = {"application/gpx+xml", "application/gpx"};
+  private static final String[] GPX_MIME_TYPES =
+      {"application/gpx+xml", "application/gpx", "application/xml", "text/xml", "*/*"};
 
-  private ActivityResultLauncher<SharingUtils.SharingIntent> shareLauncher;
+  private final ActivityResultLauncher<SharingUtils.SharingIntent> shareLauncher =
+      SharingUtils.RegisterLauncher(this);
+
+  private ProgressDialog mImportProgress;
 
   private final ActivityResultLauncher<String[]> importLauncher =
       registerForActivityResult(new ActivityResultContracts.OpenDocument(), uri -> {
-        if (uri != null)
+        if (uri != null && isAdded())
           importGpxUris(Collections.singletonList(uri), false);
       });
 
   private final ActivityResultLauncher<String[]> batchImportLauncher =
       registerForActivityResult(new ActivityResultContracts.OpenMultipleDocuments(), uris -> {
-        if (uris != null && !uris.isEmpty())
+        if (uris != null && !uris.isEmpty() && isAdded())
           importGpxUris(uris, true);
       });
 
@@ -62,7 +67,6 @@ public class GpxSettingsFragment extends BaseXmlSettingsFragment
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
   {
     super.onViewCreated(view, savedInstanceState);
-    shareLauncher = SharingUtils.RegisterLauncher(this);
     applyGateVisibility();
     wireClickListeners();
   }
@@ -84,8 +88,17 @@ public class GpxSettingsFragment extends BaseXmlSettingsFragment
   }
 
   @Override
+  public void onDestroyView()
+  {
+    dismissImportProgress();
+    super.onDestroyView();
+  }
+
+  @Override
   public void onPreparedFileForSharing(@NonNull BookmarkSharingResult result)
   {
+    if (!isAdded())
+      return;
     BookmarksSharingHelper.INSTANCE.onPreparedFileForSharing(requireActivity(), shareLauncher, result);
   }
 
@@ -196,12 +209,14 @@ public class GpxSettingsFragment extends BaseXmlSettingsFragment
   private void importGpxUris(@NonNull List<Uri> uris, boolean batch)
   {
     final Context context = requireActivity();
+    dismissImportProgress();
     final ProgressDialog dialog = new ProgressDialog(context, R.style.MwmTheme_ProgressDialog);
     dialog.setMessage(getString(R.string.wait_several_minutes));
     dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
     dialog.setIndeterminate(true);
     dialog.setCancelable(false);
     dialog.show();
+    mImportProgress = dialog;
     MwmApplication app = MwmApplication.from(context);
     final File tempDir = new File(StorageUtils.getTempPath(app));
     final ContentResolver resolver = context.getContentResolver();
@@ -212,20 +227,29 @@ public class GpxSettingsFragment extends BaseXmlSettingsFragment
       else
         found = BookmarkManager.INSTANCE.importBookmarksFile(resolver, uris.get(0), tempDir) ? 1 : 0;
       UiThread.run(() -> {
-        if (dialog.isShowing())
-          dialog.dismiss();
+        dismissImportProgress();
         if (!isAdded())
           return;
         String message =
-            context.getResources().getQuantityString(R.plurals.bookmarks_detect_message, found, found);
+            getResources().getQuantityString(R.plurals.bookmarks_detect_message, found, found);
         Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show();
       });
     });
   }
 
+  private void dismissImportProgress()
+  {
+    if (mImportProgress != null)
+    {
+      if (mImportProgress.isShowing())
+        mImportProgress.dismiss();
+      mImportProgress = null;
+    }
+  }
+
   private void showExportCategoryPicker()
   {
-    List<BookmarkCategory> categories = BookmarkManager.INSTANCE.getCategories();
+    List<BookmarkCategory> categories = new ArrayList<>(BookmarkManager.INSTANCE.getCategories());
     if (categories.isEmpty())
     {
       new MaterialAlertDialogBuilder(requireActivity())
@@ -239,12 +263,13 @@ public class GpxSettingsFragment extends BaseXmlSettingsFragment
     final String[] names = new String[categories.size()];
     for (int i = 0; i < categories.size(); i++)
       names[i] = categories.get(i).getName();
-    final List<BookmarkCategory> choices = categories;
     new MaterialAlertDialogBuilder(requireActivity())
         .setTitle(R.string.pref_gpx_export_pick_list)
         .setSingleChoiceItems(names, -1, (dialog, which) -> {
           dialog.dismiss();
-          BookmarkCategory category = choices.get(which);
+          if (!isAdded())
+            return;
+          BookmarkCategory category = categories.get(which);
           BookmarksSharingHelper.INSTANCE.prepareBookmarkCategoryForSharing(requireActivity(), category.getId(),
                                                                             KmlFileType.Gpx);
         })
