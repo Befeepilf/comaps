@@ -10,11 +10,13 @@
 #include "map/street_pixels_manager.hpp"
 #include "map/street_pixels_tests/street_pixels_test_helpers.hpp"
 
+#include "street_pixels_areas/area_milestone_store.hpp"
 #include "street_pixels_areas/areas_writer.hpp"
 #include "street_pixels_areas/exploration_filter.hpp"
 #include "street_pixels_areas/exploration_sidecar.hpp"
 #include "street_pixels_areas/live_recency_store.hpp"
 #include "street_pixels_areas/sparse_assignment_store.hpp"
+#include "street_pixels_areas/weekly_city_live_store.hpp"
 
 #include "street_pixels_config/country_config.hpp"
 
@@ -218,45 +220,62 @@ private:
   bool m_previous;
 };
 
-class IsolationCleanup
+class IsoCleanup
 {
 public:
-  IsolationCleanup()
+  IsoCleanup()
   {
     settings::Delete("RecordingSessionActive");
     settings::Delete("Explore.CompetitionUploadPending");
   }
 
-  ~IsolationCleanup()
+  ~IsoCleanup()
   {
     settings::Delete("RecordingSessionActive");
     settings::Delete("Explore.CompetitionUploadPending");
   }
 };
 
-class IsolationFixture
+class IsoFixture
 {
 public:
-  explicit IsolationFixture(std::string const & leaf)
-    : m_weeklyPath(IsoPath("sp082_weekly_city_live.db"))
-    , m_recencyPath(IsoPath("sp082_live_recency.db"))
+  explicit IsoFixture(std::string const & leaf)
+    : m_weeklyPath(IsoPath(leaf + "_weekly_city_live.db"))
+    , m_recencyPath(IsoPath(leaf + "_live_recency.db"))
+    , m_milestonePath(IsoPath(leaf + "_area_milestones.db"))
     , m_manager(m_dataSource)
   {
     IsoRemoveSqliteDb(m_weeklyPath);
     IsoRemoveSqliteDb(m_recencyPath);
+    IsoRemoveSqliteDb(m_milestonePath);
     m_manager.ConfigureWeeklyCityLiveStoreForTesting(m_weeklyPath);
     m_manager.ConfigureLiveRecencyStoreForTesting(m_recencyPath);
+    m_manager.ConfigureAreaMilestoneStoreForTesting(m_milestonePath);
     m_manager.SetRecordingSession(&m_session);
     m_fx = MakeIsoAreaFixture(leaf, false);
     TEST(m_manager.RebuildAreaCompletionCache(m_fx.leaf, m_fx.spaPath, m_fx.mapDataVersion), ());
+    TEST(m_manager.IsAreaCompletionCacheValid(), ());
     SetupPixels({{m_fx.districtId, false}, {m_fx.cityOnlyId, false}, {m_fx.outsideId, false}});
+    auto const district = m_manager.GetAreaCompletion(0);
+    TEST(district.has_value(), ());
+    TEST_EQUAL(district->m_osmId, static_cast<uint64_t>(kIsoDistrictOsm), ());
+    TEST_EQUAL(district->m_total, 1u, ());
+    TEST_EQUAL(district->m_explored, 0u, ());
+    auto const city = m_manager.GetAreaCompletion(1);
+    TEST(city.has_value(), ());
+    TEST_EQUAL(city->m_osmId, static_cast<uint64_t>(kIsoCityAOsm), ());
+    TEST_EQUAL(city->m_total, 2u, ());
   }
 
-  ~IsolationFixture()
+  ~IsoFixture()
   {
     CleanupIsoArea(m_fx);
     IsoRemoveSqliteDb(m_weeklyPath);
     IsoRemoveSqliteDb(m_recencyPath);
+    IsoRemoveSqliteDb(m_milestonePath);
+    street_pixels::WeeklyCityLiveStore::Instance().Reopen(street_pixels::WeeklyCityLiveStore::DefaultDbPath());
+    street_pixels::LiveRecencyStore::Instance().Reopen(street_pixels::LiveRecencyStore::DefaultDbPath());
+    street_pixels::AreaMilestoneStore::Instance().Reopen(street_pixels::AreaMilestoneStore::DefaultDbPath());
   }
 
   void SetupPixels(std::initializer_list<std::pair<std::int64_t, bool>> idsAndExplored)
@@ -276,22 +295,38 @@ public:
     return m_manager.ImportHistoricalTrack({IsoShortLineAt(lat, lon)});
   }
 
+  size_t ImportDistrictAndCityOnly()
+  {
+    auto const [lat, lon] = street_pixels_tests::LatLonForPixelId(m_fx.districtId);
+    auto const [cityLat, cityLon] = street_pixels_tests::LatLonForPixelId(m_fx.cityOnlyId);
+    return m_manager.ImportHistoricalTrack({IsoShortLineAt(lat, lon), IsoShortLineAt(cityLat, cityLon)});
+  }
+
   StreetPixelsManager & Manager() { return m_manager; }
   RecordingSession & Session() { return m_session; }
   int64_t DistrictId() const { return m_fx.districtId; }
+  int64_t CityOnlyId() const { return m_fx.cityOnlyId; }
+  int64_t MapDataVersion() const { return m_fx.mapDataVersion; }
 
 private:
-  IsolationCleanup m_cleanup;
+  IsoCleanup m_cleanup;
   FrozenDataSource m_dataSource;
   RecordingSession m_session;
   std::string m_weeklyPath;
   std::string m_recencyPath;
+  std::string m_milestonePath;
   StreetPixelsManager m_manager;
   IsoAreaFixture m_fx;
 };
 
-void AssertImportedOnlyIsolation(StreetPixelsManager & manager, int64_t districtId)
+void IsoAssertImportedOnlyIsolation(StreetPixelsManager & manager, int64_t districtId, int64_t mapDataVersion)
 {
+  TEST(manager.IsAreaCompletionCacheValid(), ());
+  auto const personal = manager.GetAreaCompletion(0);
+  TEST(personal.has_value(), ());
+  TEST_EQUAL(personal->m_osmId, static_cast<uint64_t>(kIsoDistrictOsm), ());
+  TEST_EQUAL(personal->m_total, 1u, ());
+  TEST_EQUAL(personal->m_explored, 1u, ());
   TEST(manager.IsPixelExploredForTesting(districtId), ());
   TEST(!manager.IsPixelEverLiveForTesting(districtId), ());
   TEST(!street_pixels::LiveRecencyStore::Instance().GetLastLiveVisit(districtId).has_value(), ());
@@ -303,7 +338,57 @@ void AssertImportedOnlyIsolation(StreetPixelsManager & manager, int64_t district
   bool pending = false;
   TEST(!settings::Get("Explore.CompetitionUploadPending", pending), ());
   int64_t const now = static_cast<int64_t>(base::SecondsSinceEpoch());
-  TEST(CompetitionUploadPayloadIsEmpty(manager.BuildCompetitionUploadSnapshot(now)), ());
+  auto const snapshot = manager.BuildCompetitionUploadSnapshot(now);
+  TEST_EQUAL(snapshot.m_mapDataVersion, mapDataVersion, ());
+  TEST(CompetitionUploadPayloadIsEmpty(snapshot), ());
+}
+
+void IsoAssertImportThenLive(IsoFixture & fixture)
+{
+  TEST(!fixture.Manager().IsPixelEverLiveForTesting(fixture.DistrictId()), ());
+  TEST_EQUAL(fixture.Manager().QueryWeeklyCityLive(kIsoCityAOsm).m_newLiveCount, 0, ());
+  auto const personalBefore = fixture.Manager().GetAreaCompletion(0);
+  TEST(personalBefore.has_value(), ());
+  TEST_EQUAL(personalBefore->m_osmId, static_cast<uint64_t>(kIsoDistrictOsm), ());
+  TEST_EQUAL(personalBefore->m_explored, 1u, ());
+
+  TEST_EQUAL(fixture.Session().Start(), RecordingSession::TransitionResult::Ok, ());
+  double const ts = street_pixels_tests::CurrentTimestampSec();
+  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(fixture.DistrictId(), ts));
+  TEST(fixture.Manager().IsPixelEverLiveForTesting(fixture.DistrictId()), ());
+  TEST(street_pixels::LiveRecencyStore::Instance().GetLastLiveVisit(fixture.DistrictId()).has_value(), ());
+  TEST_EQUAL(fixture.Manager().QueryWeeklyCityLive(kIsoCityAOsm).m_newLiveCount, 1, ());
+
+  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(fixture.DistrictId(), ts + 1.0));
+  TEST_EQUAL(fixture.Manager().QueryWeeklyCityLive(kIsoCityAOsm).m_newLiveCount, 1, ());
+
+  auto const personalAfter = fixture.Manager().GetAreaCompletion(0);
+  TEST(personalAfter.has_value(), ());
+  TEST_EQUAL(personalAfter->m_explored, personalBefore->m_explored, ());
+}
+
+void IsoAssertLiveThenImport(IsoFixture & fixture)
+{
+  TEST_EQUAL(fixture.Session().Start(), RecordingSession::TransitionResult::Ok, ());
+  fixture.Manager().OnLocationUpdate(
+      fixture.GpsAtPixel(fixture.DistrictId(), street_pixels_tests::CurrentTimestampSec()));
+  TEST(fixture.Manager().IsPixelEverLiveForTesting(fixture.DistrictId()), ());
+  auto const recencyBefore = street_pixels::LiveRecencyStore::Instance().GetLastLiveVisit(fixture.DistrictId());
+  TEST(recencyBefore.has_value(), ());
+  TEST_EQUAL(fixture.Manager().QueryWeeklyCityLive(kIsoCityAOsm).m_newLiveCount, 1, ());
+
+  size_t const marked = fixture.ImportDistrictAndCityOnly();
+  TEST_EQUAL(marked, 1, ());
+  TEST(fixture.Manager().IsPixelExploredForTesting(fixture.CityOnlyId()), ());
+  TEST(!fixture.Manager().IsPixelEverLiveForTesting(fixture.CityOnlyId()), ());
+  TEST(!street_pixels::LiveRecencyStore::Instance().GetLastLiveVisit(fixture.CityOnlyId()).has_value(), ());
+
+  auto const recencyAfter = street_pixels::LiveRecencyStore::Instance().GetLastLiveVisit(fixture.DistrictId());
+  TEST(recencyAfter.has_value(), ());
+  TEST_EQUAL(*recencyAfter, *recencyBefore, ());
+  TEST_EQUAL(fixture.Manager().QueryWeeklyCityLive(kIsoCityAOsm).m_newLiveCount, 1, ());
+  TEST(fixture.Manager().IsPixelEverLiveForTesting(fixture.DistrictId()), ());
+  TEST(fixture.Manager().IsPixelExploredForTesting(fixture.DistrictId()), ());
 }
 
 class IsoFirstGoalCleanup
@@ -407,7 +492,7 @@ private:
   StreetPixelsManager m_manager;
 };
 
-size_t ImportPixelsZeroAndOne(StreetPixelsManager & manager, std::int64_t pixel0, std::int64_t pixel1)
+size_t IsoImportPixelsZeroAndOne(StreetPixelsManager & manager, std::int64_t pixel0, std::int64_t pixel1)
 {
   auto const [lat0, lon0] = street_pixels_tests::LatLonForPixelId(pixel0);
   auto const [lat1, lon1] = street_pixels_tests::LatLonForPixelId(pixel1);
@@ -417,44 +502,49 @@ size_t ImportPixelsZeroAndOne(StreetPixelsManager & manager, std::int64_t pixel0
 
 UNIT_TEST(IsolationHistoricalImport_MarksExploredNeverLive)
 {
-  IsolationFixture fixture("sp082_marks_explored");
+  IsoFixture fixture("sp082_marks_explored");
   size_t const marked = fixture.ImportDistrict();
-  TEST_GREATER(marked, 0, ());
+  TEST_EQUAL(marked, 1, ());
   TEST(fixture.Manager().IsPixelExploredForTesting(fixture.DistrictId()), ());
   TEST(!fixture.Manager().IsPixelEverLiveForTesting(fixture.DistrictId()), ());
 }
 
 UNIT_TEST(IsolationHistoricalImport_PersonalCompletionIncrements)
 {
-  IsolationFixture fixture("sp082_personal_completion");
+  IsoFixture fixture("sp082_personal_completion");
   auto const before = fixture.Manager().GetAreaCompletion(0);
   TEST(before.has_value(), ());
+  TEST_EQUAL(before->m_osmId, static_cast<uint64_t>(kIsoDistrictOsm), ());
   TEST_EQUAL(before->m_explored, 0u, ());
+  TEST_EQUAL(before->m_total, 1u, ());
 
   size_t const marked = fixture.ImportDistrict();
-  TEST_GREATER(marked, 0, ());
+  TEST_EQUAL(marked, 1, ());
 
   auto const after = fixture.Manager().GetAreaCompletion(0);
   TEST(after.has_value(), ());
+  TEST_EQUAL(after->m_osmId, static_cast<uint64_t>(kIsoDistrictOsm), ());
   TEST_EQUAL(after->m_explored, 1u, ());
+  TEST_EQUAL(after->m_total, 1u, ());
 }
 
 UNIT_TEST(IsolationHistoricalImport_NoRecencyWeeklyOwnershipOrPending)
 {
-  IsolationFixture fixture("sp082_no_competitive");
+  IsoFixture fixture("sp082_no_competitive");
   size_t const marked = fixture.ImportDistrict();
-  TEST_GREATER(marked, 0, ());
-  AssertImportedOnlyIsolation(fixture.Manager(), fixture.DistrictId());
+  TEST_EQUAL(marked, 1, ());
+  IsoAssertImportedOnlyIsolation(fixture.Manager(), fixture.DistrictId(), fixture.MapDataVersion());
 }
 
 UNIT_TEST(IsolationHistoricalImport_OwnershipZeroAtFullPersonal)
 {
-  IsolationFixture fixture("sp082_ownership_zero");
+  IsoFixture fixture("sp082_ownership_zero");
   size_t const marked = fixture.ImportDistrict();
-  TEST_GREATER(marked, 0, ());
+  TEST_EQUAL(marked, 1, ());
 
   auto const personal = fixture.Manager().GetAreaCompletion(0);
   TEST(personal.has_value(), ());
+  TEST_EQUAL(personal->m_osmId, static_cast<uint64_t>(kIsoDistrictOsm), ());
   TEST_EQUAL(personal->m_explored, 1u, ());
   TEST_EQUAL(personal->m_total, 1u, ());
   TEST_EQUAL(fixture.Manager().GetAreaCompletionFraction(0), 1.0, ());
@@ -467,47 +557,16 @@ UNIT_TEST(IsolationHistoricalImport_OwnershipZeroAtFullPersonal)
 
 UNIT_TEST(IsolationHistoricalImport_ThenLiveCountsOnce)
 {
-  IsolationFixture fixture("sp082_then_live");
+  IsoFixture fixture("sp082_then_live");
   size_t const marked = fixture.ImportDistrict();
-  TEST_GREATER(marked, 0, ());
-  TEST(!fixture.Manager().IsPixelEverLiveForTesting(fixture.DistrictId()), ());
-  TEST_EQUAL(fixture.Manager().QueryWeeklyCityLive(kIsoCityAOsm).m_newLiveCount, 0, ());
-  auto const personalBefore = fixture.Manager().GetAreaCompletion(0);
-  TEST(personalBefore.has_value(), ());
-  TEST_EQUAL(personalBefore->m_explored, 1u, ());
-
-  TEST_EQUAL(fixture.Session().Start(), RecordingSession::TransitionResult::Ok, ());
-  double const ts = street_pixels_tests::CurrentTimestampSec();
-  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(fixture.DistrictId(), ts));
-  TEST(fixture.Manager().IsPixelEverLiveForTesting(fixture.DistrictId()), ());
-  TEST(street_pixels::LiveRecencyStore::Instance().GetLastLiveVisit(fixture.DistrictId()).has_value(), ());
-  TEST_EQUAL(fixture.Manager().QueryWeeklyCityLive(kIsoCityAOsm).m_newLiveCount, 1, ());
-
-  fixture.Manager().OnLocationUpdate(fixture.GpsAtPixel(fixture.DistrictId(), ts + 1.0));
-  TEST_EQUAL(fixture.Manager().QueryWeeklyCityLive(kIsoCityAOsm).m_newLiveCount, 1, ());
-
-  auto const personalAfter = fixture.Manager().GetAreaCompletion(0);
-  TEST(personalAfter.has_value(), ());
-  TEST_EQUAL(personalAfter->m_explored, personalBefore->m_explored, ());
+  TEST_EQUAL(marked, 1, ());
+  IsoAssertImportThenLive(fixture);
 }
 
 UNIT_TEST(IsolationHistoricalImport_LiveThenImportLeavesRecencyUnchanged)
 {
-  IsolationFixture fixture("sp082_live_then_import");
-  TEST_EQUAL(fixture.Session().Start(), RecordingSession::TransitionResult::Ok, ());
-  fixture.Manager().OnLocationUpdate(
-      fixture.GpsAtPixel(fixture.DistrictId(), street_pixels_tests::CurrentTimestampSec()));
-  TEST(fixture.Manager().IsPixelEverLiveForTesting(fixture.DistrictId()), ());
-  auto const recencyBefore = street_pixels::LiveRecencyStore::Instance().GetLastLiveVisit(fixture.DistrictId());
-  TEST(recencyBefore.has_value(), ());
-
-  fixture.ImportDistrict();
-
-  auto const recencyAfter = street_pixels::LiveRecencyStore::Instance().GetLastLiveVisit(fixture.DistrictId());
-  TEST(recencyAfter.has_value(), ());
-  TEST_EQUAL(*recencyAfter, *recencyBefore, ());
-  TEST(fixture.Manager().IsPixelEverLiveForTesting(fixture.DistrictId()), ());
-  TEST(fixture.Manager().IsPixelExploredForTesting(fixture.DistrictId()), ());
+  IsoFixture fixture("sp082_live_then_import");
+  IsoAssertLiveThenImport(fixture);
 }
 
 UNIT_TEST(IsolationHistoricalImport_FirstGoalDoesNotAdvance)
@@ -516,8 +575,12 @@ UNIT_TEST(IsolationHistoricalImport_FirstGoalDoesNotAdvance)
   IsoFirstGoalFixture fixture;
   fixture.SetupUnexplored(3);
   TEST_EQUAL(fixture.Session().Start(), RecordingSession::TransitionResult::Ok, ());
-  size_t const marked = ImportPixelsZeroAndOne(fixture.Manager(), fixture.PixelAt(0), fixture.PixelAt(1));
-  TEST_GREATER(marked, 0, ());
+  size_t const marked = IsoImportPixelsZeroAndOne(fixture.Manager(), fixture.PixelAt(0), fixture.PixelAt(1));
+  TEST_EQUAL(marked, 2, ());
+  TEST(fixture.Manager().IsPixelExploredForTesting(fixture.PixelAt(0)), ());
+  TEST(fixture.Manager().IsPixelExploredForTesting(fixture.PixelAt(1)), ());
+  TEST(!fixture.Manager().IsPixelEverLiveForTesting(fixture.PixelAt(0)), ());
+  TEST(!fixture.Manager().IsPixelEverLiveForTesting(fixture.PixelAt(1)), ());
   auto p = fixture.Manager().GetFirstGoalProgress();
   TEST_EQUAL(p.m_state, street_pixels::FirstGoalState::InProgress, ());
   TEST_EQUAL(p.m_collected, 0u, ());
@@ -529,8 +592,12 @@ UNIT_TEST(IsolationHistoricalImport_CompetitionHintDoesNotAdvance)
   IsoCompetitionHintFixture fixture;
   fixture.SetupUnexplored(3);
   TEST_EQUAL(fixture.Session().Start(), RecordingSession::TransitionResult::Ok, ());
-  size_t const marked = ImportPixelsZeroAndOne(fixture.Manager(), fixture.PixelAt(0), fixture.PixelAt(1));
-  TEST_GREATER(marked, 0, ());
+  size_t const marked = IsoImportPixelsZeroAndOne(fixture.Manager(), fixture.PixelAt(0), fixture.PixelAt(1));
+  TEST_EQUAL(marked, 2, ());
+  TEST(fixture.Manager().IsPixelExploredForTesting(fixture.PixelAt(0)), ());
+  TEST(fixture.Manager().IsPixelExploredForTesting(fixture.PixelAt(1)), ());
+  TEST(!fixture.Manager().IsPixelEverLiveForTesting(fixture.PixelAt(0)), ());
+  TEST(!fixture.Manager().IsPixelEverLiveForTesting(fixture.PixelAt(1)), ());
   auto const hint = fixture.Manager().GetCompetitionHintProgress();
   TEST_EQUAL(hint.m_collected, 0u, ());
   TEST(!hint.m_complete, ());
@@ -538,58 +605,76 @@ UNIT_TEST(IsolationHistoricalImport_CompetitionHintDoesNotAdvance)
 
 UNIT_TEST(IsolationHistoricalImport_NotRecordingZeroHaptic)
 {
-  IsolationFixture fixture("sp082_zero_haptic");
+  IsoFixture fixture("sp082_zero_haptic");
+  TEST(!fixture.Session().IsRecording(), ());
   size_t calls = 0;
   fixture.Manager().SetVibrationHandler([&calls](street_pixels::ExplorationHapticKind) { ++calls; });
   fixture.Manager().SetApplicationForeground(true);
   size_t const marked = fixture.ImportDistrict();
-  TEST_GREATER(marked, 0, ());
+  TEST_EQUAL(marked, 1, ());
+  auto const record = fixture.Manager().GetAreaMilestoneRecord(static_cast<uint64_t>(kIsoDistrictOsm));
+  TEST(record.has_value(), ());
+  TEST((record->m_firedMask & street_pixels::kAreaMilestoneMask100) != 0, ());
   TEST_EQUAL(calls, 0, ());
 }
 
 UNIT_TEST(IsolationHistoricalImport_GateUnavailableNotEntitled)
 {
-  IsolationFixture fixture("sp082_gate_unavail_not_ent");
+  IsoFixture fixture("sp082_gate_unavail_not_ent");
   IsoCapabilityAvailabilityScope availability(explorer_pro::Capability::GpxImport, false);
   IsoEntitlementSourceScope scope(nullptr);
   TEST(!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport), ());
   size_t const marked = fixture.ImportDistrict();
-  TEST_GREATER(marked, 0, ());
-  AssertImportedOnlyIsolation(fixture.Manager(), fixture.DistrictId());
+  TEST_EQUAL(marked, 1, ());
+  IsoAssertImportedOnlyIsolation(fixture.Manager(), fixture.DistrictId(), fixture.MapDataVersion());
+  IsoAssertImportThenLive(fixture);
 }
 
 UNIT_TEST(IsolationHistoricalImport_GateUnavailableEntitled)
 {
-  IsolationFixture fixture("sp082_gate_unavail_ent");
+  IsoFixture fixture("sp082_gate_unavail_ent");
   IsoCapabilityAvailabilityScope availability(explorer_pro::Capability::GpxImport, false);
   IsoFakeEntitlementSource entitled(true);
   IsoEntitlementSourceScope scope(&entitled);
   TEST(!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport), ());
   size_t const marked = fixture.ImportDistrict();
-  TEST_GREATER(marked, 0, ());
-  AssertImportedOnlyIsolation(fixture.Manager(), fixture.DistrictId());
+  TEST_EQUAL(marked, 1, ());
+  IsoAssertImportedOnlyIsolation(fixture.Manager(), fixture.DistrictId(), fixture.MapDataVersion());
+  IsoAssertImportThenLive(fixture);
 }
 
 UNIT_TEST(IsolationHistoricalImport_GateAvailableNotEntitled)
 {
-  IsolationFixture fixture("sp082_gate_avail_not_ent");
+  IsoFixture fixture("sp082_gate_avail_not_ent");
   IsoCapabilityAvailabilityScope availability(explorer_pro::Capability::GpxImport, true);
   IsoEntitlementSourceScope scope(nullptr);
   TEST(!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport), ());
   size_t const marked = fixture.ImportDistrict();
-  TEST_GREATER(marked, 0, ());
-  AssertImportedOnlyIsolation(fixture.Manager(), fixture.DistrictId());
+  TEST_EQUAL(marked, 1, ());
+  IsoAssertImportedOnlyIsolation(fixture.Manager(), fixture.DistrictId(), fixture.MapDataVersion());
+  IsoAssertImportThenLive(fixture);
 }
 
 UNIT_TEST(IsolationHistoricalImport_GateAvailableEntitled)
 {
-  IsolationFixture fixture("sp082_gate_avail_ent");
+  IsoFixture fixture("sp082_gate_avail_ent");
   IsoCapabilityAvailabilityScope availability(explorer_pro::Capability::GpxImport, true);
   IsoFakeEntitlementSource entitled(true);
   IsoEntitlementSourceScope scope(&entitled);
   TEST(explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport), ());
   size_t const marked = fixture.ImportDistrict();
-  TEST_GREATER(marked, 0, ());
-  AssertImportedOnlyIsolation(fixture.Manager(), fixture.DistrictId());
+  TEST_EQUAL(marked, 1, ());
+  IsoAssertImportedOnlyIsolation(fixture.Manager(), fixture.DistrictId(), fixture.MapDataVersion());
   TEST(!fixture.Manager().IsPixelEverLiveForTesting(fixture.DistrictId()), ());
+  IsoAssertImportThenLive(fixture);
+}
+
+UNIT_TEST(IsolationHistoricalImport_LiveThenImportWhenAvailableEntitled)
+{
+  IsoFixture fixture("sp082_live_then_import_pro");
+  IsoCapabilityAvailabilityScope availability(explorer_pro::Capability::GpxImport, true);
+  IsoFakeEntitlementSource entitled(true);
+  IsoEntitlementSourceScope scope(&entitled);
+  TEST(explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport), ());
+  IsoAssertLiveThenImport(fixture);
 }
