@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.view.ViewCompat;
 import app.organicmaps.R;
+import app.organicmaps.sdk.ExplorerProAnalytics;
 import app.organicmaps.util.WindowInsetUtils.ScrollableContentInsetsListener;
 
 @Keep
@@ -23,5 +24,6 @@ public class ExplorerProInfoFragment extends BaseSettingsFragment
   {
     super.onViewCreated(view, savedInstanceState);
     ViewCompat.setOnApplyWindowInsetsListener(view, new ScrollableContentInsetsListener(view));
+    ExplorerProAnalytics.recordInfoPageViewed();
   }
 }

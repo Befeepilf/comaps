@@ -5,6 +5,7 @@
 #include "map/bookmark_helpers.hpp"
 #include "map/completion_card_analytics.hpp"
 #include "map/explorer_pro.hpp"
+#include "map/explorer_pro_analytics.hpp"
 #include "map/gps_track.hpp"
 #include "map/gps_track_filter.hpp"
 #include "map/gps_tracker.hpp"
@@ -519,6 +520,7 @@ Framework::Framework(FrameworkParams const & params, bool loadMaps)
         if (!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport))
           return;
         GetStreetPixelsManager().ImportHistoricalTrack(segments);
+        street_pixels::ExplorerProAnalytics::RecordGpxImportUsage();
       });
   m_streetPixelsManager->SetCompletionCardGeneratedHandler(
       [] { street_pixels::CompletionCardAnalytics::RecordGenerated(); });

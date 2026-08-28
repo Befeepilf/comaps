@@ -29,6 +29,8 @@ set(SRC
   competition_upload_service.hpp
   explorer_pro.cpp
   explorer_pro.hpp
+  explorer_pro_analytics.cpp
+  explorer_pro_analytics.hpp
   area_milestone_presentation.cpp
   area_milestone_presentation.hpp
   completion_card_analytics.cpp

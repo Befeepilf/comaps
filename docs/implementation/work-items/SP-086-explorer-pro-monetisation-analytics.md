@@ -1,8 +1,8 @@
 # SP-086 — Explorer Pro monetisation analytics
 
 **Phase:** 9 — GPX and feature gating
-**Status:** Planned
-**Branch:** `cursor/phase-09-work-items-db9d`
+**Status:** Accepted
+**Branch:** `cursor/sp-086-pro-monetisation-analytics-db9d`
 **Depends on:** SP-080 G8, G9 (draft SPD-074, SPD-075); SP-083/084
   surfaces that fire the events
 **Unblocks:** SP-087 exit 8
@@ -89,14 +89,18 @@ post-V1 (SPD-010).
 
 | Field | Value |
 | --- | --- |
-| Branch | — |
-| Test output | — |
+| Branch | `cursor/sp-086-pro-monetisation-analytics-db9d` |
+| Test output | `ExplorerProAnalytics` **13/13**; `IsolationHistoricalImport` **16/16**; `ExplorerPro_` **12/12**; JVM `ExplorerProAnalyticsTest` **2/2** (after fail-closed getters). |
 | Upload residual | Phase 10 |
-| Accepted by | — |
-| Accepted date | — |
+| Accepted by | Product owner |
+| Accepted date | 2026-08-28 |
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| `ReloadBookmarkRoutine` does not pass `historicalTracks`, so a `.gpx` reload neither paints nor counts | Pre-existing; not SP-086. File under SP-081/085 if a reload path should paint. |
+| Multi-category “GPX” export is actually KMZ (`GetFileForSharing` size>1) | Do not count. Product question if V1 should refuse multi-cat GPX; out of scope. |
+| Phase-09 “current code locations” still describes ungated GPX / no analytics | Stale vs SP-083–085; SP-087/docs refresh, not this coding item. |
+| G1–G10 still Open | Coding uses recommended G8/G9; maintainer lock is not this item. |
+| Upload / debug device readout | Phase 10 / SP-087. |
