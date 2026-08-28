@@ -42,11 +42,19 @@ public class DataManagementSettingsFragment extends BaseXmlSettingsFragment
         ExplorerPro.isGpxImportAvailable(), ExplorerPro.isGpxExportAvailable(),
         ExplorerPro.isAdvancedTrackManagementAvailable());
     boolean showScreen = GpxSettingsVisibility.showGpxScreen(showImport, showExport, showBatch, showInfo);
+    String key = getString(R.string.pref_gpx_screen);
+    Preference existing = getPreferenceScreen().findPreference(key);
     if (!showScreen)
+    {
+      if (existing != null)
+        getPreferenceScreen().removePreference(existing);
+      return;
+    }
+    if (existing != null)
       return;
 
     Preference pref = new Preference(requireContext());
-    pref.setKey(getString(R.string.pref_gpx_screen));
+    pref.setKey(key);
     pref.setTitle(R.string.pref_gpx_screen_title);
     pref.setSummary(R.string.pref_gpx_screen_summary);
     pref.setIcon(R.drawable.ic_file_gpx);
