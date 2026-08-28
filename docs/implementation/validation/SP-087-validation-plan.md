@@ -29,7 +29,7 @@ accepts). G1–G10 remain **Open**.
 | Counts | Executed transcripts only. |
 | Phase-09 table | Refresh **observed-state** column to the working tree. Do not rewrite intended outcome, exit criteria, or G1–G10. |
 | Explorer / backend | Not in Phase 9. Do not run explorer pytest. |
-| README §4 | Do **not** edit README §4 status tables (same as SP-079). Report the contradiction: README §4 still says Phase 9 “Not started” while SP-081–086 are Accepted 2026-08-28. |
+| README §4 | Plan-time: do not edit README §4 (report contradiction). Independent review 2026-08-28 **did** refresh §4 to Phase 9 **In progress** (SP-081–086 Accepted; SP-087 In review / evidence recorded; exit awaiting maintainer) without claiming exit Met. |
 
 ## Scope
 
@@ -113,8 +113,7 @@ Expected names below are **inventory**, not pass counts.
 
 Filter: `--filter='HistoricalImport_|IsolationHistoricalImport_MarksExplored|IsolationHistoricalImport_PersonalCompletion|EverLive_Track'`.
 
-Named suite for exit 1: `--filter='HistoricalImport'` (11 tests) and
-`--filter='IsolationHistoricalImport'` (feeds 1 and 2).
+Named suite for exit 1: `--filter='HistoricalImport'` matches **11** `HistoricalImport_*` tests **and** 16 `IsolationHistoricalImport_*` (substring). Report 11+16, not “27 HistoricalImport tests”. `--filter='IsolationHistoricalImport'` feeds exits 1 and 2 (16 tests).
 
 ### Block B — Isolation regardless of gate (exit 2)
 
@@ -149,7 +148,7 @@ Regression filter:
 | C5 | Handler open paints | `GpxGate_HandlerOpenPaints` | 3 |
 | C6 | Export / batch four-cell | `GpxGate_ExportFourCell` / `GpxGate_BatchFourCell` | 3 |
 | C7 | Direct C++ import still paints when Java gate closed (data rule) | `GpxGate_DirectImportClosedStillPaints` | 2, 3 |
-| C8 | JVM fail-closed when native not ready | `ExplorerProGateTest` 10 methods | 3, 4 |
+| C8 | JVM fail-closed when native not ready | `ExplorerProGateTest` 10 methods (inventory); SP-087 executed **11** | 3, 4 |
 | C9 | Settings visibility four-cell | `GpxSettingsVisibilityTest` 12 methods | 3, 4 |
 | C10 | Device: internal Pro + debug-entitle tools work | M5 | 3 → Phase 10 |
 
@@ -239,7 +238,7 @@ G2 if G1 is green.
 | H5 | Handler increments after import only when available | `HandlerDoesNotWrapManager` / `HandlerIncrementsAfterImport` | 8 |
 | H6 | JVM fail-closed getters | `ExplorerProAnalyticsTest` | 8 |
 | H7 | Upload | Residual Phase 10 (SPD-044 pattern). Not Sentry. | 8 |
-| H8 | Device debug readout | M6 | 8 → Phase 10 |
+| H8 | Device debug readout | M7 | 8 → Phase 10 |
 
 Filter: `--filter='ExplorerProAnalytics'`.
 
@@ -288,7 +287,7 @@ separate `gpx_tests` target.
 | 4 | Public-configured builds expose no GPX tooling and no purchase action | D, N3, N4, N12, M4 | **Pass (automated + code review) + Residual (public APK dump, share-sheet, debug-entitle `nm` Phase 10)** |
 | 5 | Large imports complete without memory exhaustion | E, N1, N8, M1 | **Pass (automated RSS) + Residual (device multi-hour Phase 10)**. Chunking not required. |
 | 6 | Malformed input rejected cleanly | F, N1, N2, N8, N10 | **Pass (automated)** |
-| 7 | Existing GPX tests still pass | G, N8, N9 | **Pass (Gpx family minus ImportExport) + Residual (CoMaps vs Organic Maps golden)** |
+| 7 | Existing GPX tests still pass | G, N8, N9 | **Pass (parse / malformed / 10k / non-roundtrip) + Residual (`Gpx_ImportExport_Test`, `Gpx_ImportExportEmpty_Test`, and if they fail the same `creator=` byte: `Gpx_ColorMapExport_Test`, `ImportExportWptColor`, `PointWithPredefinedColor`)** |
 | 8 | Monetisation analytics only when Pro enabled in the build | H, N5, N12, M7 | **Pass (automated) + Residual (upload + device readout Phase 10)** |
 
 Do not mark any exit Met at the phase level.
@@ -395,7 +394,8 @@ Do not start another work item. Do not force-push. Do not amend.
 - New features beyond defect fixes that block listed suites.
 - Marking SP-087 or Phase 9 **Accepted**. Filling Accepted by.
 - Setting phase Status to **Exit criteria met**.
-- Editing README §4 status tables.
+- Editing README §4 to claim Phase 9 **Exit criteria met**. (Independent
+  review may refresh §4 to In progress / evidence recorded without Met.)
 - Changing G1–G10 from **Open**.
 - Weakening, skipping, deleting, or narrowing Eligibility or
   `Gpx_ImportExport` tests.
@@ -429,7 +429,7 @@ Do not start another work item. Do not force-push. Do not amend.
 | `ReloadBookmarkRoutine` omits `historicalTracks` | SP-081/085 follow-up; not this item |
 | Multi-category “GPX” export is KMZ | SP-086 follow-up |
 | G1–G10 still Open | Maintainer; coding used recommended locks |
-| README §4 Phase 9 “Not started” vs SP-081–086 Accepted | Report; do not edit README §4 |
+| README §4 Phase 9 “Not started” vs SP-081–086 Accepted | Independent review: refresh §4 to In progress / evidence recorded; **not** Met |
 | Phase 9 exit Met? | Maintainer only |
 | Import on GUI thread | SP-085; no chunking after measurement |
 | `WITH_SYSTEM_PROVIDED_3PARTY` expat GE/DTD | SP-085 residual |
@@ -476,5 +476,6 @@ HandlerDoesNotWrapManager, HandlerIncrementsAfterImport.
 **XmlParser_ (5):** SmokeTest, LongTest, WellFormedPopsRoot,
 TruncatedDocument, EmptyDocument.
 
-**JVM:** ExplorerProGateTest 10; GpxSettingsVisibilityTest 12;
+**JVM:** ExplorerProGateTest 10 (inventory; SP-087 evidence **11**);
+GpxSettingsVisibilityTest 12;
 ExplorerProAnalyticsTest 2; BookmarkManagerGpxGateTest 6 (JNI residual).
