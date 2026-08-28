@@ -52,13 +52,20 @@ public enum BookmarkManager {
   // These values have to match the values of kml::CompilationType from kml/types.hpp
   public static final int CATEGORY = 0;
 
-  private static String[] bookmarksExtensions;
+  private static volatile String[] bookmarksExtensions;
 
   private static String[] getBookmarksExtensions()
   {
-    if (bookmarksExtensions == null)
-      bookmarksExtensions = Framework.nativeGetBookmarksFilesExts();
-    return bookmarksExtensions;
+    String[] exts = bookmarksExtensions;
+    if (exts != null)
+      return exts;
+    synchronized (BookmarkManager.class)
+    {
+      exts = bookmarksExtensions;
+      if (exts == null)
+        bookmarksExtensions = exts = Framework.nativeGetBookmarksFilesExts();
+      return exts;
+    }
   }
 
   private static final String TAG = BookmarkManager.class.getSimpleName();
