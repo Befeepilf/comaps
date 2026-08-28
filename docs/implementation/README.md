@@ -541,6 +541,6 @@ Phase 9 work-item planning (2026-08-28) recorded in
 Entry criteria Phase 3 + SP-005 are met. SP-081 **Accepted** (2026-08-28)
 using recommended G1/G5 locks (OQ-20–OQ-29 still Open). SP-082 **Accepted**
 (2026-08-28). SP-083 **Accepted** (2026-08-28). SP-084 **Accepted**
-(2026-08-28). Next: SP-086.
+(2026-08-28). SP-085 **Accepted** (2026-08-28). Next: SP-086.
 Detailed work items exist for Phases 1–9. Phase 10 is broken down after
 other phases meet exit.
