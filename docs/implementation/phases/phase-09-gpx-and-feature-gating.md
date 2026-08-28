@@ -1,6 +1,6 @@
 # Phase 9 — GPX and feature gating
 
-**Status:** SP-086 Accepted 2026-08-28; SP-087 in review / evidence recorded; G1–G10 still Open (OQ-20–OQ-29). Phase 9 exit awaiting maintainer (not Met).
+**Status:** SP-087 Accepted 2026-08-28 (evidence recorded). G1–G10 still Open (OQ-20–OQ-29). Phase 9 exit awaiting maintainer (not Met).
 **Depends on:** Phase 3, Phase 1 (SP-005)
 **Blocks:** nothing; required for release
 

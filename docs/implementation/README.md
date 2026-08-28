@@ -84,7 +84,7 @@ V1 scope. Explorer Pro **purchasing** is not.
 | 6 | Exploration-aware routing | [`phases/phase-06-exploration-aware-routing.md`](phases/phase-06-exploration-aware-routing.md) | Not started |
 | 7 | Milestones and share cards | [`phases/phase-07-milestones-and-share-cards.md`](phases/phase-07-milestones-and-share-cards.md) | In progress (SP-069 In review; exit awaiting maintainer) |
 | 8 | Competition | [`phases/phase-08-competition.md`](phases/phase-08-competition.md) | SP-070 Accepted; SP-071 in progress; SP-072–074 Accepted |
-| 9 | GPX and feature gating | [`phases/phase-09-gpx-and-feature-gating.md`](phases/phase-09-gpx-and-feature-gating.md) | In progress (SP-081–086 Accepted; SP-087 In review / evidence recorded; exit awaiting maintainer) |
+| 9 | GPX and feature gating | [`phases/phase-09-gpx-and-feature-gating.md`](phases/phase-09-gpx-and-feature-gating.md) | In progress (SP-081–087 Accepted; Phase 9 exit awaiting maintainer) |
 | 10 | Android release hardening | [`phases/phase-10-android-release-hardening.md`](phases/phase-10-android-release-hardening.md) | Not started |
 
 Phase order is unchanged from the originally proposed sequence. Repository
@@ -534,7 +534,7 @@ override of spec §20.4). SP-071 **In progress**. SP-072 **Accepted**
 | 84 | [SP-084](work-items/SP-084-gpx-settings-surface.md) | GPX settings surface | 9 | **Accepted** (2026-08-28) — settings rows on Enabled; G8 info on Available |
 | 85 | [SP-085](work-items/SP-085-historical-import-robustness.md) | Historical-import robustness | 9 | **Accepted** (2026-08-28) — malformed reject; 10k/50k RSS; no chunking |
 | 86 | [SP-086](work-items/SP-086-explorer-pro-monetisation-analytics.md) | Explorer Pro monetisation analytics | 9 | **Accepted** (2026-08-28) — count-only; Available gate; upload → Phase 10 |
-| 87 | [SP-087](work-items/SP-087-phase9-end-to-end-validation.md) | Phase 9 end-to-end validation | 9 | **In review** — evidence recorded; Phase 9 exit awaiting maintainer |
+| 87 | [SP-087](work-items/SP-087-phase9-end-to-end-validation.md) | Phase 9 end-to-end validation | 9 | **Accepted** (2026-08-28) — evidence recorded; Phase 9 exit awaiting maintainer |
 
 Phase 9 work-item planning (2026-08-28) recorded in
 [`phases/phase-09-gpx-and-feature-gating.md`](phases/phase-09-gpx-and-feature-gating.md).
