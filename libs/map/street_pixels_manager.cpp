@@ -77,6 +77,7 @@
 #include <healpix_base.h>
 #include <healpix_tables.h>
 #include <sys/mman.h>
+#include <boost/container_hash/hash.hpp>
 #include <algorithm>
 #include <atomic>
 #include <cmath>
@@ -400,9 +401,6 @@ void StreetPixelsManager::SetBookmarkManager(BookmarkManager * bmManager)
 
 void StreetPixelsManager::OnBookmarksCreated()
 {
-  LOG(LINFO, ("OnBookmarksCreated"));
-  m_tracksLoaded = true;
-  UpdateExploredPixels();
 }
 
 void StreetPixelsManager::SetExplorationListener(ExplorationListener const & listener)
@@ -908,6 +906,12 @@ size_t StreetPixelsManager::MarkImportedPixelsForTesting(std::set<std::int64_t> 
 size_t StreetPixelsManager::MarkTrackPixelsForTesting(std::set<std::int64_t> const & pixelIds)
 {
   return MarkImportedPixelsForTesting(pixelIds);
+}
+
+std::int64_t StreetPixelsManager::ComputeHistoricalGeometryHashForTesting(
+    std::vector<kml::MultiGeometry::LineT> const & segments) const
+{
+  return ComputeGeometryHash(segments);
 }
 
 bool StreetPixelsManager::IsPixelExploredForTesting(std::int64_t pixelId) const
@@ -1952,30 +1956,26 @@ df::StreetPixel * StreetPixelsManager::FindStreetPixel(std::int64_t pixelId)
 
 void StreetPixelsManager::UpdateExploredPixels()
 {
-  LOG(LINFO, ("UpdateExploredPixels"));
+}
 
-  if (m_bmManager == nullptr)
-    return;
-
+size_t StreetPixelsManager::ImportHistoricalTrack(std::vector<kml::MultiGeometry::LineT> const & segments)
+{
+  bool hasImportable = false;
+  for (auto const & line : segments)
   {
-    std::lock_guard<std::mutex> lock(m_stateMutex);
-    if (m_state.status != StreetPixelsStatus::Ready)
+    for (auto const & pt : line)
     {
-      LOG(LWARNING, ("Street pixels not loaded"));
-      return;
+      if (IsImportableMercatorPoint(pt.GetPoint()))
+      {
+        hasImportable = true;
+        break;
+      }
     }
+    if (hasImportable)
+      break;
   }
-
-  if (!m_tracksLoaded)
-  {
-    LOG(LWARNING, ("Tracks not loaded"));
-    return;
-  }
-
-  LOG(LINFO, ("Collecting tracks"));
-  std::vector<TrackInfo> tracks;
-  m_bmManager->ForEachTrackSortedByTimestamp([&](Track const & t)
-  { tracks.push_back(TrackInfo{t.GetId(), t.GetGeometry(), t.GetData().m_timestamp}); });
+  if (!hasImportable)
+    return 0;
 
   storage::CountryId countryId;
   {
@@ -1983,58 +1983,33 @@ void StreetPixelsManager::UpdateExploredPixels()
     countryId = m_countryId;
   }
 
-  GetPlatform().RunTask(Platform::Thread::Background, [this, tracks = std::move(tracks), countryId]() mutable
+  std::int64_t const geometryHash = ComputeGeometryHash(segments);
+  if (!countryId.empty() && street_stats::StreetStatsDB::Instance().IsTrackProcessed(geometryHash, countryId))
+    return 0;
+
+  auto const trackPixels = ComputeTrackPixels(segments);
+  size_t const marked = MarkExploredPixelIds(trackPixels, 0.0);
+
+  if (!countryId.empty())
+    street_stats::StreetStatsDB::Instance().MarkTrackProcessed(geometryHash, countryId);
+
+  if (m_accountedDirty)
+    SaveAccountedBits();
+
+  if (m_onStateChangedFn)
   {
-    if (countryId.empty())
-      return;
-
-    for (auto const & ti : tracks)
+    bool enabled;
+    StreetPixelsStatus status;
     {
-      {
-        std::lock_guard<std::mutex> lock(m_countryIdMutex);
-        if (m_countryId != countryId)
-        {
-          LOG(LWARNING, ("Country changed while updating explored pixels. Aborting."));
-          return;
-        }
-      }
-
-      std::int64_t const geometryHash = ComputeGeometryHash(ti);
-      if (street_stats::StreetStatsDB::Instance().IsTrackProcessed(geometryHash, countryId))
-        continue;
-
-      // UpdateStreetStatsForTrack(ti.geom);
-
-      LOG(LINFO, ("Computing track pixels for", ti.id));
-
-      auto trackPixels = ComputeTrackPixels(ti);
-      MarkExploredPixelIds(trackPixels, static_cast<double>(kml::ToSecondsSinceEpoch(ti.ts)));
-
-      street_stats::StreetStatsDB::Instance().MarkTrackProcessed(geometryHash, countryId);
+      std::lock_guard<std::mutex> lock(m_stateMutex);
+      enabled = m_state.enabled;
+      status = m_state.status;
     }
+    GetPlatform().RunTask(Platform::Thread::Gui, [this, enabled, status, countryId]()
+    { m_onStateChangedFn(enabled, status, countryId); });
+  }
 
-    {
-      std::lock_guard<std::mutex> lock(m_countryIdMutex);
-      if (m_countryId != countryId)
-      {
-        LOG(LWARNING, ("Country changed while updating explored pixels. Aborting."));
-        return;
-      }
-    }
-
-    if (m_accountedDirty)
-      SaveAccountedBits();
-
-    // Notify UI that exploration data updated even if status unchanged.
-    if (m_onStateChangedFn)
-    {
-      GetPlatform().RunTask(Platform::Thread::Gui, [this]()
-      {
-        std::lock_guard<std::mutex> lock(m_countryIdMutex);
-        m_onStateChangedFn(m_state.enabled, m_state.status, m_countryId);
-      });
-    }
-  });
+  return marked;
 }
 
 void StreetPixelsManager::UpdateStreetStatsForTrack(kml::MultiGeometry::LineT const & line)
@@ -2055,32 +2030,64 @@ void StreetPixelsManager::UpdateStreetStatsForTrack(kml::MultiGeometry::LineT co
   }
 }
 
-std::int64_t StreetPixelsManager::ComputeGeometryHash(TrackInfo const & trackInfo)
+bool StreetPixelsManager::IsImportableMercatorPoint(m2::PointD const & point) const
+{
+  if (!std::isfinite(point.x) || !std::isfinite(point.y))
+    return false;
+  auto const ll = mercator::ToLatLon(point);
+  return mercator::ValidLat(ll.m_lat) && mercator::ValidLon(ll.m_lon);
+}
+
+std::int64_t StreetPixelsManager::ComputeGeometryHash(std::vector<kml::MultiGeometry::LineT> const & segments) const
 {
   std::size_t seed = 0;
-  for (auto const & point : trackInfo.geom)
+  bool hashedAny = false;
+  for (auto const & line : segments)
   {
-    boost::hash_combine(seed, point.GetPoint().x);
-    boost::hash_combine(seed, point.GetPoint().y);
+    for (auto const & pt : line)
+    {
+      auto const & p = pt.GetPoint();
+      if (!IsImportableMercatorPoint(p))
+        continue;
+      boost::hash_combine(seed, p.x);
+      boost::hash_combine(seed, p.y);
+      hashedAny = true;
+    }
   }
+  if (!hashedAny)
+    return 0;
   return static_cast<std::int64_t>(seed);
 }
 
-std::set<int64_t> StreetPixelsManager::ComputeTrackPixels(TrackInfo const & trackInfo) const
+std::set<std::int64_t> StreetPixelsManager::ComputeTrackPixels(
+    std::vector<kml::MultiGeometry::LineT> const & segments) const
 {
-  std::set<int64_t> pixels;
-
-  if (trackInfo.geom.empty())
-    return pixels;
-
-  m2::PointD prev = geometry::GetPoint(trackInfo.geom[0]);
-  for (size_t i = 1; i < trackInfo.geom.size(); ++i)
+  std::set<std::int64_t> pixels;
+  for (auto const & line : segments)
   {
-    m2::PointD const curr = geometry::GetPoint(trackInfo.geom[i]);
-    ForEachMercatorSegmentSample(prev, curr, kPathSamplingStepMeters,
-                                 [this, &pixels](double lat, double lon)
-                                 { AddPixelsInRadius(lat, lon, pixels); });
-    prev = curr;
+    bool hasPrev = false;
+    m2::PointD prev;
+    for (auto const & geometryPt : line)
+    {
+      auto const currentPt = geometryPt.GetPoint();
+      if (!IsImportableMercatorPoint(currentPt))
+      {
+        hasPrev = false;
+        continue;
+      }
+      if (!hasPrev)
+      {
+        auto const ll = mercator::ToLatLon(currentPt);
+        AddPixelsInRadius(ll.m_lat, ll.m_lon, pixels);
+        prev = currentPt;
+        hasPrev = true;
+        continue;
+      }
+      ForEachMercatorSegmentSample(prev, currentPt, kPathSamplingStepMeters,
+                                   [this, &pixels](double lat, double lon)
+                                   { AddPixelsInRadius(lat, lon, pixels); });
+      prev = currentPt;
+    }
   }
   return pixels;
 }
@@ -2420,7 +2427,6 @@ void StreetPixelsManager::OnUpdateCurrentCountry(storage::CountryId const & coun
     LOG(LINFO, ("Loading street pixels in background thread because country changed to", countryId));
     LoadStreetPixels(localFile);
     ChangeState(StreetPixelsState{m_state.enabled, StreetPixelsStatus::Ready});
-    GetPlatform().RunTask(Platform::Thread::Gui, [this]() { UpdateExploredPixels(); });
   });
 }
 

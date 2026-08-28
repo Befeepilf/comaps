@@ -1893,6 +1893,11 @@ void BookmarkManager::SetCategoriesChangedCallback(CategoriesChangedCallback && 
   m_categoriesChangedCallback = std::move(callback);
 }
 
+void BookmarkManager::SetHistoricalTrackImportHandler(HistoricalTrackImportHandler && handler)
+{
+  m_historicalTrackImportHandler = std::move(handler);
+}
+
 void BookmarkManager::AddAsyncLoadingCallbacks(AsyncLoadingCallbacks && callbacks)
 {
   m_asyncLoadingCallbacks.emplace_back(std::move(callbacks));
@@ -2126,6 +2131,7 @@ void BookmarkManager::LoadBookmarkRoutine(std::string const & filePath, bool isT
       return;
 
     auto collection = std::make_shared<KMLDataCollection>();
+    std::vector<std::vector<kml::MultiGeometry::LineT>> historicalTracks;
 
     // Convert KML/KMZ/KMB files to temp KML file and GPX to temp GPX file.
     for (auto const & fileToLoad : GetKMLOrGPXFilesPathsToLoad(filePath))
@@ -2155,7 +2161,14 @@ void BookmarkManager::LoadBookmarkRoutine(std::string const & filePath, bool isT
         if (!SaveKmlFileSafe(*kmlData, kmlFileToLoad, KmlFileType::Text))
           base::DeleteFileX(kmlFileToLoad);
         else
+        {
+          if (ext == kGpxExtension)
+          {
+            for (auto const & track : kmlData->m_tracksData)
+              historicalTracks.push_back(track.m_geometry.m_lines);
+          }
           collection->emplace_back(std::move(kmlFileToLoad), std::move(kmlData));
+        }
       }
     }
 
@@ -2163,7 +2176,7 @@ void BookmarkManager::LoadBookmarkRoutine(std::string const & filePath, bool isT
       return;
 
     NotifyAboutFile(!collection->empty() /* success */, filePath, isTemporaryFile);
-    NotifyAboutFinishAsyncLoading(std::move(collection));
+    NotifyAboutFinishAsyncLoading(std::move(collection), std::move(historicalTracks));
   });
 }
 
@@ -2213,16 +2226,22 @@ void BookmarkManager::NotifyAboutStartAsyncLoading()
   });
 }
 
-void BookmarkManager::NotifyAboutFinishAsyncLoading(KMLDataCollectionPtr && collection)
+void BookmarkManager::NotifyAboutFinishAsyncLoading(
+    KMLDataCollectionPtr && collection, std::vector<std::vector<kml::MultiGeometry::LineT>> historicalTracks)
 {
   if (m_needTeardown)
     return;
 
-  GetPlatform().RunTask(Platform::Thread::Gui, [this, collection]()
+  GetPlatform().RunTask(Platform::Thread::Gui, [this, collection, historicalTracks = std::move(historicalTracks)]()
   {
     if (!collection->empty())
     {
       CreateCategories(std::move(*collection), true /* autoSave */);
+      if (m_historicalTrackImportHandler)
+      {
+        for (auto const & segments : historicalTracks)
+          m_historicalTrackImportHandler(segments);
+      }
     }
     else if (!m_loadBookmarksFinished)
     {
