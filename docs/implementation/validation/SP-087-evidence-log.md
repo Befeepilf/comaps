@@ -305,3 +305,15 @@ G1–G10 are SPD-067–076. Closed in residual code: R3 compile-out, R4/R5/R5b
 goldens, R6 JNI clinit, R17 File thread, R19 KML prefix log. Remaining
 Phase 10: R1, R2, R7, R8 device dump, R9 upload, R11 iOS, public APK `nm`.
 Accepted-as-is: R10 Qt, R12 reload, R13 KMZ, R18 expat, FromLatLon.
+
+## Residual close-out validation (2026-08-28)
+
+Client SHA `de80020f7`. Named suites after residual code + independent review fixes:
+
+| Suite | Result |
+| --- | --- |
+| `kml_tests` goldens + parse-failure filter | **7/7** All tests passed (`Gpx_ImportExport_*`, `Gpx_ColorMapExport_Test`, `ImportExportWptColor`, `PointWithPredefinedColor`, `Gpx_ParseFailure_DoesNotLogWholePayload`, `Kml_ParseFailure_DoesNotLogWholePayload`) |
+| `street_pixels_tests` named filter | **59/59** All tests passed (HistoricalImport_* 11; IsolationHistoricalImport 16; ExplorerPro_ 12 including DEBUG grant tests; ExplorerProAnalytics 13; GpxGate 7) |
+| JVM `BookmarkManagerGpxGateTest` | **6/6** `tests=6 failures=0 errors=0` |
+
+Do not invent `classificator.txt` / `sp010_gpstrack_test.bin`. Device / APK / upload remain Phase 10.
