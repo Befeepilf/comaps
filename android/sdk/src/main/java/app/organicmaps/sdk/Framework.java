@@ -433,6 +433,7 @@ public class Framework
   public static native boolean nativeIsAdvancedTrackManagementAvailable();
   public static native void nativeInstallExplorerProDebugEntitlement();
   public static native void nativeClearExplorerProEntitlementSource();
+  public static native void nativeFreezeExplorerProConfiguration();
   public static native void nativeTriggerExploreStatsUpload();
   public static native void nativeRecordingSessionStart();
   public static native void nativeRecordingSessionPause();

@@ -1146,6 +1146,11 @@ JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeClearExplorerPro
   explorer_pro::SetEntitlementSource(nullptr);
 }
 
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeFreezeExplorerProConfiguration(JNIEnv *, jclass)
+{
+  explorer_pro::FreezeConfiguration();
+}
+
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeTriggerExploreStatsUpload(JNIEnv *, jclass)
 {
   frm()->TriggerExploreStatsUpload();
