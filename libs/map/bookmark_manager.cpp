@@ -2127,6 +2127,14 @@ void BookmarkManager::LoadBookmarkRoutine(std::string const & filePath, bool isT
     auto collection = std::make_shared<KMLDataCollection>();
     std::vector<std::vector<kml::MultiGeometry::LineT>> historicalTracks;
 
+    if (GetLowercaseFileExt(filePath) == kGpxExtension
+        && !explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport))
+    {
+      NotifyAboutFile(false /* success */, filePath, isTemporaryFile);
+      NotifyAboutFinishAsyncLoading(std::move(collection), std::move(historicalTracks));
+      return;
+    }
+
     // Convert KML/KMZ/KMB files to temp KML file and GPX to temp GPX file.
     for (auto const & fileToLoad : GetKMLOrGPXFilesPathsToLoad(filePath))
     {
