@@ -163,4 +163,4 @@ Last Accepted SPD is **SPD-076**.
 | SP-034 text says invalidate cache on GPX import; code increments without full invalidate (`AreaCompletionManager_ImportIncrementsWithoutInvalidating`) | Keep incremental behaviour; do not “fix” back to full invalidate in Phase 9 |
 | Java cannot query `IsCapabilityEnabled` (setter JNI only) | SP-083 adds getters |
 | Capabilities-on + stub-false cannot exercise Pro UX | G7 |
-| Failed GPX parse may log the entire file via `ReadAsString` | SP-085: do not dump huge untrusted input |
+| Failed GPX parse may log the entire file via `ReadAsString` | SP-085: prefix helper. KML analogue closed 2026-08-28 |
