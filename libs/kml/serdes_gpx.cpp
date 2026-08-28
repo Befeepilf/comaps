@@ -11,8 +11,12 @@
 #include "geometry/point2d.hpp"
 
 #include "base/assert.hpp"
+#include "base/math.hpp"
 #include "base/string_utils.hpp"
 #include "base/timer.hpp"
+
+#include <algorithm>
+#include <string_view>
 
 namespace kml
 {
@@ -47,6 +51,11 @@ std::string_view constexpr kGpxHeader = R"(<?xml version="1.0"?>
 std::string_view constexpr kGpxFooter = "</gpx>";
 
 int constexpr kInvalidColor = 0;
+
+bool IsImportableGpxLatLon(double lat, double lon)
+{
+  return math::is_finite(lat) && math::is_finite(lon) && mercator::ValidLat(lat) && mercator::ValidLon(lon);
+}
 }  // namespace
 
 GpxParser::GpxParser(FileData & data)
@@ -70,6 +79,8 @@ void GpxParser::ResetPoint()
   m_geometryType = GEOMETRY_TYPE_UNKNOWN;
   m_lat = 0.;
   m_lon = 0.;
+  m_hasLat = false;
+  m_hasLon = false;
   m_altitude = geometry::kInvalidAltitude;
   m_timestamp = base::INVALID_TIME_STAMP;
 }
@@ -102,10 +113,19 @@ bool GpxParser::MakeValid()
 
 bool GpxParser::Push(std::string tag)
 {
+  if (tag == gpx::kGpx)
+    m_sawGpx = true;
+
   if (tag == gpx::kWpt)
     m_geometryType = GEOMETRY_TYPE_POINT;
   else if (tag == gpx::kTrkPt || tag == gpx::kRtePt)
     m_geometryType = GEOMETRY_TYPE_LINE;
+
+  if (tag == gpx::kWpt || tag == gpx::kTrkPt || tag == gpx::kRtePt)
+  {
+    m_hasLat = false;
+    m_hasLon = false;
+  }
 
   m_tags.emplace_back(std::move(tag));
 
@@ -123,10 +143,20 @@ void GpxParser::AddAttr(std::string_view attr, char const * value)
 {
   if (IsValidCoordinatesPosition())
   {
-    if (attr == "lat" && !strings::to_double(value, m_lat))
-      LOG(LERROR, ("Bad gpx latitude"));
-    else if (attr == "lon" && !strings::to_double(value, m_lon))
-      LOG(LERROR, ("Bad gpx longitude"));
+    if (attr == "lat")
+    {
+      if (strings::to_double(value, m_lat))
+        m_hasLat = true;
+      else
+        LOG(LERROR, ("Bad gpx latitude"));
+    }
+    else if (attr == "lon")
+    {
+      if (strings::to_double(value, m_lon))
+        m_hasLon = true;
+      else
+        LOG(LERROR, ("Bad gpx longitude"));
+    }
   }
 }
 
@@ -245,11 +275,14 @@ void GpxParser::Pop(std::string_view tag)
 
   if (tag == gpx::kTrkPt || tag == gpx::kRtePt)
   {
-    m2::PointD const p = mercator::FromLatLon(m_lat, m_lon);
-    if (m_line.empty() || !AlmostEqualAbs(m_line.back().GetPoint(), p, kMwmPointAccuracy))
+    if (m_hasLat && m_hasLon && IsImportableGpxLatLon(m_lat, m_lon))
     {
-      m_line.emplace_back(p, m_altitude);
-      m_timestamps.emplace_back(m_timestamp);
+      m2::PointD const p = mercator::FromLatLon(m_lat, m_lon);
+      if (m_line.empty() || !AlmostEqualAbs(m_line.back().GetPoint(), p, kMwmPointAccuracy))
+      {
+        m_line.emplace_back(p, m_altitude);
+        m_timestamps.emplace_back(m_timestamp);
+      }
     }
     m_altitude = geometry::kInvalidAltitude;
     m_timestamp = base::INVALID_TIME_STAMP;
@@ -270,8 +303,13 @@ void GpxParser::Pop(std::string_view tag)
   }
   else if (tag == gpx::kWpt)
   {
-    m_org.SetPoint(mercator::FromLatLon(m_lat, m_lon));
-    m_org.SetAltitude(m_altitude);
+    if (m_hasLat && m_hasLon && IsImportableGpxLatLon(m_lat, m_lon))
+    {
+      m_org.SetPoint(mercator::FromLatLon(m_lat, m_lon));
+      m_org.SetAltitude(m_altitude);
+    }
+    else
+      m_geometryType = GEOMETRY_TYPE_UNKNOWN;
     m_altitude = geometry::kInvalidAltitude;
   }
 
@@ -605,6 +643,19 @@ void GpxWriter::Write(FileData const & fileData)
 }
 
 }  // namespace gpx
+
+void LogXmlParseFailurePrefix(Reader const & reader, std::string_view kind, size_t prefixBytes)
+{
+  uint64_t const size = reader.Size();
+  size_t const n = static_cast<size_t>(std::min(static_cast<uint64_t>(prefixBytes), size));
+  std::string snippet;
+  if (n > 0)
+  {
+    snippet.resize(n);
+    reader.Read(0, snippet.data(), n);
+  }
+  LOG(LWARNING, ("Could not parse", kind, "size_bytes =", size, "prefix =", snippet));
+}
 
 DeserializerGpx::DeserializerGpx(FileData & fileData) : m_fileData(fileData)
 {
