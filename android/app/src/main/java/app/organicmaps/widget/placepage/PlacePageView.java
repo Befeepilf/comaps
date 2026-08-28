@@ -38,6 +38,7 @@ import app.organicmaps.bookmarks.BookmarksSharingHelper;
 import app.organicmaps.bookmarks.ChooseBookmarkCategoryFragment;
 import app.organicmaps.downloader.DownloaderStatusIcon;
 import app.organicmaps.downloader.MapManagerHelper;
+import app.organicmaps.sdk.ExplorerPro;
 import app.organicmaps.sdk.Framework;
 import app.organicmaps.sdk.bookmarks.data.Bookmark;
 import app.organicmaps.sdk.bookmarks.data.BookmarkCategory;
@@ -1325,8 +1326,11 @@ public class PlacePageView extends Fragment
     ArrayList<MenuBottomSheetItem> items = new ArrayList<>();
     items.add(new MenuBottomSheetItem(R.string.export_file, R.drawable.ic_file_kmz,
                                       () -> onShareTrackSelected(track.getTrackId(), KmlFileType.Text)));
-    items.add(new MenuBottomSheetItem(R.string.export_file_gpx, R.drawable.ic_file_gpx,
-                                      () -> onShareTrackSelected(track.getTrackId(), KmlFileType.Gpx)));
+    if (ExplorerPro.isGpxExportEnabled())
+    {
+      items.add(new MenuBottomSheetItem(R.string.export_file_gpx, R.drawable.ic_file_gpx,
+                                        () -> onShareTrackSelected(track.getTrackId(), KmlFileType.Gpx)));
+    }
     return items;
   }
 
