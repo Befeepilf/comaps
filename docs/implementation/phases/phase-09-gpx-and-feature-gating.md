@@ -1,6 +1,6 @@
 # Phase 9 — GPX and feature gating
 
-**Status:** SP-086 Accepted 2026-08-28; SP-087 next. G1–G10 still Open (OQ-20–OQ-29).
+**Status:** SP-086 Accepted 2026-08-28; SP-087 in review / evidence recorded; G1–G10 still Open (OQ-20–OQ-29). Phase 9 exit awaiting maintainer (not Met).
 **Depends on:** Phase 3, Phase 1 (SP-005)
 **Blocks:** nothing; required for release
 
@@ -40,31 +40,37 @@ purchase action.
 ## Current code locations
 
 Verified 2026-07-25 against the working tree. **Re-verified 2026-08-28
-(Phase 9 work-item planning / SP-080).** Extra detail in
+post SP-086 `d0d815832` / SP-087 evidence `5ed5e6df2`.** Extra detail in
 [`notes/SP-080-gpx-feature-gating-architecture.md`](../notes/SP-080-gpx-feature-gating-architecture.md).
+Observed-state only; G1–G10 remain Open. Do not read this table as Phase 9
+exit Met.
 
 | Concern | Location | Observed state |
 | --- | --- | --- |
-| GPX serialisation | `libs/kml/serdes_gpx.cpp` | Import and export both present. No file-size cap (10k/50k in budget). Parse failure logs size + 256-byte prefix, not the whole file. Invalid lat/lon skipped before `FromLatLon`. Truncated/empty XML fails (`ParseXML` `isFinal`). Timestamp repair is display/metadata, not pixel placement. |
-| GPX tests | `libs/kml/kml_tests/gpx_tests.cpp` | Substantial existing coverage. No OOM / oversized cases. |
-| Android import | `Factory.KmzKmlProcessor`, `BookmarkManager.importBookmarksFiles`, Favorites Import, manifest VIEW/SEND `application/gpx` | Ungated. Batch multi-URI exists. GPX re-saved as a KML category with tracks. |
-| Android export | `PlacePageView`, `BookmarksListFragment`, `BookmarkCategoriesFragment` `export_file_gpx` | Ungated. |
-| Track-to-pixel replay | `StreetPixelsManager::UpdateExploredPixels` → `ComputeTrackPixels` → `MarkExploredPixelIds` | Catch-all over every bookmark track. Explored only; never ever-live, recency, weekly, or upload. Sampling **15 m** (`kPathSamplingStepMeters`, SPD-019). `UpdateStreetStatsForTrack` exists but is commented out at the call site. `Track::GetGeometry` concatenates segments (possible corridor across a `trkseg` / pause gap). |
-| Processed-track ledger | `street_stats.db` `processed_tracks(geometry_hash, country_id)` | Mercator x,y hash. Identical geometry skips; timestamp-only re-export skips; point edits reprocess. Track delete does not drop the row. |
-| Imported marking | `.pix` ever-live bit (SPD-015 / SP-016) | Import-first → ever-live clear; live sets; import cannot clear. No `source=imported` enum. |
-| Recency / weekly / upload | `LiveRecencyStore`, `WeeklyCityLiveStore`, `CompetitionUploadService` | Live path and recording **Finished** only. Import helpers already isolated; no GPX-file fixture yet. |
-| Pro gate | `libs/map/explorer_pro.*` | `GpxImport` / `GpxExport` / `AdvancedTrackManagement`. `IsCapabilityEnabled` = available ∧ entitled. **No production call site.** Java setter JNI only. BuildConfig `EXPLORER_PRO_*` default false; `-PenableExplorerProCapabilities=true` sets all true. |
-| Entitlement | `StubEntitlementSource` | Always false. Documented `ExplorerPro.Entitled` key unused. No debug grant path — internal capability-on builds still cannot open the gate. |
-| Settings GPX | `DataManagementSettingsFragment` + `GpxSettingsFragment` | Nested Data Management entry added only when `GpxSettingsVisibility.showGpxScreen`. Tool rows use Enabled; G8 info page uses Available. Public (all Available false) adds nothing. |
-| Monetisation analytics | `street_pixels::ExplorerProAnalytics` | Count-only uint64 (`Explore.ProInfoViewed`, `Explore.GpxImportUsage`, `Explore.GpxExportUsage`). Increment when matching capability is Available. Upload residual Phase 10. Not Sentry. |
+| GPX serialisation | `libs/kml/serdes_gpx.cpp` | Import and export present. Writer `creator="CoMaps"`. No file-size cap (10k/50k measured; no chunking). Parse failure logs size + prefix, not the whole file. Invalid lat/lon skipped before `FromLatLon`. Truncated/empty XML fails (`ParseXML` `isFinal`). Timestamp repair is display/metadata, not pixel placement. |
+| GPX tests | `libs/kml/kml_tests/gpx_tests.cpp` (binary **`kml_tests`**) | Substantial coverage: malformed, skip, entity, 10k/50k parse. Exact roundtrip `Gpx_ImportExport_*` / `Gpx_ColorMapExport_Test` / `ImportExportWptColor` / `PointWithPredefinedColor` still goldens `Organic Maps`. |
+| Android import | `Factory.KmzKmlProcessor`, `BookmarkManager.importBookmarksFile`, Favorites Import, manifest VIEW/SEND `application/gpx` | **Gated.** `BookmarkManager.importBookmarksFile` returns false for `.gpx` when `!ExplorerPro.isGpxImportEnabled()`. Batch: `allowGpxInBatch`. `Factory.KmzKmlProcessor` still forwards VIEW/SEND/SEND_MULTIPLE; handler no-ops GPX when closed. Manifest GPX filters remain (G6). KML/KMZ bookmark import remains. |
+| Android export | `PlacePageView`, `BookmarksListFragment`, `BookmarkCategoriesFragment` `export_file_gpx` | **Gated.** Those surfaces add `export_file_gpx` only when `ExplorerPro.isGpxExportEnabled()`. C++ `ExportSingleFileGpx` still serialises; Android UI/JNI skip first. Desktop/Qt residual (SP-083). |
+| Track-to-pixel replay | `StreetPixelsManager::UpdateExploredPixels`; dedicated `ImportHistoricalTrack` | `UpdateExploredPixels` is a no-op. Dedicated `ImportHistoricalTrack` samples 15 m per segment (`ComputeTrackPixels`), `MarkExploredPixelIds` (explored, never ever-live). Framework handler: `IsCapabilityEnabled(GpxImport)` then import + `RecordGpxImportUsage`. Live `OnLocationUpdate` remains the only free pixel writer. |
+| Processed-track ledger | `street_stats.db` `processed_tracks(geometry_hash, country_id)` | Unchanged: mercator x,y hash per country. Identical geometry skips. |
+| Imported marking | `.pix` ever-live bit (SPD-015 / SP-016) | Ever-live clear on first explore via dedicated path. Import cannot clear later live. No `source=imported` enum. |
+| Recency / weekly / upload | `LiveRecencyStore`, `WeeklyCityLiveStore`, `CompetitionUploadService` | Isolation asserted on `ImportHistoricalTrack` (SP-082), four-cell gate matrix. Live path and recording Finished only. |
+| Pro gate | `libs/map/explorer_pro.*` + JNI + Java `ExplorerPro` | `IsCapabilityEnabled` = available ∧ entitled. **Production call sites exist** (Framework handler, BookmarkManager load/share, Android menus/settings). BuildConfig `EXPLORER_PRO_*` default false; `-PenableExplorerProCapabilities=true` sets capabilities true. |
+| Entitlement | `StubEntitlementSource` / `DebugEntitlementSource` | Stub always false. `DebugEntitlementSource` installed only when `EXPLORER_PRO_DEBUG_ENTITLE` and any capability (debug buildConfig; release/beta hardcoded false). Freeze after init. Grant **symbols still in the native binary** (SP-083 follow-up / SP-087 public APK `nm` → Phase 10). |
+| Settings GPX | `DataManagementSettingsFragment` + `GpxSettingsFragment` | Nested Data Management entry added only when `GpxSettingsVisibility.showGpxScreen`. Tool rows use **Enabled**; G8 info page uses **Available**. Public (all Available false) adds nothing at runtime. `prefs_gpx.xml` + English strings exist as resources (dump inflated tree, not aapt). |
+| Monetisation analytics | `street_pixels::ExplorerProAnalytics` | Count-only uint64 (`Explore.ProInfoViewed`, `Explore.GpxImportUsage`, `Explore.GpxExportUsage`). Increment when matching capability is **Available**. Upload residual Phase 10. Not Sentry. |
 | Android billing | — | **Not found** (SPD-010). |
 
 **Difference from the technical audit (2026-07-20):** entitlement
 abstraction **exists** (SP-005, 2026-07-27). Imported marking **exists**
-as ever-live-clear (SP-016). Sampling is 15 m, not 10 m (SP-019). GPX UX
-is still ungated. Catch-all bookmark replay is still not a dedicated
-importer. Spike 9 isolation is largely a data-layer property; 10k-point
-memory is unmeasured.
+as ever-live-clear (SP-016). Sampling is 15 m, not 10 m (SP-019). Dedicated
+importer **exists** (`ImportHistoricalTrack`; catch-all `UpdateExploredPixels`
+is a no-op). GPX UX **is gated** on Android (SP-083/084); public-configured
+BuildConfig defaults are false. A debug grant path **exists** for internal
+debug builds only; grant symbols remain in the native binary. Isolation is
+asserted on the dedicated path (SP-082) regardless of gate. 10k/50k RSS
+measured under 256 MiB; no chunking (SP-085). Worldwide; no city allowlist.
+G1–G10 still Open (OQ-20–OQ-29).
 
 ## Intended outcome
 
