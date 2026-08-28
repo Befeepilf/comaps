@@ -18,6 +18,9 @@ private fun Project.exploreApiBaseUrlField(defaultValue: String): String =
 private fun Project.explorerProCapabilitiesEnabled(defaultValue: String): String =
     (findProperty("enableExplorerProCapabilities") as? String)?.toBoolean()?.toString() ?: defaultValue
 
+private fun Project.explorerProDebugEntitleEnabled(): String =
+    (findProperty("enableExplorerProDebugEntitle") as? String)?.toBoolean()?.toString() ?: "false"
+
 android {
     namespace = "app.organicmaps.sdk"
     compileSdk = providers.gradleProperty("propCompileSdkVersion").get().toInt()
@@ -34,6 +37,7 @@ android {
         buildConfigField("boolean", "EXPLORER_PRO_GPX_IMPORT", explorerProCapabilitiesEnabled("false"))
         buildConfigField("boolean", "EXPLORER_PRO_GPX_EXPORT", explorerProCapabilitiesEnabled("false"))
         buildConfigField("boolean", "EXPLORER_PRO_ADVANCED_TRACK_MANAGEMENT", explorerProCapabilitiesEnabled("false"))
+        buildConfigField("boolean", "EXPLORER_PRO_DEBUG_ENTITLE", "false")
 
         externalNativeBuild {
             cmake {
@@ -82,6 +86,7 @@ android {
     buildTypes {
         debug {
             isJniDebuggable = true
+            buildConfigField("boolean", "EXPLORER_PRO_DEBUG_ENTITLE", explorerProDebugEntitleEnabled())
             externalNativeBuild.cmake.arguments += "-DANDROID_STL=c++_shared"
             if (!project.hasProperty("disableHWAsan"))
               externalNativeBuild.cmake.arguments += "-DENABLE_ASAN=ON"
@@ -91,6 +96,7 @@ android {
             buildConfigField("boolean", "EXPLORER_PRO_GPX_IMPORT", explorerProCapabilitiesEnabled("false"))
             buildConfigField("boolean", "EXPLORER_PRO_GPX_EXPORT", explorerProCapabilitiesEnabled("false"))
             buildConfigField("boolean", "EXPLORER_PRO_ADVANCED_TRACK_MANAGEMENT", explorerProCapabilitiesEnabled("false"))
+            buildConfigField("boolean", "EXPLORER_PRO_DEBUG_ENTITLE", "false")
         }
         register("beta") {
             matchingFallbacks += "release"
@@ -98,6 +104,7 @@ android {
             buildConfigField("boolean", "EXPLORER_PRO_GPX_IMPORT", explorerProCapabilitiesEnabled("false"))
             buildConfigField("boolean", "EXPLORER_PRO_GPX_EXPORT", explorerProCapabilitiesEnabled("false"))
             buildConfigField("boolean", "EXPLORER_PRO_ADVANCED_TRACK_MANAGEMENT", explorerProCapabilitiesEnabled("false"))
+            buildConfigField("boolean", "EXPLORER_PRO_DEBUG_ENTITLE", "false")
         }
     }
 

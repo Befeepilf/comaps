@@ -186,6 +186,13 @@ public final class OrganicMaps implements DefaultLifecycleObserver
     Framework.nativeSetExploreApiBaseUrl(BuildConfig.EXPLORE_API_BASE_URL);
     Framework.nativeSetExplorerProCapabilities(BuildConfig.EXPLORER_PRO_GPX_IMPORT, BuildConfig.EXPLORER_PRO_GPX_EXPORT,
                                                BuildConfig.EXPLORER_PRO_ADVANCED_TRACK_MANAGEMENT);
+    if (BuildConfig.EXPLORER_PRO_DEBUG_ENTITLE
+        && (BuildConfig.EXPLORER_PRO_GPX_IMPORT || BuildConfig.EXPLORER_PRO_GPX_EXPORT
+            || BuildConfig.EXPLORER_PRO_ADVANCED_TRACK_MANAGEMENT))
+    {
+      Framework.nativeInstallExplorerProDebugEntitlement();
+    }
+    ExplorerPro.setNativeReady(true);
 
     mPlatformInitialized = true;
     Logger.i(TAG, "Platform initialized");
