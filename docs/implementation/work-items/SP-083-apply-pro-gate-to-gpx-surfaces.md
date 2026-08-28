@@ -1,8 +1,8 @@
 # SP-083 — Apply Explorer Pro gate to GPX surfaces
 
 **Phase:** 9 — GPX and feature gating
-**Status:** Planned
-**Branch:** `cursor/phase-09-work-items-db9d`
+**Status:** Accepted
+**Branch:** `cursor/sp-083-gpx-pro-gate-db9d`
 **Depends on:** SP-080 G4, G6, G7, G8 (draft SPD-070, SPD-072–074);
   SP-005 composition point; SP-081 path exists so gating cannot leave a
   free bookmark-replay painter
@@ -126,13 +126,18 @@ share, and VIEW/SEND intents still import and export GPX for everyone.
 
 | Field | Value |
 | --- | --- |
-| Branch | — |
-| Test output | — |
-| Accepted by | — |
-| Accepted date | — |
+| Branch | `cursor/sp-083-gpx-pro-gate-db9d` |
+| Test output | `--filter='ExplorerPro_|GpxGate|IsolationHistoricalImport_Gate'` **23/23** All tests passed |
+| Accepted by | Product owner |
+| Accepted date | 2026-08-28 |
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| | |
+| iOS GPX import/export remains ungated (`MWMBookmarksManager`) | Out of Android V1; post-V1 iOS |
+| C++ `PrepareFileForSharing` / `PrepareTrackFileForSharing` still write GPX; Android JNI returns `FileError` first | Desktop/Qt residual; Android menus hidden + JNI skip |
+| `DebugEntitlementSource` and `UnfreezeConfigurationForTesting` remain in the native binary | SP-087 public-build / compile-out check |
+| JNI `nativeIsGpx*Available` getters exist and are unused | SP-084 must gate UI on Enabled, not Available |
+| G8 Explorer Pro information page not shipped | SP-084 optional |
+| Device: public APK share-sheet GPX, Favorites hide, debug-entitle internal build | SP-087 / Phase 10 |

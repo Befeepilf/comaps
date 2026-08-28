@@ -22,12 +22,21 @@ public:
   bool IsEntitled() const override;
 };
 
+class DebugEntitlementSource : public EntitlementSource
+{
+public:
+  bool IsEntitled() const override;
+};
+
 void SetCapabilityAvailable(Capability capability, bool available);
 bool IsCapabilityAvailable(Capability capability);
 
 bool IsEntitled();
 
 void SetEntitlementSource(EntitlementSource * source);
+void InstallDebugEntitlementSource();
+void FreezeConfiguration();
+void UnfreezeConfigurationForTesting();
 
 bool IsCapabilityEnabled(Capability capability);
 }

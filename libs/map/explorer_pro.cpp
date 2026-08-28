@@ -1,12 +1,16 @@
 #include "map/explorer_pro.hpp"
 
+#include <atomic>
+
 namespace
 {
 bool g_gpxImportAvailable = false;
 bool g_gpxExportAvailable = false;
 bool g_advancedTrackManagementAvailable = false;
+std::atomic<bool> g_configurationFrozen{false};
 
 explorer_pro::StubEntitlementSource g_stubEntitlementSource;
+explorer_pro::DebugEntitlementSource g_debugEntitlementSource;
 explorer_pro::EntitlementSource * g_entitlementSource = &g_stubEntitlementSource;
 
 bool & AvailabilityFor(explorer_pro::Capability capability)
@@ -23,8 +27,12 @@ bool & AvailabilityFor(explorer_pro::Capability capability)
 
 bool explorer_pro::StubEntitlementSource::IsEntitled() const { return false; }
 
+bool explorer_pro::DebugEntitlementSource::IsEntitled() const { return true; }
+
 void explorer_pro::SetCapabilityAvailable(Capability capability, bool available)
 {
+  if (g_configurationFrozen)
+    return;
   AvailabilityFor(capability) = available;
 }
 
@@ -34,7 +42,26 @@ bool explorer_pro::IsEntitled() { return g_entitlementSource->IsEntitled(); }
 
 void explorer_pro::SetEntitlementSource(EntitlementSource * source)
 {
+  if (g_configurationFrozen)
+    return;
   g_entitlementSource = source != nullptr ? source : &g_stubEntitlementSource;
+}
+
+void explorer_pro::InstallDebugEntitlementSource()
+{
+  if (g_configurationFrozen)
+    return;
+  SetEntitlementSource(&g_debugEntitlementSource);
+}
+
+void explorer_pro::FreezeConfiguration()
+{
+  g_configurationFrozen = true;
+}
+
+void explorer_pro::UnfreezeConfigurationForTesting()
+{
+  g_configurationFrozen = false;
 }
 
 bool explorer_pro::IsCapabilityEnabled(Capability capability)

@@ -11,6 +11,7 @@ import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
+import app.organicmaps.sdk.ExplorerPro;
 import app.organicmaps.sdk.Framework;
 import app.organicmaps.sdk.util.KeyValue;
 import app.organicmaps.sdk.util.StorageUtils;
@@ -417,6 +418,18 @@ public enum BookmarkManager {
     return null;
   }
 
+  static boolean isGpxFilename(@Nullable String filename)
+  {
+    if (filename == null)
+      return false;
+    return filename.toLowerCase(java.util.Locale.ROOT).endsWith(".gpx");
+  }
+
+  static boolean allowGpxInBatch(int gpxCount, boolean gpxImportEnabled, boolean advancedTrackManagementEnabled)
+  {
+    return gpxImportEnabled && (gpxCount <= 1 || advancedTrackManagementEnabled);
+  }
+
   @WorkerThread
   public boolean importBookmarksFile(@NonNull ContentResolver resolver, @NonNull Uri uri, @NonNull File tempDir)
   {
@@ -433,6 +446,9 @@ public enum BookmarkManager {
         });
         return false;
       }
+
+      if (isGpxFilename(filename) && !ExplorerPro.isGpxImportEnabled())
+        return false;
 
       Logger.d(TAG, "Downloading bookmarks file from " + uri + " into " + filename);
       final File tempFile = new File(tempDir, filename);
@@ -453,10 +469,27 @@ public enum BookmarkManager {
   }
 
   @WorkerThread
-  public void importBookmarksFiles(@NonNull ContentResolver resolver, @NonNull List<Uri> uris, @NonNull File tempDir)
+  public int importBookmarksFiles(@NonNull ContentResolver resolver, @NonNull List<Uri> uris, @NonNull File tempDir)
   {
+    int gpxCount = 0;
     for (Uri uri : uris)
-      importBookmarksFile(resolver, uri, tempDir);
+    {
+      String filename = getBookmarksFilenameFromUri(resolver, uri);
+      if (isGpxFilename(filename))
+        ++gpxCount;
+    }
+    final boolean allowGpx = allowGpxInBatch(gpxCount, ExplorerPro.isGpxImportEnabled(),
+                                             ExplorerPro.isAdvancedTrackManagementEnabled());
+    int imported = 0;
+    for (Uri uri : uris)
+    {
+      String filename = getBookmarksFilenameFromUri(resolver, uri);
+      if (isGpxFilename(filename) && !allowGpx)
+        continue;
+      if (importBookmarksFile(resolver, uri, tempDir))
+        ++imported;
+    }
+    return imported;
   }
 
   public boolean isAsyncBookmarksLoadingInProgress()

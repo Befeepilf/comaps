@@ -29,6 +29,7 @@ import app.organicmaps.R;
 import app.organicmaps.adapter.OnItemClickListener;
 import app.organicmaps.base.BaseMwmRecyclerFragment;
 import app.organicmaps.dialog.EditTextDialogFragment;
+import app.organicmaps.sdk.ExplorerPro;
 import app.organicmaps.sdk.bookmarks.data.BookmarkCategory;
 import app.organicmaps.sdk.bookmarks.data.BookmarkInfo;
 import app.organicmaps.sdk.bookmarks.data.CategoryDataSource;
@@ -54,7 +55,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class BookmarkCategoriesFragment extends BaseMwmRecyclerFragment<BookmarkCategoriesAdapter>
     implements BookmarkManager.BookmarksLoadingListener, CategoryListCallback, OnItemClickListener<BookmarkCategory>,
@@ -413,8 +413,11 @@ public class BookmarkCategoriesFragment extends BaseMwmRecyclerFragment<Bookmark
                                         () -> onShowActionSelected(mSelectedCategory)));
       items.add(new MenuBottomSheetItem(R.string.export_file, R.drawable.ic_file_kmz,
                                         () -> onShareActionSelected(mSelectedCategory, KmlFileType.Text)));
-      items.add(new MenuBottomSheetItem(R.string.export_file_gpx, R.drawable.ic_file_gpx,
-                                        () -> onShareActionSelected(mSelectedCategory, KmlFileType.Gpx)));
+      if (ExplorerPro.isGpxExportEnabled())
+      {
+        items.add(new MenuBottomSheetItem(R.string.export_file_gpx, R.drawable.ic_file_gpx,
+                                          () -> onShareActionSelected(mSelectedCategory, KmlFileType.Gpx)));
+      }
       // Disallow deleting the last category
       if (getAdapter().getBookmarkCategories().size() > 1)
         items.add(new MenuBottomSheetItem(R.string.delete, R.drawable.ic_delete,
@@ -542,15 +545,12 @@ public class BookmarkCategoriesFragment extends BaseMwmRecyclerFragment<Bookmark
     final File tempDir = new File(StorageUtils.getTempPath(app));
     final ContentResolver resolver = context.getContentResolver();
     ThreadPool.getStorage().execute(() -> {
-      AtomicInteger found = new AtomicInteger(0);
-      StorageUtils.listContentProviderFilesRecursively(resolver, rootUri, uri -> {
-        if (BookmarkManager.INSTANCE.importBookmarksFile(resolver, uri, tempDir))
-          found.incrementAndGet();
-      });
+      List<Uri> uris = new ArrayList<>();
+      StorageUtils.listContentProviderFilesRecursively(resolver, rootUri, uris::add);
+      int found_val = BookmarkManager.INSTANCE.importBookmarksFiles(resolver, uris, tempDir);
       UiThread.run(() -> {
         if (dialog.isShowing())
           dialog.dismiss();
-        int found_val = found.get();
         String message =
             context.getResources().getQuantityString(R.plurals.bookmarks_detect_message, found_val, found_val);
         Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show();

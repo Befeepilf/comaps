@@ -425,6 +425,15 @@ public class Framework
   public static native void nativeSetExploreApiBaseUrl(@NonNull String url);
   public static native void nativeSetExplorerProCapabilities(boolean gpxImport, boolean gpxExport,
                                                            boolean advancedTrackManagement);
+  public static native boolean nativeIsGpxImportEnabled();
+  public static native boolean nativeIsGpxExportEnabled();
+  public static native boolean nativeIsAdvancedTrackManagementEnabled();
+  public static native boolean nativeIsGpxImportAvailable();
+  public static native boolean nativeIsGpxExportAvailable();
+  public static native boolean nativeIsAdvancedTrackManagementAvailable();
+  public static native void nativeInstallExplorerProDebugEntitlement();
+  public static native void nativeClearExplorerProEntitlementSource();
+  public static native void nativeFreezeExplorerProConfiguration();
   public static native void nativeTriggerExploreStatsUpload();
   public static native void nativeRecordingSessionStart();
   public static native void nativeRecordingSessionPause();

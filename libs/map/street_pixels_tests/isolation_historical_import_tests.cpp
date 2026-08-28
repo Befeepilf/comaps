@@ -225,6 +225,7 @@ class IsoCleanup
 public:
   IsoCleanup()
   {
+    explorer_pro::UnfreezeConfigurationForTesting();
     settings::Delete("RecordingSessionActive");
     settings::Delete("Explore.CompetitionUploadPending");
   }

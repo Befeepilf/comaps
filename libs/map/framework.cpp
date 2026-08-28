@@ -4,6 +4,7 @@
 #include "map/bookmark.hpp"
 #include "map/bookmark_helpers.hpp"
 #include "map/completion_card_analytics.hpp"
+#include "map/explorer_pro.hpp"
 #include "map/gps_track.hpp"
 #include "map/gps_track_filter.hpp"
 #include "map/gps_tracker.hpp"
@@ -514,7 +515,11 @@ Framework::Framework(FrameworkParams const & params, bool loadMaps)
   m_streetPixelsManager->SetBookmarkManager(m_bmManager.get());
   m_bmManager->SetHistoricalTrackImportHandler(
       [this](std::vector<kml::MultiGeometry::LineT> const & segments)
-      { GetStreetPixelsManager().ImportHistoricalTrack(segments); });
+      {
+        if (!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport))
+          return;
+        GetStreetPixelsManager().ImportHistoricalTrack(segments);
+      });
   m_streetPixelsManager->SetCompletionCardGeneratedHandler(
       [] { street_pixels::CompletionCardAnalytics::RecordGenerated(); });
   m_streetPixelsManager->SetExplorationListener(
