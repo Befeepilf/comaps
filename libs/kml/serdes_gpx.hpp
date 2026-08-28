@@ -10,12 +10,16 @@
 #include "base/exception.hpp"
 #include "base/logging.hpp"
 
+#include <cstddef>
 #include <string>
+#include <string_view>
 
 class Writer;
 
 namespace kml
 {
+void LogXmlParseFailurePrefix(Reader const & reader, std::string_view kind, size_t prefixBytes = 256);
+
 namespace gpx
 {
 
@@ -60,6 +64,7 @@ public:
   void Pop(std::string_view tag);
   void CharData(std::string & value);
   static std::optional<uint32_t> ParseColorFromHexString(std::string_view colorStr);
+  bool SawGpxRoot() const { return m_sawGpx; }
 
 private:
   enum GeometryType
@@ -95,6 +100,9 @@ private:
 
   double m_lat;
   double m_lon;
+  bool m_hasLat = false;
+  bool m_hasLon = false;
+  bool m_sawGpx = false;
   geometry::Altitude m_altitude;
   time_t m_timestamp;
 
@@ -123,13 +131,10 @@ public:
     NonOwningReaderSource src(reader);
 
     gpx::GpxParser parser(m_fileData);
-    if (!ParseXML(src, parser, true))
+    if (!ParseXML(src, parser, true) || !parser.SawGpxRoot())
     {
-      // Print corrupted GPX file for debug and restore purposes.
-      std::string gpxText;
-      reader.ReadAsString(gpxText);
-      if (!gpxText.empty() && gpxText[0] == '<')
-        LOG(LWARNING, (gpxText));
+      LogXmlParseFailurePrefix(reader, "GPX", 256);
+      m_fileData = {};
       MYTHROW(DeserializeException, ("Could not parse GPX."));
     }
   }

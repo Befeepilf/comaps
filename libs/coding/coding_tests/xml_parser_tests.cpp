@@ -116,4 +116,29 @@ UNIT_TEST(XmlParser_LongTest)
   d.TestPops({"anchor", "offset", "portrait", "ruler", "anchor", "relative", "portrait", "relative", "offset",
               "landscape", "compass", "root"});
 }
+
+bool XmlParserParseString(std::string const & xmlStr, SmokeDispatcher & dispatcher)
+{
+  MemReader reader(xmlStr);
+  ReaderSource<MemReader> source(reader);
+  return ParseXML(source, dispatcher);
+}
+
+UNIT_TEST(XmlParser_WellFormedPopsRoot)
+{
+  SmokeDispatcher d;
+  TEST(XmlParserParseString(smokeXml, d), ());
+}
+
+UNIT_TEST(XmlParser_TruncatedDocument)
+{
+  SmokeDispatcher d;
+  TEST(!XmlParserParseString("<root>", d), ());
+}
+
+UNIT_TEST(XmlParser_EmptyDocument)
+{
+  SmokeDispatcher d;
+  TEST(!XmlParserParseString({}, d), ());
+}
 }  // namespace

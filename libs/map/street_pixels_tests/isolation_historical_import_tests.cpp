@@ -22,7 +22,10 @@
 
 #include "indexer/data_source.hpp"
 
+#include "kml/serdes_gpx.hpp"
 #include "kml/types.hpp"
+
+#include "coding/reader.hpp"
 
 #include "platform/platform.hpp"
 #include "platform/settings.hpp"
@@ -36,9 +39,11 @@
 #include <algorithm>
 #include <cstdint>
 #include <initializer_list>
+#include <limits>
 #include <optional>
 #include <set>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -337,6 +342,19 @@ void IsoAssertImportedOnlyIsolation(StreetPixelsManager & manager, int64_t distr
   TEST_EQUAL(query.m_uniqueLivePixels, 0u, ());
   TEST_ALMOST_EQUAL_ABS(query.m_ownershipScore, 0.0, 1e-12, ());
   TEST(!query.m_eligible, ());
+  bool pending = false;
+  TEST(!settings::Get("Explore.CompetitionUploadPending", pending), ());
+  int64_t const now = static_cast<int64_t>(base::SecondsSinceEpoch());
+  auto const snapshot = manager.BuildCompetitionUploadSnapshot(now);
+  TEST_EQUAL(snapshot.m_mapDataVersion, mapDataVersion, ());
+  TEST(CompetitionUploadPayloadIsEmpty(snapshot), ());
+}
+
+void IsoAssertFailureDoesNotTouchCompetition(StreetPixelsManager & manager, int64_t districtId, int64_t mapDataVersion)
+{
+  TEST(!manager.IsPixelExploredForTesting(districtId), ());
+  TEST(!street_pixels::LiveRecencyStore::Instance().GetLastLiveVisit(districtId).has_value(), ());
+  TEST_EQUAL(manager.QueryWeeklyCityLive(kIsoCityAOsm).m_newLiveCount, 0, ());
   bool pending = false;
   TEST(!settings::Get("Explore.CompetitionUploadPending", pending), ());
   int64_t const now = static_cast<int64_t>(base::SecondsSinceEpoch());
@@ -679,4 +697,26 @@ UNIT_TEST(IsolationHistoricalImport_LiveThenImportWhenAvailableEntitled)
   IsoEntitlementSourceScope scope(&entitled);
   TEST(explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport), ());
   IsoAssertLiveThenImport(fixture);
+}
+
+UNIT_TEST(IsolationHistoricalImport_InvalidGeometryDoesNotTouchCompetition)
+{
+  IsoFixture fixture("sp085_invalid_geom");
+  kml::MultiGeometry::LineT invalidOnly;
+  invalidOnly.emplace_back(m2::PointD(std::numeric_limits<double>::quiet_NaN(),
+                                      std::numeric_limits<double>::infinity()));
+  TEST_EQUAL(fixture.Manager().ImportHistoricalTrack({invalidOnly}), 0, ());
+  TEST_EQUAL(fixture.Manager().ImportHistoricalTrack({}), 0, ());
+  IsoAssertFailureDoesNotTouchCompetition(fixture.Manager(), fixture.DistrictId(), fixture.MapDataVersion());
+}
+
+UNIT_TEST(IsolationHistoricalImport_MalformedGpxDoesNotTouchCompetition)
+{
+  IsoFixture fixture("sp085_malformed_gpx");
+  kml::FileData data;
+  TEST_ANY_THROW(
+      kml::DeserializerGpx(data).Deserialize(
+          MemReader(std::string_view(R"(<?xml version="1.0"?><gpx><trk><trkseg><trkpt lat="1" lon="1")"))),
+      ());
+  IsoAssertFailureDoesNotTouchCompetition(fixture.Manager(), fixture.DistrictId(), fixture.MapDataVersion());
 }

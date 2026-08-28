@@ -7,9 +7,21 @@
 #include "geometry/mercator.hpp"
 
 #include "coding/file_reader.hpp"
+#include "coding/reader.hpp"
 #include "coding/writer.hpp"
 
 #include "platform/platform.hpp"
+
+#include "base/logging.hpp"
+
+#include <algorithm>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <fstream>
+#include <string>
+#include <string_view>
+#include <sys/resource.h>
 
 namespace gpx_tests
 {
@@ -92,6 +104,7 @@ UNIT_TEST(Gpx_Test_Point_With_Valid_Timestamp)
   <time>2022-09-05T08:39:39.3700Z</time>
   <name>Waypoint 1</name>
  </wpt>
+</gpx>
 )";
 
   kml::FileData data;
@@ -115,6 +128,7 @@ UNIT_TEST(Gpx_Test_Point_With_Invalid_Timestamp)
   <time>2022-09-05T08:39:39.3700X</time>
   <name>Waypoint 1</name>
  </wpt>
+</gpx>
 )";
 
   kml::FileData const dataFromText = LoadGpxFromString(input);
@@ -388,6 +402,7 @@ d5
   <cmt>c4</cmt>
  </wpt>
  <wpt lat="1" lon="2"><name>5</name><cmt>qqq</cmt><desc>qqq</desc></wpt>
+</gpx>
 )";
   kml::FileData const dataFromText = LoadGpxFromString(input);
   TEST_EQUAL("d1", dataFromText.m_bookmarksData[0].m_description.at(kml::kDefaultLang), ());
@@ -427,6 +442,305 @@ UNIT_TEST(MapGarminColor)
   TEST_EQUAL("DarkYellow", kml::MapGarminColor(0xb4b820ff), ());
   TEST_EQUAL("DarkYellow", kml::MapGarminColor(0xb6b820ff), ());
   TEST_EQUAL("DarkYellow", kml::MapGarminColor(0xb5b721ff), ());
+}
+
+std::string GpxTrk(std::string const & trkpts)
+{
+  return "<?xml version=\"1.0\"?><gpx><trk><trkseg>" + trkpts + "</trkseg></trk></gpx>";
+}
+
+void GpxExpectDeserializeThrows(std::string_view content)
+{
+  kml::FileData data;
+  TEST_ANY_THROW(kml::DeserializerGpx(data).Deserialize(MemReader(content)), ());
+  TEST(data.m_tracksData.empty(), ());
+  TEST(data.m_bookmarksData.empty(), ());
+}
+
+void GpxExpectPointAbsent(kml::FileData const & data, m2::PointD const & point)
+{
+  for (auto const & track : data.m_tracksData)
+  {
+    for (auto const & line : track.m_geometry.m_lines)
+    {
+      for (auto const & pt : line)
+        TEST(pt.GetPoint() != point, (pt.GetPoint(), point));
+    }
+  }
+}
+
+bool GpxLineContains(kml::FileData const & data, m2::PointD const & point)
+{
+  for (auto const & track : data.m_tracksData)
+  {
+    for (auto const & line : track.m_geometry.m_lines)
+    {
+      for (auto const & pt : line)
+      {
+        if (pt.GetPoint() == point)
+          return true;
+      }
+    }
+  }
+  return false;
+}
+
+long GpxReadProcStatusKb(char const * key)
+{
+  std::ifstream in("/proc/self/status");
+  std::string line;
+  while (std::getline(in, line))
+  {
+    if (line.compare(0, std::strlen(key), key) == 0)
+    {
+      auto const colon = line.find(':');
+      if (colon == std::string::npos)
+        return -1;
+      return std::strtol(line.c_str() + colon + 1, nullptr, 10);
+    }
+  }
+  return -1;
+}
+
+void GpxLogRss(char const * name, size_t n, long rssBeforeKb)
+{
+  rusage usage{};
+  getrusage(RUSAGE_SELF, &usage);
+  LOG(LINFO, ("SP-085", name, "n =", n, "VmRSS_before_kb =", rssBeforeKb, "VmRSS_after_kb =",
+              GpxReadProcStatusKb("VmRSS:"), "VmHWM_kb =", GpxReadProcStatusKb("VmHWM:"),
+              "ru_maxrss_kb =", usage.ru_maxrss));
+}
+
+std::string GpxMakeSpacedTrack(size_t n)
+{
+  std::string s;
+  s.reserve(n * 48 + 80);
+  s += "<?xml version=\"1.0\"?><gpx><trk><trkseg>";
+  double lon = 16.37;
+  constexpr double kStepDeg = 1.35e-4;
+  for (size_t i = 0; i < n; ++i)
+  {
+    char buf[80];
+    std::snprintf(buf, sizeof(buf), "<trkpt lat=\"48.20000000\" lon=\"%.8f\"/>", lon);
+    s += buf;
+    lon += kStepDeg;
+  }
+  s += "</trkseg></trk></gpx>";
+  return s;
+}
+
+std::string g_gpxCapturedLog;
+
+void GpxCaptureLogMessage(base::LogLevel, base::SrcPoint const &, std::string const & msg)
+{
+  g_gpxCapturedLog.append(msg);
+}
+
+class GpxLogCaptureGuard
+{
+public:
+  GpxLogCaptureGuard()
+  {
+    g_gpxCapturedLog.clear();
+    m_prev = base::SetLogMessageFn(&GpxCaptureLogMessage);
+  }
+
+  GpxLogCaptureGuard(GpxLogCaptureGuard const &) = delete;
+  GpxLogCaptureGuard & operator=(GpxLogCaptureGuard const &) = delete;
+
+  ~GpxLogCaptureGuard() { base::SetLogMessageFn(m_prev); }
+
+  std::string const & Text() const { return g_gpxCapturedLog; }
+
+private:
+  base::LogMessageFn m_prev = nullptr;
+};
+
+UNIT_TEST(Gpx_Malformed_TruncatedXml)
+{
+  GpxExpectDeserializeThrows(R"(<?xml version="1.0"?><gpx><trk><trkseg><trkpt lat="1" lon="1")");
+}
+
+UNIT_TEST(Gpx_Malformed_TruncatedXmlClosedInnerTags)
+{
+  GpxExpectDeserializeThrows(
+      R"(<?xml version="1.0"?><gpx><trk><trkseg><trkpt lat="1" lon="1"></trkpt><trkpt lat="2" lon="2"></trkpt></trkseg></trk>)");
+}
+
+UNIT_TEST(Gpx_Malformed_EmptyFile)
+{
+  GpxExpectDeserializeThrows("");
+}
+
+UNIT_TEST(Gpx_Malformed_NonGpxBytes)
+{
+  GpxExpectDeserializeThrows("this is not xml");
+  std::string const binary("\x00\x01", 2);
+  GpxExpectDeserializeThrows(binary);
+  GpxExpectDeserializeThrows("<foo/>");
+}
+
+UNIT_TEST(Gpx_OutOfRangeCoordinatesAreSkipped)
+{
+  {
+    kml::FileData const data =
+        LoadGpxFromString(GpxTrk(R"(<trkpt lat="91" lon="16.37"/><trkpt lat="91" lon="17.37"/>)"));
+    TEST(data.m_tracksData.empty(), ());
+    GpxExpectPointAbsent(data, mercator::FromLatLon(86.0, 16.37));
+    GpxExpectPointAbsent(data, mercator::FromLatLon(86.0, 17.37));
+    GpxExpectPointAbsent(data, mercator::FromLatLon(90.0, 16.37));
+  }
+  {
+    kml::FileData const data =
+        LoadGpxFromString(GpxTrk(R"(<trkpt lat="-91" lon="16.37"/><trkpt lat="-91" lon="17.37"/>)"));
+    TEST(data.m_tracksData.empty(), ());
+    GpxExpectPointAbsent(data, mercator::FromLatLon(-86.0, 16.37));
+    GpxExpectPointAbsent(data, mercator::FromLatLon(-86.0, 17.37));
+  }
+  {
+    kml::FileData const data =
+        LoadGpxFromString(GpxTrk(R"(<trkpt lat="48.2" lon="181"/><trkpt lat="48.3" lon="181"/>)"));
+    TEST(data.m_tracksData.empty(), ());
+  }
+  {
+    kml::FileData const data =
+        LoadGpxFromString(GpxTrk(R"(<trkpt lat="48.2" lon="-181"/><trkpt lat="48.3" lon="-181"/>)"));
+    TEST(data.m_tracksData.empty(), ());
+  }
+}
+
+UNIT_TEST(Gpx_NonFiniteCoordinatesAreSkipped)
+{
+  base::ScopedLogAbortLevelChanger abortLevel(LCRITICAL);
+  {
+    kml::FileData const data =
+        LoadGpxFromString(GpxTrk(R"(<trkpt lat="NaN" lon="16.37"/><trkpt lat="NaN" lon="17.37"/>)"));
+    TEST(data.m_tracksData.empty(), ());
+    GpxExpectPointAbsent(data, mercator::FromLatLon(0.0, 16.37));
+    GpxExpectPointAbsent(data, mercator::FromLatLon(0.0, 17.37));
+  }
+  {
+    kml::FileData const data =
+        LoadGpxFromString(GpxTrk(R"(<trkpt lat="Inf" lon="16.37"/><trkpt lat="Inf" lon="17.37"/>)"));
+    TEST(data.m_tracksData.empty(), ());
+    GpxExpectPointAbsent(data, mercator::FromLatLon(86.0, 16.37));
+    GpxExpectPointAbsent(data, mercator::FromLatLon(86.0, 17.37));
+  }
+  {
+    kml::FileData const data =
+        LoadGpxFromString(GpxTrk(R"(<trkpt lat="-Inf" lon="16.37"/><trkpt lat="-Inf" lon="17.37"/>)"));
+    TEST(data.m_tracksData.empty(), ());
+    GpxExpectPointAbsent(data, mercator::FromLatLon(-86.0, 16.37));
+    GpxExpectPointAbsent(data, mercator::FromLatLon(-86.0, 17.37));
+  }
+}
+
+UNIT_TEST(Gpx_ValidPointAmongInvalidsIsKept)
+{
+  base::ScopedLogAbortLevelChanger abortLevel(LCRITICAL);
+  kml::FileData const data = LoadGpxFromString(GpxTrk(
+      R"(<trkpt lat="91" lon="16.37"/><trkpt lat="48.2" lon="16.37"/><trkpt lat="48.20135" lon="16.37"/><trkpt lat="NaN" lon="16.37"/>)"));
+  TEST(GpxLineContains(data, mercator::FromLatLon(48.2, 16.37)), ());
+  TEST(GpxLineContains(data, mercator::FromLatLon(48.20135, 16.37)), ());
+  TEST_EQUAL(data.m_tracksData.size(), 1, ());
+  TEST_EQUAL(data.m_tracksData[0].m_geometry.m_lines.size(), 1, ());
+  TEST_EQUAL(data.m_tracksData[0].m_geometry.m_lines[0].size(), 2, ());
+  GpxExpectPointAbsent(data, mercator::FromLatLon(86.0, 16.37));
+  GpxExpectPointAbsent(data, mercator::FromLatLon(0.0, 16.37));
+}
+
+UNIT_TEST(Gpx_WaypointOutOfRangeIsSkipped)
+{
+  kml::FileData const data =
+      LoadGpxFromString(R"(<?xml version="1.0"?><gpx><wpt lat="91" lon="16.37"/></gpx>)");
+  TEST(data.m_bookmarksData.empty(), ());
+}
+
+UNIT_TEST(Gpx_BoundaryCoordinatesAreKept)
+{
+  kml::FileData const data = LoadGpxFromString(GpxTrk(
+      R"(<trkpt lat="90" lon="0"/><trkpt lat="-90" lon="0"/><trkpt lat="0" lon="180"/><trkpt lat="0" lon="-180"/>)"));
+  TEST_EQUAL(data.m_tracksData.size(), 1, ());
+  TEST_EQUAL(data.m_tracksData[0].m_geometry.m_lines.size(), 1, ());
+  TEST_EQUAL(data.m_tracksData[0].m_geometry.m_lines[0].size(), 4, ());
+  TEST(GpxLineContains(data, mercator::FromLatLon(90.0, 0.0)), ());
+  TEST(GpxLineContains(data, mercator::FromLatLon(-90.0, 0.0)), ());
+  TEST(GpxLineContains(data, mercator::FromLatLon(0.0, 180.0)), ());
+  TEST(GpxLineContains(data, mercator::FromLatLon(0.0, -180.0)), ());
+}
+
+UNIT_TEST(Gpx_ParseFailure_DoesNotLogWholePayload)
+{
+  std::string const payload(64 * 1024, '<');
+  GpxLogCaptureGuard capture;
+  kml::FileData data;
+  TEST_ANY_THROW(kml::DeserializerGpx(data).Deserialize(MemReader(payload)), ());
+  TEST_LESS(capture.Text().size(), 1024, (capture.Text().size()));
+  TEST(capture.Text().find("size_bytes") != std::string::npos, (capture.Text()));
+}
+
+UNIT_TEST(Gpx_BillionLaughs_DoesNotExpand)
+{
+  std::string_view constexpr input = R"(<?xml version="1.0"?>
+<!DOCTYPE gpx [
+  <!ENTITY lol "lol">
+  <!ENTITY lol2 "&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;">
+  <!ENTITY lol3 "&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;">
+  <!ENTITY lol4 "&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;">
+  <!ENTITY lol5 "&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;">
+  <!ENTITY lol6 "&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;">
+  <!ENTITY lol7 "&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;">
+  <!ENTITY lol8 "&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;">
+  <!ENTITY lol9 "&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;">
+]>
+<gpx><metadata><name>&lol9;</name></metadata></gpx>
+)";
+  kml::FileData data;
+  try
+  {
+    kml::DeserializerGpx(data).Deserialize(MemReader(input));
+  }
+  catch (...)
+  {}
+  size_t maxLen = 0;
+  for (auto const & kv : data.m_categoryData.m_name)
+    maxLen = std::max(maxLen, kv.second.size());
+  for (auto const & kv : data.m_categoryData.m_description)
+    maxLen = std::max(maxLen, kv.second.size());
+  for (auto const & track : data.m_tracksData)
+  {
+    for (auto const & kv : track.m_name)
+      maxLen = std::max(maxLen, kv.second.size());
+    for (auto const & kv : track.m_description)
+      maxLen = std::max(maxLen, kv.second.size());
+  }
+  TEST_LESS(maxLen, 1024, (maxLen));
+}
+
+UNIT_TEST(Gpx_TenThousandPoints_ParseCompletes)
+{
+  size_t constexpr kN = 10000;
+  std::string const gpx = GpxMakeSpacedTrack(kN);
+  long const rssBefore = GpxReadProcStatusKb("VmRSS:");
+  kml::FileData data;
+  kml::DeserializerGpx(data).Deserialize(MemReader(gpx));
+  TEST_EQUAL(data.m_tracksData.size(), 1, ());
+  TEST_EQUAL(data.m_tracksData[0].m_geometry.m_lines.size(), 1, ());
+  TEST_EQUAL(data.m_tracksData[0].m_geometry.m_lines[0].size(), kN, ());
+  GpxLogRss("Gpx_TenThousandPoints_ParseCompletes", kN, rssBefore);
+}
+
+UNIT_TEST(Gpx_FiftyThousandPoints_ParseCompletes)
+{
+  size_t constexpr kN = 50000;
+  std::string const gpx = GpxMakeSpacedTrack(kN);
+  long const rssBefore = GpxReadProcStatusKb("VmRSS:");
+  kml::FileData data;
+  kml::DeserializerGpx(data).Deserialize(MemReader(gpx));
+  TEST_EQUAL(data.m_tracksData.size(), 1, ());
+  TEST_EQUAL(data.m_tracksData[0].m_geometry.m_lines.size(), 1, ());
+  TEST_EQUAL(data.m_tracksData[0].m_geometry.m_lines[0].size(), kN, ());
+  GpxLogRss("Gpx_FiftyThousandPoints_ParseCompletes", kN, rssBefore);
 }
 
 }  // namespace gpx_tests
