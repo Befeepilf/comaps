@@ -1,6 +1,6 @@
 #pragma once
 
-#include "kml/serdes_gpx.hpp"
+#include "kml/serdes_common.hpp"
 #include "kml/type_utils.hpp"
 #include "kml/types.hpp"
 
