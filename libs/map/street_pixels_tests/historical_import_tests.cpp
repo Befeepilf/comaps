@@ -14,10 +14,16 @@
 
 #include "platform/settings.hpp"
 
+#include "base/logging.hpp"
+
 #include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <fstream>
 #include <initializer_list>
 #include <limits>
 #include <string>
+#include <sys/resource.h>
 #include <vector>
 
 namespace
@@ -90,6 +96,48 @@ public:
 private:
   std::string m_countryId;
 };
+
+long HistReadProcStatusKb(char const * key)
+{
+  std::ifstream in("/proc/self/status");
+  std::string line;
+  while (std::getline(in, line))
+  {
+    if (line.compare(0, std::strlen(key), key) == 0)
+    {
+      auto const colon = line.find(':');
+      if (colon == std::string::npos)
+        return -1;
+      return std::strtol(line.c_str() + colon + 1, nullptr, 10);
+    }
+  }
+  return -1;
+}
+
+void HistLogRss(char const * name, size_t n, long rssBeforeKb)
+{
+  rusage usage{};
+  getrusage(RUSAGE_SELF, &usage);
+  LOG(LINFO, ("SP-085", name, "n =", n, "VmRSS_before_kb =", rssBeforeKb, "VmRSS_after_kb =",
+              HistReadProcStatusKb("VmRSS:"), "VmHWM_kb =", HistReadProcStatusKb("VmHWM:"),
+              "ru_maxrss_kb =", usage.ru_maxrss));
+}
+
+kml::MultiGeometry::LineT SpacedLine(size_t n)
+{
+  kml::MultiGeometry::LineT line;
+  line.reserve(n);
+  double lat = 48.2;
+  double lon = 16.37;
+  for (size_t i = 0; i < n; ++i)
+  {
+    line.emplace_back(mercator::FromLatLon(lat, lon));
+    auto const next = street_pixels_tests::OffsetLatLonByMeters(lat, lon, 15.0, 0.0);
+    lat = next.first;
+    lon = next.second;
+  }
+  return line;
+}
 }  // namespace
 
 UNIT_TEST(HistoricalImport_FirstImportEverLiveClear)
@@ -279,4 +327,28 @@ UNIT_TEST(HistoricalImport_NotReadyDoesNotWriteLedger)
   TEST(!fixture.Manager().IsPixelExploredForTesting(pixelA), ());
   auto const geometryHash = fixture.Manager().ComputeHistoricalGeometryHashForTesting(segments);
   TEST(!street_stats::StreetStatsDB::Instance().IsTrackProcessed(geometryHash, countryId), ());
+}
+
+UNIT_TEST(HistoricalImport_TenThousandPointsCompletes)
+{
+  HistoricalImportBreadcrumbCleanup cleanup;
+  HistoricalImportFixture fixture;
+  size_t constexpr kN = 10000;
+  auto const line = SpacedLine(kN);
+  long const rssBefore = HistReadProcStatusKb("VmRSS:");
+  size_t const marked = fixture.Manager().ImportHistoricalTrack({line});
+  TEST_GREATER_OR_EQUAL(marked, 0, (marked));
+  HistLogRss("HistoricalImport_TenThousandPointsCompletes", kN, rssBefore);
+}
+
+UNIT_TEST(HistoricalImport_FiftyThousandPointsCompletes)
+{
+  HistoricalImportBreadcrumbCleanup cleanup;
+  HistoricalImportFixture fixture;
+  size_t constexpr kN = 50000;
+  auto const line = SpacedLine(kN);
+  long const rssBefore = HistReadProcStatusKb("VmRSS:");
+  size_t const marked = fixture.Manager().ImportHistoricalTrack({line});
+  TEST_GREATER_OR_EQUAL(marked, 0, (marked));
+  HistLogRss("HistoricalImport_FiftyThousandPointsCompletes", kN, rssBefore);
 }
