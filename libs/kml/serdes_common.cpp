@@ -1,12 +1,15 @@
 #include "kml/serdes_common.hpp"
 
+#include "coding/reader.hpp"
 #include "coding/writer.hpp"
 
 #include "geometry/mercator.hpp"
 #include "geometry/point_with_altitude.hpp"
 
+#include "base/logging.hpp"
 #include "base/string_utils.hpp"
 
+#include <algorithm>
 #include <sstream>
 
 namespace kml
@@ -80,6 +83,19 @@ std::string const * GetDefaultLanguage(LocalizableString const & lstr)
   if (find != lstr.end())
     return &find->second;
   return nullptr;
+}
+
+void LogXmlParseFailurePrefix(Reader const & reader, std::string_view kind, size_t prefixBytes)
+{
+  uint64_t const size = reader.Size();
+  size_t const n = static_cast<size_t>(std::min(static_cast<uint64_t>(prefixBytes), size));
+  std::string snippet;
+  if (n > 0)
+  {
+    snippet.resize(n);
+    reader.Read(0, snippet.data(), n);
+  }
+  LOG(LWARNING, ("Could not parse", kind, "size_bytes =", size, "prefix =", snippet));
 }
 
 }  // namespace kml

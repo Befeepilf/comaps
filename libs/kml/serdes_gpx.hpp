@@ -1,5 +1,6 @@
 #pragma once
 
+#include "kml/serdes_common.hpp"
 #include "kml/types.hpp"
 
 #include "coding/parse_xml.hpp"
@@ -8,7 +9,6 @@
 #include "geometry/point_with_altitude.hpp"
 
 #include "base/exception.hpp"
-#include "base/logging.hpp"
 
 #include <cstddef>
 #include <string>
@@ -18,8 +18,6 @@ class Writer;
 
 namespace kml
 {
-void LogXmlParseFailurePrefix(Reader const & reader, std::string_view kind, size_t prefixBytes = 256);
-
 namespace gpx
 {
 

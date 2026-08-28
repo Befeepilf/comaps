@@ -919,6 +919,8 @@ UNIT_TEST(Kml_BadTracks)
   }
 }
 
+namespace
+{
 std::string g_kmlCapturedLog;
 
 void KmlCaptureLogMessage(base::LogLevel, base::SrcPoint const &, std::string const & msg)
@@ -945,6 +947,7 @@ public:
 private:
   base::LogMessageFn m_prev = nullptr;
 };
+}  // namespace
 
 UNIT_TEST(Kml_ParseFailure_DoesNotLogWholePayload)
 {
