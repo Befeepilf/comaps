@@ -95,7 +95,7 @@ private:
 };
 }  // namespace
 
-UNIT_TEST(CompetitionDeletion_SuccessDoesNotClearPixOrRecency)
+UNIT_TEST(CompetitionDeletion_SuccessClearsRecencyKeepsPix)
 {
   ScopedDeletionFixture fixture;
   IdentityStore::SetNicknameClaimPostFnForTesting(
@@ -116,6 +116,22 @@ UNIT_TEST(CompetitionDeletion_SuccessDoesNotClearPixOrRecency)
              ());
   TEST(!fixture.Store().GetLastLiveVisit(ScopedDeletionFixture::kPixelId).has_value(), ());
   TEST(!IdentityStore::HasUsername(), ());
+  TEST(!IdentityStore::HasCompetitionConsent(), ());
+}
+
+UNIT_TEST(CompetitionDeletion_RevokeClearsRecencyKeepsPix)
+{
+  ScopedDeletionFixture fixture;
+  IdentityStore::RevokeCompetitionConsent();
+  auto const after = street_pixels_file::ProbeFile(fixture.PixPath());
+  TEST_EQUAL(static_cast<int>(after.kind), static_cast<int>(fixture.Before().kind), ());
+  auto const explored = street_pixels_file::ScanExploredEverLive(fixture.PixPath());
+  TEST(explored.has_value(), ());
+  TEST(fixture.Explored().has_value(), ());
+  TEST_EQUAL(explored->size(), fixture.Explored()->size(), ());
+  TEST_EQUAL(explored->at(ScopedDeletionFixture::kPixelId), fixture.Explored()->at(ScopedDeletionFixture::kPixelId),
+             ());
+  TEST(!fixture.Store().GetLastLiveVisit(ScopedDeletionFixture::kPixelId).has_value(), ());
   TEST(!IdentityStore::HasCompetitionConsent(), ());
 }
 

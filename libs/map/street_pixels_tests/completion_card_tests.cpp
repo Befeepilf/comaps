@@ -226,7 +226,7 @@ UNIT_TEST(CompletionCard_DenyListFieldsAbsent)
   TEST(!LabelContains(debug, "999"), (debug));
 }
 
-UNIT_TEST(CompletionCard_ComposeWithoutNicknameOrDate)
+UNIT_TEST(CompletionCard_ComposeWithoutNicknameIncludesDate)
 {
   auto source = MakeRectSource();
   auto const model = street_pixels::ComposeCompletionCard(source);
@@ -287,7 +287,7 @@ UNIT_TEST(CompletionCard_RingsOnlyGeometryMatchesOutline)
        (centre.x, centre.y));
 }
 
-UNIT_TEST(CompletionCard_IncludeDateOnlyWhenRequested)
+UNIT_TEST(CompletionCard_IncludesStoredDateWhenPresent)
 {
   auto source = MakeRectSource();
   auto const dated = street_pixels::ComposeCompletionCard(source);

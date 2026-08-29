@@ -226,6 +226,12 @@ UNIT_TEST(CompetitionWeekly_ParseAndFetchRoundTrip)
   TEST(chrome.m_rows[0].find("12") != std::string::npos, (chrome.m_rows[0]));
   TEST(chrome.m_rows[1].find("Another explorer") != std::string::npos, (chrome.m_rows[1]));
 
+  auto const emptyChrome = street_pixels::BuildCompetitionWeeklyChrome(std::nullopt);
+  TEST(emptyChrome.m_body.empty(), ());
+  TEST(emptyChrome.m_rows.empty(), ());
+  street_pixels::CompetitionWeeklyBoard emptyBoard;
+  TEST(street_pixels::BuildCompetitionWeeklyChrome(emptyBoard).m_body.empty(), ());
+
   backend::SetApiBaseUrl("https://example.com/api");
   std::string seenUrl;
   street_pixels::SetCompetitionGetFnForTesting(

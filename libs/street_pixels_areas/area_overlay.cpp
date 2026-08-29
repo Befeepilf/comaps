@@ -284,11 +284,11 @@ std::vector<m2::PointD> OverlayCheckDrawPath(AreaOverlayStyle const & style, m2:
 {
   if (!style.m_showCheck)
     return {};
-  double size = 0.0;
-  if (bounds.IsValid())
-    size = std::max(bounds.SizeX(), bounds.SizeY()) * 0.12;
+  if (!bounds.IsValid())
+    return {};
+  double const size = std::max(bounds.SizeX(), bounds.SizeY()) * 0.12;
   if (!(size > 0.0))
-    size = 1.0;
+    return {};
   return CompletedCheckPolyline(labelPoint, size);
 }
 

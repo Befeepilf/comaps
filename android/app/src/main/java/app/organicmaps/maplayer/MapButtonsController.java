@@ -137,7 +137,7 @@ public class MapButtonsController extends Fragment
   private final Handler mAreaMilestoneHandler = new Handler(Looper.getMainLooper());
   private final Runnable mAcknowledgeAreaMilestone = this::acknowledgeAreaMilestonePresentation;
   private boolean mCompletionCardDebugPreview;
-  private boolean mCompletionCardGeneratedRecorded;
+  private long mCompletionCardGeneratedOsmId;
   private final Observer<Integer> mTopButtonMarginObserver = this::updateTopButtonsMargin;
 
   private LeftButton mLeftButton;
@@ -736,7 +736,7 @@ public class MapButtonsController extends Fragment
       UiUtils.hide(mCompletionCard);
     mCompletionCardDebugPreview = presentation != null && presentation.debugPreview;
     if (presentation == null || presentation.threshold != AreaMilestonePresentation.THRESHOLD_100)
-      mCompletionCardGeneratedRecorded = false;
+      mCompletionCardGeneratedOsmId = 0;
     if (ctx == null || presentation == null)
       return;
     String name = presentation.displayName;
@@ -758,11 +758,12 @@ public class MapButtonsController extends Fragment
         mCompletionCardTitle.setText(getString(R.string.street_pixels_area_milestone_100, name));
       if (mCompletionCardBody != null)
         mCompletionCardBody.setText(getString(R.string.street_pixels_completion_card_body, name));
-      boolean recordGenerated = !mCompletionCardDebugPreview && !mCompletionCardGeneratedRecorded;
+      boolean recordGenerated = CompletionCardGeneratedGate.shouldRecord(
+          mCompletionCardDebugPreview, presentation.threshold, presentation.osmId, mCompletionCardGeneratedOsmId);
       bindCompletionCardOutline(MwmApplication.from(ctx).getStreetPixelsManager().getCurrentCompletionCard(
           recordGenerated));
       if (recordGenerated)
-        mCompletionCardGeneratedRecorded = true;
+        mCompletionCardGeneratedOsmId = presentation.osmId;
       if (mCompletionCard != null)
         UiUtils.show(mCompletionCard);
     }
@@ -833,9 +834,9 @@ public class MapButtonsController extends Fragment
     CompletionCardSharePayload payload = manager.prepareCompletionCardShare();
     if (payload == null || TextUtils.isEmpty(payload.path) || !"image/png".equals(payload.mimeType))
       return;
-    CompletionCardShare.shareImage(ctx, payload);
     if (!mCompletionCardDebugPreview)
       manager.recordCompletionCardShareInitiated();
+    CompletionCardShare.shareImage(ctx, payload);
   }
 
   private void pulseExplorationBadge(int threshold)

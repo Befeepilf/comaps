@@ -262,7 +262,7 @@ UNIT_TEST(CompletionCardShare_PrepareUsesTransientPngNotTrack)
   CleanupShAm(fx);
 }
 
-UNIT_TEST(CompletionCardShare_DateOptInDefaultOff)
+UNIT_TEST(CompletionCardShare_IncludesStoredDate)
 {
   ShAmAnalyticsGuard guard;
   auto fx = MakeShAmFixture("sp068_date_off");
@@ -285,7 +285,7 @@ UNIT_TEST(CompletionCardShare_DateOptInDefaultOff)
   CleanupShAm(fx);
 }
 
-UNIT_TEST(CompletionCardShare_IncludeDateWhenRequested)
+UNIT_TEST(CompletionCardShare_ShareTextContainsIsoDate)
 {
   ShAmAnalyticsGuard guard;
   auto fx = MakeShAmFixture("sp068_date_on");

@@ -156,3 +156,5 @@ Re-verify symbols against the tree at implementation time.
 | --- | --- |
 | Incomplete `.spa` JNI retry is not exercised against a live `MapManager` instance; only the settings-row visibility helper is JVM-tested. | Device/settings walk under SP-095, or an instrumented MapManager test later. |
 | Completed-check glyph, card date, share PNG, Prefer dialog, and weekly sheet still need a handset eyeball. | Already residual to SP-095; do not execute hardware walks in this item. |
+| `RoutingSession::RebuildRouteOnTrafficUpdate` still passes a nullptr remove-route callback. | Out of the H7 `CheckLocationForRouting` row; follow up if traffic rebuild can yield `AvoidExploredNoRoute`. |
+| Area overlay push still styles every geometry as Neighbourhood. | Pre-existing; completed checks now ride the fill pass so street zoom (16+) hides them. |
