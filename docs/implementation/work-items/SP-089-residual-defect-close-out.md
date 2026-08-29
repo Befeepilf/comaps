@@ -1,7 +1,7 @@
 # SP-089 — Locked residual defect close-out
 
 **Phase:** 10 — Android release hardening
-**Status:** Planned
+**Status:** Accepted
 **Depends on:** SP-088 H7 Accepted (**SPD-083**). Phase 10 implementation
   entry (other phases at exit).
 **Unblocks:** SP-094 / SP-095 / SP-097 (those items observe the fixed
@@ -110,7 +110,7 @@ Re-verify symbols against the tree at implementation time.
 2. Unrelated files are not touched.
 3. Focused `street_pixels_tests` / `street_pixels_areas_tests` /
    routing tests named per defect are green (counts recorded).
-4. Agent does not mark Accepted.
+4. Product-owner implement→review lock 2026-08-29.
 
 ## Required automated tests
 
@@ -145,10 +145,10 @@ Re-verify symbols against the tree at implementation time.
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-089-residual-defects-6383` |
-| H7 Fix rows closed | 1–8 implemented (not Accepted): check glyph; incomplete `.spa` Data Management row; SPD-056 date always on / no checkbox; PNG kept while share in flight; CardGenerated once per 100% presentation; off-route Avoid `OnRemoveRoute`; weekly board JNI read; revoke clears `live_recency.db` not `.pix` |
-| Test output | `street_pixels_areas_tests` AreaOverlay_ 11 OK; LiveRecency_ 7 OK. `street_pixels_tests` CompletionCard_ 10 OK; CompletionCardShare_ 11 OK; CompetitionWeekly_/CompetitionSnapshot_ 6 OK; CompetitionDeletion_ 2 OK; IdentityStore_ 28 OK. `routing_tests` RebuildRoute_AvoidExploredNoRoute 1 OK. IncompleteSpaSettingsVisibilityTest 2 OK (standalone JUnit). Commands used `/workspace/omim-build-debug` binaries. Storage.cpp untouched so Storage_SpaIncomplete_* not re-run. |
-| Accepted by | |
-| Accepted date | |
+| H7 Fix rows closed | 1–8: check glyph; incomplete `.spa` Data Management row; SPD-056 date always on / no checkbox; PNG kept while share in flight; CardGenerated once per 100% `osmId`; off-route Avoid `OnRemoveRoute`; weekly board JNI read; revoke clears `live_recency.db` not `.pix`. Review commit `86b70aa68`. |
+| Test output | `street_pixels_areas_tests` AreaOverlay_ 11 OK; LiveRecency_ 7 OK. `street_pixels_tests` CompletionCard_ 10 OK; CompletionCardShare_ 11 OK; CompetitionWeekly_/CompetitionSnapshot_ 6 OK; CompetitionDeletion_ 3 OK; IdentityStore_ 28 OK. `routing_tests` RebuildRoute_AvoidExploredNoRoute 1 OK. IncompleteSpaSettingsVisibilityTest 2 OK; CompletionCardGeneratedGateTest 2 OK. `/workspace/omim-build-debug`. |
+| Accepted by | product owner (implement → review lock 2026-08-29) |
+| Accepted date | 2026-08-29 |
 
 ## Discovered follow-up
 
