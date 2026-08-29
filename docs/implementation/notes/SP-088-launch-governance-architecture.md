@@ -13,7 +13,8 @@ It is not a decision.
 
 ## Entry vs planning
 
-Phase 10 **implementation** still requires every other phase at exit, no open
+Phase 10 **implementation** still requires Phases 1–9 at exit, no open
+work item, and a release-configured build. Phase 11 is not a prerequisite.
 in-progress work item, and a release-configured installable build
 (`phases/phase-10-android-release-hardening.md` entry criteria).
 

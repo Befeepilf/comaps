@@ -2491,8 +2491,11 @@ card/share date opt-in. Phase 8 product locks 2026-08-23 via SP-070 as
 on-device test *execution* are residual (not implemented in later Phase 10
 coding items); the decisions themselves are Accepted.
 
-Every row below is struck. None remains an open question; the table is
-kept so the history is not lost.
+**OQ-40–OQ-49** are **open** (Phase 11 map origin; SP-098). They are not
+decisions. Recommended positions live in
+[`work-items/SP-098-map-pipeline-architecture-decisions.md`](work-items/SP-098-map-pipeline-architecture-decisions.md).
+
+OQ-1–OQ-39 remain struck so that history is not lost.
 
 | Ref | Question | Source | Blocks |
 | --- | --- | --- | --- |
@@ -2535,6 +2538,16 @@ kept so the history is not lost.
 | OQ-37 | ~~Phase 10 H8: reuse upstream CoMaps release workflows and Play listing as-is?~~ | SP-088 (2026-08-29); `.forgejo/workflows/android-release.yaml` | **Closed by SPD-084** — reuse machinery; application name, listing copy, privacy/terms URLs residual. |
 | OQ-38 | ~~Phase 10 H9: how far does SPD-061 hide friends in the public APK?~~ | SP-088 (2026-08-29); SPD-061; add-friend intent-filters | **Closed by SPD-085** — hide UI and public add-friend filters; implementable in SP-092 (not brand). |
 | OQ-39 | ~~Phase 10 H10: must Forgejo C++ test exclusions be narrowed before launch?~~ | SP-088 (2026-08-29); README §8.1; SP-002 | **Closed by SPD-086** — recorded local suites are the V1 gate; CI narrowing not a Phase 10 blocker. |
+| OQ-40 | May stock Street Pixels builds use CoMaps map CDNs for `.mwm` / `.spa` / countries / `maps.json`? | Phase 11; SP-098 P1; SPD-003 | **Open.** Recommended: no. Format-compatible maps, own origin. |
+| OQ-41 | Where do we generate vs serve? | Phase 11; SP-098 P2 | **Open.** Recommended: ≥32 GiB builder; 8 GiB VPS serve-only. |
+| OQ-42 | Option A mapgen collectors in this phase? | Phase 11; SP-098 P3; SPD-033 | **Open.** Recommended: no; glue Option B. |
+| OQ-43 | First publish grain? | Phase 11; SP-098 P4 | **Open.** Recommended: eight FI leaves + extract World. |
+| OQ-44 | Map-signing keys and Channel A vs B? | Phase 11; SP-098 P5; SPD-036/037 | **Open.** Recommended: Street Pixels Ed25519; Channel A on the public origin. |
+| OQ-45 | Keep `MAP_SERIES` `2026.06.28`? | Phase 11; SP-098 P6 | **Open.** Recommended: keep unless compatibility requires a bump. |
+| OQ-46 | Does Phase 11 block Phase 10? Is it an S4 hosting gate? | Phase 11; SP-098 P7 | **Open.** Recommended: not a Phase 10 blocker; recommended S4 hosting gate. |
+| OQ-47 | Coastline / WorldCoasts for extract builds? | Phase 11; SP-098 P8 | **Open.** Recommended: skip if extract coasts fail; document missing water fill. |
+| OQ-48 | Optional mapgen extras (hotels, isolines, SRTM, subway, UGC, Wikipedia)? | Phase 11; SP-098 P9 | **Open.** Recommended: off by default. |
+| OQ-49 | Orchestration shape (CLI vs VPS generate daemon)? | Phase 11; SP-098 P10 | **Open.** Recommended: one build-host CLI + rsync; reuse SPD-035 layout. |
 
 When one of these is answered, add a new `SPD-NNN` entry above and strike the
 row here with a reference to it.
