@@ -2157,7 +2157,9 @@ Phase 7 M1–M10 were locked 2026-08-19 via SP-062 as **SPD-046–055** (see
 numbered sections above). **SPD-056** (2026-08-23) supersedes SPD-051’s
 card/share date opt-in. Phase 8 product locks 2026-08-23 via SP-070 as
 **SPD-057–066**. Phase 9 G1–G10 locked 2026-08-28 via SP-080 as
-**SPD-067–076**. Remaining open
+**SPD-067–076**. Phase 10 H1–H10 are proposed 2026-08-29 via SP-088 as
+**OQ-30–OQ-39** (draft SPD-077–086); they are **not** Accepted.
+Remaining open
 questions:
 
 | Ref | Question | Source | Blocks |
@@ -2191,6 +2193,16 @@ questions:
 | OQ-27 | ~~Phase 9 G8: Explorer Pro information page in V1?~~ | SP-080 (2026-08-28); spec §32.5; SPD-010 | **Closed by SPD-074** — explanation page only when capabilities are available; no price, buy, or restore. |
 | OQ-28 | ~~Phase 9 G9: monetisation analytics shape and when they fire?~~ | SP-080 (2026-08-28); spec §32.5; SPD-044, SPD-055 | **Closed by SPD-075** — count-only local uint64; increment only when the matching capability is available; upload residual Phase 10. |
 | OQ-29 | ~~Phase 9 G10: is audit Spike 9 a separate Phase 9 entry spike?~~ | SP-080 (2026-08-28); audit §27 Q9 | **Closed by SPD-076** — no; isolation → SP-082; 10k-point memory → SP-085. |
+| OQ-30 | Phase 10 H1: which device matrix is sufficient for public V1? | SP-088 (2026-08-29); phase-10; audit §22 OEM | **Open** — recommended D1 Pixel-class + D2 one aggressive OEM (draft SPD-077). |
+| OQ-31 | Phase 10 H2: what is “acceptable” battery and rendering? | SP-088 (2026-08-29); spec §34 Quality; SP-033 Spike 1 | **Open** — recommended keep Spike 1 bar; battery protocol now, numeric ceiling after SP-094 (draft SPD-078). |
+| OQ-32 | Phase 10 H3: which store flavors are the first public V1? | SP-088 (2026-08-29); spec §5; `android/app/build.gradle` | **Open** — recommended Google Play gate; F-Droid same artefact optional; Huawei/web not a gate (draft SPD-079). |
+| OQ-33 | Phase 10 H4: where do privacy policy and terms live, and who owns them? | SP-088 (2026-08-29); spec §34; `HelpFragment` → comaps.app | **Open** — recommended product-owned Street Pixels text, not unmodified CoMaps pages (draft SPD-080). |
+| OQ-34 | Phase 10 H5: do product-analytics counters upload in V1? | SP-088 (2026-08-29); spec §32; SPD-044, SPD-055, SPD-075 | **Open** — recommended no new public sink; local uint64 only (draft SPD-081). |
+| OQ-35 | Phase 10 H6: add `ACCESS_BACKGROUND_LOCATION`? | SP-088 (2026-08-29); SP-012; spec §34 | **Open** — recommended keep absent unless D2 proves FGS insufficient (draft SPD-082). |
+| OQ-36 | Phase 10 H7: how is each carried residual classified (Fix / Measure / Device-verify / Ops / Accept / not Phase 10)? | SP-088 (2026-08-29); phase-10 residual table | **Open** — recommended disposition in `notes/SP-088-launch-governance-architecture.md` (draft SPD-083). |
+| OQ-37 | Phase 10 H8: reuse upstream CoMaps release workflows and Play listing as-is? | SP-088 (2026-08-29); `.forgejo/workflows/android-release.yaml` | **Open** — recommended reuse machinery; fork listing, applicationId, and signing (draft SPD-084). |
+| OQ-38 | Phase 10 H9: how far does SPD-061 hide friends in the public APK? | SP-088 (2026-08-29); SPD-061; add-friend intent-filters | **Open** — recommended hide UI and public add-friend filters; code may stay (draft SPD-085). |
+| OQ-39 | Phase 10 H10: must Forgejo C++ test exclusions be narrowed before launch? | SP-088 (2026-08-29); README §8.1; SP-002 | **Open** — recommended recorded local suites as the V1 gate; CI narrowing not a Phase 10 blocker (draft SPD-086). |
 
 When one of these is answered, add a new `SPD-NNN` entry above and strike the
 row here with a reference to it.
