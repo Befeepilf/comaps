@@ -2,7 +2,7 @@
 
 **Phase:** 11 — Independent map build and serve
 **Status:** Planned
-**Depends on:** SP-098 lock (P4, P8); SP-099–102
+**Depends on:** SP-098 lock (**SPD-090**, **SPD-094**, **SPD-095**); SP-099–102
 **Unblocks:** SP-104
 
 ---
@@ -27,7 +27,8 @@ Phase 5/10 Helsinki walks need real `.spa` beside MWM.
 
 ## In-scope behavior
 
-- Run SP-100 with P4 grain; `NODE_STORAGE: map`; P8/P9 defaults.
+- Run SP-100 with **SPD-090** grain; `NODE_STORAGE: map`; **SPD-094** /
+  **SPD-095** defaults (extras on; skip coasts if they fail).
 - Record: git SHA, generator binary identity, PBF source URL + checksum,
   wall time, peak RAM if reasonably available, per-leaf MWM bytes, spa
   `area_count` / `assign_count` / file bytes, Helsinki known-id spot-check.

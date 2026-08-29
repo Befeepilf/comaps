@@ -2,7 +2,7 @@
 
 **Phase:** 11 — Independent map build and serve
 **Status:** Planned
-**Depends on:** SP-098 lock (P3: Option B; P9 extras off does not affect this)
+**Depends on:** SP-098 lock (**SPD-089**; **SPD-095** extras on does not affect this)
 **Unblocks:** SP-100, SP-103
 
 ---

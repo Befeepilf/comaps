@@ -2476,6 +2476,221 @@ Closes OQ-39.
 
 ---
 
+## SPD-087 — Stock builds do not use CoMaps map CDNs
+
+**Decision.** Stock Street Pixels APKs must not request CoMaps map hosts
+for `.mwm`, `.spa`, `countries.txt`, or `meta/maps.json`.
+`DEFAULT_URLS_JSON`, `METASERVER_URL`, and `configure.sh` World fetch must
+not use CoMaps map peers (including community mirrors of that CDN). OSM
+extracts for generation come from Geofabrik / planet.openstreetmap.org.
+**SPD-003** means compatible **MWM format**, not CoMaps CDN origin.
+Custom Maps URL remains a user Advanced override (D12). Debug
+`prepare_spa_debug_root` is not the production countries source.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-29 via SP-098 (recommended P1).
+Closes OQ-40.
+
+**Consequences.**
+
+- SP-101 replaces stock host list and World bootstrap.
+- Reject shipping CoMaps URLs “until ours is ready” in a public APK.
+
+**Related documents.** SPD-003; D12; SP-004; SP-098; SP-101; OQ-40.
+
+---
+
+## SPD-088 — Generate on ≥32 GiB; VPS serves only
+
+**Decision.** MWM and `.spa` generation runs on a builder with ≥32 GiB RAM
+(`NODE_STORAGE: map`, capped threads). The 8 GiB VPS **serves** an SP-050
+tree only. `maps_generator` on that VPS is unsupported. Full-planet
+`NODE_STORAGE: mem` (~100 GiB / 256 GiB-class) is out of this phase.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-29 via SP-098 (recommended P2).
+Closes OQ-41.
+
+**Consequences.**
+
+- SP-100 / SP-102 document the split. SP-103 runs on the builder.
+
+**Related documents.** SP-098; SP-100; SP-102; OQ-41.
+
+---
+
+## SPD-089 — Phase 11 glues Option B; Option A stays out
+
+**Decision.** This phase orchestrates `maps_generator` plus offline
+`spa_emit_tool` (Option B). It does **not** implement OSM collectors or
+`StageMwm` `.spa` emit (Option A). Option A remains unallocated.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-29 via SP-098 (recommended P3).
+Affirms **SPD-033** / **SPD-038**. Closes OQ-42.
+
+**Consequences.**
+
+- Seamless operator path = one CLI calling existing tools (SP-100).
+- `generator/` may keep unused `street_pixels_areas` link until a later WI.
+
+**Related documents.** SPD-033; SPD-038; SP-044; SP-098; SP-100; OQ-42.
+
+---
+
+## SPD-090 — First publish grain is Finland eight leaves plus extract World
+
+**Decision.** The first production-shaped run is all eight `Finland_*`
+leaves plus extract-sourced `World.mwm`. Further countries use the same
+CLI later. The client has **no** city or country allowlist.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-29 via SP-098 (recommended P4).
+Closes OQ-43.
+
+**Consequences.**
+
+- SP-103 is that Finland run. `WorldCoasts` follows **SPD-094**.
+
+**Related documents.** SPD-003; SPD-004; SP-098; SP-103; OQ-43.
+
+---
+
+## SPD-091 — Street Pixels Ed25519; Channel A on the public origin
+
+**Decision.** Generate Street Pixels Ed25519 keys. The public half is
+`COUNTRIES_TXT_SIGNATURE_HEX` in this fork’s `private.h`. The public origin
+uses Channel A (signed `countries.txt` + version bump, **SPD-036**).
+Channel B stays debug-only (**SPD-037**). Do not skip verification.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-29 via SP-098 (recommended P5).
+Closes OQ-44.
+
+**Consequences.**
+
+- SP-101 owns keygen recipe and template. Secrets stay gitignored.
+
+**Related documents.** SPD-036; SPD-037; SP-098; SP-101; OQ-44.
+
+---
+
+## SPD-092 — Keep `MAP_SERIES` `2026.06.28` unless compatibility requires a bump
+
+**Decision.** Keep `MAP_SERIES` `2026.06.28` unless generator/app
+compatibility requires a new epoch. The string is a client URL epoch,
+not a CoMaps brand claim.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-29 via SP-098 (recommended P6).
+Closes OQ-45.
+
+**Consequences.**
+
+- Assemble / serve paths stay `maps/2026.06.28/{v}/` until a bump WI.
+
+**Related documents.** SPD-035; SP-098; SP-100; OQ-45.
+
+---
+
+## SPD-093 — Phase 11 does not block Phase 10; S4 must not ship CoMaps map URLs
+
+**Decision.** Phase 11 does **not** block Phase 10 exit. Public slice **S4**
+must not ship CoMaps map URLs in `DEFAULT_URLS_JSON` / `METASERVER_URL` /
+`configure.sh`. Phase 11 may run in parallel with Phases 5–10. Reject
+Finland-only runtime in the client.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-29 via SP-098 (recommended P7).
+Closes OQ-46.
+
+**Consequences.**
+
+- README §5 S4 lists Phase 11 as a hosting gate, not a Phase 10 exit line.
+- SP-089+ stay gated on Phases 1–9 as today.
+
+**Related documents.** SPD-087; SP-098; phase-10; README §5; OQ-46.
+
+---
+
+## SPD-094 — Skip coastline when extract coasts fail
+
+**Decision.** Skip `Coastline` and omit `WorldCoasts` when a country extract
+cannot produce valid coasts. Document missing ocean fill. Planet-quality
+`WorldCoasts` is a residual (rent-a-box / later run), not a Phase 11 exit.
+
+`maps_generator` forbids World + skip-coast together; the operator CLI
+must preflight that pairing (**SPD-090** World still generated from the
+extract).
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-29 via SP-098 (recommended P8).
+Closes OQ-47.
+
+**Consequences.**
+
+- SP-100 preflight; SP-103 records whether water fill is absent.
+
+**Related documents.** SP-098; SP-100; SP-103; OQ-47.
+
+---
+
+## SPD-095 — Mapgen extras default on (map tool first)
+
+**Decision.** Operator-pipeline defaults **enable** hotels, isolines, SRTM,
+subway, UGC, and Wikipedia/description stages. Street Pixels remains
+primarily a **map** tool; exploration and gamification are secondary, so
+generated MWMs should carry the usual map layers when datasets exist.
+
+**P1 / SPD-087 still holds for the phone:** extras are **build-host**
+inputs, not CoMaps map-CDN URLs in the APK. Prefer local files, OSM/SRTM,
+self-generated subway (`docs/SUBWAY_GENERATION.md`), and operator-configured
+paths. If a named extra has no independent source, skip that feed with a
+recorded warning in SP-100/SP-103 — do not fetch CoMaps map hosts to
+“complete” it.
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-29 via SP-098. **Override** of the
+recommended P9 (off). Closes OQ-48.
+
+**Consequences.**
+
+- SP-100 default ini turns these stages on; RAM/disk on the 32 GiB builder
+  may be tighter; cap threads still (**SPD-088**).
+- Isolines still need `topography_generator_tool` + SRTM data when enabled.
+
+**Related documents.** SPD-087; SP-098; SP-100; SP-103; OQ-48.
+
+---
+
+## SPD-096 — One build-host CLI plus rsync; reuse SPD-035 layout
+
+**Decision.** Orchestration is one build-host CLI plus rsync of the SP-050
+tree. No generate daemon on the VPS. Reuse assemble/serve. Do not add
+`/spa/` or a second URL scheme (**SPD-035**).
+
+**Status.** Accepted.
+
+**Context.** Product-owner lock 2026-08-29 via SP-098 (recommended P10).
+Closes OQ-49.
+
+**Consequences.**
+
+- SP-100 is the entrypoint; SP-102 is rsync + static HTTP.
+
+**Related documents.** SPD-035; SPD-088; SP-098; SP-100; SP-102; OQ-49.
+
+---
+
 ## 15. Recorded open questions (not decisions)
 
 These are carried from existing project documents. They are listed so they are
@@ -2491,11 +2706,11 @@ card/share date opt-in. Phase 8 product locks 2026-08-23 via SP-070 as
 on-device test *execution* are residual (not implemented in later Phase 10
 coding items); the decisions themselves are Accepted.
 
-**OQ-40–OQ-49** are **open** (Phase 11 map origin; SP-098). They are not
-decisions. Recommended positions live in
-[`work-items/SP-098-map-pipeline-architecture-decisions.md`](work-items/SP-098-map-pipeline-architecture-decisions.md).
+**OQ-40–OQ-49** are **closed** 2026-08-29 via SP-098 as **SPD-087–096**
+(P9 override: extras **on**). Recommended positions were accepted except
+P9.
 
-OQ-1–OQ-39 remain struck so that history is not lost.
+OQ-1–OQ-49 remain struck so that history is not lost.
 
 | Ref | Question | Source | Blocks |
 | --- | --- | --- | --- |
@@ -2538,16 +2753,16 @@ OQ-1–OQ-39 remain struck so that history is not lost.
 | OQ-37 | ~~Phase 10 H8: reuse upstream CoMaps release workflows and Play listing as-is?~~ | SP-088 (2026-08-29); `.forgejo/workflows/android-release.yaml` | **Closed by SPD-084** — reuse machinery; application name, listing copy, privacy/terms URLs residual. |
 | OQ-38 | ~~Phase 10 H9: how far does SPD-061 hide friends in the public APK?~~ | SP-088 (2026-08-29); SPD-061; add-friend intent-filters | **Closed by SPD-085** — hide UI and public add-friend filters; implementable in SP-092 (not brand). |
 | OQ-39 | ~~Phase 10 H10: must Forgejo C++ test exclusions be narrowed before launch?~~ | SP-088 (2026-08-29); README §8.1; SP-002 | **Closed by SPD-086** — recorded local suites are the V1 gate; CI narrowing not a Phase 10 blocker. |
-| OQ-40 | May stock Street Pixels builds use CoMaps map CDNs for `.mwm` / `.spa` / countries / `maps.json`? | Phase 11; SP-098 P1; SPD-003 | **Open.** Recommended: no. Format-compatible maps, own origin. |
-| OQ-41 | Where do we generate vs serve? | Phase 11; SP-098 P2 | **Open.** Recommended: ≥32 GiB builder; 8 GiB VPS serve-only. |
-| OQ-42 | Option A mapgen collectors in this phase? | Phase 11; SP-098 P3; SPD-033 | **Open.** Recommended: no; glue Option B. |
-| OQ-43 | First publish grain? | Phase 11; SP-098 P4 | **Open.** Recommended: eight FI leaves + extract World. |
-| OQ-44 | Map-signing keys and Channel A vs B? | Phase 11; SP-098 P5; SPD-036/037 | **Open.** Recommended: Street Pixels Ed25519; Channel A on the public origin. |
-| OQ-45 | Keep `MAP_SERIES` `2026.06.28`? | Phase 11; SP-098 P6 | **Open.** Recommended: keep unless compatibility requires a bump. |
-| OQ-46 | Does Phase 11 block Phase 10? Is it an S4 hosting gate? | Phase 11; SP-098 P7 | **Open.** Recommended: not a Phase 10 blocker; recommended S4 hosting gate. |
-| OQ-47 | Coastline / WorldCoasts for extract builds? | Phase 11; SP-098 P8 | **Open.** Recommended: skip if extract coasts fail; document missing water fill. |
-| OQ-48 | Optional mapgen extras (hotels, isolines, SRTM, subway, UGC, Wikipedia)? | Phase 11; SP-098 P9 | **Open.** Recommended: off by default. |
-| OQ-49 | Orchestration shape (CLI vs VPS generate daemon)? | Phase 11; SP-098 P10 | **Open.** Recommended: one build-host CLI + rsync; reuse SPD-035 layout. |
+| OQ-40 | ~~May stock Street Pixels builds use CoMaps map CDNs for `.mwm` / `.spa` / countries / `maps.json`?~~ | Phase 11; SP-098 P1; SPD-003 | **Closed by SPD-087** — no. Format-compatible maps, own origin. |
+| OQ-41 | ~~Where do we generate vs serve?~~ | Phase 11; SP-098 P2 | **Closed by SPD-088** — ≥32 GiB builder; 8 GiB VPS serve-only. |
+| OQ-42 | ~~Option A mapgen collectors in this phase?~~ | Phase 11; SP-098 P3; SPD-033 | **Closed by SPD-089** — no; glue Option B. |
+| OQ-43 | ~~First publish grain?~~ | Phase 11; SP-098 P4 | **Closed by SPD-090** — eight FI leaves + extract World. |
+| OQ-44 | ~~Map-signing keys and Channel A vs B?~~ | Phase 11; SP-098 P5; SPD-036/037 | **Closed by SPD-091** — Street Pixels Ed25519; Channel A on the public origin. |
+| OQ-45 | ~~Keep `MAP_SERIES` `2026.06.28`?~~ | Phase 11; SP-098 P6 | **Closed by SPD-092** — keep unless compatibility requires a bump. |
+| OQ-46 | ~~Does Phase 11 block Phase 10? Is it an S4 hosting gate?~~ | Phase 11; SP-098 P7 | **Closed by SPD-093** — not a Phase 10 blocker; S4 must not ship CoMaps map URLs. |
+| OQ-47 | ~~Coastline / WorldCoasts for extract builds?~~ | Phase 11; SP-098 P8 | **Closed by SPD-094** — skip if extract coasts fail; document missing water fill. |
+| OQ-48 | ~~Optional mapgen extras (hotels, isolines, SRTM, subway, UGC, Wikipedia)?~~ | Phase 11; SP-098 P9 | **Closed by SPD-095** — **on** by default (map tool first; override of recommended off). |
+| OQ-49 | ~~Orchestration shape (CLI vs VPS generate daemon)?~~ | Phase 11; SP-098 P10 | **Closed by SPD-096** — one build-host CLI + rsync; reuse SPD-035 layout. |
 
 When one of these is answered, add a new `SPD-NNN` entry above and strike the
 row here with a reference to it.

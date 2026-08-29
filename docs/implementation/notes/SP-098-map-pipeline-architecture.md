@@ -3,10 +3,10 @@
 **Authored:** 2026-08-29
 **Scope:** Why Street Pixels needs its own MWM+`.spa` generate-and-publish
 pipeline, what already exists, and the locks Phase 11 must not guess.
-**Authority:** Snapshot of the working tree and accepted SPDs. Not a product
-decision. Recommended P1–P10 live in
+**Authority:** Snapshot of the working tree and accepted SPDs. P1–P10
+locked 2026-08-29 as **SPD-087–096** in
 [`../work-items/SP-098-map-pipeline-architecture-decisions.md`](../work-items/SP-098-map-pipeline-architecture-decisions.md)
-until the product owner locks them.
+(P9 override: extras on).
 
 ---
 
@@ -116,7 +116,7 @@ Not in this phase: Option A collectors; planet-quality World/coasts unless a lat
 
 | Tension | Notes |
 | --- | --- |
-| Spec / **SPD-003** “wherever compatible CoMaps map data exists” | Recommended: **format** compatibility (MWM + our `.spa`), **not** CoMaps CDN origin. Own-hosted maps still satisfy worldwide availability. Do not edit the spec. |
+| Spec / **SPD-003** “wherever compatible CoMaps map data exists” | **SPD-087**: **format** compatibility (MWM + our `.spa`), **not** CoMaps CDN origin. Do not edit the spec. |
 | README §3 “Automatic map updates” is post-V1 | This phase uses the **existing manual** download/update path. No new auto-update protocol. |
 | **SPD-033** packaging is Phase 4 residual | Client/layout work stays there. Phase 11 is **origin + generate**. Do not reopen SP-042–048. |
 | D12 Custom URL never a build default | Keep. Changing `DEFAULT_URLS_JSON` to a Street Pixels HTTPS origin is the stock path, not a baked LAN Custom Maps URL. |
@@ -124,12 +124,16 @@ Not in this phase: Option A collectors; planet-quality World/coasts unless a lat
 
 ---
 
-## 7. Recommended operator defaults (not locks)
+## 7. Operator defaults (locked)
 
-Until P-locks: skip hotels, popularity, subway, isolines, SRTM, Wikipedia, UGC.
-Skip `Coastline` if extract coasts fail; then omit `WorldCoasts` (`maps_generator` forbids World + skip-coast). Accept missing ocean fill for the Finland first grain.
+**SPD-095:** hotels, isolines, SRTM, subway, UGC, Wikipedia/descriptions
+**on** by default (map tool first). Build-host datasets only; skip+warn if
+no independent source (**SPD-087**).
 
-`MAP_SERIES` stays `2026.06.28` unless a generator/app compatibility bump is required — it is a client epoch, not a CoMaps trademark in the protocol.
+**SPD-094:** skip `Coastline` if extract coasts fail; omit `WorldCoasts`.
+Accept missing ocean fill for the Finland first grain.
+
+**SPD-092:** `MAP_SERIES` stays `2026.06.28` unless a compatibility bump.
 
 ---
 

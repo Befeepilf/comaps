@@ -2,7 +2,7 @@
 
 **Phase:** 11 — Independent map build and serve
 **Status:** Planned
-**Depends on:** SP-098 lock (P1, P5, P6, P7)
+**Depends on:** SP-098 lock (**SPD-087**, **SPD-091**, **SPD-092**, **SPD-093**)
 **Unblocks:** SP-103 (Channel A); stock APK origin
 
 ---
