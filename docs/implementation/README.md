@@ -554,7 +554,7 @@ FromLatLon; system expat).
 | 93 | [SP-093](work-items/SP-093-privacy-policy-terms-consent.md) | Privacy policy, terms, and consent alignment | 10 | **Residual** (slice close-out 2026-08-29) — brand: privacy policy + terms; SPD-080 landing remains open |
 | 94 | [SP-094](work-items/SP-094-battery-rendering-lifecycle.md) | Battery, rendering, and lifecycle measurement | 10 | **Protocol documented** 2026-08-29 ([plan](validation/SP-094-validation-plan.md), [evidence log](validation/SP-094-evidence-log.md)); **device execution Residual** (SPD-078); not Accepted |
 | 95 | [SP-095](work-items/SP-095-device-matrix-residual-close-out.md) | Device-matrix residual close-out | 10 | **Roster documented** 2026-08-29 ([plan](validation/SP-095-validation-plan.md), [evidence log](validation/SP-095-evidence-log.md)); **device execution Residual** (SPD-077 / SPD-083); not Accepted |
-| 96 | [SP-096](work-items/SP-096-risk-register-and-release-pipeline.md) | Risk-register close-out and release pipeline | 10 | **Planned** — §22/§26 risk table; signed APK/ops may residual; brand listing residual |
+| 96 | [SP-096](work-items/SP-096-risk-register-and-release-pipeline.md) | Risk-register close-out and release pipeline | 10 | **Close-out recorded** 2026-08-29 ([note](notes/SP-096-risk-register-close-out.md)); signed APK/ops residual; brand listing residual; §26 #5 competition backend residual Ops; not Accepted |
 | 97 | [SP-097](work-items/SP-097-phase10-launch-requirement-verification.md) | Phase 10 / §34 verification | 10 | **Planned** — automated suites + evidence mapping (SPD-086); device/manual Residual |
 
 Phase 10 work-item planning (2026-08-29) recorded in
