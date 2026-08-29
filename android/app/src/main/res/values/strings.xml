@@ -214,6 +214,9 @@
     <string name="prefs_group_interface_summary">Night mode, buttons, haptics, language</string>
     <string name="prefs_group_data_management">Data management</string>
     <string name="prefs_group_data_management_summary">Map storage, backup favorites</string>
+    <string name="pref_incomplete_spa_title">Incomplete area data</string>
+    <string name="pref_incomplete_spa_summary">%1$d maps are missing area data. Tap to retry without re-downloading the map.</string>
+    <string name="pref_incomplete_spa_retrying">Retrying incomplete area data</string>
     <string name="prefs_group_information">Information</string>
     <string name="prefs_group_route">Navigation</string>
     <string name="prefs_group_route_summary">Units, voice instructions, routing options</string>
