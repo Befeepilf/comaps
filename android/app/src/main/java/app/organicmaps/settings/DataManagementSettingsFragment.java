@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 import androidx.preference.Preference;
 import androidx.preference.TwoStatePreference;
 import app.organicmaps.R;
+import app.organicmaps.bookmarks.BookmarkCategoriesActivity;
 import app.organicmaps.downloader.OnmapDownloader;
 import app.organicmaps.sdk.ExplorerPro;
 import app.organicmaps.sdk.downloader.MapManager;
@@ -30,6 +31,7 @@ public class DataManagementSettingsFragment extends BaseXmlSettingsFragment
 
     initStoragePrefCallbacks();
     initBackupPrefCallback();
+    initLocalRecordingsPref();
     initAutoDownloadPrefsCallbacks();
     initIncompleteSpaPref();
     initGpxToolsPref();
@@ -124,6 +126,15 @@ public class DataManagementSettingsFragment extends BaseXmlSettingsFragment
     final Preference pref = getPreference(getString(R.string.pref_backup));
     pref.setOnPreferenceClickListener(preference -> {
       getSettingsActivity().stackFragment(BackupSettingsFragment.class, getString(R.string.pref_backup_title), null);
+      return true;
+    });
+  }
+
+  private void initLocalRecordingsPref()
+  {
+    Preference pref = getPreference(getString(R.string.pref_local_recordings));
+    pref.setOnPreferenceClickListener(preference -> {
+      BookmarkCategoriesActivity.start(requireActivity());
       return true;
     });
   }

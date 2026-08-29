@@ -159,7 +159,7 @@ public class MyAccountDialogFragment extends DialogFragment
   {
     if (result == 0)
     {
-      Toast.makeText(requireContext(), R.string.friends_signup_success, Toast.LENGTH_SHORT).show();
+      Toast.makeText(requireContext(), R.string.competition_nickname_saved, Toast.LENGTH_SHORT).show();
       updateSignupVisibility();
       return;
     }
