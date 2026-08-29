@@ -84,7 +84,7 @@ V1 scope. Explorer Pro **purchasing** is not.
 | 6 | Exploration-aware routing | [`phases/phase-06-exploration-aware-routing.md`](phases/phase-06-exploration-aware-routing.md) | Not started |
 | 7 | Milestones and share cards | [`phases/phase-07-milestones-and-share-cards.md`](phases/phase-07-milestones-and-share-cards.md) | In progress (SP-069 In review; exit awaiting maintainer) |
 | 8 | Competition | [`phases/phase-08-competition.md`](phases/phase-08-competition.md) | SP-070 Accepted; SP-071 in progress; SP-072–074 Accepted |
-| 9 | GPX and feature gating | [`phases/phase-09-gpx-and-feature-gating.md`](phases/phase-09-gpx-and-feature-gating.md) | In progress (SP-081–087 Accepted; Phase 9 exit awaiting maintainer) |
+| 9 | GPX and feature gating | [`phases/phase-09-gpx-and-feature-gating.md`](phases/phase-09-gpx-and-feature-gating.md) | Exit criteria met 2026-08-28 with residuals → Phase 10 |
 | 10 | Android release hardening | [`phases/phase-10-android-release-hardening.md`](phases/phase-10-android-release-hardening.md) | Not started |
 
 Phase order is unchanged from the originally proposed sequence. Repository
@@ -527,24 +527,22 @@ override of spec §20.4). SP-071 **In progress**. SP-072 **Accepted**
 
 | Order | ID | Title | Phase | Why first |
 | --- | --- | --- | --- | --- |
-| 80 | [SP-080](work-items/SP-080-gpx-feature-gating-architecture-decisions.md) | GPX and feature-gating architecture decisions | 9 | **Planned** — G1–G10 / draft SPD-067–076; coding waits on G1, G5, G6, G7 |
+| 80 | [SP-080](work-items/SP-080-gpx-feature-gating-architecture-decisions.md) | GPX and feature-gating architecture decisions | 9 | **Accepted** (2026-08-28) — G1–G10 → SPD-067–076 |
 | 81 | [SP-081](work-items/SP-081-dedicated-historical-import-pipeline.md) | Dedicated historical-import pipeline | 9 | **Accepted** (2026-08-28) — `ImportHistoricalTrack`; catch-all replay retired |
 | 82 | [SP-082](work-items/SP-082-competition-isolation-historical-import.md) | Competition isolation on historical import | 9 | **Accepted** (2026-08-28) — `ImportHistoricalTrack` store assertions; four-gate matrix |
 | 83 | [SP-083](work-items/SP-083-apply-pro-gate-to-gpx-surfaces.md) | Apply Pro gate to GPX surfaces | 9 | **Accepted** (2026-08-28) — call-site gate; debug entitle freeze; KML/KMZ stays |
 | 84 | [SP-084](work-items/SP-084-gpx-settings-surface.md) | GPX settings surface | 9 | **Accepted** (2026-08-28) — settings rows on Enabled; G8 info on Available |
 | 85 | [SP-085](work-items/SP-085-historical-import-robustness.md) | Historical-import robustness | 9 | **Accepted** (2026-08-28) — malformed reject; 10k/50k RSS; no chunking |
 | 86 | [SP-086](work-items/SP-086-explorer-pro-monetisation-analytics.md) | Explorer Pro monetisation analytics | 9 | **Accepted** (2026-08-28) — count-only; Available gate; upload → Phase 10 |
-| 87 | [SP-087](work-items/SP-087-phase9-end-to-end-validation.md) | Phase 9 end-to-end validation | 9 | **Accepted** (2026-08-28) — evidence recorded; Phase 9 exit awaiting maintainer |
+| 87 | [SP-087](work-items/SP-087-phase9-end-to-end-validation.md) | Phase 9 end-to-end validation | 9 | **Accepted** (2026-08-28) — evidence recorded; Phase 9 **Met with residuals** |
 
 Phase 9 work-item planning (2026-08-28) recorded in
 [`phases/phase-09-gpx-and-feature-gating.md`](phases/phase-09-gpx-and-feature-gating.md).
-Entry criteria Phase 3 + SP-005 are met. SP-081 **Accepted** (2026-08-28)
-using recommended G1/G5 locks (OQ-20–OQ-29 still Open). SP-082 **Accepted**
-(2026-08-28). SP-083 **Accepted** (2026-08-28). SP-084 **Accepted**
-(2026-08-28). SP-085 **Accepted** (2026-08-28). SP-086 **Accepted**
-(2026-08-28). SP-087 **Accepted** (2026-08-28; evidence recorded; Phase 9
-exit awaiting maintainer). G1–G10 still Open. Phase 9 is **not** Exit
-criteria met.
+Entry criteria Phase 3 + SP-005 are met. SP-080 **Accepted** (2026-08-28;
+SPD-067–076). SP-081–087 **Accepted** (2026-08-28). G1–G10 closed. Phase 9
+**Exit criteria met** 2026-08-28 with residuals (device / APK / upload /
+Eligibility env → Phase 10; Qt ungated; reload no-paint; multi-cat KMZ;
+FromLatLon; system expat).
 
 Detailed work items exist for Phases 1–9. Phase 10 is broken down after
 other phases meet exit.

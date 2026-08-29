@@ -519,8 +519,9 @@ Framework::Framework(FrameworkParams const & params, bool loadMaps)
       {
         if (!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport))
           return;
-        GetStreetPixelsManager().ImportHistoricalTrack(segments);
-        street_pixels::ExplorerProAnalytics::RecordGpxImportUsage();
+        auto * manager = &GetStreetPixelsManager();
+        GetPlatform().RunTask(Platform::Thread::File, [manager, segments]()
+        { street_pixels::RunHistoricalImportIfEnabled(*manager, segments); });
       });
   m_streetPixelsManager->SetCompletionCardGeneratedHandler(
       [] { street_pixels::CompletionCardAnalytics::RecordGenerated(); });

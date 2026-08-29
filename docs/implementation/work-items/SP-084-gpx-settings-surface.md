@@ -107,4 +107,4 @@ pricing settings (SPD-010).
 | --- | --- |
 | Instrumented settings dumps and public vs internal Pro device walks | SP-087 (repo has no Espresso harness) |
 | `prefs_gpx.xml` and English GPX/Pro strings exist in the public APK | SP-087 must dump the inflated Preference tree, not `aapt` of all prefs XML or a `strings.xml` grep |
-| `BookmarkManagerGpxGateTest` cannot load JNI in this JVM | Environment residual; not a product-logic failure of SP-084 |
+| `BookmarkManagerGpxGateTest` cannot load JNI in this JVM | **Closed** 2026-08-28: lazy `getBookmarksExtensions()` so clinit does not call Framework |

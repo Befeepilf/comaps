@@ -2,8 +2,8 @@
 
 **Plan:** [SP-087-validation-plan.md](SP-087-validation-plan.md)
 **Branch:** `cursor/sp-087-phase9-validation-db9d`
-**Status:** Evidence recorded — Phase 9 exit **awaiting maintainer** (agent
-does not mark exit Met)
+**Status:** Evidence recorded — Phase 9 exit **Met with residuals** 2026-08-28
+(product-owner lock). Device / APK / upload / Eligibility env remain Phase 10.
 
 Independent review 2026-08-28 (second pair of eyes): RSS lines, exit-7
 golden names, N1 substring split, isolation wording, README §4, and H8→M7
@@ -248,7 +248,8 @@ Internal Pro walk: `-PenableExplorerProCapabilities=true`
 | 7 | Existing GPX tests still pass | **Pass (parse / malformed / 10k / non-roundtrip) + Residual (creator-golden roundtrips — not a Pass of ImportExport)** | G1 **24/24** after suppress. Residual goldens (do not change writer): `Gpx_ImportExport_Test`, `Gpx_ImportExportEmpty_Test`, `Gpx_ColorMapExport_Test`, `ImportExportWptColor`, `PointWithPredefinedColor` (`creator="CoMaps"` vs golden `Organic Maps`). Do not Fail exit 7 solely on those goldens. SP-085 new parse/malformed/10k/50k pass |
 | 8 | Monetisation analytics only when Pro enabled in the build | **Pass (automated) + Residual (upload + device readout Phase 10)** | H1–H6; ExplorerProAnalytics **13/13**; JVM **2/2**; H7–H8 → Phase 10 |
 
-Do not mark any exit Met at the phase level.
+Do not mark any exit Met at the phase level. **Superseded 2026-08-28:**
+product owner locked Phase 9 **Met with residuals**.
 
 ## Residuals
 
@@ -256,25 +257,25 @@ Do not mark any exit Met at the phase level.
 | --- | --- | --- |
 | R1 | No handset: M1–M7 | Phase 10. Map screenshots remain forbidden. |
 | R2 | `adb` / public APK inflated settings dump / share-sheet VIEW | Phase 10 |
-| R3 | Debug-entitle grant symbols in native / public APK `nm` | SP-083 follow-up; Phase 10 APK. `DebugEntitlementSource`, `InstallDebugEntitlementSource`, `nativeInstallExplorerProDebugEntitlement` present. Release/beta BuildConfig hardcoded `'false'` |
-| R4 | `Gpx_ImportExport_Test` / `Gpx_ImportExportEmpty_Test` CoMaps vs Organic Maps | Pre-existing residual; do not change writer (`libs/kml/serdes_gpx.cpp`) |
-| R5 | `Gpx_ColorMapExport_Test` same creator byte | Same residual family (`color_map_dst.gpx`) |
-| R5b | `ImportExportWptColor` / `PointWithPredefinedColor` same creator byte | Same residual family (G4 unprefixed roundtrip) |
-| R6 | `BookmarkManagerGpxGateTest` UnsatisfiedLinkError | Environment residual (SP-084). Class static `Framework.nativeGetBookmarksFilesExts()`. Do not fix JNI loading here |
-| R7 | `data/classificator.txt` Eligibility abort | Environment residual. File missing at run time. `--suppress=Eligibility` used. Eligibility tests not weakened, skipped, or deleted. No `Eligibility_*` ran |
-| R8 | `prefs_gpx.xml` in public resources | Expected (`android/app/src/main/res/xml/prefs_gpx.xml`); dump inflated Data Management tree on device |
+| R3 | Debug-entitle grant symbols in native / public APK `nm` | **Closed in compile-out** 2026-08-28 (`#ifdef DEBUG`). Public APK `nm` still Phase 10 |
+| R4 | `Gpx_ImportExport_Test` / `Gpx_ImportExportEmpty_Test` CoMaps vs Organic Maps | **Closed** 2026-08-28: goldens `creator="CoMaps"`; writer unchanged |
+| R5 | `Gpx_ColorMapExport_Test` same creator byte | **Closed** with R4 |
+| R5b | `ImportExportWptColor` / `PointWithPredefinedColor` same creator byte | **Closed** with R4 |
+| R6 | `BookmarkManagerGpxGateTest` UnsatisfiedLinkError | **Closed** 2026-08-28: lazy `getBookmarksExtensions()` |
+| R7 | `data/classificator.txt` Eligibility abort | Environment residual. File missing at run time. Do not invent. Eligibility tests not weakened |
+| R8 | `prefs_gpx.xml` in public resources | Expected (`android/app/src/main/res/xml/prefs_gpx.xml`); dump inflated Data Management tree on device (Phase 10) |
 | R9 | Analytics upload | Phase 10. Count-only local counters exist. Not Sentry |
-| R10 | Desktop/Qt ungated C++ GPX prepare | SP-083 residual. No `IsCapabilityEnabled` in `qt/` |
+| R10 | Desktop/Qt ungated C++ GPX prepare | **Accepted residual** 2026-08-28 (Android V1) |
 | R11 | iOS GPX ungated | Out of Android V1 |
-| R12 | `ReloadBookmarkRoutine` omits `historicalTracks` | SP-081/085 follow-up |
-| R13 | Multi-category “GPX” export is KMZ | SP-086 follow-up |
-| R14 | G1–G10 still Open | Maintainer; coding used recommended locks (OQ-20–OQ-29 / draft SPD-067–076) |
-| R15 | README §4 Phase 9 status vs SP-081–086 Accepted | Independent review 2026-08-28 refreshed `docs/implementation/README.md` §4 to **In progress** (SP-081–086 Accepted; SP-087 In review / evidence recorded; exit awaiting maintainer). **Not** Exit criteria met |
-| R16 | Phase 9 exit Met? | Maintainer only. Agent does not mark Met |
-| R17 | Import on GUI thread | SP-085; no chunking after measurement |
-| R18 | `WITH_SYSTEM_PROVIDED_3PARTY` expat GE/DTD | SP-085 residual |
-| R19 | `DeserializerKml` still logs whole file | Later robustness |
-| R20 | `--suppress=Eligibility` **464/465**: `PauseResume_TrackBoundary_SaveProducesSeparateLines` | Environment residual, **not a Phase 9 exit**. `TEST(points.size() == 4) 3 4`; missing `/workspace/data/sp010_gpstrack_test.bin`. Do not treat this command as a full-suite pass. Not Eligibility |
+| R12 | `ReloadBookmarkRoutine` omits `historicalTracks` | **Accepted residual** 2026-08-28: no paint on reload |
+| R13 | Multi-category “GPX” export is KMZ | **Accepted residual** 2026-08-28: not GPX usage |
+| R14 | G1–G10 still Open | **Closed** 2026-08-28: SPD-067–076 |
+| R15 | README §4 Phase 9 status vs SP-081–086 Accepted | **Closed** 2026-08-28: Exit criteria met with residuals |
+| R16 | Phase 9 exit Met? | **Met with residuals** 2026-08-28 (product-owner lock) |
+| R17 | Import on GUI thread | **Closed** 2026-08-28: File thread after GUI gate |
+| R18 | `WITH_SYSTEM_PROVIDED_3PARTY` expat GE/DTD | **Accepted residual** |
+| R19 | `DeserializerKml` still logs whole file | **Closed** 2026-08-28: `LogXmlParseFailurePrefix` |
+| R20 | `--suppress=Eligibility` **464/465**: `PauseResume_TrackBoundary_SaveProducesSeparateLines` | Environment residual, **not a Phase 9 exit**. Missing `/workspace/data/sp010_gpstrack_test.bin`. Do not invent. Not Eligibility |
 
 Dirty tree left unstaged (never committed): `3party/healpix/healpix`,
 `data/area_milestones.db`, `data/live_recency.db`, `data/street_stats.db`,
@@ -285,7 +286,7 @@ Dirty tree left unstaged (never committed): `3party/healpix/healpix`,
 - Isolation is a **data rule** (SPD-011), not a capability. `ImportHistoricalTrack`
   is not wrapped in `IsCapabilityEnabled`. The four-cell tests prove recency /
   weekly / ownership / pending stay clean in every Available×Entitled cell.
-  Framework handler skips paint when the Java/C++ gate is closed (UX); 
+  Framework handler skips paint when the Java/C++ gate is closed (UX);
   `GpxGate_DirectImportClosedStillPaints` asserts the dedicated C++ path still
   paints.
 - No purchase action is reachable in public-configured GPX/Pro surfaces.
@@ -294,16 +295,25 @@ Dirty tree left unstaged (never committed): `3party/healpix/healpix`,
 
 ## Phase 9 exit recommendation (agent)
 
-Named Phase 9 suites on client SHA `5ed5e6df2` are green except documented
-GPX **creator-golden** residuals (R4, R5, R5b: `Gpx_ImportExport_Test`,
-`Gpx_ImportExportEmpty_Test`, `Gpx_ColorMapExport_Test`, `ImportExportWptColor`,
-`PointWithPredefinedColor`) and environment residuals (R1 device, R6 JNI,
-R7 classificator, R20 pause-resume bin). `--suppress=Eligibility` **464/465**
-is **not** a full `street_pixels_tests` pass. Exit criteria 1–8 map as
-**Pass (automated [+ code review]) + Residual (Phase 10 device / APK / upload /
-G1–G10 Open / creator goldens on exit 7)** per the table. Chunking is not
-required.
+Named Phase 9 suites on client SHA `5ed5e6df2` were green except documented
+GPX **creator-golden** residuals (R4, R5, R5b) and environment residuals
+(R1 device, R6 JNI, R7 classificator, R20 pause-resume bin) at SP-087
+evidence time.
 
-**Maintainer decides** whether Phase 9 exit is Met with residuals. Agent
-does **not** mark SP-087 or Phase 9 Accepted. Agent does **not** set phase
-Status to Exit criteria met. G1–G10 remain **Open**.
+**Product-owner lock 2026-08-28:** Phase 9 exit is **Met with residuals**.
+G1–G10 are SPD-067–076. Closed in residual code: R3 compile-out, R4/R5/R5b
+goldens, R6 JNI clinit, R17 File thread, R19 KML prefix log. Remaining
+Phase 10: R1, R2, R7, R8 device dump, R9 upload, R11 iOS, public APK `nm`.
+Accepted-as-is: R10 Qt, R12 reload, R13 KMZ, R18 expat, FromLatLon.
+
+## Residual close-out validation (2026-08-28)
+
+Client SHA `de80020f7`. Named suites after residual code + independent review fixes:
+
+| Suite | Result |
+| --- | --- |
+| `kml_tests` goldens + parse-failure filter | **7/7** All tests passed (`Gpx_ImportExport_*`, `Gpx_ColorMapExport_Test`, `ImportExportWptColor`, `PointWithPredefinedColor`, `Gpx_ParseFailure_DoesNotLogWholePayload`, `Kml_ParseFailure_DoesNotLogWholePayload`) |
+| `street_pixels_tests` named filter | **59/59** All tests passed (HistoricalImport_* 11; IsolationHistoricalImport 16; ExplorerPro_ 12 including DEBUG grant tests; ExplorerProAnalytics 13; GpxGate 7) |
+| JVM `BookmarkManagerGpxGateTest` | **6/6** `tests=6 failures=0 errors=0` |
+
+Do not invent `classificator.txt` / `sp010_gpstrack_test.bin`. Device / APK / upload remain Phase 10.

@@ -5,6 +5,10 @@
 
 #include "i18n/localisation.hpp"
 
+#include <cstddef>
+#include <string_view>
+
+class Reader;
 class Writer;
 
 namespace kml
@@ -20,6 +24,7 @@ std::string PointToGxString(geometry::PointWithAltitude const & pt);
 
 void SaveStringWithCDATA(Writer & writer, std::string s);
 std::string const * GetDefaultLanguage(LocalizableString const & lstr);
+void LogXmlParseFailurePrefix(Reader const & reader, std::string_view kind, size_t prefixBytes = 256);
 
 std::string_view constexpr kIndent0{};
 std::string_view constexpr kIndent2{"  "};

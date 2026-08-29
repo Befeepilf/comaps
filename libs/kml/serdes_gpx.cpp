@@ -11,6 +11,7 @@
 #include "geometry/point2d.hpp"
 
 #include "base/assert.hpp"
+#include "base/logging.hpp"
 #include "base/math.hpp"
 #include "base/string_utils.hpp"
 #include "base/timer.hpp"
@@ -643,19 +644,6 @@ void GpxWriter::Write(FileData const & fileData)
 }
 
 }  // namespace gpx
-
-void LogXmlParseFailurePrefix(Reader const & reader, std::string_view kind, size_t prefixBytes)
-{
-  uint64_t const size = reader.Size();
-  size_t const n = static_cast<size_t>(std::min(static_cast<uint64_t>(prefixBytes), size));
-  std::string snippet;
-  if (n > 0)
-  {
-    snippet.resize(n);
-    reader.Read(0, snippet.data(), n);
-  }
-  LOG(LWARNING, ("Could not parse", kind, "size_bytes =", size, "prefix =", snippet));
-}
 
 DeserializerGpx::DeserializerGpx(FileData & fileData) : m_fileData(fileData)
 {

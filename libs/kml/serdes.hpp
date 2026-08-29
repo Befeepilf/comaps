@@ -1,5 +1,6 @@
 #pragma once
 
+#include "kml/serdes_common.hpp"
 #include "kml/type_utils.hpp"
 #include "kml/types.hpp"
 
@@ -9,7 +10,6 @@
 #include "geometry/point2d.hpp"
 
 #include "base/exception.hpp"
-#include "base/logging.hpp"
 
 #include <string>
 
@@ -147,11 +147,7 @@ public:
     KmlParser parser(m_fileData);
     if (!ParseXML(src, parser, true))
     {
-      // Print corrupted KML file for debug and restore purposes.
-      std::string kmlText;
-      reader.ReadAsString(kmlText);
-      if (!kmlText.empty() && kmlText[0] == '<')
-        LOG(LWARNING, (kmlText));
+      LogXmlParseFailurePrefix(reader, "KML", 256);
       MYTHROW(DeserializeException, ("Could not parse KML."));
     }
   }

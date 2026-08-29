@@ -1,5 +1,7 @@
 #include "map/explorer_pro_analytics.hpp"
+
 #include "map/explorer_pro.hpp"
+#include "map/street_pixels_manager.hpp"
 
 #include "platform/settings.hpp"
 
@@ -64,6 +66,15 @@ void ExplorerProAnalytics::ResetForTesting()
   settings::Delete(kInfoPageViewedKey);
   settings::Delete(kGpxImportUsageKey);
   settings::Delete(kGpxExportUsageKey);
+}
+
+void RunHistoricalImportIfEnabled(StreetPixelsManager & manager,
+                                  std::vector<kml::MultiGeometry::LineT> const & segments)
+{
+  if (!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport))
+    return;
+  manager.ImportHistoricalTrack(segments);
+  ExplorerProAnalytics::RecordGpxImportUsage();
 }
 
 std::string DebugPrint(ExplorerProAnalyticsSnapshot const & snapshot)

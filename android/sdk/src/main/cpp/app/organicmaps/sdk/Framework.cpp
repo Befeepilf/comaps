@@ -1130,6 +1130,7 @@ JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_Framework_nativeIsAdvancedTr
       explorer_pro::IsCapabilityAvailable(explorer_pro::Capability::AdvancedTrackManagement));
 }
 
+#ifdef DEBUG
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeInstallExplorerProDebugEntitlement(JNIEnv *, jclass)
 {
   if (!explorer_pro::IsCapabilityAvailable(explorer_pro::Capability::GpxImport)
@@ -1140,6 +1141,7 @@ JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeInstallExplorerP
   }
   explorer_pro::InstallDebugEntitlementSource();
 }
+#endif
 
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeClearExplorerProEntitlementSource(JNIEnv *, jclass)
 {
