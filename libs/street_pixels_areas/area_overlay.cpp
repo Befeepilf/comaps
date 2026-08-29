@@ -270,6 +270,28 @@ AreaOverlayStyle StyleForCompletion(double fraction, AreaOverlayZoomBand band)
   return style;
 }
 
+std::vector<m2::PointD> CompletedCheckPolyline(m2::PointD const & center, double size)
+{
+  if (!(size > 0.0))
+    return {};
+  return {{center.x - 0.42 * size, center.y + 0.05 * size},
+          {center.x - 0.12 * size, center.y - 0.28 * size},
+          {center.x + 0.48 * size, center.y + 0.38 * size}};
+}
+
+std::vector<m2::PointD> OverlayCheckDrawPath(AreaOverlayStyle const & style, m2::PointD const & labelPoint,
+                                             m2::RectD const & bounds)
+{
+  if (!style.m_showCheck)
+    return {};
+  double size = 0.0;
+  if (bounds.IsValid())
+    size = std::max(bounds.SizeX(), bounds.SizeY()) * 0.12;
+  if (!(size > 0.0))
+    size = 1.0;
+  return CompletedCheckPolyline(labelPoint, size);
+}
+
 std::vector<m2::PointD> TriangulateOuterRing(std::vector<m2::PointD> const & ringIn)
 {
   auto poly = DropClosingDuplicate(ringIn);

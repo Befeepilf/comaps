@@ -16,6 +16,8 @@
 
 #include "base/string_utils.hpp"
 
+#include <algorithm>
+
 namespace df
 {
 void ExplorationAreaOverlayBuilder::Build(ref_ptr<dp::GraphicsContext> context,
@@ -56,6 +58,20 @@ void ExplorationAreaOverlayBuilder::Build(ref_ptr<dp::GraphicsContext> context,
           lvp.m_color = item.m_outlineColor;
           lvp.m_width = item.m_outlineWidthPx;
           LineShape(spline, lvp).Draw(context, make_ref(&batcher), textures);
+        }
+
+        if (item.m_showCheck && item.m_checkPolyline.size() >= 2)
+        {
+          m2::SharedSpline checkSpline(item.m_checkPolyline);
+          LineViewParams cvp;
+          cvp.m_tileCenter = property->m_center;
+          cvp.m_depthTestEnabled = false;
+          cvp.m_minVisibleScale = kExplorationAreaOverlayMinZoom;
+          cvp.m_cap = dp::RoundCap;
+          cvp.m_join = dp::RoundJoin;
+          cvp.m_color = item.m_outlineColor;
+          cvp.m_width = std::max(item.m_outlineWidthPx, 5.0f);
+          LineShape(checkSpline, cvp).Draw(context, make_ref(&batcher), textures);
         }
 
         if (!item.m_name.empty())

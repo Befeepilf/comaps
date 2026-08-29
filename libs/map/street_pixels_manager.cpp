@@ -3441,6 +3441,9 @@ void StreetPixelsManager::PushExplorationAreaOverlayUnlocked(street_pixels::SpaF
     item.m_outlineColor =
         dp::Color(style.m_outline.m_r, style.m_outline.m_g, style.m_outline.m_b, style.m_outline.m_a);
     item.m_outlineWidthPx = style.m_outlineWidthPx;
+    item.m_showCheck = style.m_showCheck;
+    if (style.m_showCheck)
+      item.m_checkPolyline = street_pixels::OverlayCheckDrawPath(style, geom.m_labelPoint, geom.m_bounds);
     if (!item.m_name.empty())
     {
       OverlayLabel label;
