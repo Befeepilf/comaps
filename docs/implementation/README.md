@@ -551,7 +551,7 @@ FromLatLon; system expat).
 | 90 | [SP-090](work-items/SP-090-settings-empty-states-first-run.md) | Settings, empty-state, and first-run audit | 10 | **Accepted** (2026-08-29) — §30/§31/§10; friends hide; policy URLs residual |
 | 91 | [SP-091](work-items/SP-091-product-analytics-reconciliation.md) | Product analytics reconciliation | 10 | **Accepted** (2026-08-29) — local §32 counters; no upload sink (SPD-081) |
 | 92 | [SP-092](work-items/SP-092-permissions-manifest-store-disclosures.md) | Permissions, manifest, and store disclosures | 10 | **Accepted** (2026-08-29) — friends filters gone; ABL absent; listing brand residual |
-| 93 | [SP-093](work-items/SP-093-privacy-policy-terms-consent.md) | Privacy policy, terms, and consent alignment | 10 | **Residual** — brand: privacy policy + terms (SPD-080 landing) |
+| 93 | [SP-093](work-items/SP-093-privacy-policy-terms-consent.md) | Privacy policy, terms, and consent alignment | 10 | **Residual** (slice close-out 2026-08-29) — brand: privacy policy + terms; SPD-080 landing remains open |
 | 94 | [SP-094](work-items/SP-094-battery-rendering-lifecycle.md) | Battery, rendering, and lifecycle measurement | 10 | **Planned** (protocol docs); **device execution Residual** (SPD-078) |
 | 95 | [SP-095](work-items/SP-095-device-matrix-residual-close-out.md) | Device-matrix residual close-out | 10 | **Residual** — device walks (SPD-077 / SPD-083 Device-verify execution) |
 | 96 | [SP-096](work-items/SP-096-risk-register-and-release-pipeline.md) | Risk-register close-out and release pipeline | 10 | **Planned** — §22/§26 risk table; signed APK/ops may residual; brand listing residual |
