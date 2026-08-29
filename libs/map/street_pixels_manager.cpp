@@ -669,14 +669,25 @@ std::optional<street_pixels::CompletionCardSharePayload> StreetPixelsManager::Pr
 
 void StreetPixelsManager::RecordCompletionCardShareInitiated()
 {
+  m_completionCardShareInFlight = true;
   street_pixels::CompletionCardAnalytics::RecordShareInitiated();
+}
+
+void StreetPixelsManager::ReleaseCompletionCardShare()
+{
+  if (!m_completionCardShareInFlight)
+    return;
+  m_completionCardShareInFlight = false;
+  auto const peek = m_areaMilestonePresenter.Peek();
+  if (!peek || peek->m_threshold != street_pixels::AreaMilestoneThreshold::P100)
+    street_pixels::DeleteCompletionCardTransient();
 }
 
 void StreetPixelsManager::AcknowledgeAreaMilestonePresentation()
 {
   auto const before = m_areaMilestonePresenter.Peek();
   m_areaMilestonePresenter.Acknowledge();
-  if (before && before->m_threshold == street_pixels::AreaMilestoneThreshold::P100)
+  if (before && before->m_threshold == street_pixels::AreaMilestoneThreshold::P100 && !m_completionCardShareInFlight)
     street_pixels::DeleteCompletionCardTransient();
   NotifyAreaMilestonePresentationIfChanged(before);
 }
@@ -746,6 +757,7 @@ bool StreetPixelsManager::ClearDebugCompletionCard()
 
 void StreetPixelsManager::ResetAreaMilestonePresentationForTesting()
 {
+  m_completionCardShareInFlight = false;
   m_areaMilestonePresenter.ResetForTesting();
 }
 

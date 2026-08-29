@@ -337,3 +337,38 @@ UNIT_TEST(CompletionCardShare_PrepareFailsWithoutHundredPercent)
   TEST_EQUAL(street_pixels::CompletionCardAnalytics::LoadSnapshot().m_shareInitiated, 0, ());
   CleanupShAm(fx);
 }
+
+UNIT_TEST(CompletionCardShare_AcknowledgeKeepsPngWhileShareInFlight)
+{
+  ShAmAnalyticsGuard guard;
+  auto fx = MakeShAmFixture("sp089_png_share");
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  manager.ConfigureAreaMilestoneStoreForTesting(fx.dbPath);
+  TEST(manager.RebuildAreaCompletionCache(fx.leaf, fx.spaPath, fx.mapDataVersion), ());
+  auto payload = manager.PrepareCompletionCardShare();
+  TEST(payload.has_value(), ());
+  TEST(Platform::IsFileExistsByFullPath(payload->m_path), ());
+  manager.RecordCompletionCardShareInitiated();
+  manager.AcknowledgeAreaMilestonePresentation();
+  TEST(Platform::IsFileExistsByFullPath(payload->m_path), ());
+  manager.ReleaseCompletionCardShare();
+  TEST(!Platform::IsFileExistsByFullPath(payload->m_path), ());
+  CleanupShAm(fx);
+}
+
+UNIT_TEST(CompletionCardShare_AcknowledgeDeletesPngWithoutShare)
+{
+  ShAmAnalyticsGuard guard;
+  auto fx = MakeShAmFixture("sp089_png_ack");
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  manager.ConfigureAreaMilestoneStoreForTesting(fx.dbPath);
+  TEST(manager.RebuildAreaCompletionCache(fx.leaf, fx.spaPath, fx.mapDataVersion), ());
+  auto payload = manager.PrepareCompletionCardShare();
+  TEST(payload.has_value(), ());
+  TEST(Platform::IsFileExistsByFullPath(payload->m_path), ());
+  manager.AcknowledgeAreaMilestonePresentation();
+  TEST(!Platform::IsFileExistsByFullPath(payload->m_path), ());
+  CleanupShAm(fx);
+}

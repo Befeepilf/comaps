@@ -992,6 +992,9 @@ public class MapButtonsController extends Fragment
     updateExplorationBadge(state);
     refreshFirstGoalBadge();
     refreshAreaMilestonePresentation();
+    Context ctx = getContext();
+    if (ctx != null)
+      MwmApplication.from(ctx).getStreetPixelsManager().releaseCompletionCardShare();
     refreshCompetitionToggle();
     onCompetitionHintReady();
 
