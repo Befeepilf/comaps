@@ -142,7 +142,7 @@ Status remains **Planned**. Implementation evidence only; a human decides accept
 | Branch | `cursor/sp-090-settings-empty-states-6383` |
 | §30 table | See §30 audit below. |
 | §31 table | See §31 audit below. |
-| Test output | `./gradlew :app:testGoogleDebugUnitTest --tests 'app.organicmaps.settings.*' --tests 'app.organicmaps.location.GpsWaitingStateTest' --tests 'app.organicmaps.location.RecordingSessionUiModelTest' :sdk:testDebugUnitTest --tests 'app.organicmaps.sdk.routing.StreetExplorationRoutingOptionsTest'` → **BUILD SUCCESSFUL**. JUnit XML: **44 tests, 0 failures, 0 errors, 0 skipped** (`FriendSettingsVisibilityTest` 4, `PublicSettingsVisibilityTest` 1, `GpxSettingsVisibilityTest` 12, `IncompleteSpaSettingsVisibilityTest` 2, `CompetitionEmptyStateTest` 2, `FirstRunFlowTest` 3, `GpsWaitingStateTest` 6, `RecordingSessionUiModelTest` 8, `StreetExplorationRoutingOptionsTest` 6). |
+| Test output | `./gradlew :app:testGoogleDebugUnitTest --tests 'app.organicmaps.settings.*' --tests 'app.organicmaps.location.GpsWaitingStateTest' --tests 'app.organicmaps.location.RecordingSessionUiModelTest' :sdk:testDebugUnitTest --tests 'app.organicmaps.sdk.routing.StreetExplorationRoutingOptionsTest'` → **BUILD SUCCESSFUL**. JUnit XML: **51 tests, 0 failures, 0 errors, 0 skipped** (`FriendSettingsVisibilityTest` 5, `PublicSettingsVisibilityTest` 1, `GpxSettingsVisibilityTest` 12, `IncompleteSpaSettingsVisibilityTest` 2, `CompetitionEmptyStateTest` 4, `CompetitionSettingsTest` 2, `FirstRunFlowTest` 4, `GpsWaitingStateTest` 7, `RecordingSessionUiModelTest` 8, `StreetExplorationRoutingOptionsTest` 6). Independent-review re-run after review fixes. |
 | Accepted by | |
 | Accepted date | |
 
@@ -151,7 +151,7 @@ Status remains **Planned**. Implementation evidence only; a human decides accept
 | Spec §30 bullet | Surface | Verdict |
 | --- | --- | --- |
 | Exploration haptics on or off | `prefs_main.xml` `StreetPixels.ExplorationHaptics`; `SettingsPrefsFragment`. Duplicate Interface row removed. | Present (SPD-054 single toggle) |
-| Competition enabled or disabled | Privacy `pref_competition_enabled` + existing My Account sync switch | Present |
+| Competition enabled or disabled | Privacy `pref_competition_enabled` only. My Account has no second sync switch | Present |
 | Public nickname | Privacy `pref_public_nickname` → `MyAccountDialogFragment`. Summary: rankings sentence, not friends | Present |
 | Delete competition profile | Privacy delete row + My Account delete | Present |
 | Map-data management | `prefs_data_management.xml` storage / autodownload / incomplete SPA | Present |
@@ -161,7 +161,7 @@ Status remains **Planned**. Implementation evidence only; a human decides accept
 | App name in Help / listing | Unchanged CoMaps product name | **Residual** SPD-084 / SP-093 |
 | GPX import/export | `GpxSettingsVisibility` capability+entitlement only (SP-084) | Present; public build adds nothing |
 | Purchase / restore / pricing | None added | Out of scope SPD-010 |
-| Friend settings | `FriendSettingsVisibility.showFriendRows(false)` in public V1; nickname copy is rankings-only | Hidden SPD-085. Manifest add-friend filters are SP-092 |
+| Friend settings | `prefs_privacy.xml` friend-visibility row is inflated then removed when `FriendSettingsVisibility.friendsCapabilityEnabled()` is false. Nickname copy is rankings-only | Hidden SPD-085. Manifest add-friend filters are SP-092 |
 | 25 m radius | Not in any `prefs_*.xml`. C++ `kExploreRadiusMeters = 25.0` | Confirmed not a setting |
 | HEALPix / GPS / decay / scoring internals | Not in prefs XML or Advanced settings | Confirmed not ordinary settings |
 
@@ -198,3 +198,4 @@ Device click-through remains SP-095 / SP-097.
 | Device execution of the §31 matrix and §10 click-through | SP-095 / SP-097 residual |
 | First-run / empty-state English strings only | Translations follow CoMaps process |
 | `applyCompetitionChrome` weekly board used out-of-scope `osmId`/`manager` locals (pre-existing compile hole) | Fixed in this item so weekly empty-hide compiles |
+| Spec §10 first-run body says routes/history stay on device *unless* the user joins rankings. Spec §3.2 / §25 say tracks never upload; competition is aggregates only | Not rewritten in this item (copy matches spec §10). Residual for SP-093 / privacy copy |
