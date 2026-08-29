@@ -44,7 +44,7 @@ during work-item planning. Extra detail in
 
 | Concern | Location | Observed state |
 | --- | --- | --- |
-| Android manifest | `android/app/src/main/AndroidManifest.xml` | Location permissions present; `ACCESS_BACKGROUND_LOCATION` still absent; FGS types `location` (`NavigationService`, `TrackRecordingService`), `dataSync` (`DownloaderService`); **`comaps://add-friend` and HTTPS `/add-friend` still registered** (SPD-061 not applied to intent-filters) |
+| Android manifest | `android/app/src/main/AndroidManifest.xml` | Location permissions present; `ACCESS_BACKGROUND_LOCATION` still absent (`tools:node="remove"`; **SPD-082**); FGS types `location` (`NavigationService`, `TrackRecordingService`), `dataSync` (`DownloaderService`); dedicated `comaps://add-friend` and HTTPS `/add-friend` filters **removed** (SP-092 / **SPD-085**; generic VIEW can still deliver leftover URIs, onboarding hidden) |
 | Store credentials | `docs/CREDENTIALS.md` | Documents the CI secrets required for signed store builds |
 | Release workflows | `.forgejo/workflows/android-release.yaml`, `android-beta.yaml`, `android-check-metadata.yaml`, `android-release-metadata.yaml` | Present; upstream CoMaps release machinery and listing identity |
 | Android lint | `.github/workflows/android-check.yaml` | `./gradlew -Pandroidauto=true lint` |
@@ -59,9 +59,23 @@ during work-item planning. Extra detail in
 **Difference from the technical audit (2026-07-20) and the 2026-07-25
 snapshot:** Phases 1–9 have landed session gating, rematch, areas, routing,
 milestones, competition, and GPX gates. Instrumented tests are still absent.
-Friends deep links and CoMaps store/privacy URLs are unchanged. ABL is still
-absent (SP-012 Pixel 3a without it). H1–H10 are **Accepted** 2026-08-29 as
-**SPD-077–086**. Brand writing and on-device testing are residual.
+Dedicated add-friend intent-filters were removed (SP-092 / **SPD-085**);
+leftover URIs are swallowed. CoMaps store/privacy URLs are unchanged.
+ABL is still absent (SP-012 Pixel 3a without it). H1–H10 are **Accepted**
+2026-08-29 as **SPD-077–086**. Brand writing and on-device testing are
+residual.
+
+**SP-096 re-verification (2026-08-29):** friends dedicated add-friend
+intent-filters are gone (SP-092 / **SPD-085**); ABL still absent
+(**SPD-082**). §22/§26 close-out:
+[`notes/SP-096-risk-register-close-out.md`](../notes/SP-096-risk-register-close-out.md)
+(independent review same day: 19/19 §22 rows vs tree; full
+`street_pixels_tests` 499/499 after generated classificator; not
+Accepted). Signed APK residual (secrets absent; Gradle
+`secure.properties.release` vs Forgejo `secure.properties`).
+Competition backend not in the explorer checkout present here (§26 #5
+residual Ops). Brand listing residual (**SPD-084**). Do **not** mark
+Phase 10 exit met.
 
 ## Intended outcome
 
@@ -115,7 +129,7 @@ inventory:
 | Phase 7 | Growth-counter upload | SPD-055 | Follow H5 (SP-091; **SPD-081** stay local, no sink) |
 | Phase 8 | Device opt-in, traffic capture, opt-out, queue, N&lt;3, delete | SP-079 | Device-verify (SP-095; **execution residual**) |
 | Phase 8 | Weekly GET not JNI-wired; recency rows survive revoke | SP-079 / SP-072 | Fix (SP-089) |
-| Phase 8 | Postgres production deploy; exact EU region string | SP-075 / SPD-062 | Ops (SP-096) |
+| Phase 8 | Postgres production deploy; exact EU region string | SP-075 / SPD-062 | Ops (SP-096 close-out recorded 2026-08-29; **residual** — explorer checkout is SQLite default, no `prod.py`; EU string unverified) |
 | Phase 8 | Failed POST `/leave` no retry; HTTP 409 mapping; 7-day gates after admin reset | SP-077 | Accept (SPD-083; not SP-089 Fix, not SP-096 Ops) |
 | Phase 9 | Device GPX / public APK / share-sheet / internal Pro | SP-087 | Device-verify (SP-095; **execution residual**) |
 | Phase 9 | Monetisation analytics upload | SPD-075 | Follow H5 (SP-091; **SPD-081** stay local, no sink) |
@@ -139,7 +153,7 @@ phases at exit. Residual WIs are not coding items.
 | 6 | [SP-093](../work-items/SP-093-privacy-policy-terms-consent.md) | Privacy policy, terms, and consent alignment (**Residual** — slice close-out 2026-08-29; **SPD-080** landing remains open; not Accepted) |
 | 7 | [SP-094](../work-items/SP-094-battery-rendering-lifecycle.md) | Battery, rendering, and lifecycle measurement (**protocol documented** 2026-08-29; **device execution Residual**; **SPD-078**; not Accepted) |
 | 8 | [SP-095](../work-items/SP-095-device-matrix-residual-close-out.md) | Device-matrix residual close-out (**roster documented** 2026-08-29; **device execution Residual**; **SPD-077**/**SPD-083**; not Accepted) |
-| 9 | [SP-096](../work-items/SP-096-risk-register-and-release-pipeline.md) | Risk-register close-out and release pipeline (docs table; signed APK/ops may residual; brand listing residual) |
+| 9 | [SP-096](../work-items/SP-096-risk-register-and-release-pipeline.md) | Risk-register close-out and release pipeline (**close-out recorded** 2026-08-29; [note](../notes/SP-096-risk-register-close-out.md); signed APK/ops residual; brand listing residual; §26 #5 residual Ops; not Accepted) |
 | 10 | [SP-097](../work-items/SP-097-phase10-launch-requirement-verification.md) | Phase 10 / §34 verification (**exit gate**; automated + mapping; device/manual Residual) |
 
 Gate: SP-088 has locked H1–H10. This phase still **adds no features** beyond
@@ -295,7 +309,7 @@ testing remain residual (not later Phase 10 coding items).
 | H6 | `ACCESS_BACKGROUND_LOCATION` | Keep absent (**SPD-082**) | D2 exception path residual |
 | H7 | Residual disposition | Fix / Measure / Device-verify / Ops / Follow H5 / Accept table in the note (**SPD-083**) | Device-verify execution residual |
 | H8 | Release workflows | Reuse machinery (**SPD-084**) | Application name, listing copy, privacy/terms URLs residual |
-| H9 | Friends in public APK | Operationalize SPD-061 (hide UI and add-friend filters) (**SPD-085**) | Implementable in SP-092 |
+| H9 | Friends in public APK | Operationalize SPD-061 (hide UI and add-friend filters) (**SPD-085**) | **Done in SP-092** (Accepted 2026-08-29); leftover URI swallow; device eyeball residual (SP-095) |
 | H10 | C++ CI exclusions | Not a launch blocker; recorded local suites are the V1 gate (**SPD-086**) | Device/manual §34 residual |
 
 Friends *presence* in V1 is already **SPD-061** (hidden). H9 is how far the
