@@ -71,6 +71,8 @@ public final class Config
    * True if the first start animation has been seen.
    */
   private static final String KEY_MISC_FIRST_START_DIALOG_SEEN = "FirstStartDialogSeen";
+  private static final String KEY_MISC_FIRST_RUN_EXPLORING_CARD_SEEN = "StreetPixels.FirstRunExploringCardSeen";
+  private static final String KEY_MISC_RECORDING_BACKGROUND_EXPLAINED = "StreetPixels.RecordingBackgroundExplained";
 
   private Config() {}
 
@@ -462,6 +464,26 @@ public final class Config
   public static void setFirstStartDialogSeen(@NonNull Context context)
   {
     mPrefs.edit().putBoolean(KEY_MISC_FIRST_START_DIALOG_SEEN, true).apply();
+  }
+
+  public static boolean isFirstRunExploringCardSeen()
+  {
+    return mPrefs.getBoolean(KEY_MISC_FIRST_RUN_EXPLORING_CARD_SEEN, false);
+  }
+
+  public static void setFirstRunExploringCardSeen()
+  {
+    mPrefs.edit().putBoolean(KEY_MISC_FIRST_RUN_EXPLORING_CARD_SEEN, true).apply();
+  }
+
+  public static boolean isRecordingBackgroundExplained()
+  {
+    return mPrefs.getBoolean(KEY_MISC_RECORDING_BACKGROUND_EXPLAINED, false);
+  }
+
+  public static void setRecordingBackgroundExplained()
+  {
+    mPrefs.edit().putBoolean(KEY_MISC_RECORDING_BACKGROUND_EXPLAINED, true).apply();
   }
 
   public static boolean isSearchHistoryEnabled()

@@ -26,6 +26,7 @@ import app.organicmaps.sdk.util.Config;
 import app.organicmaps.sdk.util.LocationUtils;
 import app.organicmaps.sdk.util.concurrency.UiThread;
 import app.organicmaps.sdk.util.log.Logger;
+import app.organicmaps.settings.FirstRunFlow;
 import app.organicmaps.util.SharingUtils;
 import app.organicmaps.util.Utils;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -90,7 +91,8 @@ public class SplashActivity extends AppCompatActivity
     super.onResume();
     if (mCanceled)
       return;
-    if (!Config.isLocationRequested() && !LocationUtils.checkLocationPermission(this))
+    if (FirstRunFlow.requestLocationOnAppOpen() && !Config.isLocationRequested()
+        && !LocationUtils.checkLocationPermission(this))
     {
       Logger.d(TAG, "Requesting location permissions");
       mPermissionRequest.launch(new String[] {ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION});
