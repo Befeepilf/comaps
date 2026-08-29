@@ -175,8 +175,8 @@ Purchase: no `BillingClient` / Play Billing in `android/app` or `android/sdk` Ja
 | Listing brand copy | Residual (not rewritten). `android/app/src/google/play/listings/**` and F-Droid listing paths untouched. |
 | Data-safety doc | `docs/implementation/play-data-safety.md` |
 | Test output | Independent review re-run: `./gradlew :app:testGoogleDebugUnitTest --tests 'app.organicmaps.settings.PublicManifestAssertionsTest' --tests 'app.organicmaps.settings.FriendSettingsVisibilityTest' --tests 'app.organicmaps.settings.PublicSettingsVisibilityTest' --tests 'app.organicmaps.settings.ExploreDeepLinkTest'` → **BUILD SUCCESSFUL**. JUnit XML: PublicManifestAssertionsTest **6/6**, FriendSettingsVisibilityTest **7/7**, PublicSettingsVisibilityTest **1/1**, ExploreDeepLinkTest **3/3** (0 failures). `:sdk:testDebugUnitTest --tests 'app.organicmaps.sdk.ExplorerProGateTest' --tests 'app.organicmaps.sdk.ExplorerProAnalyticsTest' --rerun-tasks` → **BUILD SUCCESSFUL**. ExplorerProGateTest **11/11**, ExplorerProAnalyticsTest **2/2**. Merged `googleDebug` `processGoogleDebugMainManifest` and Sentry merged manifests: no `ACCESS_BACKGROUND_LOCATION`, no `add-friend`; `TrackRecordingService` / `NavigationService` `foregroundServiceType="location"`. Listing paths and CoMaps strings not rewritten. |
-| Accepted by | |
-| Accepted date | |
+| Accepted by | product owner (implement → review lock 2026-08-29) |
+| Accepted date | 2026-08-29 |
 
 ## Discovered follow-up
 
