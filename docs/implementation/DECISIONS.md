@@ -2444,9 +2444,12 @@ This is **implementable** in SP-092 (not brand). Closes OQ-38.
 - SP-092 hides friends UI and public add-friend intent-filters.
 - SP-090 hides public-V1 friend settings rows (H9); does not rewrite
   app-name / CoMaps branding.
+- SP-095 records the public-APK friends-absent eyeball as Device-verify
+  residual (execution residual).
 - Friends feature revival remains out of V1 (SPD-061).
 
-**Related documents.** SPD-061; OQ-6; OQ-38; SP-088; SP-090; SP-092.
+**Related documents.** SPD-061; OQ-6; OQ-38; SP-088; SP-090; SP-092;
+SP-095.
 
 ---
 

@@ -57,7 +57,9 @@ slice.
 **Carried scripts (reuse earlier plans; do not invent weaker ones):**
 
 - SP-014: screen-off continuity; OEM kill; no gap-fill; pause/resume
-  barriers. ABL remains absent (**SPD-082**) unless a later SPD changes it.
+  barriers. ABL remains absent (**SPD-082**). SP-014’s older “ABL in
+  Phase 10 if OEM fails” rule is superseded: a later D2 Fail needs a
+  **new SPD**, not a silent permission add.
 - SP-022: permanence across update/delete-redownload; rematch UX;
   Uusimaa-scale timing as available.
 - SP-031 R3: Helsinki neighbourhood names (no MWM-id); rural/coastal;
@@ -86,6 +88,7 @@ metadata are the record.
 - All hardware walks in this Phase 10 coding slice.
 - Quantitative Spike 1 / battery protocol (SP-094; also device
   execution residual).
+- Spike 7 / SP-054 city-scale routing measurement (H7 Measure).
 - Fixing defects found (owning WI or new SP-NNN).
 - Fabricating walks when `adb` / device is absent.
 
@@ -95,7 +98,7 @@ metadata are the record.
   Privacy / Sharing / Explorer Pro.
 - Validation plans SP-014, SP-022, SP-031, SP-041, SP-061, SP-069,
   SP-079, SP-087.
-- **SPD-077**, **SPD-082**, **SPD-083**.
+- **SPD-077**, **SPD-082**, **SPD-083**, **SPD-085**.
 
 ## Relevant source files or symbols
 
@@ -136,8 +139,9 @@ When that later item runs:
 
 ## Failure and rollback considerations
 
-- Failed OEM continuity: do not add ABL inside this item; return to
-  H6 / SP-092 / a new SPD (**SPD-082** keeps ABL absent).
+- Failed OEM continuity: do not add ABL inside this item or in SP-092.
+  **SPD-082** keeps ABL absent; a D2 Fail needs a **new SPD**, not a
+  silent permission add.
 - Missing `.spa`: Helsinki rows stay residual; do not substitute a
   city without administrative polygons and call it R3.
 
@@ -165,3 +169,5 @@ Accepted.**
 | H1 matrix, OEM continuity, Helsinki, traffic capture | Residual (this item); not SP-089–097 coding. Later handset WI executes [`validation/SP-095-validation-plan.md`](../validation/SP-095-validation-plan.md). Do not invent walk results. |
 | Missing `.spa` at execution | Helsinki SP-031 F* / SP-041 H1–H6 (UX) stay Blocked. Do not substitute a city without administrative polygons and call it R3. |
 | Pixel 3a SP-014 Pass | Citation of prior D1-class work only. Does **not** close Phase 10 D2 OEM or fill this log’s D1 cells. |
+| SP-014 “ABL implementation is Phase 10 if OEM fails” | **SPD-082** supersedes. Roster keeps ABL absent. D2 Fail → new SPD, not a silent permission add. |
+| Spike 7 / SP-054 city-scale | H7 Measure; not this Device-verify roster. Routing device walks are SP-061 I*. |
