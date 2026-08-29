@@ -130,3 +130,17 @@ UNIT_TEST(LiveRecency_ReopenSwitchesPath)
   RemoveRecencyDb(dbA);
   RemoveRecencyDb(dbB);
 }
+
+UNIT_TEST(LiveRecency_ClearAllRemovesRows)
+{
+  auto const dbPath = RecencyDbPath("sp089_clear_all");
+  RemoveRecencyDb(dbPath);
+  LiveRecencyStore store(dbPath);
+  store.TouchLiveVisits({10, 20}, 4000);
+  TEST_EQUAL(*store.GetLastLiveVisit(10), 4000, ());
+  TEST_EQUAL(*store.GetLastLiveVisit(20), 4000, ());
+  store.ClearAll();
+  TEST(!store.GetLastLiveVisit(10).has_value(), ());
+  TEST(!store.GetLastLiveVisit(20).has_value(), ());
+  RemoveRecencyDb(dbPath);
+}

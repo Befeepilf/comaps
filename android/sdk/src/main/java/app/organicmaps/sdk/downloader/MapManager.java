@@ -204,6 +204,12 @@ public final class MapManager
    */
   public static native boolean nativeIsDownloading();
 
+  public static native @NonNull String[] nativeGetIncompleteSpaCountries();
+
+  public static native boolean nativeIsSpaIncomplete(String countryId);
+
+  public static native void nativeRetryIncompleteSpaDownloads();
+
   /**
    * Enqueues given {@code root} node and its children in downloader.
    */

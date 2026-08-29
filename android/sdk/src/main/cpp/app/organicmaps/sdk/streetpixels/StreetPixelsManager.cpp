@@ -378,12 +378,11 @@ static jobject ToJavaCompletionCardModel(JNIEnv * env, street_pixels::Completion
 
 JNIEXPORT jobject JNICALL
 Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeGetCurrentCompletionCard(
-    JNIEnv * env, jclass clazz, jboolean includeDate, jboolean recordGenerated)
+    JNIEnv * env, jclass clazz, jboolean recordGenerated)
 {
   CHECK(g_framework, ("Framework isn't created yet!"));
   auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
-  auto const model = manager.GetCompletionCardForCurrentPresentation(static_cast<bool>(includeDate),
-                                                                     static_cast<bool>(recordGenerated));
+  auto const model = manager.GetCompletionCardForCurrentPresentation(static_cast<bool>(recordGenerated));
   if (!model)
     return nullptr;
   return ToJavaCompletionCardModel(env, *model);
@@ -403,11 +402,11 @@ static jobject ToJavaCompletionCardSharePayload(JNIEnv * env, street_pixels::Com
 
 JNIEXPORT jobject JNICALL
 Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativePrepareCompletionCardShare(
-    JNIEnv * env, jclass clazz, jboolean includeDate)
+    JNIEnv * env, jclass clazz)
 {
   CHECK(g_framework, ("Framework isn't created yet!"));
   auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
-  auto const payload = manager.PrepareCompletionCardShare(static_cast<bool>(includeDate));
+  auto const payload = manager.PrepareCompletionCardShare();
   if (!payload)
     return nullptr;
   return ToJavaCompletionCardSharePayload(env, *payload);
@@ -420,6 +419,15 @@ Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeRecordC
   CHECK(g_framework, ("Framework isn't created yet!"));
   auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
   manager.RecordCompletionCardShareInitiated();
+}
+
+JNIEXPORT void JNICALL
+Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeReleaseCompletionCardShare(JNIEnv * env,
+                                                                                                   jclass clazz)
+{
+  CHECK(g_framework, ("Framework isn't created yet!"));
+  auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
+  manager.ReleaseCompletionCardShare();
 }
 
 JNIEXPORT void JNICALL
@@ -471,5 +479,35 @@ Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeRequest
   auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
   auto const result = manager.RequestCompetitionAreaSnapshot(static_cast<uint64_t>(osmId));
   return ToJavaCompetitionAreaChrome(env, result.m_chrome);
+}
+
+static jobject ToJavaCompetitionWeeklyChrome(JNIEnv * env, street_pixels::CompetitionWeeklyChrome const & chrome)
+{
+  static jclass const chromeClass =
+      jni::GetGlobalClassRef(env, "app/organicmaps/sdk/maplayer/streetpixels/CompetitionWeeklyChrome");
+  static jmethodID const ctor =
+      jni::GetConstructorID(env, chromeClass, "(ZLjava/lang/String;[Ljava/lang/String;)V");
+  jni::TScopedLocalRef const jBody(env, jni::ToJavaString(env, chrome.m_body));
+  jni::TScopedLocalRef const jRows(env, jni::ToJavaStringArray(env, chrome.m_rows));
+  return env->NewObject(chromeClass, ctor, static_cast<jboolean>(chrome.m_offline), jBody.get(), jRows.get());
+}
+
+JNIEXPORT jobject JNICALL
+Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeGetCompetitionWeeklyChrome(JNIEnv * env,
+                                                                                                   jclass, jlong cityOsmId)
+{
+  CHECK(g_framework, ("Framework isn't created yet!"));
+  auto const & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
+  return ToJavaCompetitionWeeklyChrome(env, manager.GetCompetitionWeeklyChrome(static_cast<uint64_t>(cityOsmId)));
+}
+
+JNIEXPORT jobject JNICALL
+Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeRequestCompetitionWeeklyBoard(
+    JNIEnv * env, jclass, jlong cityOsmId)
+{
+  CHECK(g_framework, ("Framework isn't created yet!"));
+  auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
+  auto const result = manager.RequestCompetitionWeeklyBoard(static_cast<uint64_t>(cityOsmId));
+  return ToJavaCompetitionWeeklyChrome(env, result.m_chrome);
 }
 }

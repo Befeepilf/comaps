@@ -27,6 +27,8 @@ struct ExplorationAreaOverlayItem
   dp::Color m_fillColor;
   dp::Color m_outlineColor;
   float m_outlineWidthPx = 1.5f;
+  bool m_showCheck = false;
+  std::vector<m2::PointD> m_checkPolyline;
 };
 
 inline constexpr int kExplorationAreaOverlayMinZoom = 9;

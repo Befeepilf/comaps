@@ -53,6 +53,11 @@ public class StreetPixelsManager
     void onCompetitionAreaSnapshot(@NonNull CompetitionAreaChrome chrome);
   }
 
+  public interface CompetitionWeeklyBoardCallback
+  {
+    void onCompetitionWeeklyBoard(@NonNull CompetitionWeeklyChrome chrome);
+  }
+
   @NonNull
   private static final java.util.List<Callback> sCallbacks = new java.util.ArrayList<>();
   @NonNull
@@ -217,11 +222,11 @@ public class StreetPixelsManager
   private static native AreaMilestonePresentation nativeGetCurrentAreaMilestonePresentation();
   private static native void nativeAcknowledgeAreaMilestonePresentation();
   @Nullable
-  private static native CompletionCardModel nativeGetCurrentCompletionCard(boolean includeDate,
-                                                                           boolean recordGenerated);
+  private static native CompletionCardModel nativeGetCurrentCompletionCard(boolean recordGenerated);
   @Nullable
-  private static native CompletionCardSharePayload nativePrepareCompletionCardShare(boolean includeDate);
+  private static native CompletionCardSharePayload nativePrepareCompletionCardShare();
   private static native void nativeRecordCompletionCardShareInitiated();
+  private static native void nativeReleaseCompletionCardShare();
   private static native void nativeAcknowledgeCompetitionHint();
   @Nullable
   private static native String nativePeekCompetitionHintText();
@@ -232,6 +237,11 @@ public class StreetPixelsManager
   @WorkerThread
   @NonNull
   private static native CompetitionAreaChrome nativeRequestCompetitionAreaSnapshot(long osmId);
+  @NonNull
+  private static native CompetitionWeeklyChrome nativeGetCompetitionWeeklyChrome(long cityOsmId);
+  @WorkerThread
+  @NonNull
+  private static native CompetitionWeeklyChrome nativeRequestCompetitionWeeklyBoard(long cityOsmId);
 
   public void attach(@NonNull StreetPixelsErrorDialogListener listener)
   {
@@ -296,26 +306,31 @@ public class StreetPixelsManager
   }
 
   @Nullable
-  public CompletionCardModel getCurrentCompletionCard(boolean includeDate)
+  public CompletionCardModel getCurrentCompletionCard()
   {
-    return nativeGetCurrentCompletionCard(includeDate, true);
+    return nativeGetCurrentCompletionCard(true);
   }
 
   @Nullable
-  public CompletionCardModel getCurrentCompletionCard(boolean includeDate, boolean recordGenerated)
+  public CompletionCardModel getCurrentCompletionCard(boolean recordGenerated)
   {
-    return nativeGetCurrentCompletionCard(includeDate, recordGenerated);
+    return nativeGetCurrentCompletionCard(recordGenerated);
   }
 
   @Nullable
-  public CompletionCardSharePayload prepareCompletionCardShare(boolean includeDate)
+  public CompletionCardSharePayload prepareCompletionCardShare()
   {
-    return nativePrepareCompletionCardShare(includeDate);
+    return nativePrepareCompletionCardShare();
   }
 
   public void recordCompletionCardShareInitiated()
   {
     nativeRecordCompletionCardShareInitiated();
+  }
+
+  public void releaseCompletionCardShare()
+  {
+    nativeReleaseCompletionCardShare();
   }
 
   public void acknowledgeCompetitionHint()
@@ -353,6 +368,22 @@ public class StreetPixelsManager
       if (callback == null)
         return;
       UiThread.run(() -> callback.onCompetitionAreaSnapshot(chrome));
+    });
+  }
+
+  @NonNull
+  public CompetitionWeeklyChrome getCompetitionWeeklyChrome(long cityOsmId)
+  {
+    return nativeGetCompetitionWeeklyChrome(cityOsmId);
+  }
+
+  public void requestCompetitionWeeklyBoard(long cityOsmId, @Nullable CompetitionWeeklyBoardCallback callback)
+  {
+    ThreadPool.getWorker().execute(() -> {
+      CompetitionWeeklyChrome chrome = nativeRequestCompetitionWeeklyBoard(cityOsmId);
+      if (callback == null)
+        return;
+      UiThread.run(() -> callback.onCompetitionWeeklyBoard(chrome));
     });
   }
 

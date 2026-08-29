@@ -220,4 +220,17 @@ std::vector<std::optional<int64_t>> LiveRecencyStore::GetLastLiveVisits(std::vec
   }
   return out;
 }
+
+void LiveRecencyStore::ClearAll()
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  if (!EnsureOpen())
+    return;
+  char * errMsg = nullptr;
+  if (sqlite3_exec(m_db, "DELETE FROM live_recency;", nullptr, nullptr, &errMsg) != SQLITE_OK)
+  {
+    LOG(LERROR, ("Failed to clear live recency:", errMsg));
+    sqlite3_free(errMsg);
+  }
+}
 }  // namespace street_pixels

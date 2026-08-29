@@ -226,13 +226,14 @@ UNIT_TEST(CompletionCard_DenyListFieldsAbsent)
   TEST(!LabelContains(debug, "999"), (debug));
 }
 
-UNIT_TEST(CompletionCard_ComposeWithoutNicknameOrDate)
+UNIT_TEST(CompletionCard_ComposeWithoutNicknameIncludesDate)
 {
   auto source = MakeRectSource();
   auto const model = street_pixels::ComposeCompletionCard(source);
   TEST(model.has_value(), ());
   TEST(!model->m_nickname.has_value(), ());
-  TEST(!model->m_completedDate.has_value(), ());
+  TEST(model->m_completedDate.has_value(), ());
+  TEST_EQUAL(model->m_completedDate->size(), 10u, ());
   TEST_EQUAL(model->m_areaDisplayName, "District", ());
   TEST_EQUAL(model->m_headline, street_pixels::kCompletionCardHeadline, ());
   TEST_EQUAL(model->m_branding, street_pixels::kCompletionCardBranding, ());
@@ -286,16 +287,10 @@ UNIT_TEST(CompletionCard_RingsOnlyGeometryMatchesOutline)
        (centre.x, centre.y));
 }
 
-UNIT_TEST(CompletionCard_IncludeDateOnlyWhenRequested)
+UNIT_TEST(CompletionCard_IncludesStoredDateWhenPresent)
 {
   auto source = MakeRectSource();
-  auto const omitted = street_pixels::ComposeCompletionCard(source);
-  TEST(omitted.has_value(), ());
-  TEST(!omitted->m_completedDate.has_value(), ());
-
-  street_pixels::CompletionCardOptions withDate;
-  withDate.includeDate = true;
-  auto const dated = street_pixels::ComposeCompletionCard(source, withDate);
+  auto const dated = street_pixels::ComposeCompletionCard(source);
   TEST(dated.has_value(), ());
   TEST(dated->m_completedDate.has_value(), ());
   TEST_EQUAL(dated->m_completedDate->size(), 10u, ());
@@ -304,7 +299,7 @@ UNIT_TEST(CompletionCard_IncludeDateOnlyWhenRequested)
   TEST(dated->m_completedDate->find(':') == std::string::npos, ());
 
   source.m_completed100At.reset();
-  auto const missing = street_pixels::ComposeCompletionCard(source, withDate);
+  auto const missing = street_pixels::ComposeCompletionCard(source);
   TEST(missing.has_value(), ());
   TEST(!missing->m_completedDate.has_value(), ());
 }
@@ -398,7 +393,8 @@ UNIT_TEST(CompletionCard_ManagerBindsFromHundredPercentPeek)
   TEST(card.has_value(), ());
   TestRingsEqual(card->m_outlineRings, area->m_rings);
   TEST(card->m_outlineRings.size() != 1 || card->m_outlineRings.front() != fx.samples, ());
-  TEST(!card->m_completedDate.has_value(), ());
+  TEST(card->m_completedDate.has_value(), ());
+  TEST_EQUAL(card->m_completedDate->size(), 10u, ());
   auto rec = manager.GetAreaMilestoneRecord(peek->m_osmId);
   TEST(rec.has_value(), ());
   TEST(rec->m_completed100At.has_value(), ());

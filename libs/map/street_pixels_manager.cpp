@@ -550,9 +550,33 @@ std::optional<street_pixels::CompetitionAreaSnapshot> StreetPixelsManager::LastC
   return street_pixels::LastAreaSnapshot();
 }
 
+street_pixels::CompetitionWeeklyChrome StreetPixelsManager::GetCompetitionWeeklyChrome(uint64_t cityOsmId) const
+{
+  std::optional<street_pixels::CompetitionWeeklyBoard> board = street_pixels::LastWeeklyBoard();
+  if (board.has_value() && board->m_cityOsmId != static_cast<int64_t>(cityOsmId))
+    board.reset();
+  auto chrome = street_pixels::BuildCompetitionWeeklyChrome(board);
+  if (!board.has_value())
+    chrome.m_offline = true;
+  return chrome;
+}
+
+street_pixels::FetchWeeklyBoardResult StreetPixelsManager::RequestCompetitionWeeklyBoard(uint64_t cityOsmId)
+{
+  if (!IdentityStore::HasCompetitionConsent())
+  {
+    street_pixels::FetchWeeklyBoardResult result;
+    result.m_chrome = GetCompetitionWeeklyChrome(cityOsmId);
+    result.m_chrome.m_offline = true;
+    return result;
+  }
+  return street_pixels::FetchWeeklyBoard(static_cast<int64_t>(cityOsmId), IdentityStore::GetOrCreateDeviceId());
+}
+
 void StreetPixelsManager::ResetCompetitionSnapshotForTesting()
 {
   street_pixels::ClearCompetitionSnapshotCacheForTesting();
+  street_pixels::ClearCompetitionWeeklyCacheForTesting();
   street_pixels::SetCompetitionGetFnForTesting({});
   street_pixels::SetCompetitionMapMode(street_pixels::CompetitionMapMode::Explore);
   street_pixels::ClearOvertakingHintForTesting();
@@ -627,7 +651,7 @@ void StreetPixelsManager::SetCompletionCardGeneratedHandler(CompletionCardGenera
 }
 
 std::optional<street_pixels::CompletionCardModel> StreetPixelsManager::GetCompletionCardForCurrentPresentation(
-    bool includeDate, bool recordGenerated)
+    bool recordGenerated)
 {
   auto const peek = m_areaMilestonePresenter.Peek();
   if (!peek || peek->m_threshold != street_pixels::AreaMilestoneThreshold::P100)
@@ -637,7 +661,6 @@ std::optional<street_pixels::CompletionCardModel> StreetPixelsManager::GetComple
     return std::nullopt;
 
   street_pixels::CompletionCardOptions options;
-  options.includeDate = includeDate;
   if (IdentityStore::HasUsername())
     options.nickname = IdentityStore::GetUsername();
 
@@ -654,10 +677,9 @@ std::optional<street_pixels::CompletionCardModel> StreetPixelsManager::GetComple
   return model;
 }
 
-std::optional<street_pixels::CompletionCardSharePayload> StreetPixelsManager::PrepareCompletionCardShare(
-    bool includeDate)
+std::optional<street_pixels::CompletionCardSharePayload> StreetPixelsManager::PrepareCompletionCardShare()
 {
-  auto const model = GetCompletionCardForCurrentPresentation(includeDate, false);
+  auto const model = GetCompletionCardForCurrentPresentation(false);
   if (!model)
     return std::nullopt;
   if (!street_pixels::WriteCompletionCardTransient(*model))
@@ -671,14 +693,25 @@ std::optional<street_pixels::CompletionCardSharePayload> StreetPixelsManager::Pr
 
 void StreetPixelsManager::RecordCompletionCardShareInitiated()
 {
+  m_completionCardShareInFlight = true;
   street_pixels::CompletionCardAnalytics::RecordShareInitiated();
+}
+
+void StreetPixelsManager::ReleaseCompletionCardShare()
+{
+  if (!m_completionCardShareInFlight)
+    return;
+  m_completionCardShareInFlight = false;
+  auto const peek = m_areaMilestonePresenter.Peek();
+  if (!peek || peek->m_threshold != street_pixels::AreaMilestoneThreshold::P100)
+    street_pixels::DeleteCompletionCardTransient();
 }
 
 void StreetPixelsManager::AcknowledgeAreaMilestonePresentation()
 {
   auto const before = m_areaMilestonePresenter.Peek();
   m_areaMilestonePresenter.Acknowledge();
-  if (before && before->m_threshold == street_pixels::AreaMilestoneThreshold::P100)
+  if (before && before->m_threshold == street_pixels::AreaMilestoneThreshold::P100 && !m_completionCardShareInFlight)
     street_pixels::DeleteCompletionCardTransient();
   NotifyAreaMilestonePresentationIfChanged(before);
 }
@@ -748,6 +781,7 @@ bool StreetPixelsManager::ClearDebugCompletionCard()
 
 void StreetPixelsManager::ResetAreaMilestonePresentationForTesting()
 {
+  m_completionCardShareInFlight = false;
   m_areaMilestonePresenter.ResetForTesting();
 }
 
@@ -3441,6 +3475,9 @@ void StreetPixelsManager::PushExplorationAreaOverlayUnlocked(street_pixels::SpaF
     item.m_outlineColor =
         dp::Color(style.m_outline.m_r, style.m_outline.m_g, style.m_outline.m_b, style.m_outline.m_a);
     item.m_outlineWidthPx = style.m_outlineWidthPx;
+    item.m_showCheck = style.m_showCheck;
+    if (style.m_showCheck)
+      item.m_checkPolyline = street_pixels::OverlayCheckDrawPath(style, geom.m_labelPoint, geom.m_bounds);
     if (!item.m_name.empty())
     {
       OverlayLabel label;

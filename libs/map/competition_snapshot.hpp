@@ -26,6 +26,9 @@ void SetCompetitionMapMode(CompetitionMapMode mode);
 std::optional<CompetitionAreaSnapshot> LastAreaSnapshot();
 void ClearCompetitionSnapshotCacheForTesting();
 
+std::optional<CompetitionWeeklyBoard> LastWeeklyBoard();
+void ClearCompetitionWeeklyCacheForTesting();
+
 struct FetchAreaSnapshotResult
 {
   bool m_didGet = false;
@@ -36,6 +39,17 @@ struct FetchAreaSnapshotResult
 };
 
 FetchAreaSnapshotResult FetchAreaSnapshot(int64_t areaOsmId, std::string const & profileId);
+
+struct FetchWeeklyBoardResult
+{
+  bool m_didGet = false;
+  int m_httpStatus = 0;
+  std::string m_url;
+  CompetitionWeeklyChrome m_chrome;
+  std::optional<CompetitionWeeklyBoard> m_board;
+};
+
+FetchWeeklyBoardResult FetchWeeklyBoard(int64_t cityOsmId, std::string const & profileId);
 
 bool ShouldEmitOvertakingHint(uint64_t nowUnix);
 void MarkOvertakingHintEmitted(uint64_t nowUnix);

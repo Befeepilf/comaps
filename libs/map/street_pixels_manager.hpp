@@ -264,6 +264,8 @@ public:
   street_pixels::CompetitionAreaChrome GetCompetitionAreaChrome(uint64_t osmId) const;
   street_pixels::FetchAreaSnapshotResult RequestCompetitionAreaSnapshot(uint64_t osmId);
   std::optional<street_pixels::CompetitionAreaSnapshot> LastCompetitionSnapshot() const;
+  street_pixels::FetchWeeklyBoardResult RequestCompetitionWeeklyBoard(uint64_t cityOsmId);
+  street_pixels::CompetitionWeeklyChrome GetCompetitionWeeklyChrome(uint64_t cityOsmId) const;
   void ResetCompetitionSnapshotForTesting();
   std::optional<std::string> PeekCompetitionHintText() const;
   std::optional<std::string> TryConsumeOvertakingHint(bool routingFollowing);
@@ -283,9 +285,10 @@ public:
   using CompletionCardGeneratedFn = std::function<void()>;
   void SetCompletionCardGeneratedHandler(CompletionCardGeneratedFn const & fn);
   std::optional<street_pixels::CompletionCardModel> GetCompletionCardForCurrentPresentation(
-      bool includeDate = false, bool recordGenerated = true);
-  std::optional<street_pixels::CompletionCardSharePayload> PrepareCompletionCardShare(bool includeDate);
+      bool recordGenerated = true);
+  std::optional<street_pixels::CompletionCardSharePayload> PrepareCompletionCardShare();
   void RecordCompletionCardShareInitiated();
+  void ReleaseCompletionCardShare();
 
   void SetStreetPixelsForTesting(std::vector<df::StreetPixel> pixels);
   void SetStreetPixelsOverlayForTesting(storage::CountryId const & countryId, std::vector<df::StreetPixel> pixels);
@@ -363,6 +366,7 @@ private:
   AreaMilestoneHapticFn m_areaMilestoneHapticHandler;
   street_pixels::AreaMilestonePresenter m_areaMilestonePresenter;
   CompletionCardGeneratedFn m_completionCardGeneratedFn;
+  bool m_completionCardShareInFlight = false;
   std::vector<df::StreetPixel> m_testStreetPixelsStorage;
 
   void TriggerCollectionVibration(size_t numNewlyExploredPixels);

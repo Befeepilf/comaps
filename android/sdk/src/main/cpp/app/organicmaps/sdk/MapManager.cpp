@@ -349,6 +349,26 @@ JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_downloader_MapManager_native
   return static_cast<jboolean>(GetStorage().IsDownloadInProgress());
 }
 
+JNIEXPORT jobjectArray JNICALL
+Java_app_organicmaps_sdk_downloader_MapManager_nativeGetIncompleteSpaCountries(JNIEnv * env, jclass)
+{
+  storage::CountriesVec ids;
+  GetStorage().GetIncompleteSpaCountries(ids);
+  return jni::ToJavaStringArray(env, ids);
+}
+
+JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_downloader_MapManager_nativeIsSpaIncomplete(JNIEnv * env, jclass,
+                                                                                               jstring countryId)
+{
+  return static_cast<jboolean>(GetStorage().IsSpaIncomplete(jni::ToNativeString(env, countryId)));
+}
+
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_downloader_MapManager_nativeRetryIncompleteSpaDownloads(JNIEnv *,
+                                                                                                        jclass)
+{
+  GetStorage().RetryIncompleteSpaDownloads();
+}
+
 static void StartBatchingCallbacks()
 {
   CHECK_THREAD_CHECKER(g_batchingThreadChecker, ("StartBatchingCallbacks"));

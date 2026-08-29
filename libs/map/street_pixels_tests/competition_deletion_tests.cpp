@@ -55,18 +55,18 @@ public:
   ScopedDeletionFixture()
     : m_pixPath(Writable("sp077_delete.pix"))
     , m_dbPath(Writable("sp077_delete_recency.db"))
-    , m_store(m_dbPath)
   {
     ClearDeletionIdentityKeys();
     Platform::RemoveFileIfExists(m_pixPath);
     RemoveDeletionRecencyDb(m_dbPath);
-    m_store.Reopen(m_dbPath);
+    street_pixels::LiveRecencyStore::Instance().Reopen(m_dbPath);
 
     street_pixels_file::ExploredEverLiveMap seed{{kPixelId, true}};
     TEST(street_pixels_file::SaveRematchedUniverse(m_pixPath, std::set<int64_t>{kPixelId}, seed, 42), ());
     m_before = street_pixels_file::ProbeFile(m_pixPath);
-    m_store.TouchLiveVisits({kPixelId}, 12345);
-    TEST_EQUAL(*m_store.GetLastLiveVisit(kPixelId), 12345, ());
+    m_explored = street_pixels_file::ScanExploredEverLive(m_pixPath);
+    street_pixels::LiveRecencyStore::Instance().TouchLiveVisits({kPixelId}, 12345);
+    TEST_EQUAL(*street_pixels::LiveRecencyStore::Instance().GetLastLiveVisit(kPixelId), 12345, ());
 
     IdentityStore::GrantCompetitionConsent();
     IdentityStore::SetNicknameClaimHandlerForTesting([](std::string_view) { return 200; });
@@ -79,21 +79,23 @@ public:
     ClearDeletionIdentityKeys();
     Platform::RemoveFileIfExists(m_pixPath);
     RemoveDeletionRecencyDb(m_dbPath);
+    street_pixels::LiveRecencyStore::Instance().Reopen(street_pixels::LiveRecencyStore::DefaultDbPath());
   }
 
   std::string const & PixPath() const { return m_pixPath; }
   street_pixels_file::ProbeResult const & Before() const { return m_before; }
-  street_pixels::LiveRecencyStore & Store() { return m_store; }
+  std::optional<street_pixels_file::ExploredEverLiveMap> const & Explored() const { return m_explored; }
+  street_pixels::LiveRecencyStore & Store() { return street_pixels::LiveRecencyStore::Instance(); }
 
 private:
   std::string m_pixPath;
   std::string m_dbPath;
   street_pixels_file::ProbeResult m_before;
-  street_pixels::LiveRecencyStore m_store;
+  std::optional<street_pixels_file::ExploredEverLiveMap> m_explored;
 };
 }  // namespace
 
-UNIT_TEST(CompetitionDeletion_SuccessDoesNotClearPixOrRecency)
+UNIT_TEST(CompetitionDeletion_SuccessClearsRecencyKeepsPix)
 {
   ScopedDeletionFixture fixture;
   IdentityStore::SetNicknameClaimPostFnForTesting(
@@ -106,8 +108,30 @@ UNIT_TEST(CompetitionDeletion_SuccessDoesNotClearPixOrRecency)
   TEST(IdentityStore::DeleteCompetitionProfile() == IdentityStore::CompetitionAccountResult::Ok, ());
   auto const after = street_pixels_file::ProbeFile(fixture.PixPath());
   TEST_EQUAL(static_cast<int>(after.kind), static_cast<int>(fixture.Before().kind), ());
-  TEST_EQUAL(*fixture.Store().GetLastLiveVisit(ScopedDeletionFixture::kPixelId), 12345, ());
+  auto const explored = street_pixels_file::ScanExploredEverLive(fixture.PixPath());
+  TEST(explored.has_value(), ());
+  TEST(fixture.Explored().has_value(), ());
+  TEST_EQUAL(explored->size(), fixture.Explored()->size(), ());
+  TEST_EQUAL(explored->at(ScopedDeletionFixture::kPixelId), fixture.Explored()->at(ScopedDeletionFixture::kPixelId),
+             ());
+  TEST(!fixture.Store().GetLastLiveVisit(ScopedDeletionFixture::kPixelId).has_value(), ());
   TEST(!IdentityStore::HasUsername(), ());
+  TEST(!IdentityStore::HasCompetitionConsent(), ());
+}
+
+UNIT_TEST(CompetitionDeletion_RevokeClearsRecencyKeepsPix)
+{
+  ScopedDeletionFixture fixture;
+  IdentityStore::RevokeCompetitionConsent();
+  auto const after = street_pixels_file::ProbeFile(fixture.PixPath());
+  TEST_EQUAL(static_cast<int>(after.kind), static_cast<int>(fixture.Before().kind), ());
+  auto const explored = street_pixels_file::ScanExploredEverLive(fixture.PixPath());
+  TEST(explored.has_value(), ());
+  TEST(fixture.Explored().has_value(), ());
+  TEST_EQUAL(explored->size(), fixture.Explored()->size(), ());
+  TEST_EQUAL(explored->at(ScopedDeletionFixture::kPixelId), fixture.Explored()->at(ScopedDeletionFixture::kPixelId),
+             ());
+  TEST(!fixture.Store().GetLastLiveVisit(ScopedDeletionFixture::kPixelId).has_value(), ());
   TEST(!IdentityStore::HasCompetitionConsent(), ());
 }
 
