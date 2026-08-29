@@ -175,20 +175,21 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
     }
 
     UiUtils.show(competitionBlock);
-    applyCompetitionChrome(view, manager.getCompetitionAreaChrome(osmId), citySummary, osmId);
+    applyCompetitionChrome(view, manager.getCompetitionAreaChrome(osmId), citySummary);
+    if (citySummary)
+      bindWeeklyBoard(view, osmId, manager);
     manager.requestCompetitionAreaSnapshot(osmId, chrome -> {
       if (!isAdded())
         return;
       View bound = getView();
       if (bound == null)
         return;
-      applyCompetitionChrome(bound, chrome, citySummary, osmId);
+      applyCompetitionChrome(bound, chrome, citySummary);
       maybeShowOvertakingHint(manager);
     });
   }
 
-  private void applyCompetitionChrome(@NonNull View view, @NonNull CompetitionAreaChrome chrome, boolean citySummary,
-                                      long osmId)
+  private void applyCompetitionChrome(@NonNull View view, @NonNull CompetitionAreaChrome chrome, boolean citySummary)
   {
     MaterialTextView statusView = view.findViewById(R.id.competition_status);
     if (chrome.offline)
@@ -267,25 +268,24 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
 
     MaterialTextView weeklyTitle = view.findViewById(R.id.competition_weekly_title);
     MaterialTextView weeklyBody = view.findViewById(R.id.competition_weekly_body);
-    if (citySummary)
-    {
-      weeklyTitle.setText(R.string.competition_weekly_title);
-      StreetPixelsManager manager = MwmApplication.from(requireContext()).getStreetPixelsManager();
-      applyWeeklyChrome(view, manager.getCompetitionWeeklyChrome(osmId));
-      manager.requestCompetitionWeeklyBoard(osmId, weeklyChrome -> {
-        if (!isAdded())
-          return;
-        View bound = getView();
-        if (bound == null)
-          return;
-        applyWeeklyChrome(bound, weeklyChrome);
-      });
-    }
-    else
+    if (!citySummary)
     {
       UiUtils.hide(weeklyTitle);
       UiUtils.hide(weeklyBody);
     }
+  }
+
+  private void bindWeeklyBoard(@NonNull View view, long osmId, @NonNull StreetPixelsManager manager)
+  {
+    applyWeeklyChrome(view, manager.getCompetitionWeeklyChrome(osmId));
+    manager.requestCompetitionWeeklyBoard(osmId, weeklyChrome -> {
+      if (!isAdded())
+        return;
+      View bound = getView();
+      if (bound == null)
+        return;
+      applyWeeklyChrome(bound, weeklyChrome);
+    });
   }
 
   private void applyWeeklyChrome(@NonNull View view, @NonNull CompetitionWeeklyChrome chrome)
@@ -305,7 +305,15 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
       text.append(row);
     }
     MaterialTextView weeklyTitle = view.findViewById(R.id.competition_weekly_title);
-    if (text.length() == 0)
+    int lineCount = 0;
+    if (!chrome.body.isEmpty())
+      lineCount++;
+    for (String row : chrome.rows)
+    {
+      if (row != null && !row.isEmpty())
+        lineCount++;
+    }
+    if (!CompetitionEmptyState.showWeeklyBoard(lineCount))
     {
       UiUtils.hide(weeklyBody);
       if (weeklyTitle != null)
@@ -316,7 +324,10 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
       weeklyBody.setText(text.toString());
       UiUtils.show(weeklyBody);
       if (weeklyTitle != null)
+      {
+        weeklyTitle.setText(R.string.competition_weekly_title);
         UiUtils.show(weeklyTitle);
+      }
     }
   }
 

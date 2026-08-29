@@ -51,10 +51,9 @@ public class PrivacySettingsFragment extends BaseXmlSettingsFragment
 
   private void hideFriendRows()
   {
-    if (FriendSettingsVisibility.showFriendRows(false))
+    if (FriendSettingsVisibility.showFriendRows(FriendSettingsVisibility.friendsCapabilityEnabled()))
       return;
-    String friendKey = getString(R.string.pref_explore_friend_visibility_title);
-    Preference friend = findPreference(friendKey);
+    Preference friend = findPreference(getString(R.string.pref_explore_friend_visibility));
     if (friend != null)
       getPreferenceScreen().removePreference(friend);
   }
