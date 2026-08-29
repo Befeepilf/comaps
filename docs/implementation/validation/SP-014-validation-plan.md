@@ -102,10 +102,17 @@ Run each scenario on **D1 and D2** unless noted. Evidence: one row per (scenario
 
 ## ABL decision rule (after Block B)
 
+Historical Phase 2 text (plan review 2026-08-02):
+
 1. Run B4 + B5 on D1 (and D2 when available) **without** ABL.
 2. If continuity OK → keep ABL out; document recommendation.
 3. If poor on OEM only → product choice (messaging vs ABL vs exemption guidance); ABL implementation is Phase 10.
 4. If poor on both → strong ABL signal for Phase 10; **do not** add ABL inside SP-014 to force a pass.
+
+**Superseded 2026-08-29 by SPD-082.** Keep `ACCESS_BACKGROUND_LOCATION`
+absent. SP-095 reuses B4 / B5 / B-OEM **without** ABL. A later D2 Fail
+needs a **new SPD**, not a silent Phase 10 / SP-092 / SP-095 permission
+add. Do not treat steps 3–4 above as authorisation to add ABL.
 
 ## Automated baseline (agent)
 

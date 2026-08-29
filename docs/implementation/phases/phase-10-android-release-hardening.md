@@ -96,8 +96,8 @@ inventory:
 
 | From | Residual | Source | H7 class (SPD-083) |
 | --- | --- | --- | --- |
-| Phase 2 | Aggressive-OEM screen-off / background sample continuity (exit #7 partial; Pixel 3a done) | SP-014 | Device-verify (SP-095; **execution residual**) |
-| Phase 3 | Maintainer device walks (Pixel 3a / Uusimaa-scale reconciliation UX); rematch timing | SP-022 | Device-verify + Measure (**execution residual**) |
+| Phase 2 | Aggressive-OEM screen-off / background sample continuity (exit #7 partial; Pixel 3a Phase 2 D1 only — does **not** close Phase 10 D2 or fill SP-095 D1 cells) | SP-014 | Device-verify (SP-095; **execution residual**) |
+| Phase 3 | Maintainer device walks (Pixel 3a / Uusimaa-scale reconciliation UX); rematch timing | SP-022 | Device-verify (SP-095; **execution residual**) + Measure (Uusimaa timing on the same walks; **execution residual**) |
 | Phase 4 | R3 device walks: Helsinki UX, rural/coastal, no MWM-id as neighbourhood name in UI | SP-031 | Device-verify (SP-095; **execution residual**) |
 | Phase 4 | R1 (narrowed): production mapgen collectors → `.spa` / CDN shipping | SP-042–048 **Accepted** 2026-08-08 (**SPD-033**); Option A remains residual | **Not Phase 10** |
 | Phase 4 | LAN/CDN publish mirror; S2–S8 device download | SP-049–053 | Device *enabler* for Helsinki; not a Phase 10 feature |
@@ -106,7 +106,7 @@ inventory:
 | Phase 5 | Device Helsinki walks: badge/focus/tap/city zoom/completed chrome/§31 empty/no country-world UI | SP-041 R1 — needs `.spa` via download (SP-053) | Device-verify (SP-095; **execution residual**) |
 | Phase 5 | Completed check glyph not drawn (`m_showCheck` reserved; outline+fill shipped) | SP-040 / SP-041 R3 | Fix (SP-089) |
 | Phase 5 | Overlay neighbourhood-baked push retune | SP-041 R4 | Accept/waive |
-| Phase 6 | Spike 7 city-scale / device; all routing device walks | SP-054 / SP-061 | Measure + Device-verify (**execution residual**) |
+| Phase 6 | Spike 7 city-scale / device; all routing device walks | SP-054 / SP-061 | Measure (SP-054 Spike 7; H7 Measure, **not** SP-095 Device-verify; **execution residual**) + Device-verify (SP-061 I* → SP-095; **execution residual**) |
 | Phase 6 | GPS off-route Prefer dialog not shown (`nullptr` removeRouteCallback) | SP-061 R3 | Fix (SP-089) |
 | Phase 6 | Routing analytics upload | SP-060 / SPD-044 | Follow H5 (SP-091; **SPD-081** stay local, no sink) |
 | Phase 6 | No in-app debug readout of counters | SP-061 R5 | Accept/waive |

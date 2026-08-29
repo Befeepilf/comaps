@@ -61,7 +61,9 @@ That Pixel 3a evidence may be *cited* as prior D1-class work. It does
   Phase 10 walks are unexecuted);
 - close **D2** OEM screen-off or B-OEM;
 - close Helsinki UX, traffic capture, routing, milestones, GPX, or
-  friends-absent eyeball on the Phase 10 matrix.
+  friends-absent eyeball on the Phase 10 matrix;
+- authorise adding ABL. **SPD-082** keeps ABL absent; a D2 Fail needs
+  a new SPD.
 
 SP-022 / SP-031 / SP-041 / SP-061 / SP-069 / SP-079 / SP-087 device
 rows were already residual to Phase 10; none of those logs supply a
@@ -74,7 +76,10 @@ SP-033 qualitative Pixel 3a and SP-094 empty measurement cells are
 ## Block SP-014 — screen-off / OEM / no gap-fill
 
 Carried ids: [`SP-014-validation-plan.md`](SP-014-validation-plan.md).
-B12 is **not** here (SP-094 Bat-A/B).
+B12 is **not** here (SP-094 Bat-A/B). B4/B5 pass conditions include
+recording received vs expected (~1800 / ~900). Scenario ids
+D-open / D-canyon / D6–D8 / D-batch are GPS integrity, **not** matrix
+slots.
 
 | Scenario | Device | Result | Notes |
 | --- | --- | --- | --- |
@@ -92,10 +97,10 @@ B12 is **not** here (SP-094 Bat-A/B).
 | A6 notification Pause / Resume / Stop | D2 | **Residual** | |
 | A7 foreground haptics | D1 | **Residual** | |
 | A7 foreground haptics | D2 | **Residual** | |
-| B4 screen off 30 min walk | D1 | **Residual** | Prior Pixel 3a SP-014 Pass is citation only. |
-| B4 screen off 30 min walk | D2 | **Residual** | Closes SP-014 exit #7 posture only when recorded. |
-| B5 other app FG 15 min | D1 | **Residual** | |
-| B5 other app FG 15 min | D2 | **Residual** | |
+| B4 screen off 30 min walk | D1 | **Residual** | Prior Pixel 3a SP-014 Pass is citation only. Record received vs expected (~1800). |
+| B4 screen off 30 min walk | D2 | **Residual** | Closes SP-014 exit #7 posture only when recorded. Record received vs expected (~1800). |
+| B5 other app FG 15 min | D1 | **Residual** | ~900 expected. |
+| B5 other app FG 15 min | D2 | **Residual** | ~900 expected. |
 | B13 full session offline | D1 | **Residual** | |
 | B13 full session offline | D2 | **Residual** | |
 | B-OEM natural OEM kill | D1 | **Residual** | Stock Pixel-class may not exhibit OEM kill. |
@@ -130,7 +135,8 @@ B12 is **not** here (SP-094 Bat-A/B).
 ## Block SP-022 — permanence / rematch
 
 Carried ids: [`SP-022-validation-plan.md`](SP-022-validation-plan.md).
-Uusimaa S1–S8 measurement cells stay empty.
+Uusimaa S1–S8 measurement cells stay empty. Scenario **D1–D2** in this
+block are delete / redownload, **not** matrix slots.
 
 | Scenario | Device | Result | Notes |
 | --- | --- | --- | --- |
@@ -169,7 +175,8 @@ Uusimaa S1–S8 measurement cells stay empty.
 
 Carried ids: [`SP-031-validation-plan.md`](SP-031-validation-plan.md).
 If `.spa` is missing at execution → **Blocked**, do not substitute a
-city without administrative polygons.
+city without administrative polygons. Scenario **D1–D3** in this block
+are settlement / rural / subdivision visual, **not** matrix slots.
 
 | Scenario | Device | Result | Notes |
 | --- | --- | --- | --- |
@@ -197,7 +204,7 @@ Block H. **Not** SPD-077–082.
 | --- | --- | --- | --- |
 | H1 boundary walk / pan / recentre | D1 | **Residual** | SP-041 H1. Not Phase 10 H1 (matrix). |
 | H1 boundary walk / pan / recentre | D2 | **Residual** | |
-| H2 tap → detail exact % | D1 | **Residual** | SP-041 H2. Not Phase 10 H2 (battery). |
+| H2 tap → detail exact % | D1 | **Residual** | SP-041 H2. Not Phase 10 H2 (SPD-078 Spike 1 / battery, SP-094). |
 | H2 tap → detail exact % | D2 | **Residual** | |
 | H3 zoom street → city summary % | D1 | **Residual** | |
 | H3 zoom street → city summary % | D2 | **Residual** | |
@@ -249,8 +256,10 @@ Block I.
 | I5 haptics predicate | D2 | **Residual** | |
 | I6 nav not interrupted | D1 | **Residual** | |
 | I6 nav not interrupted | D2 | **Residual** | |
-| first-100 m (C* on device) | D1 | **Residual** | As opportunity. |
-| first-100 m (C* on device) | D2 | **Residual** | |
+| first-100 m (Block C behaviour on device) | D1 | **Residual** | As opportunity. Not a Block C unit-test id. |
+| first-100 m (Block C behaviour on device) | D2 | **Residual** | |
+| I7 §22.10 competition-on sentences | D1 | **Residual** | Observe with SP-079 if competition is on. Do not fail SP-069’s V1 stub. |
+| I7 §22.10 competition-on sentences | D2 | **Residual** | |
 
 ## Block SP-079 — opt-in / traffic capture / opt-out / delete
 
@@ -302,13 +311,30 @@ Block M.
 ## Block observe — first-run / §31 / friends
 
 Scripts already written in SP-090 and **SPD-085**. Not new walks.
+§31 is nine distinct states; do not collapse them into one Pass.
 
 | Scenario | Device | Result | Notes |
 | --- | --- | --- | --- |
-| SP-090 §10 first-run click-through | D1 | **Residual** | |
+| SP-090 §10 first-run click-through | D1 | **Residual** | Five steps in SP-090: map open without location on splash; spec card Start exploring; session-only location rationale; FGS/screen-off explanation, no ABL; recording control + first-100 m, no full tutorial. |
 | SP-090 §10 first-run click-through | D2 | **Residual** | |
-| SP-090 §31 empty/error eyeball | D1 | **Residual** | Copy landed in SP-090; device observation residual. |
-| SP-090 §31 empty/error eyeball | D2 | **Residual** | |
+| SP-090 §31 location denied | D1 | **Residual** | Map stays up; settings + continue browsing. |
+| SP-090 §31 location denied | D2 | **Residual** | |
+| SP-090 §31 background location denied | D1 | **Residual** | No ABL. FGS / notification / pause copy. |
+| SP-090 §31 background location denied | D2 | **Residual** | |
+| SP-090 §31 no downloaded map | D1 | **Residual** | |
+| SP-090 §31 no downloaded map | D2 | **Residual** | |
+| SP-090 §31 poor GPS accuracy | D1 | **Residual** | Waiting badge; no interpolation. |
+| SP-090 §31 poor GPS accuracy | D2 | **Residual** | |
+| SP-090 §31 interrupted recording | D1 | **Residual** | |
+| SP-090 §31 interrupted recording | D2 | **Residual** | |
+| SP-090 §31 no selected exploration area | D1 | **Residual** | |
+| SP-090 §31 no selected exploration area | D2 | **Residual** | |
+| SP-090 §31 no local competitors | D1 | **Residual** | Weekly board hidden when empty. |
+| SP-090 §31 no local competitors | D2 | **Residual** | |
+| SP-090 §31 no competition connectivity | D1 | **Residual** | Queue copy. |
+| SP-090 §31 no competition connectivity | D2 | **Residual** | |
+| SP-090 §31 avoid-explored impossible | D1 | **Residual** | Observe SP-089 Prefer + normal fallback. |
+| SP-090 §31 avoid-explored impossible | D2 | **Residual** | |
 | SPD-085 friends must not appear | D1 | **Residual** | Public APK. |
 | SPD-085 friends must not appear | D2 | **Residual** | |
 
@@ -318,6 +344,7 @@ Scripts already written in SP-090 and **SPD-085**. Not new walks.
 | --- | --- | --- |
 | Spike 1 R1–R3, Bat-A/B, CS1, L1–L9 | [`SP-094-evidence-log.md`](SP-094-evidence-log.md) | Residual there. Not duplicated as executed here. |
 | SP-014 B12 2 h battery | SP-094 Bat-A/B | Absorbed. |
+| Spike 7 / SP-054 city-scale | H7 Measure (not this Device-verify roster) | Routing *device* walks are SP-061 I* above. |
 | Privacy/terms URL landing | SP-093 | Residual. Do not retarget here. |
 
 ## Phase 10 exit mapping (not closed)
@@ -325,8 +352,10 @@ Scripts already written in SP-090 and **SPD-085**. Not new walks.
 | Exit # | Criterion | Result in this slice | Evidence |
 | --- | --- | --- | --- |
 | 1 | §34 verified with recorded device evidence | **Residual** | Roster exists; every walk row Residual |
+| 2 | §31 empty/error observed | **Residual** | Nine SP-090 §31 states × D1/D2 Residual |
 | — | SP-014 exit #7 OEM screen-off on D2 | **Residual** | B4/B-OEM D2 empty. Pixel 3a citation is not D2. |
 | 6–8 | Battery / rendering / lifecycle | **Residual** | SP-094, not this item |
+| — | Phase 6 Spike 7 city-scale | **Residual** | H7 Measure (SP-054), not this roster |
 
 Do **not** mark Phase 10 exit met.
 

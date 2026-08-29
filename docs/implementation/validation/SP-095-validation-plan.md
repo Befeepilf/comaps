@@ -18,18 +18,26 @@ runs those plans’ scenario ids as written.
 
 ## ID collision warning
 
-Several “H” series exist. Do **not** mix them.
+Several “H” and “D” series exist. Do **not** mix them.
 
 | Series | What it is | This plan |
 | --- | --- | --- |
-| Phase 10 locks **H1–H10** | Launch-governance decisions **SPD-077–086** | **H1** = device *matrix* (**SPD-077**: D1 Pixel-class + D2 aggressive OEM). **H6** = ABL stays absent (**SPD-082**). **H7** = residual *classification* (**SPD-083** Device-verify → this item). Not walk scripts. |
+| Phase 10 locks **H1–H10** | Launch-governance decisions **SPD-077–086** | **H1** = device *matrix* (**SPD-077**: D1 Pixel-class + D2 aggressive OEM). **H2** = Spike 1 bar + battery *protocol* (**SPD-078** / SP-094). **H6** = ABL stays absent (**SPD-082**). **H7** = residual *classification* (**SPD-083** Device-verify → this item). Not walk scripts. |
 | SP-041 scenarios **H1–H6** | Helsinki *UX* walks (badge / tap / city zoom / completed chrome / §31 empty / no country-world %) | **In this roster.** Carried from [`SP-041-validation-plan.md`](SP-041-validation-plan.md) Block H. These are **not** Phase 10 locks H1–H6. |
 | SP-061 Block H | Phase 6 *non-goals* (car no Avoid, no min-connection, …) | Not Helsinki. Not Phase 10 H1. |
 | SP-069 Block H | Growth-analytics unit scenarios | Not Helsinki. Not Phase 10 H1. |
+| SP-087 Block H | Monetisation-analytics unit scenarios | Not Helsinki. Not Phase 10 H1. Device walks are Block M. |
 | SP-094 **R / Bat / CS / L** | Spike 1, H2 battery, cold start, data-loss lifecycle | **Out of this item.** Point at [`SP-094-validation-plan.md`](SP-094-validation-plan.md). Also residual; do not duplicate as executed here. |
+| Matrix **D1 / D2 / D3** | SPD-077 slots (Pixel-class / aggressive OEM / optional second API) | Only the evidence-log **Device** column. |
+| SP-014 **D-open / D-canyon / D6–D8 / D-batch** | GPS integrity / tunnel / batched samples | Scenario ids. **Not** matrix slots. |
+| SP-022 **D1–D2** | Delete country → `.pixr`; redownload rematch | Scenario ids. **Not** matrix slots. |
+| SP-031 **D1–D3** | Settlement-only city; rural/outside settlements; subdivision wins (device visual) | Scenario ids. **Not** matrix slots. |
+| SP-061 **D4** | Device SP-058 warning steps (paired with I1) | Scenario id. **Not** matrix slot D1. |
 
 Phase 10 **H1** is the matrix *lock*. SP-041 **H1** is a Helsinki
 boundary-walk / pan / recentre UX scenario. They are unrelated.
+Phase 10 **H2** is the Spike 1 / battery protocol lock. SP-041 **H2**
+is tap-to-detail %.
 
 ## Approved decisions
 
@@ -43,6 +51,7 @@ boundary-walk / pan / recentre UX scenario. They are unrelated.
 | Helsinki | Fixture country, **not** an allowlist. Worldwide product. Missing `.spa` → Helsinki area-UX rows **Blocked** / Residual; do **not** substitute a city without administrative polygons and call it SP-031 R3. Enabler: SP-053 LAN `.spa` download. |
 | Location data | Map screenshots that show a live position are location data. Do **not** put them in Sentry, this public evidence log, or a public artefact. Text logs + device metadata are the record. |
 | Battery / Spike 1 | Quantitative Spike 1 and H2 battery protocol belong to **SP-094** (also residual). Point there. Do not copy empty number cells as SP-095 Pass. SP-014 **B12** (2 h record-battery-only) is absorbed by SP-094 Bat-A/B; this roster does not re-run it. |
+| Spike 7 / SP-054 | City-scale routing measurement is H7 **Measure**, not this Device-verify roster. Do not invent a weaker city-scale walk here. Routing *device* walks remain SP-061 I1–I6. |
 | Brand / Help URLs | Residual elsewhere (SP-093 / **SPD-080**). Do not retarget Help URLs in this item. |
 | Fabrication | Forbidden. Empty device cells until a handset run exists. |
 
@@ -104,8 +113,8 @@ Plan: [`SP-014-validation-plan.md`](SP-014-validation-plan.md).
 | Carried ids | What |
 | --- | --- |
 | A1–A7 | Gate and session (no pixels off-session; discard/finish; deny location; notification Pause/Resume/Stop; foreground haptics) |
-| B4 | Screen off 30 min walk — continued collection; no false interrupt if gaps &lt; 60 s |
-| B5 | Other app foreground 15 min walk — continued collection |
+| B4 | Screen off 30 min walk — continued collection; **record received vs expected (~1800)**; no false interrupt if gaps &lt; 60 s |
+| B5 | Other app foreground 15 min walk — continued collection (**~900 expected**) |
 | B13 | Full session offline |
 | B-OEM | Natural OEM kill (**D2** required). Interrupt UX on reopen; prior pixels kept; **no gap fill**. Do not add ABL (**SPD-082**). |
 | C3 | Pause → vehicle ≥1–2 km → resume → walk. No pixels on paused segment; no connecting green; track split |
@@ -121,6 +130,8 @@ this OEM-kill script.
 ### SP-022 — permanence / rematch / Uusimaa timing
 
 Plan: [`SP-022-validation-plan.md`](SP-022-validation-plan.md).
+Scenario ids **D1–D2** in this block are delete / redownload, **not**
+matrix slots.
 
 | Carried ids | What |
 | --- | --- |
@@ -135,7 +146,8 @@ S1–S8 measurement slots in that plan stay empty until walked.
 ### SP-031 — Helsinki names, rural/coastal, settlement (R3)
 
 Plan: [`SP-031-validation-plan.md`](SP-031-validation-plan.md). Device
-block, not the automated A–C/G suites.
+block, not the automated A–C/G suites. Scenario ids **D1–D3** in this
+block are settlement / rural / subdivision visual, **not** matrix slots.
 
 | Carried ids | What |
 | --- | --- |
@@ -156,7 +168,7 @@ These are **Helsinki UX**, not Phase 10 locks H1–H6.
 | Carried id | What | Phase 10 lock? |
 | --- | --- | --- |
 | **H1** | Boundary walk / pan / recentre focus (§12.5) | **No.** Not SPD-077. |
-| **H2** | Tap areas → detail exact % | **No.** Not SPD-078. |
+| **H2** | Tap areas → detail exact % | **No.** Not SPD-078 (Phase 10 H2 Spike 1 / battery). |
 | **H3** | Zoom street → city summary % | No |
 | **H4** | Completed chrome across zooms (§18.6) | No |
 | **H5** | Leave settlement → empty state copy (§31) | No |
@@ -194,7 +206,8 @@ Plan: [`SP-069-validation-plan.md`](SP-069-validation-plan.md) Block I.
 | I4 | Explicit share sheet only on tap |
 | I5 | Haptics predicate (screen-off / background / toggle off) |
 | I6 | Navigation not interrupted |
-| C* (device) | First-100 m as opportunity on the same walk |
+| first-100 m | Block C *behaviour* on device as opportunity on the same walk. **Not** a Block C unit-test id. No separate I-id in the carried plan. |
+| I7 | §22.10 competition-on sentences — observe with SP-079 if competition is on; do not fail SP-069’s original V1 stub |
 
 I7 (§22.10 competition-on sentences) is Phase 8 chrome; observe with
 SP-079 if competition is on, do not fail SP-069’s original V1 stub.
@@ -233,8 +246,8 @@ Plan: [`SP-087-validation-plan.md`](SP-087-validation-plan.md) **Block M**.
 
 | Source | Script | Notes |
 | --- | --- | --- |
-| [SP-090](../work-items/SP-090-settings-empty-states-first-run.md) §10 first-run | Click-through steps already written there | Residual with this item; do not invent a shorter first-run. |
-| SP-090 §31 matrix | Device observation of implemented empty/error copy | Copy/actions landed in SP-090; hardware eyeball is this roster / SP-097. |
+| [SP-090](../work-items/SP-090-settings-empty-states-first-run.md) §10 first-run | The five click-through steps already written there | Residual with this item; do not invent a shorter first-run. |
+| SP-090 §31 matrix | Each implemented empty/error state (nine rows; copy/actions landed in SP-090) | Hardware eyeball is this roster / SP-097. Do not collapse the matrix into one Pass. |
 | **SPD-085** | Friends must not appear | Public build: no friend settings, no add-friend intents, no friend-facing nickname copy. |
 
 ## Automated pointers (optional in the executing WI)
@@ -250,8 +263,10 @@ This roster-only slice does **not** require those commands and does
 | Exit # | Criterion | This roster | Status in this slice |
 | --- | --- | --- | --- |
 | 1 | §34 line items with recorded evidence | Device/manual hardware observations | **Execution Residual** (SP-097 maps; this roster is the walk list) |
+| 2 | §31 empty/error observed | SP-090 §31 matrix rows (nine states × D1/D2) | **Execution Residual** |
 | 6–8 | Battery / Spike 1 / lifecycle | **Not this item** | SP-094 residual |
 | — | SP-014 exit #7 OEM screen-off | B4 + B-OEM on D2 | **Residual** until D2 is walked. Pixel 3a SP-014 does **not** close it. |
+| — | Phase 6 Spike 7 city-scale | **Not this item** | H7 Measure (SP-054). Routing device walks are SP-061 I* here. |
 
 Do **not** mark Phase 10 exit met.
 
@@ -259,8 +274,8 @@ Do **not** mark Phase 10 exit met.
 
 1. Confirm release/beta APK SHA; install on D1 (then D2). Record map / `.spa` versions.
 2. Confirm Helsinki / Uusimaa MWM and `.spa`. If `.spa` missing, SP-031 F* and SP-041 H1–H6 are **Blocked**.
-3. SP-090 first-run on a fresh install (D1 at least).
-4. SP-014 Block A, then B4/B5, then B-OEM on D2, then C/D/E as opportunity.
+3. SP-090 first-run on a fresh install (D1 at least); §31 empty/error matrix as opportunity on the same devices.
+4. SP-014 Block A, then B4/B5 (record ~1800 / ~900), then B-OEM on D2, then C/D/E as opportunity.
 5. SP-022 rematch / delete-redownload / Uusimaa timing as maps allow.
 6. SP-031 R3 + SP-041 H1–H6 (Helsinki UX) on D1 and D2.
 7. SP-061 routing walks (include off-route Prefer after SP-089).
@@ -274,6 +289,7 @@ Do **not** mark Phase 10 exit met.
 
 - Executing any of the above in this Phase 10 coding slice.
 - Quantitative Spike 1 / H2 battery / CS1 / L1–L9 (SP-094).
+- Spike 7 / SP-054 city-scale routing measurement (H7 Measure).
 - Adding ABL. Implementing friends UI. Retargeting privacy URLs (SP-093 residual).
 - Inventing a weaker walk script than the carried plans.
 - Substituting a non-polygon city for Helsinki R3.
