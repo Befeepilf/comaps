@@ -159,6 +159,7 @@ Accepted.**
 | Device roster | Residual (**SPD-077** matrix defined D1 Pixel-class + D2 aggressive OEM; D3 only if locked; **not executed**) |
 | ABL / friends | ABL remains absent (**SPD-082**). Friends must not appear (**SPD-085**) — eyeball residual. |
 | Spike 1 / battery | Not this item — [`SP-094`](SP-094-battery-rendering-lifecycle.md) residual. |
+| Independent review | 2026-08-29 — roster vs carried plans; SPD-082 ABL supersession on SP-014; §31 nine-state rows. Not Accepted. |
 | Accepted by | |
 | Accepted date | |
 
