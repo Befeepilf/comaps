@@ -1,7 +1,7 @@
 # SP-091 — Product analytics reconciliation
 
 **Phase:** 10 — Android release hardening
-**Status:** Planned
+**Status:** Accepted
 **Depends on:** SP-088 H5 Accepted (**SPD-081**). Phase 10 implementation
   entry.
 **Unblocks:** SP-097 exit #4 (analytics match §32; no location)
@@ -70,13 +70,14 @@ need a payload-shape proof, not a convention.
 
 ## Relevant source files or symbols
 
-- `libs/routing/street_exploration_routing_analytics.*`
-- `libs/map/completion_card_analytics.*`
-- `libs/map/explorer_pro_analytics.*`
-- `CompetitionUploadService` payload
-- Sentry manifest meta-data
-- Recording / permission / first-goal / milestone / consent sites
-  (candidate increment points)
+- `libs/map/product_analytics.*` (new §32.1–§32.3 local counters)
+- `libs/map/street_pixels_tests/product_analytics_tests.cpp`
+- `android/sdk/src/main/java/app/organicmaps/sdk/ProductAnalytics.java`
+- `libs/routing/street_exploration_routing_analytics.*` (SPD-044 reuse)
+- `libs/map/completion_card_analytics.*` (SPD-055 reuse)
+- `libs/map/explorer_pro_analytics.*` (SPD-075 reuse)
+- `CompetitionUploadService` payload / `SerializeCompetitionUploadPayload`
+- Recording / permission / first-goal / milestone / consent increment sites
 
 ## Implementation notes / constraints
 
@@ -123,15 +124,56 @@ need a payload-shape proof, not a convention.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| §32 inventory | |
-| H5 implementation | |
-| Test output | |
-| Accepted by | |
-| Accepted date | |
+| Branch | `cursor/sp-091-product-analytics-6383` |
+| §32 inventory | See §32 inventory below. 27 specified events: 20 new local `Explore.*` uint64 counters + 7 reused (SPD-044 / SPD-055 / SPD-075). Purchase conversion out of V1. |
+| H5 implementation | **SPD-081 local-only.** `street_pixels::ProductAnalytics` stores count-only `uint64` settings. No public analytics upload sink. Counters are not sent through Sentry and are not attached to the competition POST (`ProductAnalytics_ReleaseUploadPayloadsHaveNoLocation` asserts `Explore.` absent from the JSON). |
+| Test output | Independent review re-run (2026-08-29): `--filter=ProductAnalytics` → **20/20 OK**. Focused filter → **173/173 OK**. Android JVM ProductAnalyticsTest 1/1, ExplorerProAnalyticsTest 2/2. Review `4bbb78cbc`. |
+| Accepted by | product owner (implement → review lock 2026-08-29) |
+| Accepted date | 2026-08-29 |
+
+### §32 inventory
+
+| Spec event | Implemented key | Verdict |
+| --- | --- | --- |
+| §32.1 Location permission granted | `Explore.PositionPermissionGranted` | New (once). JNI on grant / Splash after native init |
+| §32.1 Background recording permission granted | `Explore.NotifyPermissionGranted` | New (once). POST_NOTIFICATIONS grant **or** successful FGS start. ABL absent (SPD-082) |
+| §32.1 First recording started | `Explore.FirstRecordingStarted` | New (once) on `RecordingSession::Start` |
+| §32.1 First pixel collected | `Explore.FirstCollected` | New (once). Live newly explored only |
+| §32.1 First 10 pixels collected | `Explore.FirstTenCollected` | New (once) at 10 live newly explored |
+| §32.1 First 100 metres explored | `Explore.FirstGoalComplete` | New (once). SPD-047 = 10 newly explored live pixels / first-goal complete. Same threshold as first 10 |
+| §32.1 First recording completed | `Explore.FirstRecordingCompleted` | New (once) on Finish; Discard does not increment |
+| §32.2 Active recording sessions | `Explore.RecordingSessions` | New (count every Start) |
+| §32.2 New pixels collected per active week | `Explore.NewCollectedThisWeek` | New. Local week bucket of newly explored live pixels (not pixel ids). Week id in `Explore.NewCollectedWeekId` (internal, not serialized) |
+| §32.2 Areas with measurable progress | `Explore.PlacesWithProgress` | New. Count of live completion bumps; no OSM ids stored |
+| §32.2 First 25% milestone | `Explore.FirstMilestone25` | New (once). Live crossings only |
+| §32.2 First 50% milestone | `Explore.FirstMilestone50` | New (once). Live crossings only |
+| §32.2 First area completed | `Explore.FirstComplete` | New (once). Live P100 only |
+| §32.2 Prefer-unexplored routing usage | `street_exploration_routing_analytics_prefer_used` | Existing SPD-044. Reused |
+| §32.2 Avoid-explored routing usage | `street_exploration_routing_analytics_avoid_used` | Existing SPD-044. Reused |
+| §32.3 Competition prompt viewed | `Explore.CompetitionPromptViewed` | New (count each consent dialog show) |
+| §32.3 Competition opt-in | `Explore.CompetitionOptIn` | New (count each `GrantCompetitionConsent`) |
+| §32.3 Users qualifying for leadership | `Explore.LeadershipQualified` | New (once). Consented area-snapshot fetch; live ownership only; import does not fire |
+| §32.3 Users becoming boss | `Explore.BecameBoss` | New (once). Consented area-snapshot fetch; live ownership only |
+| §32.3 Areas becoming contested | `Explore.BecameContested` | New (once-ever from non-offline server snapshot flag; no OSM ids stored) |
+| §32.3 Areas becoming unclaimed | `Explore.BecameUnclaimed` | New (once-ever from non-offline server snapshot flag; no OSM ids stored) |
+| §32.3 Weekly city leaderboard usage | `Explore.WeeklyBoardUsed` | New (count each consented weekly-board fetch) |
+| §32.4 Completion card generated | `Explore.CardGenerated` | Existing SPD-055. Confirmed no area id |
+| §32.4 Share action initiated | `Explore.ShareInitiated` | Existing SPD-055. Confirmed no area id |
+| §32.5 Explorer Pro information page viewed | `Explore.ProInfoViewed` | Existing SPD-075. Available gate |
+| §32.5 GPX import usage | `Explore.GpxImportUsage` | Existing SPD-075. Available gate |
+| §32.5 GPX export usage | `Explore.GpxExportUsage` | Existing SPD-075. Available gate |
+| §32.5 Purchase conversion / restoration | — | **Out of V1** (spec §32.5 post-V1) |
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| (fill during implementation) | |
+| Competition prompt viewed counts each first `onCreateDialog` (rotation uses `savedInstanceState != null` and does not increment) | Record. DialogFragment recreation after process death with a restored instance still does not increment; a fresh `maybeShow` does |
+| Leadership / boss fire on consented `RequestCompetitionAreaSnapshot`, not on the GPS sample path | Independent review (2026-08-29). GPS-path `QueryCompetitionOwnership` per newly explored pixel was unbounded main-thread work until both flags were set; removed |
+| Users who never open a consented area snapshot never increment leadership / boss | Record. Upload builder stays side-effect free; unique-area observation would need OSM ids |
+| Contested / unclaimed are once-ever flags, not unique-area counts (storing OSM ids is forbidden) | Record. Unique-area counts would need a product lock that does not store location-adjacent ids |
+| First 10 pixels and first 100 m fire at the same SPD-047 threshold (10 newly explored live pixels) | Expected under SPD-047. Spec lists both events; both counters increment once at that threshold |
+| POST_NOTIFICATIONS is absent on API 32 and below; FGS start also increments the notify counter once | Honest mapping of “background recording permission” under SPD-082 (no ABL) |
+| Device traffic capture that a Play build’s Sentry project is empty of screenshots / analytics | Residual SP-095 / SP-097. Not executed in this item |
+| Purchase conversion and restoration metrics | Out of V1 per spec §32.5 |
+| In-app debug readout of counters | Waived SPD-083 / SP-061 R5. Not added |

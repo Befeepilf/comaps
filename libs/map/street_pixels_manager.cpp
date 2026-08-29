@@ -39,6 +39,7 @@
 #include "map/completion_card_analytics.hpp"
 #include "map/competition_hint.hpp"
 #include "map/competition_snapshot.hpp"
+#include "map/product_analytics.hpp"
 #include "street_pixels_areas/competition_presentation.hpp"
 
 #include "street_pixels_areas/exploration_area_tap.hpp"
@@ -539,6 +540,17 @@ street_pixels::FetchAreaSnapshotResult StreetPixelsManager::RequestCompetitionAr
   result.m_chrome.m_localOwnershipScore = query.m_ownershipScore;
   result.m_chrome.m_localEligible = query.m_eligible;
   result.m_chrome.m_localIsBoss = query.m_localIsBoss;
+  if (!result.m_chrome.m_offline)
+  {
+    if (result.m_chrome.m_contested)
+      street_pixels::ProductAnalytics::RecordBecameContested();
+    if (result.m_chrome.m_unclaimed)
+      street_pixels::ProductAnalytics::RecordBecameUnclaimed();
+  }
+  if (query.m_eligible)
+    street_pixels::ProductAnalytics::RecordLeadershipQualified();
+  if (query.m_localIsBoss)
+    street_pixels::ProductAnalytics::RecordBecameBoss();
   auto const focused = GetFocusedAreaProgress();
   if (focused.m_hasFocus && focused.m_osmId == osmId && focused.m_fractionValid)
     result.m_chrome.m_personalCompletionFraction = focused.m_fraction;
@@ -570,6 +582,7 @@ street_pixels::FetchWeeklyBoardResult StreetPixelsManager::RequestCompetitionWee
     result.m_chrome.m_offline = true;
     return result;
   }
+  street_pixels::ProductAnalytics::RecordWeeklyBoardUsed();
   return street_pixels::FetchWeeklyBoard(static_cast<int64_t>(cityOsmId), IdentityStore::GetOrCreateDeviceId());
 }
 
@@ -998,7 +1011,7 @@ size_t StreetPixelsManager::MarkExploredPixelIds(std::set<std::int64_t> const & 
   }
 
   if (!newlyExplored.empty())
-    AddExploredPixelsToAreaCompletion(newlyExplored);
+    AddExploredPixelsToAreaCompletion(newlyExplored, false);
 
   if (statsNew > 0 && m_explorationListener)
   {
@@ -2319,7 +2332,7 @@ void StreetPixelsManager::OnLocationUpdate(location::GpsInfo const & info)
   UpdateStreetStats(info.m_latitude, info.m_longitude, numNewlyExploredPixels);
 
   if (!newlyExploredIds.empty())
-    AddExploredPixelsToAreaCompletion(newlyExploredIds);
+    AddExploredPixelsToAreaCompletion(newlyExploredIds, true);
 
   if (numNewlyExploredPixels > 0 && m_explorationListener)
   {
@@ -2334,11 +2347,14 @@ void StreetPixelsManager::OnLocationUpdate(location::GpsInfo const & info)
   bool hintReady = false;
   if (numNewlyExploredPixels > 0)
   {
+    street_pixels::ProductAnalytics::RecordLiveCollected(static_cast<uint64_t>(numNewlyExploredPixels));
     justCompleted =
         m_firstGoalTracker.AddNewlyExploredLivePixels(static_cast<uint32_t>(numNewlyExploredPixels));
     hintReady =
         m_competitionHintTracker.AddNewlyExploredLivePixels(static_cast<uint32_t>(numNewlyExploredPixels));
     NotifyFirstGoalProgressIfChanged();
+    if (justCompleted)
+      street_pixels::ProductAnalytics::RecordFirstGoalComplete();
     if (justCompleted && m_firstGoalCompleteHandler)
       m_firstGoalCompleteHandler();
     if (hintReady && m_competitionHintReadyHandler)
@@ -2745,16 +2761,16 @@ street_pixels::CompetitionWeeklyCityQuery StreetPixelsManager::QueryWeeklyCityLi
   return street_pixels::WeeklyCityLiveStore::Instance().Query(settlementOsmId, nowUnix);
 }
 
-void StreetPixelsManager::EvaluateAreaMilestonesUnlocked(int64_t nowSec)
+std::vector<street_pixels::AreaMilestoneCrossing> StreetPixelsManager::EvaluateAreaMilestonesUnlocked(int64_t nowSec)
 {
   street_pixels::AreaCompletionCache cacheSnapshot;
   {
     std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
     if (!m_areaCompletionCache.IsValid())
-      return;
+      return {};
     cacheSnapshot = m_areaCompletionCache;
   }
-  street_pixels::AreaMilestoneStore::Instance().EvaluateAndRecordFires(cacheSnapshot, nowSec);
+  return street_pixels::AreaMilestoneStore::Instance().EvaluateAndRecordFires(cacheSnapshot, nowSec);
 }
 
 std::optional<street_pixels::AreaCompletionCounts> StreetPixelsManager::GetCityCompletion(
@@ -2794,7 +2810,7 @@ void StreetPixelsManager::InvalidateAreaCompletionCacheUnlocked()
   m_completionResolver.reset();
 }
 
-void StreetPixelsManager::AddExploredPixelsToAreaCompletion(std::set<std::int64_t> const & pixelIds)
+void StreetPixelsManager::AddExploredPixelsToAreaCompletion(std::set<std::int64_t> const & pixelIds, bool liveAnalytics)
 {
   std::shared_ptr<street_pixels::ExplorationAreaResolver> resolver;
   bool changed = false;
@@ -2827,7 +2843,26 @@ void StreetPixelsManager::AddExploredPixelsToAreaCompletion(std::set<std::int64_
     return;
   RefreshFocusedAreaFractionUnlocked();
   NotifyFocusedAreaProgressIfChanged();
-  EvaluateAreaMilestonesUnlocked(static_cast<int64_t>(base::Timer::LocalTime()));
+  auto const crossings = EvaluateAreaMilestonesUnlocked(static_cast<int64_t>(base::Timer::LocalTime()));
+  if (liveAnalytics)
+  {
+    street_pixels::ProductAnalytics::RecordPlacesWithProgress();
+    for (auto const & crossing : crossings)
+    {
+      switch (crossing.m_threshold)
+      {
+      case street_pixels::AreaMilestoneThreshold::P25:
+        street_pixels::ProductAnalytics::RecordFirstMilestone25();
+        break;
+      case street_pixels::AreaMilestoneThreshold::P50:
+        street_pixels::ProductAnalytics::RecordFirstMilestone50();
+        break;
+      case street_pixels::AreaMilestoneThreshold::P100:
+        street_pixels::ProductAnalytics::RecordFirstComplete();
+        break;
+      }
+    }
+  }
   IngestPendingAreaMilestonePresentations(resolver->GetFile());
   PushExplorationAreaOverlayUnlocked(resolver->GetFile());
 }

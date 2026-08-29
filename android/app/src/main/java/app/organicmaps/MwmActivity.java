@@ -90,6 +90,7 @@ import app.organicmaps.sdk.Map;
 import app.organicmaps.sdk.MapController;
 import app.organicmaps.sdk.MapRenderingListener;
 import app.organicmaps.sdk.PlacePageActivationListener;
+import app.organicmaps.sdk.ProductAnalytics;
 import app.organicmaps.sdk.Router;
 import app.organicmaps.sdk.bookmarks.data.BookmarkManager;
 import app.organicmaps.sdk.bookmarks.data.MapObject;
@@ -2140,6 +2141,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
       if (hasFineLocationPermission)
       {
         Logger.i(LOCATION_TAG, "ACCESS_FINE_LOCATION permission granted");
+        ProductAnalytics.recordPositionPermissionGranted();
       }
       else
       {
@@ -2206,7 +2208,10 @@ public class MwmActivity extends BaseMwmFragmentActivity
   private void onPostNotificationPermissionResult(boolean granted)
   {
     if (granted)
+    {
       Logger.i(TAG, "Permission POST_NOTIFICATIONS has been granted");
+      ProductAnalytics.recordNotifyPermissionGranted();
+    }
     else
       Logger.w(TAG, "Permission POST_NOTIFICATIONS has been refused");
   }

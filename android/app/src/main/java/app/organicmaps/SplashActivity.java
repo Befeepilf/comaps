@@ -21,6 +21,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import app.organicmaps.downloader.DownloaderActivity;
 import app.organicmaps.intent.Factory;
+import app.organicmaps.sdk.ProductAnalytics;
 import app.organicmaps.sdk.location.LocationHelper;
 import app.organicmaps.sdk.util.Config;
 import app.organicmaps.sdk.util.LocationUtils;
@@ -153,6 +154,9 @@ public class SplashActivity extends AppCompatActivity
       if (!locationHelper.isActive())
         locationHelper.start();
     }
+
+    if (LocationUtils.checkFineLocationPermission(this))
+      ProductAnalytics.recordPositionPermissionGranted();
 
     if (!asyncContinue)
       processNavigation();

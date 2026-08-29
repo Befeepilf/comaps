@@ -105,7 +105,7 @@ std::string_view constexpr kDenyKeys[] = {
     "gaid",          "idfa",        "aaid",              "friend",    "friends",    "user_id",
     "unique_live",   "uniqueLivePixels", "explored_pixels", "regionId", "weekStart", "speed",
     "bearing",       "accuracy",    "mercator",          "coord",     "live_movement", "session",
-    "week_id"};
+    "week_id",       "home",        "polyline",          "route",     "geometry"};
 
 void ClearCompetitionUploadSettings()
 {
