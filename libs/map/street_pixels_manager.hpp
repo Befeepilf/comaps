@@ -264,6 +264,8 @@ public:
   street_pixels::CompetitionAreaChrome GetCompetitionAreaChrome(uint64_t osmId) const;
   street_pixels::FetchAreaSnapshotResult RequestCompetitionAreaSnapshot(uint64_t osmId);
   std::optional<street_pixels::CompetitionAreaSnapshot> LastCompetitionSnapshot() const;
+  street_pixels::FetchWeeklyBoardResult RequestCompetitionWeeklyBoard(uint64_t cityOsmId);
+  street_pixels::CompetitionWeeklyChrome GetCompetitionWeeklyChrome(uint64_t cityOsmId) const;
   void ResetCompetitionSnapshotForTesting();
   std::optional<std::string> PeekCompetitionHintText() const;
   std::optional<std::string> TryConsumeOvertakingHint(bool routingFollowing);

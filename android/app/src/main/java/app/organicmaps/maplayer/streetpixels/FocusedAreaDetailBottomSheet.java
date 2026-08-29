@@ -20,6 +20,7 @@ import app.organicmaps.R;
 import app.organicmaps.sdk.Framework;
 import app.organicmaps.sdk.maplayer.streetpixels.CompetitionAreaChrome;
 import app.organicmaps.sdk.maplayer.streetpixels.CompetitionRankingRow;
+import app.organicmaps.sdk.maplayer.streetpixels.CompetitionWeeklyChrome;
 import app.organicmaps.sdk.maplayer.streetpixels.FocusedAreaProgress;
 import app.organicmaps.sdk.maplayer.streetpixels.StreetPixelsManager;
 import app.organicmaps.util.UiUtils;
@@ -267,7 +268,15 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
     if (citySummary)
     {
       weeklyTitle.setText(R.string.competition_weekly_title);
-      weeklyBody.setText(R.string.competition_weekly_empty);
+      applyWeeklyChrome(view, manager.getCompetitionWeeklyChrome(osmId));
+      manager.requestCompetitionWeeklyBoard(osmId, chrome -> {
+        if (!isAdded())
+          return;
+        View bound = getView();
+        if (bound == null)
+          return;
+        applyWeeklyChrome(bound, chrome);
+      });
       UiUtils.show(weeklyTitle);
       UiUtils.show(weeklyBody);
     }
@@ -276,6 +285,29 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
       UiUtils.hide(weeklyTitle);
       UiUtils.hide(weeklyBody);
     }
+  }
+
+  private void applyWeeklyChrome(@NonNull View view, @NonNull CompetitionWeeklyChrome chrome)
+  {
+    MaterialTextView weeklyBody = view.findViewById(R.id.competition_weekly_body);
+    if (weeklyBody == null)
+      return;
+    StringBuilder text = new StringBuilder();
+    if (!chrome.body.isEmpty())
+      text.append(chrome.body);
+    for (String row : chrome.rows)
+    {
+      if (row == null || row.isEmpty())
+        continue;
+      if (text.length() > 0)
+        text.append('\n');
+      text.append(row);
+    }
+    if (text.length() == 0)
+      weeklyBody.setText(R.string.competition_weekly_empty);
+    else
+      weeklyBody.setText(text.toString());
+    UiUtils.show(weeklyBody);
   }
 
   private void maybeShowOvertakingHint(@NonNull StreetPixelsManager manager)

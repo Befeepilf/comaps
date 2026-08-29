@@ -550,9 +550,33 @@ std::optional<street_pixels::CompetitionAreaSnapshot> StreetPixelsManager::LastC
   return street_pixels::LastAreaSnapshot();
 }
 
+street_pixels::CompetitionWeeklyChrome StreetPixelsManager::GetCompetitionWeeklyChrome(uint64_t cityOsmId) const
+{
+  std::optional<street_pixels::CompetitionWeeklyBoard> board = street_pixels::LastWeeklyBoard();
+  if (board.has_value() && board->m_cityOsmId != static_cast<int64_t>(cityOsmId))
+    board.reset();
+  auto chrome = street_pixels::BuildCompetitionWeeklyChrome(board);
+  if (!board.has_value())
+    chrome.m_offline = true;
+  return chrome;
+}
+
+street_pixels::FetchWeeklyBoardResult StreetPixelsManager::RequestCompetitionWeeklyBoard(uint64_t cityOsmId)
+{
+  if (!IdentityStore::HasCompetitionConsent())
+  {
+    street_pixels::FetchWeeklyBoardResult result;
+    result.m_chrome = GetCompetitionWeeklyChrome(cityOsmId);
+    result.m_chrome.m_offline = true;
+    return result;
+  }
+  return street_pixels::FetchWeeklyBoard(static_cast<int64_t>(cityOsmId), IdentityStore::GetOrCreateDeviceId());
+}
+
 void StreetPixelsManager::ResetCompetitionSnapshotForTesting()
 {
   street_pixels::ClearCompetitionSnapshotCacheForTesting();
+  street_pixels::ClearCompetitionWeeklyCacheForTesting();
   street_pixels::SetCompetitionGetFnForTesting({});
   street_pixels::SetCompetitionMapMode(street_pixels::CompetitionMapMode::Explore);
   street_pixels::ClearOvertakingHintForTesting();
