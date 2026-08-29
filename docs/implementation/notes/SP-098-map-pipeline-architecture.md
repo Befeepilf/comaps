@@ -85,7 +85,7 @@ One operator entrypoint on the build host. The VPS does not build.
 | MWM generation | `tools/python/maps_generator/` + `generator_tool` | Full pipeline. `PUBLISH_PATH` symlinks `{MAP_SERIES}/{mwm_version}/` under a `maps/` folder. **No** `meta/maps.json`. No `.spa`. Optional production extras (hotels, isolines, SRTM, subway). |
 | Node RAM mode | `NODE_STORAGE` `map` / `raw` / `mem` | `mem` ~100 GiB, planet. `map` default for a few countries. `raw` least RAM. |
 | Dense `.spa` emit | `tools/spa_emit_tool` | Production mode **requires** `--borders_dir` and `--pix_dir`. Geometry-only is not production. |
-| Offline MWM→`.pix` | — | **Missing.** Client derives U via `StreetPixelsManager::DeriveStreetPixelsFromFeatures` (15 m, `IsExplorable`). SP-044 residual. |
+| Offline MWM→`.pix` | `tools/pix_derive_tool` | **SP-099 In review.** Shared `DeriveStreetPixelsUniverse` (15 m, `IsExplorable`). Empty explored/ever-live. Production U source for `spa_emit_tool --pix_dir`. |
 | Rings | `tools/python/street_pixels_spike/extract_admin_place_polygons.py` | Finland-proven osmium spike; not an operator subcommand. |
 | Country policy | `data/street_pixels/country_policies.json` | **FI only.** |
 | Assemble | `tools/python/post_generation/assemble_spa_publish_tree.py` | SP-050 In review. CDN≡LAN tree (**SPD-035**). |

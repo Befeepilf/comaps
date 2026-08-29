@@ -331,7 +331,7 @@ Honest assessment:
 | Leaf attribution: centroid vs full affiliation for cross-border rings | Centroid = SP-023/032; revisit if spot-checks show systematic mis-leaf |
 | Dense assign size for all eight FI leaves (device budget) | Measure under full-\|U\| batch once leaf `.pix` available; no SPD-024 floor |
 | Eight FI leaf production `.spa` with real leaf `.pix` \|U\| | **Residual** — human/offline batch; tool ready |
-| Offline leaf MWM → `.pix` derive helper for packaging | **Residual** — preferred input remains client-matching `.pix` |
+| Offline leaf MWM → `.pix` derive helper for packaging | **SP-099** (`pix_derive_tool`, In review). Preferred production U source for `spa_emit_tool --pix_dir`. Do not reopen this WI. Eight-leaf FI dense with real \|U\| remains SP-103. |
 | `countries.txt` spa advertisement | **SP-045** |
 | Client download / lifecycle / retry | **SP-046–048** |
 | Worldwide countries beyond FI | Incremental config + same Option B job; not this WI |

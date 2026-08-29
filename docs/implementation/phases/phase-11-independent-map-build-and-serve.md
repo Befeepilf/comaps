@@ -45,7 +45,7 @@ Verified 2026-08-29. Detail:
 | --- | --- | --- |
 | MWM generation | `tools/python/maps_generator/`, `generator_tool` | Country extracts supported. Planet `mem` mode is optional and out of this phase’s hardware. `PUBLISH_PATH` is `maps/{series}/{v}/` only — no `meta/maps.json`, no `.spa`. |
 | Dense `.spa` | `tools/spa_emit_tool` | Needs leaf `.pix` + rings JSONL + FI policy. |
-| MWM→`.pix` | `StreetPixelsManager::DeriveStreetPixelsFromFeatures` | On-device only. No packaging CLI. |
+| MWM→`.pix` | `tools/pix_derive_tool` (`DeriveStreetPixelsUniverse`) | Packaging CLI (SP-099 **In review**). Same 15 m / `IsExplorable` as the client. Empty explored/ever-live. |
 | Rings extract | `street_pixels_spike/extract_admin_place_polygons.py` | Spike, FI-proven. |
 | Assemble / serve | `assemble_spa_publish_tree`, `serve_spa_publish_tree` | SP-050/051 In review. **Reuse.** |
 | Debug CDN fetch | `prepare_spa_debug_root` | Hits public CoMaps `meta/maps.json`. Not production origin. |
@@ -96,7 +96,7 @@ Coding SP-099+ may proceed (SP-098 **Accepted**).
 | Order | ID | Title |
 | --- | --- | --- |
 | 1 | [SP-098](../work-items/SP-098-map-pipeline-architecture-decisions.md) | Architecture decisions (**Accepted** 2026-08-29; **SPD-087–096**) |
-| 2 | [SP-099](../work-items/SP-099-offline-mwm-pix-derive.md) | Offline leaf MWM → `.pix` derive matching the client |
+| 2 | [SP-099](../work-items/SP-099-offline-mwm-pix-derive.md) | Offline leaf MWM → `.pix` derive matching the client (**In review**; not Accepted) |
 | 3 | [SP-100](../work-items/SP-100-operator-map-pipeline.md) | Operator CLI: extract → mapgen → pix → rings → spa → assemble |
 | 4 | [SP-101](../work-items/SP-101-independent-map-identity.md) | Own map keys, stock host list, `configure.sh` without CoMaps |
 | 5 | [SP-102](../work-items/SP-102-publish-and-serve-origin.md) | VPS static origin, rsync, TLS, Range |
