@@ -17,7 +17,6 @@ inline constexpr uint32_t kCompletionCardOutlineSize = 512;
 
 struct CompletionCardOptions
 {
-  bool includeDate = false;
   std::optional<std::string> nickname;
 };
 

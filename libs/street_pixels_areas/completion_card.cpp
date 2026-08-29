@@ -177,7 +177,7 @@ std::optional<CompletionCardModel> ComposeCompletionCard(CompletionCardSource co
       model.m_nickname = std::move(nick);
   }
 
-  if (options.includeDate && source.m_completed100At && *source.m_completed100At >= 0)
+  if (source.m_completed100At && *source.m_completed100At >= 0)
   {
     std::string const iso = base::SecondsSinceEpochToString(static_cast<uint64_t>(*source.m_completed100At));
     if (iso.size() >= 10)

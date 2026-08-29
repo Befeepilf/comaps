@@ -518,12 +518,12 @@ UNIT_TEST(AreaMilestonePresentation_DebugPreviewWithoutHundredPercent)
   TEST_EQUAL(hapticEvents, 0, ());
   TEST_EQUAL(plays, 0, ());
 
-  auto card = manager.GetCompletionCardForCurrentPresentation(false, false);
+  auto card = manager.GetCompletionCardForCurrentPresentation(false);
   TEST(card.has_value(), ());
   TEST(!card->m_outlineRings.empty(), ());
   TEST_EQUAL(card->m_headline, street_pixels::kCompletionCardHeadline, ());
 
-  auto share = manager.PrepareCompletionCardShare(false);
+  auto share = manager.PrepareCompletionCardShare();
   TEST(share.has_value(), ());
   TEST_EQUAL(share->m_mimeType, street_pixels::kCompletionCardShareMime, ());
 
