@@ -409,6 +409,16 @@ android.applicationVariants.all { variant ->
   variant.resValue 'string', 'app_id', variant.applicationId
 }
 
+afterEvaluate {
+  android.applicationVariants.all { variant ->
+    def cap = variant.name.capitalize()
+    def testTask = tasks.findByName("test${cap}UnitTest")
+    def manifestTask = tasks.findByName("process${cap}MainManifest")
+    if (testTask != null && manifestTask != null)
+      testTask.dependsOn(manifestTask)
+  }
+}
+
 play {
   enabled.set(false)
   track.set('production')

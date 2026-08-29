@@ -17,5 +17,7 @@ public class PublicSettingsVisibilityTest
     assertFalse(FriendSettingsVisibility.showFriendRows(FriendSettingsVisibility.friendsCapabilityEnabled()));
     assertFalse(FriendSettingsVisibility.showFriendFacingNicknameCopy(
         FriendSettingsVisibility.friendsCapabilityEnabled()));
+    assertFalse(FriendSettingsVisibility.showAddFriendOnboarding(
+        FriendSettingsVisibility.friendsCapabilityEnabled()));
   }
 }

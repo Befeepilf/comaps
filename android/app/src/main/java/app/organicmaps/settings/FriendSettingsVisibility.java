@@ -18,4 +18,9 @@ public final class FriendSettingsVisibility
   {
     return friendsCapabilityEnabled;
   }
+
+  public static boolean showAddFriendOnboarding(boolean friendsCapabilityEnabled)
+  {
+    return friendsCapabilityEnabled;
+  }
 }
