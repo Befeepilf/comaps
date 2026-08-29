@@ -175,19 +175,20 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
     }
 
     UiUtils.show(competitionBlock);
-    applyCompetitionChrome(view, manager.getCompetitionAreaChrome(osmId), citySummary);
+    applyCompetitionChrome(view, manager.getCompetitionAreaChrome(osmId), citySummary, osmId);
     manager.requestCompetitionAreaSnapshot(osmId, chrome -> {
       if (!isAdded())
         return;
       View bound = getView();
       if (bound == null)
         return;
-      applyCompetitionChrome(bound, chrome, citySummary);
+      applyCompetitionChrome(bound, chrome, citySummary, osmId);
       maybeShowOvertakingHint(manager);
     });
   }
 
-  private void applyCompetitionChrome(@NonNull View view, @NonNull CompetitionAreaChrome chrome, boolean citySummary)
+  private void applyCompetitionChrome(@NonNull View view, @NonNull CompetitionAreaChrome chrome, boolean citySummary,
+                                      long osmId)
   {
     MaterialTextView statusView = view.findViewById(R.id.competition_status);
     if (chrome.offline)
@@ -269,14 +270,15 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
     if (citySummary)
     {
       weeklyTitle.setText(R.string.competition_weekly_title);
+      StreetPixelsManager manager = MwmApplication.from(requireContext()).getStreetPixelsManager();
       applyWeeklyChrome(view, manager.getCompetitionWeeklyChrome(osmId));
-      manager.requestCompetitionWeeklyBoard(osmId, chrome -> {
+      manager.requestCompetitionWeeklyBoard(osmId, weeklyChrome -> {
         if (!isAdded())
           return;
         View bound = getView();
         if (bound == null)
           return;
-        applyWeeklyChrome(bound, chrome);
+        applyWeeklyChrome(bound, weeklyChrome);
       });
     }
     else
