@@ -8,7 +8,9 @@
 #include "platform/mwm_version.hpp"
 #include "platform/platform.hpp"
 
+#include "coding/file_reader.hpp"
 #include "coding/files_container.hpp"
+#include "coding/reader.hpp"
 
 #include "base/exception.hpp"
 #include "base/file_name_utils.hpp"
@@ -61,6 +63,31 @@ PixDeriveStatus WriteUnexploredUniversePix(std::string const & outPath, std::set
   return PixDeriveStatus::Ok;
 }
 
+bool ContainerLooksLikeMwm(std::string const & mwmPath)
+{
+  try
+  {
+    FileReader reader(mwmPath);
+    if (reader.Size() < sizeof(uint64_t))
+      return false;
+    uint64_t const offset = ReadPrimitiveFromPos<uint64_t>(reader, 0);
+    if (offset >= reader.Size())
+      return false;
+
+    FilesContainerR const container(mwmPath);
+    return container.IsExist(VERSION_FILE_TAG) && container.IsExist(HEADER_FILE_TAG) &&
+           container.IsExist(FEATURES_FILE_TAG);
+  }
+  catch (RootException const &)
+  {
+    return false;
+  }
+  catch (std::exception const &)
+  {
+    return false;
+  }
+}
+
 PixDeriveResult DeriveAndWritePixFile(std::string const & mwmPath, std::string const & outDir,
                                       int64_t mapDataVersionOverride)
 {
@@ -84,6 +111,11 @@ PixDeriveResult DeriveAndWritePixFile(std::string const & mwmPath, std::string c
     result.m_status = PixDeriveStatus::MissingMwm;
     return result;
   }
+  if (!ContainerLooksLikeMwm(mwmPath))
+  {
+    result.m_status = PixDeriveStatus::UnreadableMwm;
+    return result;
+  }
 
   try
   {
@@ -103,13 +135,13 @@ PixDeriveResult DeriveAndWritePixFile(std::string const & mwmPath, std::string c
   }
   catch (RootException const & ex)
   {
-    LOG(LERROR, ("Unreadable MWM", mwmPath, ex.what()));
+    LOG(LWARNING, ("Unreadable MWM", mwmPath, ex.what()));
     result.m_status = PixDeriveStatus::UnreadableMwm;
     return result;
   }
   catch (std::exception const & ex)
   {
-    LOG(LERROR, ("Unreadable MWM", mwmPath, ex.what()));
+    LOG(LWARNING, ("Unreadable MWM", mwmPath, ex.what()));
     result.m_status = PixDeriveStatus::UnreadableMwm;
     return result;
   }
