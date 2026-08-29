@@ -10,7 +10,6 @@
 #include "defines.hpp"
 
 #include <algorithm>
-#include <cstdlib>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -79,7 +78,12 @@ int main(int argc, char ** argv)
   for (int i = 1; i < argc; ++i)
     AppendMwmPath(mwmPaths, argv[i]);
 
-  if (mwmPaths.empty() || FLAGS_out_dir.empty())
+  if (FLAGS_out_dir.empty())
+  {
+    std::cerr << "--out_dir is required\n";
+    return street_pixels::PixDeriveStatusExitCode(street_pixels::PixDeriveStatus::BadOutput);
+  }
+  if (mwmPaths.empty())
   {
     gflags::ShowUsageWithFlags(argv[0]);
     return 1;
