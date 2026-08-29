@@ -2,7 +2,7 @@
 
 **Document status:** Living project index
 **Scope of this document:** Android public V1
-**Last structural update:** 2026-08-28
+**Last structural update:** 2026-08-29
 
 This file is the index for Street Pixels implementation work. It intentionally
 contains no implementation detail. Detail belongs in `phases/` and
@@ -544,5 +544,20 @@ SPD-067–076). SP-081–087 **Accepted** (2026-08-28). G1–G10 closed. Phase 9
 Eligibility env → Phase 10; Qt ungated; reload no-paint; multi-cat KMZ;
 FromLatLon; system expat).
 
-Detailed work items exist for Phases 1–9. Phase 10 is broken down after
-other phases meet exit.
+| Order | ID | Title | Phase | Why first |
+| --- | --- | --- | --- | --- |
+| 88 | [SP-088](work-items/SP-088-launch-governance-decisions.md) | Launch-governance decisions | 10 | **Planned** — H1–H10 (OQ-30–OQ-39 / draft SPD-077–086); entry gate |
+| 89 | [SP-089](work-items/SP-089-residual-defect-close-out.md) | Locked residual defect close-out | 10 | **Planned** — H7 Fix list only |
+| 90 | [SP-090](work-items/SP-090-settings-empty-states-first-run.md) | Settings, empty-state, and first-run audit | 10 | **Planned** — spec §30 / §31 / §10 |
+| 91 | [SP-091](work-items/SP-091-product-analytics-reconciliation.md) | Product analytics reconciliation | 10 | **Planned** — spec §32 + H5 upload |
+| 92 | [SP-092](work-items/SP-092-permissions-manifest-store-disclosures.md) | Permissions, manifest, and store disclosures | 10 | **Planned** — Play listing / ABL / friends hide |
+| 93 | [SP-093](work-items/SP-093-privacy-policy-terms-consent.md) | Privacy policy, terms, and consent alignment | 10 | **Planned** — H4 policy ownership |
+| 94 | [SP-094](work-items/SP-094-battery-rendering-lifecycle.md) | Battery, rendering, and lifecycle measurement | 10 | **Planned** — Spike 1, H2 protocol, data-loss |
+| 95 | [SP-095](work-items/SP-095-device-matrix-residual-close-out.md) | Device-matrix residual close-out | 10 | **Planned** — carried device walks on H1 matrix |
+| 96 | [SP-096](work-items/SP-096-risk-register-and-release-pipeline.md) | Risk-register close-out and release pipeline | 10 | **Planned** — audit §22 / §26 + signed APK |
+| 97 | [SP-097](work-items/SP-097-phase10-launch-requirement-verification.md) | Phase 10 / §34 verification | 10 | **Planned** — exit gate |
+
+Phase 10 work-item planning (2026-08-29) recorded in
+[`phases/phase-10-android-release-hardening.md`](phases/phase-10-android-release-hardening.md).
+Implementation of SP-089+ waits on H1–H10 locks **and** other phases at exit.
+SP-088 is docs-only and may run while Phases 5–8 await maintainer exit.
