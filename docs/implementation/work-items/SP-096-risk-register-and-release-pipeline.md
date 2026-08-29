@@ -137,8 +137,9 @@ Django settings) sit here as **Ops**, not as client features.
 | Branch | `cursor/sp-096-risk-register-6383` (parent `street-pixels` `30eb240904d3a61aa5b36f4ddfa62e459d92352d`) |
 | Risk table | [`notes/SP-096-risk-register-close-out.md`](../notes/SP-096-risk-register-close-out.md) §22 |
 | §26 table | same note, §26 |
-| Artefact | **Residual Ops.** `android/app/release.keystore`, `secure.properties` / `secure.properties.release`, and `google-play.json` absent. Gradle printed `NO` keys / `secure.properties.release doesn't exist` during lint configure. No signed `google` APK produced. No hash. Unsigned/debug-signed APK is not exit #11. |
-| Test output | Focused `street_pixels_tests` `--filter` (executed): CollectionGate **10/10**, SampleAcceptance **20/20**, Rematch_ **15/15**, BackendConfig **26/26**, LiveSampleAcceptance **15/15**, CompetitionUpload **22/22** (`All tests passed.`). Full `street_pixels_tests`: aborted at `Eligibility_IncludesCommonHighways` (`classificator.txt` absent); log **393** Running / **392** OK / **1** FAILED then abort. Smoke **not run** (same gap). `./gradlew -Pandroidauto=true lint`: `:sdk:lintDebug` **FAILED** — **5 errors, 24 warnings** (4× `MissingPermission` VIBRATE in `Utils.java`; 1× `WrongConstant` in `RecordingSessionDebug.java`). |
+| Artefact | **Residual Ops.** `android/app/release.keystore`, `secure.properties` / `secure.properties.release`, and `google-play.json` absent. Lint configure printed `secure.properties.release doesn't exist` / `secure.properties.test doesn't exist`. That is **not** the release-task `NO RELEASE signing keys found` line. No signed `google` APK produced. No hash. Unsigned/debug-signed APK is not exit #11. |
+| Test output | Original SP-096 full run aborted (`classificator.txt` absent at 14:18 UTC): **393** Running / **392** OK / **1** FAILED (`Eligibility_IncludesCommonHighways`). Independent review: `--filter=SampleAcceptance` is regex overlap (20 = 5 manager + 15 live). Unique focused **93/93**. Full `street_pixels_tests` after generated classificator files **499/499** (`All tests passed.`). Smoke **not run**. `:sdk:lintDebug` **FAILED** — **5 errors, 24 warnings** (4× `MissingPermission` VIBRATE in `Utils.java`; 1× `WrongConstant` in `RecordingSessionDebug.java`; corroborated from `lint-results-debug.txt`). |
+| Independent review | 2026-08-29 — §22 19/19 vs tree; sparse chrome; filter overlap; gitignore; lint wording; full suite 499/499. Not Accepted. |
 | Accepted by | |
 | Accepted date | |
 
@@ -150,7 +151,8 @@ Django settings) sit here as **Ops**, not as client features.
 | Forgejo writes `android/app/secure.properties`; Gradle applies `secure.properties.release` | Residual Ops / workflow. Align restore path with Gradle or document the ops copy step. Not a listing-brand rewrite. |
 | Application name / Play/F-Droid listing still CoMaps (GPX advertised) | Residual **SPD-084**. Do not rewrite in SP-097 coding. |
 | Explorer `main` (`e13a124`) has no `competition/` app; SQLite default; no `prod.py` | Residual Ops. Friends API is not a substitute. Blocks §26 condition 5 / SP-097 until a production competition backend is inspectable. |
-| Sparse-area N&lt;3 not verified against a direct API call | Residual Ops (same missing backend). Client chrome hide is not protection. |
+| Sparse-area N&lt;3 not verified against a direct API call | Residual Ops (same missing backend). Boss-line chrome hide is not protection; ranking rows are not nickname-stripped. |
 | Exact EU region string | Residual Ops (**SPD-062**). |
-| H10 smoke / full `street_pixels_tests` / lint clean | Environment residual: missing `data/classificator.txt` aborted full suite; `:sdk:lintDebug` 5 errors / 24 warnings (pre-existing, not fixed here). Leave the full recorded gate to SP-097. Do not weaken tests. |
+| H10 smoke / lint clean / generated classificator on a clean tree | `data/classificator.txt` is gitignored generated. Original abort was real. Review re-run **499/499** after local generate. Smoke still **not run**. `:sdk:lintDebug` 5 errors / 24 warnings (pre-existing, not fixed here). Leave smoke + lint clean to SP-097. Do not weaken tests. |
+| Forgejo restore writes `android/app/release.keystore`; `android/app/.gitignore` lists `comaps-release.keystore` only | Residual Ops / gitignore. Do not commit the keystore. |
 | Renderer / battery / OEM | Residual SP-094 / SP-095. Not realised. Do not invent D2 kills. |

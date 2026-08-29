@@ -20,9 +20,9 @@ copy and the application name are not rewritten (**SPD-084**).
 
 ## Method
 
-Re-verified against this working tree on 2026-08-29. Each §22 row has
-a code pointer or a measurement gap. “Confirmed now” in the 2026-07-20
-audit is not copied blindly.
+Re-verified against this working tree on 2026-08-29. Audit §22 has
+**19** rows; each has a code pointer or a measurement gap. “Confirmed
+now” in the 2026-07-20 audit is not copied blindly.
 
 Explorer checkout present at `/agent/repos/explorer` (`main`,
 `e13a124`): friends-only historically. No `competition/` app. Do not
@@ -45,7 +45,7 @@ fake a competition schema.
 | Database / file growth | Low–Medium / Medium; 8 B × N cells | `.pix` still packed `int64` entries: pixel id + explored + ever-live bits (`kExploredBit` / `kEverLiveBit` in `libs/map/street_pixels_file.hpp`). Sparse `.spx` beside `.pix`. No per-pixel SQL rows for the overlay universe. | **mitigated** | Client |
 | Avoid-explored routing complexity | High / High; only soft multiplier | Hard avoid exists: `IStreetExplorationWeights::IsAvoidExclusionActive` / `IsSegmentExcluded` (`libs/routing/street_exploration_for_routing.hpp`). Prefer multiplier remains. Device walks residual (SP-061 → SP-095). | **mitigated** (code); device **residual** | Client (Phase 6); Device-verify |
 | Client competition cheating | High / Medium; device auth only | Device-id auth (`IdentityStore::GetOrCreateDeviceId`). Client cadence 15 min + jitter (`CompetitionUploadService`). Server clamps were specified in SP-075; **this explorer checkout has no competition app to re-verify**. V1 accepts residual cheating (spec §6; audit). No new anti-cheat. | **accepted** | Product / audit |
-| Sparse-area privacy leaks | Medium / High; spec N&lt;3 | Client chrome hides other nicknames when `participantCount < 3` (`ComposeSparseBossLine` in `libs/street_pixels_areas/competition_presentation.cpp`). Spec requires **server-side** enforcement (SP-076). Explorer `main` here: `Explorer` + `Friendship` only; no `competition/` app; no live N&lt;3 API to call. Client hide is not protection. | **residual** (Ops; unverified server) | Ops (SP-076 deploy) |
+| Sparse-area privacy leaks | Medium / High; spec N&lt;3 | Boss-line chrome withholds other nicknames when `participantCount < 3` (`ComposeSparseBossLine` in `libs/street_pixels_areas/competition_presentation.cpp`). Ranking rows are **not** nickname-stripped (`DedupeRankingRows`). Spec requires **server-side** enforcement (SP-076). Explorer `main` here: `Explorer` + `Friendship` only; no `competition/` app; no live N&lt;3 API to call. Client hide is not protection. | **residual** (Ops; unverified server) | Ops (SP-076 deploy) |
 | Sentry PII / screenshots | Confirmed / High; Manifest meta-data | `io.sentry.send-default-pii=false`, `attach-screenshot=false`, `attach-view-hierarchy=false` in `android/app/src/main/AndroidManifest.xml`. Guard: `tools/unix/check_sentry_privacy.sh` (`.github/workflows/android-check.yaml` `sentry-privacy` job). SP-003. | **mitigated** | Client (SP-003) |
 | Friends vs V1 non-goals | Confirmed / Medium; backend friends API | Public UI hidden (`FriendSettingsVisibility.friendsCapabilityEnabled()` returns false). Dedicated `add-friend` intent-filters removed; leftover URIs swallowed (`ExploreDeepLink.shouldPresentAddFriendOnboarding`). Code may stay in-tree (**SPD-085** / SP-092). Explorer still has friends endpoints. Device eyeball residual (SP-095). | **mitigated** (public APK surface) | Client (SP-092) |
 | Upstream CoMaps divergence | High / High; deep forks | Street Pixels modules sit beside map/routing/UI. Release machinery still CoMaps-shaped (**SPD-084**). Maintenance cost remains. Not a coding close in this item. | **accepted** | Maintainers |
@@ -147,9 +147,13 @@ would still print `NO RELEASE signing keys found` and fall back to the
 (and points `secretReleaseStoreFile` at the restored keystore). That is
 an ops/workflow residual, not fixed in this docs item.
 
-`.gitignore` lists the old `android/release.keystore` /
-`android/secure.properties` paths (comment: transition). `android/app/`
-secret filenames are not all listed; do not add secret files to git.
+Root `.gitignore` lists the old `android/release.keystore` /
+`android/secure.properties` paths (comment: transition).
+`android/app/.gitignore` **does** list `secure.properties.release`,
+`secure.properties.test`, `google-play.json`, and
+`comaps-release.keystore`. It does **not** list the Forgejo restore
+filename `release.keystore` (only `comaps-release.keystore`). Do not
+add secret files to git.
 
 Listing title and full description remain upstream CoMaps (advertises
 GPX import/export; no Street Pixels session/competition copy). **SPD-084**
@@ -194,44 +198,53 @@ separate local binary.
 
 ### Tests actually run in this slice
 
-Executed 2026-08-29 against `omim-build-debug/street_pixels_tests` with
-`--data_path=/workspace/data --user_resource_path=/workspace/data`.
-`data/classificator.txt` and `data/types.txt` are **absent**.
+`data/classificator.txt` and `data/types.txt` are **gitignored
+generated files** (root `.gitignore` `data/classificator.txt*` /
+`data/types.txt*`), not committed sources.
 
-**Full `street_pixels_tests`:** aborted. Last completed tests were in
-`competition_ownership_tests.cpp`. Then
+**Original SP-096 run (2026-08-29 14:18 UTC)** against
+`omim-build-debug/street_pixels_tests` with
+`--data_path=/workspace/data --user_resource_path=/workspace/data`,
+**before** those files existed. Full suite aborted. Last completed
+tests were in `competition_ownership_tests.cpp`. Then
 `eligibility_tests.cpp::Eligibility_IncludesCommonHighways` threw
-`FileAbsentException` (`classificator.txt` missing). Log count before
-abort: **393** `Running`, **392** `OK`, **1** `FAILED` (then process
-abort). This is an **environment residual**, not a product Fail. Full
-gate left to SP-097. Tests were not weakened.
+`FileAbsentException` (`classificator.txt` missing). Corroborated log
+`/tmp/street_pixels_tests_full.log`: **393** `Running`, **392** `OK`,
+**1** `FAILED` (then process abort). That abort was an environment
+gap, not a product Fail.
 
-**Smoke** (`run_tests.sh -s smoke`): **not run** (same classificator
-gap; smoke includes `map_tests` / `indexer_tests`). Residual SP-097.
+**Independent review re-run (same day, after generated files
+appeared locally at 14:20 UTC):** same binary and data paths.
+`--filter` is `regex_search` (`libs/testing/testingmain.cpp`), so
+`--filter=SampleAcceptance` matches both `SampleAcceptanceManager_*`
+(**5**) and `LiveSampleAcceptance_*` (**15**) = **20**, not 20 extra
+tests beside the live filter.
 
-**Focused filters (executed; all `All tests passed.`):**
+| Run | Running | OK | FAILED | Result |
+| --- | --- | --- | --- | --- |
+| Review unique `--filter` (`CollectionGate_`, `SampleAcceptanceManager_`, `Rematch_`, `BackendConfig_`, `LiveSampleAcceptance_`, `CompetitionUpload_`) | 93 | 93 | 0 | `All tests passed.` |
+| Review `--filter=SampleAcceptance` (overlaps live filter) | 20 | 20 | 0 | `All tests passed.` |
+| Review **full** `street_pixels_tests` | **499** | **499** | 0 | `All tests passed.` |
 
-| `--filter` | Running | OK |
-| --- | --- | --- |
-| `CollectionGate` | 10 | 10 |
-| `SampleAcceptance` | 20 | 20 |
-| `Rematch_` | 15 | 15 |
-| `BackendConfig` | 26 | 26 |
-| `LiveSampleAcceptance` | 15 | 15 |
-| `CompetitionUpload` | 22 | 22 |
+A clean checkout that has not generated `classificator.txt` /
+`types.txt` still cannot run `Eligibility_*`. Smoke
+(`run_tests.sh -s smoke`) was **not run** (includes `map_tests` /
+`indexer_tests`; left to SP-097). Tests were not weakened.
 
-**Android lint:** `cd android && ./gradlew -Pandroidauto=true lint`
-executed 2026-08-29. Configure printed `secure.properties.release
-doesn't exist` and `secure.properties.test doesn't exist`. Task
+**Android lint:** original SP-096 configure printed
+`secure.properties.release doesn't exist` and
+`secure.properties.test doesn't exist`. Those configure lines are
+**not** the release-task `NO RELEASE signing keys found` message
+(that prints only when a `release` Gradle task is requested). Task
 `:sdk:lintDebug` **FAILED** (`abortOnError = true`): **5 errors, 24
-warnings** in
-`android/sdk/build/intermediates/lint_intermediate_text_report/debug/lintReportDebug/lint-results-debug.txt`.
-Errors: four `MissingPermission` (`VIBRATE`) in
-`sdk/util/Utils.java` lines 371, 375, 406, 412; one `WrongConstant` in
-`RecordingSessionDebug.java:56`. App-module lint did not finish
-because sdk aborted. Not triaged as clean. Not fixed in this docs
-item. Residual SP-097. **clang-format:** command recorded only (no
-C++ edit).
+warnings** corroborated from
+`android/sdk/build/intermediates/lint_intermediate_text_report/debug/lintReportDebug/lint-results-debug.txt`
+(last line `5 errors, 24 warnings`). Errors: four `MissingPermission`
+(`VIBRATE`) in `sdk/util/Utils.java` lines 371, 375, 406, 412; one
+`WrongConstant` in `RecordingSessionDebug.java:56`. App-module lint
+did not finish because sdk aborted. Not triaged as clean. Not fixed
+in this docs item. Residual SP-097. **clang-format:** no C++ edit in
+this item.
 
 Tests are not weakened.
 
@@ -257,9 +270,11 @@ Tests are not weakened.
    present here.
 6. **Forgejo `SECURE_PROPERTIES` → `secure.properties`** vs Gradle
    `secure.properties.release`.
-7. **Phase-10 “current code locations” (planning)** still said
-   add-friend filters were registered. SP-092 removed them. Re-verified
-   in this item.
+7. **Phase-10 “current code locations” (planning)** previously said
+   add-friend filters were registered. SP-092 removed them. The
+   snapshot paragraph that still said “Friends deep links … unchanged”
+   is corrected in this review; the manifest table already recorded
+   removal.
 8. **Play listing** still advertises GPX as a free feature while public
    V1 gates GPX (**SPD-084** residual; not rewritten here).
 
@@ -275,3 +290,21 @@ Tests are not weakened.
   `docs/CREDENTIALS.md` secret *names* reused. Application name, listing
   copy, privacy/terms URLs residual. Signing *execution* residual
   (secrets absent; filename mismatch).
+
+---
+
+## Independent review (2026-08-29)
+
+Reviewer did not write the original close-out. Re-checked audit §22
+(**19/19** table rows have a position), §26, explorer `main`
+`e13a124`, signing files, Sentry/ABL/friends/session-gate/rematch/
+filter/avoid-explored/analytics, and test/lint numbers against
+executed logs. Spec and audit files were not edited. Phase 10 exit
+not marked met. Accepted-by left empty.
+
+Corrections in this pass: sparse-area chrome wording (boss line only);
+`--filter=SampleAcceptance` overlap; gitignore paths; lint “NO
+RELEASE keys” vs configure `doesn't exist`; full-suite **499/499**
+after generated classificator files appeared; phase-10 friends
+snapshot sentence. Positions in the §22/§26 tables were otherwise
+held against the tree.

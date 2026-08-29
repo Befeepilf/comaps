@@ -59,18 +59,23 @@ during work-item planning. Extra detail in
 **Difference from the technical audit (2026-07-20) and the 2026-07-25
 snapshot:** Phases 1–9 have landed session gating, rematch, areas, routing,
 milestones, competition, and GPX gates. Instrumented tests are still absent.
-Friends deep links and CoMaps store/privacy URLs are unchanged. ABL is still
-absent (SP-012 Pixel 3a without it). H1–H10 are **Accepted** 2026-08-29 as
-**SPD-077–086**. Brand writing and on-device testing are residual.
+Dedicated add-friend intent-filters were removed (SP-092 / **SPD-085**);
+leftover URIs are swallowed. CoMaps store/privacy URLs are unchanged.
+ABL is still absent (SP-012 Pixel 3a without it). H1–H10 are **Accepted**
+2026-08-29 as **SPD-077–086**. Brand writing and on-device testing are
+residual.
 
 **SP-096 re-verification (2026-08-29):** friends dedicated add-friend
 intent-filters are gone (SP-092 / **SPD-085**); ABL still absent
 (**SPD-082**). §22/§26 close-out:
-[`notes/SP-096-risk-register-close-out.md`](../notes/SP-096-risk-register-close-out.md).
-Signed APK residual (secrets absent; Gradle `secure.properties.release`
-vs Forgejo `secure.properties`). Competition backend not in the explorer
-checkout present here (§26 #5 residual Ops). Brand listing residual
-(**SPD-084**). Do **not** mark Phase 10 exit met.
+[`notes/SP-096-risk-register-close-out.md`](../notes/SP-096-risk-register-close-out.md)
+(independent review same day: 19/19 §22 rows vs tree; full
+`street_pixels_tests` 499/499 after generated classificator; not
+Accepted). Signed APK residual (secrets absent; Gradle
+`secure.properties.release` vs Forgejo `secure.properties`).
+Competition backend not in the explorer checkout present here (§26 #5
+residual Ops). Brand listing residual (**SPD-084**). Do **not** mark
+Phase 10 exit met.
 
 ## Intended outcome
 
@@ -304,7 +309,7 @@ testing remain residual (not later Phase 10 coding items).
 | H6 | `ACCESS_BACKGROUND_LOCATION` | Keep absent (**SPD-082**) | D2 exception path residual |
 | H7 | Residual disposition | Fix / Measure / Device-verify / Ops / Follow H5 / Accept table in the note (**SPD-083**) | Device-verify execution residual |
 | H8 | Release workflows | Reuse machinery (**SPD-084**) | Application name, listing copy, privacy/terms URLs residual |
-| H9 | Friends in public APK | Operationalize SPD-061 (hide UI and add-friend filters) (**SPD-085**) | Implementable in SP-092 |
+| H9 | Friends in public APK | Operationalize SPD-061 (hide UI and add-friend filters) (**SPD-085**) | **Done in SP-092** (Accepted 2026-08-29); leftover URI swallow; device eyeball residual (SP-095) |
 | H10 | C++ CI exclusions | Not a launch blocker; recorded local suites are the V1 gate (**SPD-086**) | Device/manual §34 residual |
 
 Friends *presence* in V1 is already **SPD-061** (hidden). H9 is how far the
