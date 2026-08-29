@@ -378,12 +378,11 @@ static jobject ToJavaCompletionCardModel(JNIEnv * env, street_pixels::Completion
 
 JNIEXPORT jobject JNICALL
 Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeGetCurrentCompletionCard(
-    JNIEnv * env, jclass clazz, jboolean includeDate, jboolean recordGenerated)
+    JNIEnv * env, jclass clazz, jboolean recordGenerated)
 {
   CHECK(g_framework, ("Framework isn't created yet!"));
   auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
-  auto const model = manager.GetCompletionCardForCurrentPresentation(static_cast<bool>(includeDate),
-                                                                     static_cast<bool>(recordGenerated));
+  auto const model = manager.GetCompletionCardForCurrentPresentation(static_cast<bool>(recordGenerated));
   if (!model)
     return nullptr;
   return ToJavaCompletionCardModel(env, *model);
@@ -403,11 +402,11 @@ static jobject ToJavaCompletionCardSharePayload(JNIEnv * env, street_pixels::Com
 
 JNIEXPORT jobject JNICALL
 Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativePrepareCompletionCardShare(
-    JNIEnv * env, jclass clazz, jboolean includeDate)
+    JNIEnv * env, jclass clazz)
 {
   CHECK(g_framework, ("Framework isn't created yet!"));
   auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
-  auto const payload = manager.PrepareCompletionCardShare(static_cast<bool>(includeDate));
+  auto const payload = manager.PrepareCompletionCardShare();
   if (!payload)
     return nullptr;
   return ToJavaCompletionCardSharePayload(env, *payload);

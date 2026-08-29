@@ -217,10 +217,9 @@ public class StreetPixelsManager
   private static native AreaMilestonePresentation nativeGetCurrentAreaMilestonePresentation();
   private static native void nativeAcknowledgeAreaMilestonePresentation();
   @Nullable
-  private static native CompletionCardModel nativeGetCurrentCompletionCard(boolean includeDate,
-                                                                           boolean recordGenerated);
+  private static native CompletionCardModel nativeGetCurrentCompletionCard(boolean recordGenerated);
   @Nullable
-  private static native CompletionCardSharePayload nativePrepareCompletionCardShare(boolean includeDate);
+  private static native CompletionCardSharePayload nativePrepareCompletionCardShare();
   private static native void nativeRecordCompletionCardShareInitiated();
   private static native void nativeAcknowledgeCompetitionHint();
   @Nullable
@@ -296,21 +295,21 @@ public class StreetPixelsManager
   }
 
   @Nullable
-  public CompletionCardModel getCurrentCompletionCard(boolean includeDate)
+  public CompletionCardModel getCurrentCompletionCard()
   {
-    return nativeGetCurrentCompletionCard(includeDate, true);
+    return nativeGetCurrentCompletionCard(true);
   }
 
   @Nullable
-  public CompletionCardModel getCurrentCompletionCard(boolean includeDate, boolean recordGenerated)
+  public CompletionCardModel getCurrentCompletionCard(boolean recordGenerated)
   {
-    return nativeGetCurrentCompletionCard(includeDate, recordGenerated);
+    return nativeGetCurrentCompletionCard(recordGenerated);
   }
 
   @Nullable
-  public CompletionCardSharePayload prepareCompletionCardShare(boolean includeDate)
+  public CompletionCardSharePayload prepareCompletionCardShare()
   {
-    return nativePrepareCompletionCardShare(includeDate);
+    return nativePrepareCompletionCardShare();
   }
 
   public void recordCompletionCardShareInitiated()

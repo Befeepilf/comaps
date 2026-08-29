@@ -58,14 +58,6 @@
         android:layout_marginTop="@dimen/margin_quarter"
         android:text="@string/street_pixels_completion_card_branding"
         android:textAppearance="@style/MwmTextAppearance.Body3" />
-    <com.google.android.material.checkbox.MaterialCheckBox
-        android:id="@+id/area_completion_card_include_date"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/margin_quarter"
-        android:checked="false"
-        android:text="@string/street_pixels_completion_card_include_date"
-        android:textAppearance="@style/MwmTextAppearance.Body3" />
     <com.google.android.material.button.MaterialButton
         android:id="@+id/area_completion_card_share"
         style="@style/Widget.Material3.Button.TextButton"

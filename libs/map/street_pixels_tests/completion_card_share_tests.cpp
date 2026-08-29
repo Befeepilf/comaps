@@ -216,11 +216,11 @@ UNIT_TEST(CompletionCardShare_GeneratedIncrementsOnDisplayGet)
   manager.SetCompletionCardGeneratedHandler([] { street_pixels::CompletionCardAnalytics::RecordGenerated(); });
   TEST(manager.RebuildAreaCompletionCache(fx.leaf, fx.spaPath, fx.mapDataVersion), ());
   TEST_EQUAL(street_pixels::CompletionCardAnalytics::LoadSnapshot().m_generated, 0, ());
-  TEST(manager.GetCompletionCardForCurrentPresentation(false, true).has_value(), ());
+  TEST(manager.GetCompletionCardForCurrentPresentation(true).has_value(), ());
   TEST_EQUAL(street_pixels::CompletionCardAnalytics::LoadSnapshot().m_generated, 1, ());
-  TEST(manager.GetCompletionCardForCurrentPresentation(false, false).has_value(), ());
+  TEST(manager.GetCompletionCardForCurrentPresentation(false).has_value(), ());
   TEST_EQUAL(street_pixels::CompletionCardAnalytics::LoadSnapshot().m_generated, 1, ());
-  TEST(manager.GetCompletionCardForCurrentPresentation(false, true).has_value(), ());
+  TEST(manager.GetCompletionCardForCurrentPresentation(true).has_value(), ());
   TEST_EQUAL(street_pixels::CompletionCardAnalytics::LoadSnapshot().m_generated, 2, ());
   TEST_EQUAL(street_pixels::CompletionCardAnalytics::LoadSnapshot().m_shareInitiated, 0, ());
   CleanupShAm(fx);
@@ -248,7 +248,7 @@ UNIT_TEST(CompletionCardShare_PrepareUsesTransientPngNotTrack)
   StreetPixelsManager manager(dataSource);
   manager.ConfigureAreaMilestoneStoreForTesting(fx.dbPath);
   TEST(manager.RebuildAreaCompletionCache(fx.leaf, fx.spaPath, fx.mapDataVersion), ());
-  auto payload = manager.PrepareCompletionCardShare(false);
+  auto payload = manager.PrepareCompletionCardShare();
   TEST(payload.has_value(), ());
   TEST_EQUAL(payload->m_path, street_pixels::CompletionCardTransientPath(), ());
   TEST(payload->m_path.find(GetPlatform().TmpDir()) == 0, (payload->m_path));
@@ -274,15 +274,14 @@ UNIT_TEST(CompletionCardShare_DateOptInDefaultOff)
   TEST(peek.has_value(), ());
   auto rec = manager.GetAreaMilestoneRecord(peek->m_osmId);
   TEST(rec.has_value() && rec->m_completed100At.has_value(), ());
-  auto payload = manager.PrepareCompletionCardShare(false);
+  auto payload = manager.PrepareCompletionCardShare();
   TEST(payload.has_value(), ());
   TEST(!ShAmContainsForbiddenText(payload->m_text), (payload->m_text));
-  auto card = manager.GetCompletionCardForCurrentPresentation(false, false);
+  auto card = manager.GetCompletionCardForCurrentPresentation(false);
   TEST(card.has_value(), ());
-  TEST(!card->m_completedDate.has_value(), ());
-  auto dated = manager.GetCompletionCardForCurrentPresentation(true, false);
-  TEST(dated.has_value() && dated->m_completedDate.has_value(), ());
-  TEST(payload->m_text.find(*dated->m_completedDate) == std::string::npos, (payload->m_text));
+  TEST(card->m_completedDate.has_value(), ());
+  TEST_EQUAL(card->m_completedDate->size(), 10u, ());
+  TEST(payload->m_text.find(*card->m_completedDate) != std::string::npos, (payload->m_text));
   CleanupShAm(fx);
 }
 
@@ -294,9 +293,9 @@ UNIT_TEST(CompletionCardShare_IncludeDateWhenRequested)
   StreetPixelsManager manager(dataSource);
   manager.ConfigureAreaMilestoneStoreForTesting(fx.dbPath);
   TEST(manager.RebuildAreaCompletionCache(fx.leaf, fx.spaPath, fx.mapDataVersion), ());
-  auto payload = manager.PrepareCompletionCardShare(true);
+  auto payload = manager.PrepareCompletionCardShare();
   TEST(payload.has_value(), ());
-  auto card = manager.GetCompletionCardForCurrentPresentation(true, false);
+  auto card = manager.GetCompletionCardForCurrentPresentation(false);
   TEST(card.has_value(), ());
   TEST(card->m_completedDate.has_value(), ());
   TEST_EQUAL(card->m_completedDate->size(), 10u, ());
@@ -315,7 +314,7 @@ UNIT_TEST(CompletionCardShare_TextHasNoCoordinates)
   StreetPixelsManager manager(dataSource);
   manager.ConfigureAreaMilestoneStoreForTesting(fx.dbPath);
   TEST(manager.RebuildAreaCompletionCache(fx.leaf, fx.spaPath, fx.mapDataVersion), ());
-  auto payload = manager.PrepareCompletionCardShare(false);
+  auto payload = manager.PrepareCompletionCardShare();
   TEST(payload.has_value(), ());
   TEST(!ShAmContainsForbiddenText(payload->m_text), (payload->m_text));
   CleanupShAm(fx);
@@ -329,12 +328,12 @@ UNIT_TEST(CompletionCardShare_PrepareFailsWithoutHundredPercent)
   StreetPixelsManager manager(dataSource);
   manager.ConfigureAreaMilestoneStoreForTesting(fx.dbPath);
   TEST(manager.RebuildAreaCompletionCache(fx.leaf, fx.spaPath, fx.mapDataVersion), ());
-  TEST(manager.PrepareCompletionCardShare(false).has_value(), ());
+  TEST(manager.PrepareCompletionCardShare().has_value(), ());
   manager.AcknowledgeAreaMilestonePresentation();
   auto peek = manager.GetCurrentAreaMilestonePresentation();
   TEST(peek.has_value(), ());
   TEST_EQUAL(peek->m_threshold, street_pixels::AreaMilestoneThreshold::P50, ());
-  TEST(!manager.PrepareCompletionCardShare(false).has_value(), ());
+  TEST(!manager.PrepareCompletionCardShare().has_value(), ());
   TEST_EQUAL(street_pixels::CompletionCardAnalytics::LoadSnapshot().m_shareInitiated, 0, ());
   CleanupShAm(fx);
 }

@@ -17,7 +17,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -64,7 +63,6 @@ import com.google.android.material.badge.BadgeDrawable;
 import com.google.android.material.badge.BadgeUtils;
 import com.google.android.material.badge.ExperimentalBadgeUtils;
 import com.google.android.material.button.MaterialButtonToggleGroup;
-import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.HashMap;
@@ -106,8 +104,6 @@ public class MapButtonsController extends Fragment
   private TextView mCompletionCardCompetition;
   @Nullable
   private TextView mCompletionCardBranding;
-  @Nullable
-  private MaterialCheckBox mCompletionCardIncludeDate;
   @Nullable
   private ObjectAnimator mTrackRecordingBlinkAnimator;
 
@@ -327,13 +323,7 @@ public class MapButtonsController extends Fragment
       mCompletionCardDate = mCompletionCard.findViewById(R.id.area_completion_card_date);
       mCompletionCardCompetition = mCompletionCard.findViewById(R.id.area_completion_card_competition);
       mCompletionCardBranding = mCompletionCard.findViewById(R.id.area_completion_card_branding);
-      mCompletionCardIncludeDate = mCompletionCard.findViewById(R.id.area_completion_card_include_date);
       View share = mCompletionCard.findViewById(R.id.area_completion_card_share);
-      if (mCompletionCardIncludeDate != null)
-      {
-        mCompletionCardIncludeDate.setChecked(false);
-        mCompletionCardIncludeDate.setOnCheckedChangeListener(this::onCompletionCardIncludeDateChanged);
-      }
       if (share != null)
         share.setOnClickListener(v -> shareCompletionCard());
     }
@@ -765,10 +755,8 @@ public class MapButtonsController extends Fragment
         mCompletionCardTitle.setText(getString(R.string.street_pixels_area_milestone_100, name));
       if (mCompletionCardBody != null)
         mCompletionCardBody.setText(getString(R.string.street_pixels_completion_card_body, name));
-      if (mCompletionCardIncludeDate != null)
-        mCompletionCardIncludeDate.setChecked(false);
       bindCompletionCardOutline(MwmApplication.from(ctx).getStreetPixelsManager().getCurrentCompletionCard(
-          false, !mCompletionCardDebugPreview));
+          !mCompletionCardDebugPreview));
       if (mCompletionCard != null)
         UiUtils.show(mCompletionCard);
     }
@@ -830,23 +818,13 @@ public class MapButtonsController extends Fragment
     }
   }
 
-  private void onCompletionCardIncludeDateChanged(CompoundButton button, boolean checked)
-  {
-    Context ctx = getContext();
-    if (ctx == null)
-      return;
-    bindCompletionCardOutline(
-        MwmApplication.from(ctx).getStreetPixelsManager().getCurrentCompletionCard(checked, false));
-  }
-
   private void shareCompletionCard()
   {
     Context ctx = getContext();
     if (ctx == null)
       return;
-    boolean includeDate = mCompletionCardIncludeDate != null && mCompletionCardIncludeDate.isChecked();
     StreetPixelsManager manager = MwmApplication.from(ctx).getStreetPixelsManager();
-    CompletionCardSharePayload payload = manager.prepareCompletionCardShare(includeDate);
+    CompletionCardSharePayload payload = manager.prepareCompletionCardShare();
     if (payload == null || TextUtils.isEmpty(payload.path) || !"image/png".equals(payload.mimeType))
       return;
     CompletionCardShare.shareImage(ctx, payload);
