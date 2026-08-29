@@ -39,7 +39,7 @@ Maintainer attestation 2026-08-03: **all planned checks passed on Pixel 3a**, ex
 | Continuity on D1 without ABL | Pass (maintainer; screen-off / background checks included in “all checks pass”) |
 | Continuity on D2 without ABL | Not measured |
 | Recommendation | Keep `ACCESS_BACKGROUND_LOCATION` **absent** pending aggressive-OEM measurement in Phase 10 |
-| Phase 10 follow-up? | Yes — OEM screen-off continuity + final ABL decision |
+| Phase 10 follow-up? | Yes — OEM screen-off continuity (SP-095 B4 / B-OEM on D2). **SPD-082** (2026-08-29) superseded “final ABL decision in Phase 10”: keep ABL absent; a D2 Fail needs a **new SPD**, not adding the permission. |
 
 ## Phase 2 exit status
 
