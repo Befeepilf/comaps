@@ -2,10 +2,13 @@
 
 **Phase:** 10 — Android release hardening
 **Status:** Planned
-**Depends on:** SP-088 (H4/H9 for policy and friends copy). Phase 10
-  implementation entry.
-**Unblocks:** SP-093 (policy URLs may land here or there); SP-095 /
-  SP-097 observe the surfaces
+**Depends on:** SP-088 H4/H9 Accepted (**SPD-080**, **SPD-085**).
+  Phase 10 implementation entry.
+**Unblocks:** SP-095 / SP-097 observe the surfaces (device execution
+  residual)
+**Notes:** Implement spec §30/§31/§10 **except** privacy-policy/terms
+  URL rows and app-name string rebrand (**residual**, SPD-080 /
+  SPD-084). Hide friends settings (SPD-085). SP-093 is residual.
 
 ---
 
@@ -23,9 +26,10 @@ exposing radius or internal parameters.
 Phase 10 exit criteria 2 and 3 are §31 and §30. `prefs_privacy.xml`
 today is search history and Play services. Spec §30 also requires
 competition enable/disable, nickname, delete competition profile,
-map-data management, local recording management, privacy information,
-and terms / competition rules. Friends copy still describes “username
-so friends can add you” (SPD-061).
+map-data management, local recording management, and competition-rules
+copy. Privacy-policy / terms URL rows and app-name rebrand are residual
+(SPD-080 / SPD-084); this item does not land them. Friends copy still
+describes “username so friends can add you” (SPD-061).
 
 §31 states are specified as UX, not as “log a warning”. Several were
 residualled from Phase 5 (no-area) and Phase 6 (Avoid impossible) as
@@ -37,7 +41,9 @@ against the spec sentences.
 ## In-scope behavior
 
 - Audit current settings IA against spec §30. Add missing Street
-  Pixels rows; remove or hide public-V1 friend rows (H9 / SPD-061);
+  Pixels rows **except** privacy-policy / terms URL rows (residual,
+  SPD-080) and app-name string rebrand (residual, SPD-084). Remove
+  or hide public-V1 friend rows (H9 / **SPD-085** / SPD-061);
   confirm haptics toggle remains the single exploration-haptics
   control (SPD-054).
 - Confirm the 25 m radius and HEALPix / GPS / decay / scoring
@@ -64,15 +70,20 @@ against the spec sentences.
 
 - Purchase / restore / pricing settings (SPD-010).
 - Drawing the check glyph, share-card defects, weekly JNI (SP-089).
-- Privacy *policy text* hosted on the web (SP-093); this item may
-  add in-app rows that *open* those URLs once H4 exists.
-- Device execution of the §31 matrix (SP-095 / SP-097).
+- Privacy *policy text*, hosting, and in-app URLs (SP-093
+  **residual**; SPD-080 landing). Do not retarget Help to a new
+  Street Pixels policy URL in this item. `https://comaps.app/privacy/`
+  may stay for now.
+- App-name / CoMaps product branding in user-visible strings
+  (residual, SPD-084).
+- Device execution of the §31 matrix (SP-095 / SP-097 **residual**).
 - New achievement screens (spec §18.5).
 
 ## Relevant product requirements
 
 - Spec §10, §30, §31, §34 Progress / Recording / Routing / Privacy.
-- SPD-010, SPD-011, SPD-042, SPD-054, SPD-061, SPD-070, SPD-074.
+- SPD-010, SPD-011, SPD-042, SPD-054, SPD-061, SPD-070, SPD-074,
+  SPD-080, SPD-082, SPD-084, SPD-085.
 
 ## Relevant source files or symbols
 
@@ -90,8 +101,9 @@ against the spec sentences.
   → present / missing / wrong. Then implement missing/wrong only.
 - Do not add a dedicated “Street Pixels debug” screen in public
   builds.
-- Background-location denied copy must not imply ABL is requested if
-  H6 keeps ABL absent: explain FGS / screen-off limits honestly.
+- Background-location denied copy must not imply ABL is requested:
+  H6 / **SPD-082** keeps ABL absent. Explain FGS / screen-off limits
+  honestly.
 
 ## Acceptance criteria
 
@@ -99,7 +111,8 @@ against the spec sentences.
 2. Evidence table maps every §31 state to copy + action, implemented
    or explicitly residualled with owner.
 3. No radius or internal-parameter setting in public builds.
-4. Friend settings hidden in public builds (H9).
+4. Friend settings hidden in public builds (H9 / **SPD-085**).
+   Privacy-policy/terms URL rows and app-name rebrand remain residual.
 5. Focused JVM / C++ tests for any new gating. Agent does not mark
    Accepted.
 
@@ -112,8 +125,8 @@ against the spec sentences.
 
 ## Required manual validation
 
-- First-run click-through on D1 is SP-095. This item records the
-  intended script.
+- First-run click-through on D1 is SP-095 (**residual**). This item
+  records the intended script; do not execute a hardware walk.
 
 ## Failure and rollback considerations
 
