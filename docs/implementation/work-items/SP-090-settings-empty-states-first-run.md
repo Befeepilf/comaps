@@ -1,7 +1,7 @@
 # SP-090 — Settings, empty-state, and first-run audit
 
 **Phase:** 10 — Android release hardening
-**Status:** Planned
+**Status:** Accepted
 **Depends on:** SP-088 H4/H9 Accepted (**SPD-080**, **SPD-085**).
   Phase 10 implementation entry.
 **Unblocks:** SP-095 / SP-097 observe the surfaces (device execution

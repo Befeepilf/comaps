@@ -548,7 +548,7 @@ FromLatLon; system expat).
 | --- | --- | --- | --- | --- |
 | 88 | [SP-088](work-items/SP-088-launch-governance-decisions.md) | Launch-governance decisions | 10 | **Accepted** (2026-08-29) — H1–H10 → SPD-077–086; brand + on-device testing residual |
 | 89 | [SP-089](work-items/SP-089-residual-defect-close-out.md) | Locked residual defect close-out | 10 | **Accepted** (2026-08-29) — H7 Fix list 1–8 (SPD-083); device eyeball residual |
-| 90 | [SP-090](work-items/SP-090-settings-empty-states-first-run.md) | Settings, empty-state, and first-run audit | 10 | **Planned** — §30/§31/§10 except privacy/terms URL rows and app-name rebrand (residual); hide public friend settings (SPD-085) |
+| 90 | [SP-090](work-items/SP-090-settings-empty-states-first-run.md) | Settings, empty-state, and first-run audit | 10 | **Accepted** (2026-08-29) — §30/§31/§10; friends hide; policy URLs residual |
 | 91 | [SP-091](work-items/SP-091-product-analytics-reconciliation.md) | Product analytics reconciliation | 10 | **Planned** — local §32 counters + payload-shape (SPD-081); no upload sink |
 | 92 | [SP-092](work-items/SP-092-permissions-manifest-store-disclosures.md) | Permissions, manifest, and store disclosures | 10 | **Planned** — hide friends (SPD-085); ABL absent (SPD-082); listing brand copy residual |
 | 93 | [SP-093](work-items/SP-093-privacy-policy-terms-consent.md) | Privacy policy, terms, and consent alignment | 10 | **Residual** — brand: privacy policy + terms (SPD-080 landing) |
