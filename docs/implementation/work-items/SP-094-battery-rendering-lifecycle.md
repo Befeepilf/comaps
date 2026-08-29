@@ -158,6 +158,7 @@ are:
 | Spike 1 | Residual (device execution) |
 | Battery | Residual (device execution); protocol locked **SPD-078** (no %/hour ceiling) |
 | Lifecycle table | Residual (device execution) |
+| Independent review | 2026-08-29 — protocol vs SPD-078 / tree; Bat-A/B H2 wording, test-pointer filters, L6 split. Not Accepted. |
 | Accepted by | |
 | Accepted date | |
 
