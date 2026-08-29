@@ -8,8 +8,10 @@
   remains residual until a later WI lands the text)
 **Notes:** Brand residual. Product-owner lock 2026-08-29 accepted the
   *intended* H4 position (product-owned Street Pixels policy) but
-  **landing the actual policy/terms/URLs is residual**. Do not
-  implement in SP-089–097.
+  **landing the actual policy/terms/URLs is residual**. Phase 10
+  slice close-out 2026-08-29 records current CoMaps URLs and consent
+  copy; it does **not** land H4 text. Do not implement landing in
+  SP-089–097.
 
 ---
 
@@ -124,17 +126,141 @@ When that later item runs:
 
 ## Completion evidence
 
+Phase 10 **residual slice close-out** only. No binary change. No hosted
+policy invented. Help URLs and CoMaps product name unchanged (**SPD-080**).
+Landing H4 text/URLs remains open. **This item is not Accepted.**
+
+Independent review 2026-08-29 checked `HelpFragment`,
+`explore_consent_message` / `explore_consent_title`, and
+`IdentityStore::kCompetitionPrivacyPolicyVersion` against this tree.
+Corrections below are documentation only (localised URL exceptions,
+Help row ids, nearby-discovery evidence, empty Accepted fields).
+
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Policy / terms URLs | Residual — `https://comaps.app/privacy/` may stay for now |
-| Consent checklist | Residual |
-| Policy version | |
+| Branch | `cursor/sp-093-privacy-residual-6383` |
+| Policy / terms URLs | Residual — English Help still opens `https://comaps.app/privacy/` and `terms/`. Snapshot below. |
+| Consent checklist | Residual for landing. Current `explore_consent_title` / `explore_consent_message` snapshot below; copy not rewritten (does not over-claim). |
+| Policy version | `"1"` (`IdentityStore::kCompetitionPrivacyPolicyVersion`). Not bumped: consent meaning unchanged. |
+| Binary / strings | Unchanged in this slice (`git diff street-pixels...HEAD` is docs only) |
+| Independent review | 2026-08-29 — residual snapshot vs tree; over-claims corrected. Not Accepted. |
 | Accepted by | |
 | Accepted date | |
+
+### Surfaces that still open CoMaps pages
+
+Android Help is the public-V1 URL surface. Construction is
+`R.string.app_site_url` + `"privacy/"` or `"terms/"` in
+`HelpFragment` (`privacy_policy`, `term_of_use_link`). English
+`app_site_url` (`values/` and `values-en/`) is `https://comaps.app/`,
+so those locales resolve to `https://comaps.app/privacy/` and
+`https://comaps.app/terms/`. Most other `values-*/` `app_site_url`
+strings stay on the `comaps.app` host with an optional language
+prefix (for example `https://comaps.app/de/` + `privacy/` →
+`https://comaps.app/de/privacy/`). Recorded exceptions, not
+retargeted here:
+
+- `values-fr-rCA`: `https://www.comaps.app/fr/`
+- `values-ar`: `https://comaps.app/ar` (no trailing slash)
+- `values-eo`: `https://comaps.app/eo` (no trailing slash)
+- `values-fa`: `https://comaps.app` (no trailing slash)
+
+Those pages describe CoMaps, not Street Pixels session GPS, local
+`.pix`, or competition aggregates.
+
+Related Help rows that also stay on CoMaps (not retargeted): site
+home (`R.id.web` → `app_site_url`), news (`R.id.news` →
+`https://www.comaps.app/news/`), Support us (`R.id.support_us` →
+`app_site_url` + `community/`).
+
+Settings Privacy information and Terms / competition rules (SP-090)
+are **in-app dialogs**. They reuse `location_privacy_info` +
+`explore_consent_message` (and leave/delete copy for rules). They do
+**not** open `privacy/` or `terms/`.
+
+iOS is not Android V1. `iphone/Maps/UI/Help/About/AboutView.swift`
+still concatenates `translated_om_site_url` + `privacy/` / `terms/`
+(often `https://www.comaps.app/…`). Out of this slice.
+
+Play Data safety still needs a policy URL before Publish
+(`docs/implementation/play-data-safety.md`). That URL is not invented
+here. Listing brand copy remains CoMaps (**SPD-079** / **SPD-084**).
+
+### `explore_consent_message` current state (not rewritten)
+
+English `values/strings.xml` and `values-en/strings.xml` (identical;
+no other locale overrides these keys). Dialog title
+(`explore_consent_title`):
+
+> Join local exploration rankings
+
+Message body (`explore_consent_message`):
+
+> Join local exploration rankings.
+>
+> When you opt in:
+> • Aggregated area statistics are uploaded.
+> • Your public nickname is shown where rankings have enough participants.
+> • Exact routes are not uploaded.
+> • Raw GPS is not uploaded.
+> • Live location is not shared.
+> • Nearby-user discovery does not exist in this version.
+> • You can disable participation later.
+
+Surfaces: `ExploreConsentDialogFragment` (opt-in); Privacy settings
+information and competition-rules dialogs (SP-090). Consent stays
+separate from location permission.
+
+| Spec §20.2 bullet | Consent copy | Vs `CompetitionUploadPayload` allow-list |
+| --- | --- | --- |
+| Aggregated area statistics uploaded | States it | True: `areas[]` (`area_osm_id`, `ownership_score`, `live_coverage_pct`, `eligible`) plus weekly city `new_live_count`. Copy does not name weekly-city counts (under-claim, not over-claim). |
+| Public nickname where rankings have enough participants | States it | True: `nickname` is in the payload. Sparse-area nickname hiding is server-side (spec §23.4); copy does not claim otherwise. |
+| Exact routes not uploaded | States it | True: no route/polyline/track keys in the allow-list. |
+| Raw GPS not uploaded | States it | True: no lat/lon/gps keys. |
+| Live location not shared | States it | True: no live lat/lon; upload is delayed batch (spec §25.3), not described in this string. |
+| Nearby-user discovery absent in V1 | “does not exist in this version” | True of the upload allow-list (no presence / other-user lat-lon keys) and of public V1: no nearby-discovery client surface. Friends leftover (SPD-085 hide) is a different feature, not this bullet. |
+| Participation can be disabled later | States it | True: settings competition toggle / leave / delete. |
+
+Does **not** over-claim raw GPS, live location, routes, or nearby
+discovery. `explore_consent_title` and the message lead-in omit spec
+§20.2’s “and compete for neighborhood control” (under-claim). Copy
+does not mention nickname uniqueness,
+delay/jitter, EU region, or that profile deletion leaves local
+exploration — those belong in landed policy/terms, not this string.
+
+Allow-list keys (closed): `profile_id`, `nickname`,
+`map_data_version`, `score_calc_version`, `last_update_unix`,
+`areas`, `area_osm_id`, `ownership_score`, `live_coverage_pct`,
+`eligible`, `weekly_cities`, `city_osm_id`, `new_live_count`
+(`competition_upload_payload.hpp`; asserted in
+`ProductAnalytics` payload-shape tests).
+
+Policy version `"1"` is the consent key (`Explore.ConsentPolicyVersion`).
+`HasCompetitionConsent` requires competition + aggregate sharing +
+version match + non-zero timestamp (spec §20.5 / SPD-064). Bump only
+when landed text meaning changes.
+
+### Contradictions recorded (not resolved here)
+
+- Spec §20.4 says nicknames need not be globally unique; **SPD-059**
+  requires unique V1 nicknames (spec not edited). Consent does not
+  mention uniqueness. Landed terms must follow SPD-059.
+- Technical audit (2026-07-20) described consent as a boolean with no
+  policy version. Current `IdentityStore` stores version `"1"` and a
+  timestamp. Code wins; audit is dated.
+- Explorer checkout (`/agent/repos/explorer`) has friends/`Explorer`
+  schemas only — no competition upload schema to match. Backend
+  line-by-line check waits on the competition app (SPD-065) in a
+  later WI.
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| Landing Street Pixels policy/terms/URLs | Residual (this item); not SP-089–097 coding |
+| Landing Street Pixels policy/terms/URLs (H4 / SPD-080) | Residual (this item); not SP-089–097 coding. Later WI produces/hosts text, retargets Help, snapshots canonical copy under `docs/implementation/` if hosted outside git. |
+| Play Data safety form still needs a privacy-policy URL | Residual with landing. Do not invent a URL. |
+| Play listing still CoMaps (“does not track / does not collect personal information”) | Residual **SPD-079** / **SPD-084**. Not this slice. |
+| iOS About privacy/terms still `translated_om_site_url` + `privacy/` / `terms/` | Out of Android V1; retarget with iOS work. |
+| Consent under-claims weekly-city aggregates, delay/jitter, uniqueness (SPD-059), deletion vs local `.pix` | Optional copy pass in the landing WI; must stay inside the upload allow-list. Not rewritten here. |
+| Explorer checkout has no competition schema | Later WI checks the competition backend, not this friends-only tree. |
+| A few `app_site_url` locales omit a trailing slash (`values-ar`, `values-eo`, `values-fa`); `values-fr-rCA` uses `www.comaps.app` | Pre-existing CoMaps concatenation. Do not rewrite Help URLs in this residual slice. Landing WI should emit well-formed Street Pixels URLs. |
