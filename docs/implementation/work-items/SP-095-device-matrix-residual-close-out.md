@@ -1,7 +1,8 @@
 # SP-095 — Device-matrix residual close-out
 
 **Phase:** 10 — Android release hardening
-**Status:** Residual
+**Status:** Residual. Roster documented 2026-08-29. Device execution
+  Residual. Not Accepted.
 **Depends on:** SP-088 H1/H6 Accepted (**SPD-077**, **SPD-082**).
   SP-089–092 for defects/copy that the walks would observe. `.spa` on
   device for Helsinki (SP-053). Phase 10 implementation entry. Release or
@@ -12,7 +13,9 @@
   do not execute the H1 matrix, OEM continuity, Helsinki walks,
   traffic capture, or other hardware walks in SP-089–097. The
   Device-verify *classification* is locked (**SPD-083**); execution
-  is residual.
+  is residual. Roster:
+  [`validation/SP-095-validation-plan.md`](../validation/SP-095-validation-plan.md).
+  Evidence log is Residual (not executed).
 
 ---
 
@@ -42,10 +45,12 @@ Product-owner lock 2026-08-29 residualised on-device testing.
 
 ## In-scope behavior
 
-**None in Phase 10 coding.** Recorded residual work, for a later WI:
-
-Produce `docs/implementation/validation/SP-095-validation-plan.md`
-and `SP-095-evidence-log.md`. Execute, do not summarise from memory.
+**None in Phase 10 coding.** Roster recorded 2026-08-29 in
+[`validation/SP-095-validation-plan.md`](../validation/SP-095-validation-plan.md)
+and [`validation/SP-095-evidence-log.md`](../validation/SP-095-evidence-log.md).
+A later WI executes those carried scripts on hardware and fills the
+log. Do not summarise walks from memory. Do not execute in this
+slice.
 
 **Roster (H1 / SPD-077):** D1 Pixel-class; D2 aggressive OEM; D3 only if locked.
 
@@ -138,11 +143,18 @@ When that later item runs:
 
 ## Completion evidence
 
+Phase 10 **residual roster close-out** only. No handset run. No walk
+results, device ids, or pass/fail invented. **This item is not
+Accepted.**
+
 | Field | Value |
 | --- | --- |
-| Validation plan | Residual |
-| Evidence log | Residual |
-| Device roster | Residual (SPD-077 matrix defined; not executed) |
+| Branch | `cursor/sp-095-device-matrix-residual-6383` |
+| Validation plan | Residual — roster + pointers recorded 2026-08-29 in [`validation/SP-095-validation-plan.md`](../validation/SP-095-validation-plan.md). This slice did **not** execute the plan. |
+| Evidence log | Residual — every Device-verify row Residual; empty device cells. [`validation/SP-095-evidence-log.md`](../validation/SP-095-evidence-log.md) |
+| Device roster | Residual (**SPD-077** matrix defined D1 Pixel-class + D2 aggressive OEM; D3 only if locked; **not executed**) |
+| ABL / friends | ABL remains absent (**SPD-082**). Friends must not appear (**SPD-085**) — eyeball residual. |
+| Spike 1 / battery | Not this item — [`SP-094`](SP-094-battery-rendering-lifecycle.md) residual. |
 | Accepted by | |
 | Accepted date | |
 
@@ -150,4 +162,6 @@ When that later item runs:
 
 | Finding | Proposed disposition |
 | --- | --- |
-| H1 matrix, OEM continuity, Helsinki, traffic capture | Residual (this item); not SP-089–097 coding |
+| H1 matrix, OEM continuity, Helsinki, traffic capture | Residual (this item); not SP-089–097 coding. Later handset WI executes [`validation/SP-095-validation-plan.md`](../validation/SP-095-validation-plan.md). Do not invent walk results. |
+| Missing `.spa` at execution | Helsinki SP-031 F* / SP-041 H1–H6 (UX) stay Blocked. Do not substitute a city without administrative polygons and call it R3. |
+| Pixel 3a SP-014 Pass | Citation of prior D1-class work only. Does **not** close Phase 10 D2 OEM or fill this log’s D1 cells. |

@@ -138,7 +138,7 @@ phases at exit. Residual WIs are not coding items.
 | 5 | [SP-092](../work-items/SP-092-permissions-manifest-store-disclosures.md) | Permissions, manifest, and store disclosures (hide friends **SPD-085**; ABL absent **SPD-082**; listing brand residual) |
 | 6 | [SP-093](../work-items/SP-093-privacy-policy-terms-consent.md) | Privacy policy, terms, and consent alignment (**Residual** — slice close-out 2026-08-29; **SPD-080** landing remains open; not Accepted) |
 | 7 | [SP-094](../work-items/SP-094-battery-rendering-lifecycle.md) | Battery, rendering, and lifecycle measurement (**protocol documented** 2026-08-29; **device execution Residual**; **SPD-078**; not Accepted) |
-| 8 | [SP-095](../work-items/SP-095-device-matrix-residual-close-out.md) | Device-matrix residual close-out (**Residual** — device walks; **SPD-077**/**SPD-083**) |
+| 8 | [SP-095](../work-items/SP-095-device-matrix-residual-close-out.md) | Device-matrix residual close-out (**roster documented** 2026-08-29; **device execution Residual**; **SPD-077**/**SPD-083**; not Accepted) |
 | 9 | [SP-096](../work-items/SP-096-risk-register-and-release-pipeline.md) | Risk-register close-out and release pipeline (docs table; signed APK/ops may residual; brand listing residual) |
 | 10 | [SP-097](../work-items/SP-097-phase10-launch-requirement-verification.md) | Phase 10 / §34 verification (**exit gate**; automated + mapping; device/manual Residual) |
 
@@ -217,7 +217,9 @@ On-device scripts (residual until a later WI executes them):
   [`validation/SP-094-validation-plan.md`](../validation/SP-094-validation-plan.md)
   (documented 2026-08-29; **not executed** in this coding slice).
 - Screen-off recording on the full device matrix (OEM *functional*
-  continuity remains SP-095 residual).
+  continuity remains SP-095 residual). Device-verify roster:
+  [`validation/SP-095-validation-plan.md`](../validation/SP-095-validation-plan.md)
+  (documented 2026-08-29; **not executed** in this coding slice).
 - Cold start with a large city loaded, measured to first interactive frame
   (SP-094 CS1; recorded, not gated).
 - Fresh-install first-run journey following spec §10 step by step.
