@@ -8,6 +8,7 @@
 #include "street_pixels_areas/sample_centres.hpp"
 
 #include "indexer/classificator_loader.hpp"
+#include "indexer/data_header.hpp"
 #include "indexer/data_source.hpp"
 #include "indexer/features_vector.hpp"
 
@@ -16,6 +17,7 @@
 #include "coding/file_reader.hpp"
 #include "coding/file_writer.hpp"
 #include "coding/files_container.hpp"
+#include "coding/internal/file_data.hpp"
 
 #include "platform/mwm_version.hpp"
 #include "platform/platform.hpp"
@@ -27,6 +29,7 @@
 #include <cstdint>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace
@@ -72,6 +75,13 @@ UNIT_TEST(PixDerive_SegmentizeStreetUses15mSampling)
   double const lon = 16.37;
   m2::PointD const from = mercator::FromLatLon(lat, lon);
 
+  auto const offsetNorth = [&](double northM)
+  {
+    auto const [endLat, endLon] = street_pixels_tests::OffsetLatLonByMeters(lat, lon, northM, 0.0);
+    m2::PointD const to = mercator::FromLatLon(endLat, endLon);
+    return std::make_pair(mercator::DistanceOnEarth(from, to), to);
+  };
+
   {
     auto const [endLat, endLon] = street_pixels_tests::OffsetLatLonByMeters(lat, lon, 14.0, 0.0);
     m2::PointD const to = mercator::FromLatLon(endLat, endLon);
@@ -82,6 +92,24 @@ UNIT_TEST(PixDerive_SegmentizeStreetUses15mSampling)
   }
 
   {
+    auto const [d, to] = offsetNorth(14.98);
+    TEST_LESS_OR_EQUAL(d, kPathSamplingStepMeters, ());
+    TEST_GREATER(d, kPathSamplingStepMeters - 0.05, ());
+    size_t count = 0;
+    SegmentizeStreet(from, to, [&](m2::PointD const &, double) { ++count; });
+    TEST_EQUAL(count, 0, ());
+  }
+
+  {
+    auto const [d, to] = offsetNorth(15.02);
+    TEST_GREATER(d, kPathSamplingStepMeters, ());
+    TEST_LESS(d, kPathSamplingStepMeters + 0.05, ());
+    size_t count = 0;
+    SegmentizeStreet(from, to, [&](m2::PointD const &, double) { ++count; });
+    TEST_EQUAL(count, 1, ());
+  }
+
+  {
     auto const [endLat, endLon] = street_pixels_tests::OffsetLatLonByMeters(lat, lon, 16.0, 0.0);
     m2::PointD const to = mercator::FromLatLon(endLat, endLon);
     TEST_GREATER(mercator::DistanceOnEarth(from, to), kPathSamplingStepMeters, ());
@@ -89,6 +117,13 @@ UNIT_TEST(PixDerive_SegmentizeStreetUses15mSampling)
     SegmentizeStreet(from, to, [&](m2::PointD const &, double) { ++count; });
     TEST_EQUAL(count, 1, ());
   }
+}
+
+UNIT_TEST(PixDerive_EmptyOutDirIsBadOutput)
+{
+  auto const missingOut = street_pixels::DeriveAndWritePixFile("leaf.mwm", "", 0);
+  TEST_EQUAL(static_cast<int>(missingOut.m_status), static_cast<int>(street_pixels::PixDeriveStatus::BadOutput), ());
+  TEST_EQUAL(street_pixels::PixDeriveStatusExitCode(missingOut.m_status), 5, ());
 }
 
 UNIT_TEST(PixDerive_WriteUnexploredUniversePixFailClosedOnEmpty)
@@ -133,6 +168,11 @@ UNIT_TEST(PixDerive_FailClosedMissingAndCorruptMwm)
     TEST(!Platform::IsFileExistsByFullPath(base::JoinPath(outDir, "corrupt-leaf.pix")), ());
     PixDeriveRemoveIfExists(corruptPath);
   }
+
+  {
+    auto const emptyOut = street_pixels::DeriveAndWritePixFile("", outDir, 0);
+    TEST_EQUAL(static_cast<int>(emptyOut.m_status), static_cast<int>(street_pixels::PixDeriveStatus::BadOutput), ());
+  }
 }
 
 UNIT_TEST(PixDerive_UniverseRoundTripOnFixtureMwm)
@@ -147,16 +187,19 @@ UNIT_TEST(PixDerive_UniverseRoundTripOnFixtureMwm)
   PixDeriveRemoveIfExists(pixPath);
 
   FeaturesVectorTest featuresVector(mwmPath);
+  TEST_EQUAL(static_cast<int>(featuresVector.GetHeader().GetType()),
+             static_cast<int>(feature::DataHeader::MapType::Country), ());
   auto const universe = DeriveStreetPixelsUniverse(featuresVector);
   TEST(!universe.empty(), ());
 
   FrozenDataSource dataSource;
   StreetPixelsManager manager(dataSource);
-  auto const managerEmptyCountry = manager.DeriveStreetPixelsFromFeatures(featuresVector);
+  FeaturesVectorTest featuresVectorForManager(mwmPath);
+  auto const managerEmptyCountry = manager.DeriveStreetPixelsFromFeatures(featuresVectorForManager);
   TEST(managerEmptyCountry.empty(), ());
 
   manager.SetCountryIdForTesting("minsk-pass");
-  auto const managerUniverse = manager.DeriveStreetPixelsFromFeatures(featuresVector);
+  auto const managerUniverse = manager.DeriveStreetPixelsFromFeatures(featuresVectorForManager);
   TEST_EQUAL(managerUniverse, universe, ());
 
   int64_t const versionFromMwm =
@@ -202,4 +245,35 @@ UNIT_TEST(PixDerive_UniverseRoundTripOnFixtureMwm)
   TEST_EQUAL(overrideProbe.header.mapDataVersion, 260829, ());
 
   PixDeriveRemoveIfExists(pixPath);
+}
+
+UNIT_TEST(PixDerive_FailClosedOnWorldAndWorldCoastsFilenames)
+{
+  classificator::Load();
+  std::string const mwmPath = PixDeriveFixtureMwmPath();
+  PixDeriveRequireFixtureMwm(mwmPath);
+
+  std::string const outDir = PixDeriveTestOutDir();
+  TEST(Platform::MkDirChecked(outDir), ());
+
+  auto const refuseNamedCopy = [&](char const * fileName)
+  {
+    std::string const namedPath = base::JoinPath(outDir, fileName);
+    std::string const pixPath = base::JoinPath(outDir, base::FilenameWithoutExt(fileName) + PIX_FILE_EXTENSION);
+    PixDeriveRemoveIfExists(namedPath);
+    PixDeriveRemoveIfExists(pixPath);
+    TEST(base::CopyFileX(mwmPath, namedPath), (mwmPath, namedPath));
+
+    auto const result = street_pixels::DeriveAndWritePixFile(namedPath, outDir, 0);
+    TEST_EQUAL(static_cast<int>(result.m_status), static_cast<int>(street_pixels::PixDeriveStatus::NotALeaf),
+               (fileName));
+    TEST_EQUAL(street_pixels::PixDeriveStatusExitCode(result.m_status), 1, ());
+    TEST(!Platform::IsFileExistsByFullPath(pixPath), (pixPath));
+
+    PixDeriveRemoveIfExists(namedPath);
+    PixDeriveRemoveIfExists(pixPath);
+  };
+
+  refuseNamedCopy(WORLD_FILE_NAME DATA_FILE_EXTENSION);
+  refuseNamedCopy(WORLD_COASTS_FILE_NAME DATA_FILE_EXTENSION);
 }
