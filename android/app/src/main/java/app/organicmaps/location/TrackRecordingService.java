@@ -30,6 +30,7 @@ import androidx.core.content.ContextCompat;
 import app.organicmaps.MwmActivity;
 import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
+import app.organicmaps.sdk.ProductAnalytics;
 import app.organicmaps.sdk.location.LocationHelper;
 import app.organicmaps.sdk.location.LocationListener;
 import app.organicmaps.sdk.location.RecordingSession;
@@ -266,6 +267,7 @@ public class TrackRecordingService extends Service implements LocationListener
         type = ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION;
       ServiceCompat.startForeground(this, TrackRecordingService.TRACK_REC_NOTIFICATION_ID,
                                     buildNotification(this, RecordingSession.getState()).build(), type);
+      ProductAnalytics.recordNotifyPermissionGranted();
     }
     catch (Exception e)
     {
