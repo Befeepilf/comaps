@@ -6,9 +6,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -109,7 +109,19 @@ public class PublicManifestAssertionsTest
 
   private static String readUtf8(File file) throws IOException
   {
-    return Files.readString(file.toPath(), StandardCharsets.UTF_8);
+    try (FileInputStream in = new FileInputStream(file))
+    {
+      byte[] buffer = new byte[(int) file.length()];
+      int offset = 0;
+      while (offset < buffer.length)
+      {
+        int read = in.read(buffer, offset, buffer.length - offset);
+        if (read < 0)
+          break;
+        offset += read;
+      }
+      return new String(buffer, 0, offset, StandardCharsets.UTF_8);
+    }
   }
 
   private static Document parse(File file) throws Exception
