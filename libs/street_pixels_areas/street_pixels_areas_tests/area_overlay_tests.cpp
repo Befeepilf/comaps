@@ -97,6 +97,8 @@ UNIT_TEST(AreaOverlay_CompletedCheckDrawPathInvokedWhenShowCheck)
   TEST(OverlayCheckDrawPath(inProgress, label, bounds).empty(), ());
 
   TEST(CompletedCheckPolyline(label, 0.0).empty(), ());
+  TEST(OverlayCheckDrawPath(cityDone, label, m2::RectD()).empty(), ());
+  TEST(OverlayCheckDrawPath(cityDone, label, m2::RectD(1.0, 1.0, 1.0, 1.0)).empty(), ());
 }
 
 UNIT_TEST(AreaOverlay_TriangulateBox)

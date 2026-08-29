@@ -180,10 +180,7 @@ CompetitionWeeklyChrome BuildCompetitionWeeklyChrome(std::optional<CompetitionWe
 {
   CompetitionWeeklyChrome chrome;
   if (!board.has_value() || board->m_ranking.empty())
-  {
-    chrome.m_body = kCompetitionWeeklyEmpty;
     return chrome;
-  }
   int64_t userCount = 0;
   for (auto const & row : board->m_ranking)
   {

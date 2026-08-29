@@ -60,20 +60,6 @@ void ExplorationAreaOverlayBuilder::Build(ref_ptr<dp::GraphicsContext> context,
           LineShape(spline, lvp).Draw(context, make_ref(&batcher), textures);
         }
 
-        if (item.m_showCheck && item.m_checkPolyline.size() >= 2)
-        {
-          m2::SharedSpline checkSpline(item.m_checkPolyline);
-          LineViewParams cvp;
-          cvp.m_tileCenter = property->m_center;
-          cvp.m_depthTestEnabled = false;
-          cvp.m_minVisibleScale = kExplorationAreaOverlayMinZoom;
-          cvp.m_cap = dp::RoundCap;
-          cvp.m_join = dp::RoundJoin;
-          cvp.m_color = item.m_outlineColor;
-          cvp.m_width = std::max(item.m_outlineWidthPx, 5.0f);
-          LineShape(checkSpline, cvp).Draw(context, make_ref(&batcher), textures);
-        }
-
         if (!item.m_name.empty())
         {
           dp::FontDecl font(dp::Color::Black(), 28.0f, dp::Color::White());
@@ -92,7 +78,9 @@ void ExplorationAreaOverlayBuilder::Build(ref_ptr<dp::GraphicsContext> context,
         outlineProperties.push_back(std::move(property));
     }
 
-    if (item.m_triangles.size() >= 3 && item.m_fillColor.GetAlpha() > 0)
+    bool const drawFill = item.m_triangles.size() >= 3 && item.m_fillColor.GetAlpha() > 0;
+    bool const drawCheck = item.m_showCheck && item.m_checkPolyline.size() >= 2;
+    if (drawFill || drawCheck)
     {
       dp::Batcher batcher(kMaxSize, kMaxSize);
       batcher.SetBatcherHash(static_cast<uint64_t>(BatcherBucket::Default));
@@ -104,13 +92,29 @@ void ExplorationAreaOverlayBuilder::Build(ref_ptr<dp::GraphicsContext> context,
                                [&property](dp::RenderState const & state, drape_ptr<dp::RenderBucket> && b)
         { property->m_buckets.emplace_back(state, std::move(b)); });
 
-        AreaViewParams avp;
-        avp.m_tileCenter = property->m_center;
-        avp.m_depthTestEnabled = false;
-        avp.m_minVisibleScale = kExplorationAreaOverlayMinZoom;
-        avp.m_color = item.m_fillColor;
-        BuildingOutline emptyOutline;
-        AreaShape(item.m_triangles, std::move(emptyOutline), avp).Draw(context, make_ref(&batcher), textures);
+        if (drawFill)
+        {
+          AreaViewParams avp;
+          avp.m_tileCenter = property->m_center;
+          avp.m_depthTestEnabled = false;
+          avp.m_minVisibleScale = kExplorationAreaOverlayMinZoom;
+          avp.m_color = item.m_fillColor;
+          BuildingOutline emptyOutline;
+          AreaShape(item.m_triangles, std::move(emptyOutline), avp).Draw(context, make_ref(&batcher), textures);
+        }
+        if (drawCheck)
+        {
+          m2::SharedSpline checkSpline(item.m_checkPolyline);
+          LineViewParams cvp;
+          cvp.m_tileCenter = property->m_center;
+          cvp.m_depthTestEnabled = false;
+          cvp.m_minVisibleScale = kExplorationAreaOverlayMinZoom;
+          cvp.m_cap = dp::RoundCap;
+          cvp.m_join = dp::RoundJoin;
+          cvp.m_color = item.m_outlineColor;
+          cvp.m_width = std::max(item.m_outlineWidthPx, 5.0f);
+          LineShape(checkSpline, cvp).Draw(context, make_ref(&batcher), textures);
+        }
       }
       if (!property->m_buckets.empty())
         fillProperties.push_back(std::move(property));
