@@ -4,6 +4,7 @@ add_subdirectory(track_analyzing)
 
 omim_add_tool_subdirectory(feature_list)
 omim_add_tool_subdirectory(spa_emit_tool)
+omim_add_tool_subdirectory(pix_derive_tool)
 omim_add_tool_subdirectory(focused_area_badge_desktop_demo)
 omim_add_tool_subdirectory(topography_generator)
 omim_add_tool_subdirectory(track_generator)
