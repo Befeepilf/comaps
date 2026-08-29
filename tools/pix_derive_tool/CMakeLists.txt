@@ -7,10 +7,5 @@ omim_add_executable(${PROJECT_NAME} ${SRC})
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
     map
-    indexer
-    platform
-    geometry
-    coding
-    base
     gflags::gflags
 )
