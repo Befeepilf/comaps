@@ -139,7 +139,7 @@ Django settings) sit here as **Ops**, not as client features.
 | §26 table | same note, §26 |
 | Artefact | **Residual Ops.** `android/app/release.keystore`, `secure.properties` / `secure.properties.release`, and `google-play.json` absent. Lint configure printed `secure.properties.release doesn't exist` / `secure.properties.test doesn't exist`. That is **not** the release-task `NO RELEASE signing keys found` line. No signed `google` APK produced. No hash. Unsigned/debug-signed APK is not exit #11. |
 | Test output | Original SP-096 full run aborted (`classificator.txt` absent at 14:18 UTC): **393** Running / **392** OK / **1** FAILED (`Eligibility_IncludesCommonHighways`). Independent review: `--filter=SampleAcceptance` is regex overlap (20 = 5 manager + 15 live). Unique focused **93/93**. Full `street_pixels_tests` after generated classificator files **499/499** (`All tests passed.`). Smoke **not run**. `:sdk:lintDebug` **FAILED** — **5 errors, 24 warnings** (4× `MissingPermission` VIBRATE in `Utils.java`; 1× `WrongConstant` in `RecordingSessionDebug.java`; corroborated from `lint-results-debug.txt`). |
-| Independent review | 2026-08-29 — §22 19/19 vs tree; sparse chrome; filter overlap; gitignore; lint wording; full suite 499/499. Not Accepted. |
+| Independent review | 2026-08-29 — §22 19/19 vs tree; SampleAcceptance overlap; sparse-area chrome wording; lint/keystore messages; full suite 499/499. Not Accepted. |
 | Accepted by | |
 | Accepted date | |
 
