@@ -17,6 +17,19 @@
       android:ellipsize="middle"
       android:text="Some very long country region name • 99.26 %" />
   <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+      android:id="@+id/gps_waiting_badge"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="@dimen/margin_quarter"
+      android:visibility="gone"
+      style="@style/MwmWidget.ExtendedFAB"
+      app:icon="@null"
+      android:maxLines="1"
+      android:autoSizeTextType="uniform"
+      android:autoSizeMinTextSize="12sp"
+      android:ellipsize="end"
+      android:text="@string/street_pixels_waiting_for_gps" />
+  <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
       android:id="@+id/first_goal_badge"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
