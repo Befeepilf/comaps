@@ -157,6 +157,9 @@ verification that is not on-device. Do **not** mark Phase 10 exit met.
 - Confirm that deleting the competition profile leaves local exploration
   intact, and that clearing app data removes everything as the privacy policy
   claims.
+- Executable lifecycle protocol (L1–L9):
+  [`validation/SP-094-validation-plan.md`](../validation/SP-094-validation-plan.md)
+  (documented 2026-08-29; **not executed** in this coding slice).
 
 ## Privacy and security implications
 
@@ -227,7 +230,8 @@ On-device scripts (residual until a later WI executes them):
   SP-088).
 - No open work item is in progress (required for SP-089+).
 - A release-configured build exists and is installable (required for
-  SP-094–097).
+  SP-094–097 **device execution**. Not required to record the SP-094
+  protocol while that execution remains residual).
 
 ## Exit criteria
 
