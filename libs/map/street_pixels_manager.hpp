@@ -384,13 +384,13 @@ private:
   void RefreshSparseAssignmentsBestEffortUnlocked(storage::CountryId const & countryId, std::string const & spaPath,
                                                   std::int64_t mapDataVersion, bool policyOnly);
   void InvalidateAreaCompletionCacheUnlocked();
-  void AddExploredPixelsToAreaCompletion(std::set<std::int64_t> const & pixelIds);
+  void AddExploredPixelsToAreaCompletion(std::set<std::int64_t> const & pixelIds, bool liveAnalytics = false);
   bool RebuildAreaCompletionCacheUnlocked(storage::CountryId const & countryId, std::string const & spaPath,
                                           int64_t mapDataVersion);
   bool RebuildAreaCompletionCacheFromLoadedUnlocked(std::vector<std::int64_t> const & universeAscending,
                                                     std::vector<std::int64_t> const & exploredAscending,
                                                     street_pixels::ExplorationAreaResolver && resolver);
-  void EvaluateAreaMilestonesUnlocked(int64_t nowSec);
+  std::vector<street_pixels::AreaMilestoneCrossing> EvaluateAreaMilestonesUnlocked(int64_t nowSec);
   void IngestPendingAreaMilestonePresentations(street_pixels::SpaFile const & file);
   void NotifyAreaMilestonePresentationIfChanged(
       std::optional<street_pixels::AreaMilestonePresentation> const & before);

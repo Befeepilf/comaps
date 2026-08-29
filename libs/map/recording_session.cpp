@@ -1,5 +1,7 @@
 #include "map/recording_session.hpp"
 
+#include "map/product_analytics.hpp"
+
 #include "platform/settings.hpp"
 
 #include "base/timer.hpp"
@@ -25,7 +27,10 @@ RecordingSession::TransitionResult RecordingSession::Start()
   m_pausedDurationSec = 0;
   m_pauseStartedTimestampSec = 0;
   SetActiveSessionBreadcrumb(true);
-  return TransitionTo(State::Recording);
+  auto const result = TransitionTo(State::Recording);
+  if (result == TransitionResult::Ok)
+    street_pixels::ProductAnalytics::RecordRecordingStarted();
+  return result;
 }
 
 RecordingSession::TransitionResult RecordingSession::Pause()
@@ -55,7 +60,10 @@ RecordingSession::TransitionResult RecordingSession::Finish()
     AccumulatePausedDuration();
 
   SetActiveSessionBreadcrumb(false);
-  return TransitionTo(State::Finished);
+  auto const result = TransitionTo(State::Finished);
+  if (result == TransitionResult::Ok)
+    street_pixels::ProductAnalytics::RecordRecordingCompleted();
+  return result;
 }
 
 RecordingSession::TransitionResult RecordingSession::Discard()

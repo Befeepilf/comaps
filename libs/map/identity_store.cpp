@@ -1,6 +1,7 @@
 #include "map/identity_store.hpp"
 
 #include "map/backend_config.hpp"
+#include "map/product_analytics.hpp"
 
 #include "street_pixels_areas/live_recency_store.hpp"
 
@@ -543,6 +544,7 @@ void IdentityStore::GrantCompetitionConsent()
   }
   if (handler)
     handler(unixTime);
+  street_pixels::ProductAnalytics::RecordCompetitionOptIn();
 }
 
 void IdentityStore::RevokeCompetitionConsent()
