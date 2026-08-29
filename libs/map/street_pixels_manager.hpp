@@ -71,6 +71,11 @@ class RecordingSession;
 
 bool IsExplorableFeature(feature::GeomType geomType, feature::TypesHolder const & types);
 
+void SegmentizeStreet(m2::PointD const & p1, m2::PointD const & p2,
+                      std::function<void(m2::PointD const &, double)> const & callback);
+
+std::set<std::int64_t> DeriveStreetPixelsUniverse(FeaturesVectorTest & featuresVector);
+
 class StreetPixelsManager
 {
 public:
@@ -334,9 +339,6 @@ private:
   df::StreetPixel * FindStreetPixel(std::int64_t pixelId);
 
   void UpdateStreetStatsForTrack(kml::MultiGeometry::LineT const & line);
-
-  void SegmentizeStreet(m2::PointD const & p1, m2::PointD const & p2,
-                        std::function<void(m2::PointD const &, double)> const & callback) const;
 
   double ExploredRatioForSegment(std::string const & mwmCountryName, routing::Segment const & segment,
                                  routing::RoadGeometry const & road) const;
