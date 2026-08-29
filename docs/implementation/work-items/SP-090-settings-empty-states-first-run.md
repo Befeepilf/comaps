@@ -135,16 +135,14 @@ against the spec sentences.
 
 ## Completion evidence
 
-Status remains **Planned**. Implementation evidence only; a human decides acceptance.
-
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-090-settings-empty-states-6383` |
 | §30 table | See §30 audit below. |
 | §31 table | See §31 audit below. |
-| Test output | `./gradlew :app:testGoogleDebugUnitTest --tests 'app.organicmaps.settings.*' --tests 'app.organicmaps.location.GpsWaitingStateTest' --tests 'app.organicmaps.location.RecordingSessionUiModelTest' :sdk:testDebugUnitTest --tests 'app.organicmaps.sdk.routing.StreetExplorationRoutingOptionsTest'` → **BUILD SUCCESSFUL**. JUnit XML: **51 tests, 0 failures, 0 errors, 0 skipped** (`FriendSettingsVisibilityTest` 5, `PublicSettingsVisibilityTest` 1, `GpxSettingsVisibilityTest` 12, `IncompleteSpaSettingsVisibilityTest` 2, `CompetitionEmptyStateTest` 4, `CompetitionSettingsTest` 2, `FirstRunFlowTest` 4, `GpsWaitingStateTest` 7, `RecordingSessionUiModelTest` 8, `StreetExplorationRoutingOptionsTest` 6). Independent-review re-run after review fixes. |
-| Accepted by | |
-| Accepted date | |
+| Test output | `./gradlew :app:testGoogleDebugUnitTest --tests 'app.organicmaps.settings.*' --tests 'app.organicmaps.location.GpsWaitingStateTest' --tests 'app.organicmaps.location.RecordingSessionUiModelTest' :sdk:testDebugUnitTest --tests 'app.organicmaps.sdk.routing.StreetExplorationRoutingOptionsTest'` → **BUILD SUCCESSFUL**. JUnit XML: **51 tests, 0 failures, 0 errors, 0 skipped**. Independent-review re-run after review fixes (`c9adff9b5`). |
+| Accepted by | product owner (implement → review lock 2026-08-29) |
+| Accepted date | 2026-08-29 |
 
 ### §30 settings audit
 
