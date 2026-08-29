@@ -42,7 +42,7 @@ On-device-only access is out of scope for collection.
 | Approximate location **except competition opt-in** | Without competition consent, area/city aggregates are not transmitted. |
 | Financial info / purchase history | No Play Billing, no SKU, no restore, no buy button (**SPD-010**). |
 | Advertising ID / ads data | No ads SDK. `AD_ID` is not in the manifest. Data is **not used for advertising or marketing**. |
-| Contacts | Friends are hidden in public V1 (**SPD-085**). No add-friend intent-filters. |
+| Contacts | Friends are hidden in public V1 (**SPD-085**). No add-friend intent-filters. Generic map VIEW filters can still deliver leftover add-friend URIs; the app does not present friends onboarding for them. |
 | Files and docs as a cloud/GPX feature | Public V1 does not ship ungated GPX. KML/KMZ bookmark import is processed on-device. Do not claim GPX as a free public feature. |
 | Photos / videos / screenshots | Sentry `attach-screenshot` and `attach-view-hierarchy` are **false**. |
 | Web browsing history | Not collected. |
@@ -51,9 +51,11 @@ On-device-only access is out of scope for collection.
 **Sale of data:** the app does **not** sell user data.
 
 **Background location (Play Console extra declaration):** do **not** declare
-background location. `ACCESS_BACKGROUND_LOCATION` is absent (**SPD-082**).
-Recording uses a location foreground service (`TrackRecordingService`,
-`NavigationService`) while a session or navigation is active.
+background location. `ACCESS_BACKGROUND_LOCATION` is absent from the merged
+manifest (**SPD-082**). The main source manifest uses `tools:node="remove"` so
+a library cannot merge it back. Recording uses a location foreground service
+(`TrackRecordingService`, `NavigationService`) while a session or navigation
+is active.
 
 ---
 
@@ -113,6 +115,15 @@ Paste line: *Approximate location is collected only when the user opts into comp
 | Collected, shared, or both? | **Collected** if the Sentry Android SDK attaches an installation/device identifier (service provider). Not an advertising ID. |
 | Required or optional? | **Required** for crash grouping in the shipped build. |
 | Purposes | **Analytics**. |
+
+### App activity → User-generated content
+
+| Field | Answer |
+| --- | --- |
+| Collected, shared, or both? | **Collected and shared** when the user submits an OpenStreetMap edit (notes, POI edits). Shared with the OpenStreetMap project, not with an ads SDK. |
+| Required or optional? | **Optional.** Users can map and record without editing OSM. |
+| Purposes | **App functionality**. |
+| Notes | This is the pre-existing OSM editor, not competition uploads. Do not describe it as GPX cloud backup. |
 
 ### App activity → App interactions
 

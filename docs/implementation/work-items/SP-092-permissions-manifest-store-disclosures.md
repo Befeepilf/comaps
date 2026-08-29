@@ -146,7 +146,7 @@ Permission → code path → store disclosure line. Source manifests:
 | `ACCESS_FINE_LOCATION` | `TrackRecordingService`, `NavigationService`, `LocationHelper`, first-run recording rationale `track_recording_location_rationale` | Precise location is used on-device for an active recording session and for turn-by-turn navigation. Raw GPS is never uploaded. |
 | `ACCESS_COARSE_LOCATION` | Same location stack (Android location APIs) | Approximate location on-device; off-device only as competition area/city aggregates when the user opts in. |
 | `ACCESS_LOCATION_EXTRA_COMMANDS` | `LocationHelper` A-GPS `sendExtraCommand` (`force_xtra_injection`, `force_time_injection`) | Not a Play data type. Speeds GPS time-to-fix. No extra upload. |
-| `ACCESS_BACKGROUND_LOCATION` | **Absent** (`PublicManifestAssertionsTest`) | Do not declare Play background location (**SPD-082**). |
+| `ACCESS_BACKGROUND_LOCATION` | **Absent** from merged manifests. Source declares `tools:node="remove"` so libraries cannot merge it (`PublicManifestAssertionsTest`) | Do not declare Play background location (**SPD-082**). |
 | `FOREGROUND_SERVICE` | `TrackRecordingService`, `NavigationService`, `DownloaderService` | Required to run the matching FGS types below. |
 | `FOREGROUND_SERVICE_LOCATION` | `TrackRecordingService` and `NavigationService` (`foregroundServiceType="location"`; `ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION`) | Location FGS while a recording session or navigation is active. Matches the permission. |
 | `FOREGROUND_SERVICE_DATA_SYNC` | `DownloaderService` (`foregroundServiceType="dataSync"`) | Map-download FGS. Not location. |
@@ -154,13 +154,15 @@ Permission → code path → store disclosure line. Source manifests:
 | `INTERNET` | Map downloads, competition HTTPS (opt-in aggregates), OSM editor upload, Sentry | Enables off-device collection listed in `docs/implementation/play-data-safety.md`. |
 | `ACCESS_NETWORK_STATE` | Downloader / connectivity checks | Not a Play user-data type. |
 | `WAKE_LOCK` | WorkManager OSM upload / pre-O JobIntentService comment in manifest | Keeps short work alive. Not a Play user-data type. |
+| `RECEIVE_BOOT_COMPLETED` | Merged from AndroidX WorkManager (not declared in app/sdk source) | Reschedules deferred OSM/work after reboot. Not a Play user-data type. |
+| `${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | Merged from AndroidX | Internal non-exported receiver guard. Not Play collection. |
 | `VIBRATE` | `Utils` vibrator helpers; exploration haptics | On-device haptic feedback. Not collected. |
 | `READ_EXTERNAL_STORAGE` (`maxSdkVersion=22`) | Legacy file open for bookmarks/tracks on API 22 and below | On-device files. Not a cloud GPX feature. |
 | `androidx.car.app.NAVIGATION_TEMPLATES` | `CarAppService` | Android Auto navigation templates. |
 | `androidx.car.app.ACCESS_SURFACE` | `CarAppService` | Android Auto surface. |
 | `${applicationId}.permission.READ_NAVIGATION_DATA` (defined) | `NavigationContentProvider` | Custom permission other apps must hold. Not Play collection. |
 
-Friends: dedicated `comaps://add-friend` and HTTPS `comaps.app/add-friend` intent-filters **removed** from the main manifest (**SPD-085**). `FriendSettingsVisibility.showAddFriendOnboarding` is false in public V1. `MyAccountDialogFragment.showWithAddFriend` no-ops. `MwmActivity.processIntent` still swallows leftover `add-friend` URIs that can match the generic `comaps://` scheme or `https://comaps.at/…`.
+Friends: dedicated `comaps://add-friend` and HTTPS `comaps.app/add-friend` intent-filters **removed** from the main manifest (**SPD-085**). Flavor overlays `debug` / `beta` do not add them. `FriendSettingsVisibility.showAddFriendOnboarding` is false in public V1. `MyAccountDialogFragment.showWithAddFriend` no-ops. `MwmActivity.processIntent` and Android Auto navigation swallow leftover `add-friend` URIs (case-insensitive) that generic `comaps://` or `https://comaps.at` VIEW filters can still deliver; `ExploreDeepLink.shouldPresentAddFriendOnboarding` is false. `PublicManifestAssertionsTest` asserts the **merged** `googleDebug` manifest, not only source XML.
 
 Purchase: no `BillingClient` / Play Billing in `android/app` or `android/sdk` Java (**SPD-010**). Re-run `ExplorerProGateTest` (capabilities closed when native is not ready / public flags off).
 
@@ -172,7 +174,7 @@ Purchase: no `BillingClient` / Play Billing in `android/app` or `android/sdk` Ja
 | Permission inventory | See table above. |
 | Listing brand copy | Residual (not rewritten). `android/app/src/google/play/listings/**` and F-Droid listing paths untouched. |
 | Data-safety doc | `docs/implementation/play-data-safety.md` |
-| Test output | `./gradlew :app:testGoogleDebugUnitTest --tests 'app.organicmaps.settings.PublicManifestAssertionsTest' --tests 'app.organicmaps.settings.FriendSettingsVisibilityTest' --tests 'app.organicmaps.settings.PublicSettingsVisibilityTest'` → **BUILD SUCCESSFUL**. JUnit XML: PublicManifestAssertionsTest **5/5**, FriendSettingsVisibilityTest **7/7**, PublicSettingsVisibilityTest **1/1** (0 failures). `:sdk:testDebugUnitTest --tests 'app.organicmaps.sdk.ExplorerProGateTest' --tests 'app.organicmaps.sdk.ExplorerProAnalyticsTest' --rerun-tasks` → **BUILD SUCCESSFUL**. ExplorerProGateTest **11/11**, ExplorerProAnalyticsTest **2/2**. Merged `googleDebug` manifest: no `ACCESS_BACKGROUND_LOCATION`, no `add-friend`; `TrackRecordingService` / `NavigationService` `foregroundServiceType="location"`. |
+| Test output | Independent review re-run: `./gradlew :app:testGoogleDebugUnitTest --tests 'app.organicmaps.settings.PublicManifestAssertionsTest' --tests 'app.organicmaps.settings.FriendSettingsVisibilityTest' --tests 'app.organicmaps.settings.PublicSettingsVisibilityTest' --tests 'app.organicmaps.settings.ExploreDeepLinkTest'` → **BUILD SUCCESSFUL**. JUnit XML: PublicManifestAssertionsTest **6/6**, FriendSettingsVisibilityTest **7/7**, PublicSettingsVisibilityTest **1/1**, ExploreDeepLinkTest **3/3** (0 failures). `:sdk:testDebugUnitTest --tests 'app.organicmaps.sdk.ExplorerProGateTest' --tests 'app.organicmaps.sdk.ExplorerProAnalyticsTest' --rerun-tasks` → **BUILD SUCCESSFUL**. ExplorerProGateTest **11/11**, ExplorerProAnalyticsTest **2/2**. Merged `googleDebug` `processGoogleDebugMainManifest` and Sentry merged manifests: no `ACCESS_BACKGROUND_LOCATION`, no `add-friend`; `TrackRecordingService` / `NavigationService` `foregroundServiceType="location"`. Listing paths and CoMaps strings not rewritten. |
 | Accepted by | |
 | Accepted date | |
 
@@ -180,10 +182,13 @@ Purchase: no `BillingClient` / Play Billing in `android/app` or `android/sdk` Ja
 
 | Finding | Proposed disposition |
 | --- | --- |
-| Generic `comaps://` scheme and host-wide `https://comaps.at` filters can still deliver `…/add-friend` URIs to SplashActivity | Record. Dedicated filters removed. Code swallows add-friend URIs and hides onboarding. Splitting ge0-style `comaps://` hosts would break map links. |
+| Generic `comaps://` scheme and host-wide `https://comaps.at` filters can still deliver `…/add-friend` URIs to SplashActivity | Record. Dedicated filters removed. Splitting ge0-style `comaps://` hosts would break map links. Code now swallows case-insensitively and `shouldPresentAddFriendOnboarding` is false in public V1. |
 | Help / listing still CoMaps; location rationale still allowed to say CoMaps | Residual **SPD-079 / SPD-084 / SPD-080**. Not rewritten. |
 | Play Data safety form still needs a privacy-policy URL | SP-093 residual. Questionnaire checked in without inventing the URL. |
 | Sentry installation IDs / interaction breadcrumbs | Declared as service-provider collection in the questionnaire. Device capture that a Play build’s Sentry project has no screenshots remains SP-095 / SP-097. |
 | `https://comaps.app/add-friend` App Link `autoVerify` filter removed; `comaps.at` autoVerify map links remain | Expected. Do not re-add add-friend App Links. |
 | Phase 10 / SP-088 architecture snapshots still say add-friend filters are registered | Dated planning notes. Code is source of truth after this item. |
-| ABL Play background-location declaration | Out of scope unless a later SPD adds ABL after D2 (**SPD-082**). |
+| ABL Play background-location declaration | Out of scope unless a later SPD adds ABL after D2 (**SPD-082**). Source uses `tools:node="remove"` so libraries cannot merge it. Merger warns that no other ABL declaration is present; expected until a library actually ships ABL. |
+| OSM editor user-generated content was missing from the first questionnaire draft | Added to `play-data-safety.md` in independent review. |
+| Manifest unit tests grepped source XML only | Fixed: `PublicManifestAssertionsTest` requires merged `googleDebug` output (`process*MainManifest` dependsOn). |
+| Merged `googleDebug` also contains WorkManager `RECEIVE_BOOT_COMPLETED` and AndroidX `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | Documented in the inventory. Not Play user-data types. |
