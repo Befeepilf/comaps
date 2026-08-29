@@ -13,7 +13,8 @@ enum class PixDeriveStatus
   UnreadableMwm,
   EmptyUniverse,
   WriteFailed,
-  BadOutput
+  BadOutput,
+  NotALeaf
 };
 
 struct PixDeriveResult
