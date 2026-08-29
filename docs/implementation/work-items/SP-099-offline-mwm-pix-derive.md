@@ -109,26 +109,30 @@ pix_derive_tool --mwm_dir /path/to/mwms --mwm extra.mwm leftover.mwm --out_dir /
 | `--mwm_dir` | Directory of leaf `.mwm` (skips `World` / `WorldCoasts` in the directory listing) |
 | `--mwm` | Single `.mwm` path (can combine with `--mwm_dir` and leftover argv files) |
 | leftover argv | Extra `.mwm` paths |
-| `--out_dir` | Output directory for `{leaf}.pix` (required) |
+| `--out_dir` | Output directory for `{leaf}.pix` (required; empty → exit **5**) |
 | `--map_data_version` | YYMMDD stamp; **0** (default) reads from the MWM header |
 
 Fail-closed exit codes: missing MWM **1**, unreadable/corrupt **2**, empty U **3**,
-write failure **4**, bad `--out_dir` **5**. No silent empty `.pix`. Sequential
-leaves; one universe in RAM at a time. Explored / ever-live bits are empty
-(`SaveUnexploredIds`). Production emit: `spa_emit_tool --mode=production --pix_dir`
-on this output. Full FI rings + Helsinki MWM emit is **SP-103**.
+write failure **4**, bad `--out_dir` **5**, `World` / `WorldCoasts` (filename or
+non-Country `DataHeader`) **NotALeaf** exit **1**. No silent empty `.pix`.
+`--mwm_dir` skips World files; an explicit `--mwm World.mwm` fails closed and
+does not write. Sequential leaves; one universe in RAM at a time. A failed
+leaf does not stop later leaves; the process exit code is the **first** error.
+Explored / ever-live bits are empty (`SaveUnexploredIds`). Production emit:
+`spa_emit_tool --mode=production --pix_dir` on this output. Full FI rings +
+Helsinki MWM emit is **SP-103**.
 
 ## Completion evidence
 
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-099-offline-pix-derive-b3d3` |
-| Commits | `c3dc852e7` `[map] Extract shared street-pixel universe derive helper`; `e0f5ca0c4` `[tools] Add pix_derive_tool for offline MWM to .pix`; `a1be562dd` `[map] Fail closed on corrupt MWM without debug abort`; `210b6907e` `[tools] Report pix_derive failures on stderr`; this `[docs]` commit |
-| Tool | `tools/pix_derive_tool` — links `map`; shared `DeriveStreetPixelsUniverse` / `IsExplorableFeature` / `kPathSamplingStepMeters` (15) |
+| Commits | `c3dc852e7` `[map] Extract shared street-pixel universe derive helper`; `e0f5ca0c4` `[tools] Add pix_derive_tool for offline MWM to .pix`; `a1be562dd` `[map] Fail closed on corrupt MWM without debug abort`; `210b6907e` `[tools] Report pix_derive failures on stderr`; `4e595186e` `[docs] Record SP-099 pix_derive_tool evidence`; `61378b7e5` `[map] Refuse World MWM and open each leaf once`; `db9f1d21b` `[map] Tighten pix-derive tests for World, empty out_dir, and 15 m`; `221693411` `[tools] Exit 5 on empty pix_derive --out_dir`; `4949e0b1d` `[map] Probe MWM TOC offset before opening FilesContainerR`; this `[docs]` commit |
+| Tool | `tools/pix_derive_tool` — links `map` + `gflags`; shared `DeriveStreetPixelsUniverse` / `IsExplorableFeature` / `kPathSamplingStepMeters` (15) |
 | Fixture | `data/minsk-pass.mwm` — \|U\| **24069**, 3718 streets, `map_data_version=210811` |
-| Test output | `/workspace/omim-build-debug/street_pixels_tests --data_path=/workspace/data --user_resource_path=/workspace/data` — **503/503** OK (includes `PixDerive_*` 4/4 and existing `Eligibility_*` 9/9). `street_pixels_areas_tests` — **153/153** OK |
-| CLI smoke | `--helpshort` prints flags. Missing MWM exit **1**. Corrupt MWM exit **2**, no `.pix`. Fixture `--mwm data/minsk-pass.mwm --out_dir /tmp/sp099_cli_ok` exit **0**, `leaf=minsk-pass \|U\|=24069` |
-| Build | `SKIP_MAP_DOWNLOAD=1 ./tools/unix/build_omim.sh -d -n 3 -p /workspace pix_derive_tool street_pixels_tests street_pixels_areas_tests` (default `../omim-build-debug` was not writable here) |
+| Test output | `/workspace/omim-build-debug/street_pixels_tests --data_path=/workspace/data --user_resource_path=/workspace/data` — **505/505** OK (includes `PixDerive_*` 6/6 and existing `Eligibility_*` 9/9) |
+| CLI smoke | Empty `--out_dir` exit **5**. Missing MWM exit **1**. Corrupt MWM exit **2**, no `.pix`. Explicit `World.mwm` exit **1** `NotALeaf`, no `.pix`. Fixture `--mwm data/minsk-pass.mwm --out_dir /tmp/sp099_review_cli` exit **0**, `leaf=minsk-pass \|U\|=24069 map_data_version=210811` |
+| Build | `SKIP_MAP_DOWNLOAD=1 ./tools/unix/build_omim.sh -d -n 3 -p /workspace pix_derive_tool street_pixels_tests` (default `../omim-build-debug` was not writable here) |
 | Implemented by | Cloud agent (`befeepilf@protonmail.com`) |
 | Accepted by | — |
 
@@ -142,3 +146,4 @@ in this environment). Phase 11 exit is **not** met.
 | Wire into operator CLI | SP-100 |
 | Full `spa_emit_tool --mode=production` with FI rings + Helsinki MWM | SP-103 (no Helsinki MWM / rings in this env; do not invent proxy U) |
 | On-device first-open U vs `pix_derive_tool` on the same leaf MWM | SP-103/104 |
+| Debug `CHECK` in `DatSectionHeader::Read` can still abort if TOC tags exist but the DAT version byte is garbage | Residual; do not change indexer in this WI. TOC offset probe covers the garbage-file case. |
