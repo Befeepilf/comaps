@@ -5,7 +5,6 @@
 #include "platform/platform.hpp"
 
 #include "base/file_name_utils.hpp"
-#include "base/logging.hpp"
 #include "base/timer.hpp"
 
 #include "defines.hpp"
@@ -44,7 +43,7 @@ bool CollectFromDirectory(std::string const & dir, std::vector<std::string> & pa
     return true;
   if (!Platform::IsDirectory(dir))
   {
-    LOG(LERROR, ("--mwm_dir is not a directory", dir));
+    std::cerr << "--mwm_dir is not a directory " << dir << "\n";
     return false;
   }
 
@@ -88,7 +87,7 @@ int main(int argc, char ** argv)
 
   if (!Platform::MkDirChecked(FLAGS_out_dir))
   {
-    LOG(LERROR, ("Cannot create out_dir", FLAGS_out_dir));
+    std::cerr << "Cannot create out_dir " << FLAGS_out_dir << "\n";
     return street_pixels::PixDeriveStatusExitCode(street_pixels::PixDeriveStatus::BadOutput);
   }
 
@@ -107,7 +106,7 @@ int main(int argc, char ** argv)
       continue;
     }
 
-    LOG(LERROR, ("pix_derive failed", mwmPath, DebugPrint(result.m_status)));
+    std::cerr << "pix_derive failed " << mwmPath << " " << DebugPrint(result.m_status) << "\n";
     int const code = street_pixels::PixDeriveStatusExitCode(result.m_status);
     if (exitCode == 0)
       exitCode = code;
