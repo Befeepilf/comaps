@@ -221,6 +221,7 @@ public class StreetPixelsManager
   @Nullable
   private static native CompletionCardSharePayload nativePrepareCompletionCardShare();
   private static native void nativeRecordCompletionCardShareInitiated();
+  private static native void nativeReleaseCompletionCardShare();
   private static native void nativeAcknowledgeCompetitionHint();
   @Nullable
   private static native String nativePeekCompetitionHintText();
@@ -315,6 +316,11 @@ public class StreetPixelsManager
   public void recordCompletionCardShareInitiated()
   {
     nativeRecordCompletionCardShareInitiated();
+  }
+
+  public void releaseCompletionCardShare()
+  {
+    nativeReleaseCompletionCardShare();
   }
 
   public void acknowledgeCompetitionHint()

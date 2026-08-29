@@ -422,6 +422,15 @@ Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeRecordC
 }
 
 JNIEXPORT void JNICALL
+Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeReleaseCompletionCardShare(JNIEnv * env,
+                                                                                                   jclass clazz)
+{
+  CHECK(g_framework, ("Framework isn't created yet!"));
+  auto & manager = g_framework->NativeFramework()->GetStreetPixelsManager();
+  manager.ReleaseCompletionCardShare();
+}
+
+JNIEXPORT void JNICALL
 Java_app_organicmaps_sdk_maplayer_streetpixels_StreetPixelsManager_nativeAcknowledgeCompetitionHint(JNIEnv *, jclass)
 {
   CHECK(g_framework, ("Framework isn't created yet!"));

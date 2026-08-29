@@ -286,6 +286,7 @@ public:
       bool recordGenerated = true);
   std::optional<street_pixels::CompletionCardSharePayload> PrepareCompletionCardShare();
   void RecordCompletionCardShareInitiated();
+  void ReleaseCompletionCardShare();
 
   void SetStreetPixelsForTesting(std::vector<df::StreetPixel> pixels);
   void SetStreetPixelsOverlayForTesting(storage::CountryId const & countryId, std::vector<df::StreetPixel> pixels);
@@ -363,6 +364,7 @@ private:
   AreaMilestoneHapticFn m_areaMilestoneHapticHandler;
   street_pixels::AreaMilestonePresenter m_areaMilestonePresenter;
   CompletionCardGeneratedFn m_completionCardGeneratedFn;
+  bool m_completionCardShareInFlight = false;
   std::vector<df::StreetPixel> m_testStreetPixelsStorage;
 
   void TriggerCollectionVibration(size_t numNewlyExploredPixels);
