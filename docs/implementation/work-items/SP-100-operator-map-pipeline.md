@@ -2,7 +2,7 @@
 
 **Phase:** 11 — Independent map build and serve
 **Status:** Planned
-**Depends on:** SP-098 lock (P2, P3, P4, P8, P9, P10); SP-099
+**Depends on:** SP-098 lock (**SPD-088**, **SPD-089**, **SPD-090**, **SPD-094**, **SPD-095**, **SPD-096**); SP-099
 **Unblocks:** SP-103
 
 ---
@@ -41,7 +41,8 @@ failure. “Seamless” is this command, not a VPS daemon.
   / generator version; `--iso`; `--policy`; `--borders-dir`; `--secret-key`
   optional until SP-101.
 - Default ini fragment in-repo: `NODE_STORAGE: map`, low `THREADS_COUNT`,
-  P9 extras **commented off**, no CoMaps URLs.
+  P9 extras **on** (**SPD-095**), no CoMaps map-CDN URLs (**SPD-087**).
+  Extra feeds with no independent source: skip that stage with a warning.
 - Stages skippable (`--from-stage`) so a failed spa emit does not rebuild
   MWMs.
 - Refuse to run if `--cdn-base` / CoMaps hosts are set unless

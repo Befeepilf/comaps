@@ -1,11 +1,11 @@
 # Phase 11 — Independent map build and serve
 
-**Status:** Not started (work-item planning 2026-08-29; coding blocked on
-SP-098 product-owner lock of P1–P10)
+**Status:** In progress (SP-098 **Accepted** 2026-08-29 — **SPD-087–096**;
+coding SP-099+ may proceed; exit **not met**)
 **Depends on:** Phase 4 residual client/layout track (SP-042–051 tools;
 **SPD-027–039**). Does **not** depend on Phase 5–10 exit.
-**Blocks:** stock APKs that must not use CoMaps map hosts (recommended public
-V1 hosting gate — **P7**, not locked). Does **not** block Phase 10 exit.
+**Blocks:** public S4 stock map URLs (**SPD-093** / **SPD-087**). Does
+**not** block Phase 10 exit.
 
 ---
 
@@ -23,7 +23,7 @@ It does not implement in-pipeline mapgen `.spa` collectors (Option A).
 ## Product-spec references
 
 - Geographic coverage: wherever compatible CoMaps **map data** exists
-  (format; recommended origin is ours — P1).
+  (format; origin is ours — **SPD-087**).
 - §8.3 country-configured polygons; sidecar already **SPD-020**.
 - §27.3 / §34 “Offline and map updates”: **manual** map updates remain; no
   automatic map-update protocol (README §3 post-V1).
@@ -72,7 +72,7 @@ unwired.
 - **SPD-027–039** and SP-044/045/046 tools — already Accepted or In review.
 - `generator_tool` from the **same git revision** as the APK (`maps_generator`
   README).
-- Product-owner lock of P1–P10 (SP-098) before coding SP-099+.
+- Product-owner lock of P1–P10 (**SP-098 Accepted**; **SPD-087–096**).
 
 Does not wait for Phase 5–10 exit. Helsinki device walks that today residual
 to SP-053 / Phase 10 may consume this origin instead of CoMaps.
@@ -82,20 +82,20 @@ to SP-053 / Phase 10 may consume this origin instead of CoMaps.
 | Residual | Disposition |
 | --- | --- |
 | SP-044 offline MWM→`.pix` | **SP-099** |
-| Eight-leaf FI dense `.spa` with real \|U\| | **SP-104** (run) after SP-099/101 |
-| Option A `StageMwm` collectors | **Out** — still unallocated |
+| Eight-leaf FI dense `.spa` with real \|U\| | **SP-103** after SP-099/100 |
+| Option A `StageMwm` collectors | **Out** — **SPD-089** |
 | SP-050–053 LAN tools | **Reuse**; do not rewrite the layout |
-| `prepare_spa_debug_root` CoMaps fetch | Production path **must not** use it (P1) |
+| `prepare_spa_debug_root` CoMaps fetch | Production path **must not** use it (**SPD-087**) |
 | Country policies beyond FI | After pipeline exists; not a Phase 11 exit |
-| Planet-quality World + WorldCoasts | Residual unless P8 says otherwise |
+| Planet-quality World + WorldCoasts | Residual (**SPD-094**) |
 
 ## Work-item breakdown
 
-Coding does not start before SP-098 lock.
+Coding SP-099+ may proceed (SP-098 **Accepted**).
 
 | Order | ID | Title |
 | --- | --- | --- |
-| 1 | [SP-098](../work-items/SP-098-map-pipeline-architecture-decisions.md) | Architecture decisions (P1–P10) — docs only |
+| 1 | [SP-098](../work-items/SP-098-map-pipeline-architecture-decisions.md) | Architecture decisions (**Accepted** 2026-08-29; **SPD-087–096**) |
 | 2 | [SP-099](../work-items/SP-099-offline-mwm-pix-derive.md) | Offline leaf MWM → `.pix` derive matching the client |
 | 3 | [SP-100](../work-items/SP-100-operator-map-pipeline.md) | Operator CLI: extract → mapgen → pix → rings → spa → assemble |
 | 4 | [SP-101](../work-items/SP-101-independent-map-identity.md) | Own map keys, stock host list, `configure.sh` without CoMaps |
@@ -154,7 +154,7 @@ See the investigation note §3. HTTP contract is already **SPD-035**:
 ## Entry criteria
 
 - SP-042–048 Accepted; SP-049–051 tools present in tree.
-- Product-owner lock of P1–P10 (SP-098) before SP-099+.
+- Product-owner lock of P1–P10 (SP-098 **Accepted**; **SPD-087–096**).
 - Build host with ≥32 GiB RAM and tens of GiB free disk; VPS reachable for
   SP-102+.
 
@@ -189,17 +189,22 @@ See the investigation note §3. HTTP contract is already **SPD-035**:
 
 ## Known uncertainties
 
-P1–P10 are **recommended** in SP-098 until lock. None is an SPD yet.
+P1–P10 are **locked** 2026-08-29 via
+[`SP-098`](../work-items/SP-098-map-pipeline-architecture-decisions.md) as
+**SPD-087–096**. **OQ-40–OQ-49** are closed. P9 is an override (extras **on**).
 
-| Ref | Question | Recommended position |
+| Ref | Accepted lock | SPD |
 | --- | --- | --- |
-| P1 | Own map origin vs CoMaps CDN | Stock APK must not list CoMaps map hosts |
-| P2 | Where to build vs serve | 32 GiB+ builder; 8 GiB VPS serve-only |
-| P3 | Option B glue vs Option A | Glue this phase; Option A stays residual |
-| P4 | First publish grain | Eight FI leaves + extract World |
-| P5 | Signing keys | Our Ed25519; Channel A on the public origin |
-| P6 | `MAP_SERIES` | Keep `2026.06.28` unless compatibility forces a bump |
-| P7 | Launch relationship | Not a Phase 10 blocker; recommended S4 hosting gate |
-| P8 | Coastline / WorldCoasts | Skip if extract coasts fail; document missing water fill |
-| P9 | Optional mapgen extras | Off by default |
-| P10 | Orchestration shape | One build-host CLI + rsync; no generate daemon on the VPS |
+| P1 | Stock APK must not list CoMaps map hosts | **SPD-087** |
+| P2 | ≥32 GiB builder; 8 GiB VPS serve-only | **SPD-088** |
+| P3 | Glue Option B; Option A residual | **SPD-089** |
+| P4 | Eight FI leaves + extract World | **SPD-090** |
+| P5 | Our Ed25519; Channel A on the public origin | **SPD-091** |
+| P6 | Keep `MAP_SERIES` `2026.06.28` | **SPD-092** |
+| P7 | Not a Phase 10 blocker; S4 must not ship CoMaps map URLs | **SPD-093** |
+| P8 | Skip coastline if extract coasts fail | **SPD-094** |
+| P9 | Extras **on** (map tool first) | **SPD-095** |
+| P10 | One build-host CLI + rsync | **SPD-096** |
+
+SP-100 residual: extra feeds with no independent source skip+warn (**SPD-095**),
+never CoMaps map CDN.

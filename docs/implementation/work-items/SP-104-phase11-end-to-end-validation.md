@@ -2,7 +2,7 @@
 
 **Phase:** 11 — Independent map build and serve
 **Status:** Planned
-**Depends on:** SP-098 Accepted; SP-099–103 In review or Accepted
+**Depends on:** SP-098 **Accepted** (**SPD-087–096**); SP-099–103 In review or Accepted
 **Unblocks:** Phase 11 exit (maintainer)
 
 ---

@@ -2,7 +2,7 @@
 
 **Phase:** 11 — Independent map build and serve
 **Status:** Planned
-**Depends on:** SP-098 lock (P2, P10); SP-050/051 tools
+**Depends on:** SP-098 lock (**SPD-088**, **SPD-096**); SP-050/051 tools
 **Unblocks:** SP-103
 
 ---

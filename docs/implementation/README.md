@@ -86,7 +86,7 @@ V1 scope. Explorer Pro **purchasing** is not.
 | 8 | Competition | [`phases/phase-08-competition.md`](phases/phase-08-competition.md) | SP-070 Accepted; SP-071 in progress; SP-072–074 Accepted |
 | 9 | GPX and feature gating | [`phases/phase-09-gpx-and-feature-gating.md`](phases/phase-09-gpx-and-feature-gating.md) | Exit criteria met 2026-08-28 with residuals → Phase 10 |
 | 10 | Android release hardening | [`phases/phase-10-android-release-hardening.md`](phases/phase-10-android-release-hardening.md) | Not started (SP-088 Accepted 2026-08-29; SP-097 mapping recorded; brand + on-device testing residual; exit **not met**) |
-| 11 | Independent map build and serve | [`phases/phase-11-independent-map-build-and-serve.md`](phases/phase-11-independent-map-build-and-serve.md) | Not started (work-item planning 2026-08-29; SP-098 P1–P10 **not locked**) |
+| 11 | Independent map build and serve | [`phases/phase-11-independent-map-build-and-serve.md`](phases/phase-11-independent-map-build-and-serve.md) | In progress (SP-098 **Accepted** 2026-08-29 — **SPD-087–096**; coding SP-099+; exit **not met**) |
 
 Phase order 1–10 is unchanged from the originally proposed sequence. **Phase 11**
 was added 2026-08-29 as operator infrastructure (own MWM+`.spa` origin). It
@@ -141,8 +141,8 @@ Notes on the graph:
 - Phase 9 can start as soon as Phase 3 lands. It is sequenced late only because
   it is not on the critical path.
 - Phase 11 is **not** a Phase 10 prerequisite. It may run in parallel. Stock
-  map origin independent of CoMaps is a recommended public-hosting gate (SP-098
-  **P7**, not locked).
+  map origin independent of CoMaps is a public S4 hosting gate (**SPD-093** /
+  **SPD-087**).
 
 ### 4.2 Phase entry and exit criteria
 
@@ -161,7 +161,7 @@ roadmap tracks.
 | 8 | Phase 4 exit criteria met; competition formulas resolved in `DECISIONS.md`. | Opt-in consent recorded with policy version and timestamp; aggregate-only uploads batched with delay and jitter; ownership, eligibility, decay, unclaimed and contested states work; weekly city leaderboard excludes imports; sparse-area anonymity enforced server-side; profile deletion works. |
 | 9 | Phase 3 exit criteria met; Phase 1 feature-flag foundation in place. | GPX import marks pixels `imported` and never touches recency or competition queues; export gated by build flag plus entitlement; public builds present no non-functional purchase action. |
 | 10 | Phases 1–9 at exit. Phase 11 is **not** required. | Every item in product spec §34 is verified with recorded evidence; store disclosures accurate; battery and rendering acceptable; no known path reveals another user's live or exact location. |
-| 11 | Phase 4 residual client/layout tools present; SP-098 P1–P10 locked. | Own origin generates Finland MWM+dense `.spa`, assembles the SPD-035 tree, serves it; stock path does not use CoMaps map hosts; Option A still out. |
+| 11 | Phase 4 residual client/layout tools present; SP-098 P1–P10 locked (**SPD-087–096**). | Own origin generates Finland MWM+dense `.spa`, assembles the SPD-035 tree, serves it; stock path does not use CoMaps map hosts (**SPD-087**); extras on (**SPD-095**); Option A still out (**SPD-089**). |
 
 ### 4.3 Current phase status
 
@@ -195,7 +195,7 @@ SP-043–048 — **not** Phase 5, **not** Phase 10 device work). Evidence:
 | SP-047 | **Accepted** 2026-08-08 — `.spa` full-refetch on update + delete-with-map (**SPD-029**, **SPD-030**) |
 | SP-048 | **Accepted** 2026-08-08 — incomplete / retry signaling (**SPD-031**) |
 | SP-049–053 | SP-049 **Accepted** 2026-08-08 (D8–D14 → **SPD-035–039**); SP-050–053 **In review** — LAN/CDN `.spa` publish mirror (device S2–S8 residual; not Phase 5 exit) |
-| SP-098–104 | **Planned** — Phase 11 independent map origin (P1–P10 not locked) |
+| SP-098–104 | SP-098 **Accepted** 2026-08-29 (**SPD-087–096**; P9 extras **on**); SP-099–104 **Planned** |
 | SP-033 | **Accepted** 2026-08-07 — qualitative Pixel 3a OK; quantitative Spike 1 → Phase 10 |
 | SP-034 | **Accepted** 2026-08-07 — area completion cache + SPD-026 |
 | SP-035 | **Accepted** 2026-08-07 — focused-area badge binding (map-centre stub → SP-036) |
@@ -220,8 +220,9 @@ is Accepted (desktop synthetic; city-scale/device residual → Phase 10).
 Coding SP-056+ may proceed. See
 [`phases/phase-06-exploration-aware-routing.md`](phases/phase-06-exploration-aware-routing.md).
 
-**Phase 11 (map origin) is Planned** and may proceed in parallel with Phases
-5–10 after SP-098 lock. It does not change the Phase 5 active-phase pointer.
+**Phase 11 (map origin):** SP-098 **Accepted** 2026-08-29 (**SPD-087–096**;
+P9 override extras **on**). Coding SP-099+ may proceed in parallel with
+Phases 5–10. It does not change the Phase 5 active-phase pointer.
 
 ## 5. Release slices
 
@@ -233,7 +234,7 @@ not calendar milestones.
 | **S1 — Correctness build** | Phases 1–3 | Maintainer only | Recording gate holds; no exploration is collected outside a session; map updates preserve exploration. |
 | **S2 — Progress build** | Phases 4–5 | Maintainer plus a small internal group | Real administrative areas with correct percentages; acceptable rendering at city scale. |
 | **S3 — Feature-complete beta** | Phases 6–9 | Closed beta | Routing, milestones, share cards, competition, and GPX behind flags all functional; competition backend reachable. |
-| **S4 — Public Android V1** | Phase 10 | Public release | All product spec §34 launch requirements verified. Independent map origin (Phase 11) is a **recommended** additional hosting gate (SP-098 P7, not locked) — not a Phase 10 exit criterion. |
+| **S4 — Public Android V1** | Phase 10 + Phase 11 hosting | Public release | All product spec §34 launch requirements verified (Phase 10). Stock map URLs must not be CoMaps (**SPD-093** / **SPD-087**). Phase 11 is not a Phase 10 exit criterion. |
 
 Explorer Pro purchasing is not part of any V1 slice. iOS is not part of any V1
 slice.
@@ -581,7 +582,7 @@ Residual; not Accepted. Do **not** treat Phase 10 exit as met.
 
 | Order | ID | Title | Phase | Why first |
 | --- | --- | --- | --- | --- |
-| 98 | [SP-098](work-items/SP-098-map-pipeline-architecture-decisions.md) | Independent map-pipeline architecture decisions | 11 | **Planned** — P1–P10 recommended; not locked; no SPD yet |
+| 98 | [SP-098](work-items/SP-098-map-pipeline-architecture-decisions.md) | Independent map-pipeline architecture decisions | 11 | **Accepted** (2026-08-29) — P1–P10 → **SPD-087–096**; P9 extras **on** |
 | 99 | [SP-099](work-items/SP-099-offline-mwm-pix-derive.md) | Offline leaf MWM → `.pix` derive | 11 | **Planned** — closes SP-044 U residual |
 | 100 | [SP-100](work-items/SP-100-operator-map-pipeline.md) | Operator map pipeline CLI | 11 | **Planned** — one build-host entrypoint |
 | 101 | [SP-101](work-items/SP-101-independent-map-identity.md) | Independent map identity (keys, hosts, configure) | 11 | **Planned** — no CoMaps map origin in stock path |
@@ -593,5 +594,5 @@ Phase 11 work-item planning (2026-08-29) recorded in
 [`phases/phase-11-independent-map-build-and-serve.md`](phases/phase-11-independent-map-build-and-serve.md).
 Investigation:
 [`notes/SP-098-map-pipeline-architecture.md`](notes/SP-098-map-pipeline-architecture.md).
-Coding SP-099+ waits on SP-098 lock. Do **not** treat P1–P10 as Accepted.
-Option A mapgen collectors remain out of this phase.
+Coding SP-099+ may proceed. Do **not** treat Phase 11 exit as met.
+Option A mapgen collectors remain out of this phase (**SPD-089**).

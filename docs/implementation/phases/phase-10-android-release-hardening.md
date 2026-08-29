@@ -128,7 +128,7 @@ inventory:
 | Phase 3 | Maintainer device walks (Pixel 3a / Uusimaa-scale reconciliation UX); rematch timing | SP-022 | Device-verify (SP-095; **execution residual**) + Measure (Uusimaa timing on the same walks; **execution residual**) |
 | Phase 4 | R3 device walks: Helsinki UX, rural/coastal, no MWM-id as neighbourhood name in UI | SP-031 | Device-verify (SP-095; **execution residual**) |
 | Phase 4 | R1 (narrowed): production mapgen collectors → `.spa` / CDN shipping | SP-042–048 **Accepted** 2026-08-08 (**SPD-033**); Option A remains residual | **Not Phase 10** |
-| Phase 4 | Independent MWM+`.spa` generate + own HTTP origin | Phase 11 SP-098–104 **Planned** | **Not Phase 10** (parallel ops) |
+| Phase 4 | Independent MWM+`.spa` generate + own HTTP origin | Phase 11 SP-098 **Accepted** (**SPD-087–096**); SP-099–104 Planned | **Not Phase 10** (parallel ops) |
 | Phase 4 | LAN/CDN publish mirror; S2–S8 device download | SP-049–053 | Device *enabler* for Helsinki; not a Phase 10 feature |
 | Phase 4 | Incomplete-`.spa` Android chrome | SP-048 | Fix (SP-089) |
 | Phase 5 | Quantitative Spike 1 FPS/memory (Pixel 3a qualitative OK; numbers deferred) | SP-033 / SP-041 R2 | Measure (SP-094; **protocol documented** 2026-08-29; **execution residual**) |
