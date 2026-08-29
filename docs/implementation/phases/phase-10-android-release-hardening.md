@@ -102,7 +102,7 @@ inventory:
 | Phase 4 | R1 (narrowed): production mapgen collectors → `.spa` / CDN shipping | SP-042–048 **Accepted** 2026-08-08 (**SPD-033**); Option A remains residual | **Not Phase 10** |
 | Phase 4 | LAN/CDN publish mirror; S2–S8 device download | SP-049–053 | Device *enabler* for Helsinki; not a Phase 10 feature |
 | Phase 4 | Incomplete-`.spa` Android chrome | SP-048 | Fix (SP-089) |
-| Phase 5 | Quantitative Spike 1 FPS/memory (Pixel 3a qualitative OK; numbers deferred) | SP-033 / SP-041 R2 | Measure (SP-094; **execution residual**) |
+| Phase 5 | Quantitative Spike 1 FPS/memory (Pixel 3a qualitative OK; numbers deferred) | SP-033 / SP-041 R2 | Measure (SP-094; **protocol documented** 2026-08-29; **execution residual**) |
 | Phase 5 | Device Helsinki walks: badge/focus/tap/city zoom/completed chrome/§31 empty/no country-world UI | SP-041 R1 — needs `.spa` via download (SP-053) | Device-verify (SP-095; **execution residual**) |
 | Phase 5 | Completed check glyph not drawn (`m_showCheck` reserved; outline+fill shipped) | SP-040 / SP-041 R3 | Fix (SP-089) |
 | Phase 5 | Overlay neighbourhood-baked push retune | SP-041 R4 | Accept/waive |
@@ -137,7 +137,7 @@ phases at exit. Residual WIs are not coding items.
 | 4 | [SP-091](../work-items/SP-091-product-analytics-reconciliation.md) | Product analytics reconciliation (local §32; **SPD-081** no sink) |
 | 5 | [SP-092](../work-items/SP-092-permissions-manifest-store-disclosures.md) | Permissions, manifest, and store disclosures (hide friends **SPD-085**; ABL absent **SPD-082**; listing brand residual) |
 | 6 | [SP-093](../work-items/SP-093-privacy-policy-terms-consent.md) | Privacy policy, terms, and consent alignment (**Residual** — slice close-out 2026-08-29; **SPD-080** landing remains open; not Accepted) |
-| 7 | [SP-094](../work-items/SP-094-battery-rendering-lifecycle.md) | Battery, rendering, and lifecycle measurement (**device execution Residual**; protocol docs **SPD-078**) |
+| 7 | [SP-094](../work-items/SP-094-battery-rendering-lifecycle.md) | Battery, rendering, and lifecycle measurement (**protocol documented** 2026-08-29; **device execution Residual**; **SPD-078**; not Accepted) |
 | 8 | [SP-095](../work-items/SP-095-device-matrix-residual-close-out.md) | Device-matrix residual close-out (**Residual** — device walks; **SPD-077**/**SPD-083**) |
 | 9 | [SP-096](../work-items/SP-096-risk-register-and-release-pipeline.md) | Risk-register close-out and release pipeline (docs table; signed APK/ops may residual; brand listing residual) |
 | 10 | [SP-097](../work-items/SP-097-phase10-launch-requirement-verification.md) | Phase 10 / §34 verification (**exit gate**; automated + mapping; device/manual Residual) |
@@ -210,11 +210,15 @@ On-device scripts (residual until a later WI executes them):
   interrupted recording, no exploration area, no local competitors, no
   connectivity, and an impossible avoid-explored route.
 - Multi-hour recording session with battery measurement, compared against a
-  control session with recording off.
-- Screen-off recording on the full device matrix.
-- Cold start with a large city loaded, measured to first interactive frame.
+  control session with recording off. Executable protocol:
+  [`validation/SP-094-validation-plan.md`](../validation/SP-094-validation-plan.md)
+  (documented 2026-08-29; **not executed** in this coding slice).
+- Screen-off recording on the full device matrix (OEM *functional*
+  continuity remains SP-095 residual).
+- Cold start with a large city loaded, measured to first interactive frame
+  (SP-094 CS1; recorded, not gated).
 - Fresh-install first-run journey following spec §10 step by step.
-- Upgrade from a prior build with existing exploration data.
+- Upgrade from a prior build with existing exploration data (SP-094 L1).
 - Offline-only usage for a full session including routing.
 
 ## Entry criteria
@@ -244,11 +248,14 @@ this coding slice. **Do not mark Phase 10 exit met.**
    behaviour. Policy/terms landing and listing brand copy residual
    (**SPD-080**, **SPD-084**; SP-093 residual).
 6. Battery consumption during active recording is measured and accepted.
-   Protocol locked (**SPD-078**); measurement execution residual.
+   Protocol documented SP-094 / **SPD-078** (no %/hour ceiling);
+   measurement execution residual.
 7. Rendering performance on the release build meets the recorded criteria.
-   Spike 1 bar locked; measurement execution residual.
+   Spike 1 bar locked; protocol documented SP-094; measurement execution
+   residual.
 8. No critical exploration-data-loss path exists across the tested lifecycle
-   events. Device lifecycle walks residual (SP-094).
+   events. Device lifecycle walks residual (SP-094 protocol documented;
+   not executed).
 9. No known path reveals another user's live or exact location.
 10. Every audit risk has a stated final position (SP-096 docs table).
 11. Store build signing works and the release pipeline produces an installable
@@ -275,7 +282,7 @@ testing remain residual (not later Phase 10 coding items).
 | Ref | Question | Accepted lock | Residual |
 | --- | --- | --- | --- |
 | H1 | Device matrix | D1 Pixel-class + D2 one aggressive OEM (**SPD-077**) | Execution residual |
-| H2 | Battery / rendering bars | Spike 1 unchanged; battery protocol now, numeric ceiling after measurement or waiver (**SPD-078**) | Measurement execution residual |
+| H2 | Battery / rendering bars | Spike 1 unchanged; battery protocol now, numeric ceiling after measurement or waiver (**SPD-078**) | Protocol documented (SP-094); measurement execution residual |
 | H3 | Store flavors | Google Play is the V1 gate; F-Droid same artefact optional; Huawei/web not a gate (**SPD-079**) | Listing brand copy residual |
 | H4 | Privacy policy / terms | Product-owned Street Pixels text (**SPD-080**) | Landing text/URLs residual; SP-093 residual |
 | H5 | Analytics upload | No new public sink; local uint64 only (**SPD-081**); closes SPD-044/055/075 upload residual | SP-091 local counters; no sink |

@@ -1,18 +1,21 @@
 # SP-094 — Battery, rendering, and lifecycle measurement
 
 **Phase:** 10 — Android release hardening
-**Status:** Planned (docs may record H2 protocol). **Device execution:
-  Residual**
+**Status:** Protocol documented 2026-08-29. **Device execution:
+  Residual.** Not Accepted.
 **Depends on:** SP-088 H1/H2 Accepted (**SPD-077**, **SPD-078**).
   SP-089 glyph fix if H7 includes it (re-measure overlay after;
   measurement on device is residual). Phase 10 implementation entry.
   A release-configured APK is required only when device execution is
-  no longer residual.
+    no longer residual.
 **Unblocks:** SP-097 exit #6, #7, #8 (those remain residual until a
   handset run exists)
-**Notes:** **Device execution residual.** Docs may record the H2
-  protocol only. Do not execute Spike 1, battery protocol, or lifecycle
-  walks on a handset in this Phase 10 coding slice.
+**Notes:** **Device execution residual.** H2 / Spike 1 / lifecycle
+  protocol recorded in
+  [`validation/SP-094-validation-plan.md`](../validation/SP-094-validation-plan.md).
+  Evidence log is Residual (not executed). Do not execute Spike 1,
+  battery protocol, or lifecycle walks on a handset in this Phase 10
+  coding slice.
 
 ---
 
@@ -132,8 +135,9 @@ are:
 
 ## Required manual validation
 
-- All in-scope measurements are manual on H1 devices. **Execution
-  is residual** in this Phase 10 coding slice.
+- All in-scope measurements are manual on H1 devices (**SPD-077** D1 + D2).
+  Protocol: [`validation/SP-094-validation-plan.md`](../validation/SP-094-validation-plan.md).
+  **Execution is residual** in this Phase 10 coding slice.
 
 ## Failure and rollback considerations
 
@@ -146,10 +150,11 @@ are:
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Evidence log | Residual until a handset run; protocol may be recorded in this item |
+| Branch | `cursor/sp-094-battery-protocol-6383` |
+| Protocol recorded | [`validation/SP-094-validation-plan.md`](../validation/SP-094-validation-plan.md) (2026-08-29). This slice did **not** execute the plan. |
+| Evidence log | [`validation/SP-094-evidence-log.md`](../validation/SP-094-evidence-log.md) — every scenario **Residual** (device; not executed) |
 | Spike 1 | Residual (device execution) |
-| Battery | Residual (device execution); protocol locked SPD-078 |
+| Battery | Residual (device execution); protocol locked **SPD-078** (no %/hour ceiling) |
 | Lifecycle table | Residual (device execution) |
 | Accepted by | |
 | Accepted date | |
@@ -158,4 +163,7 @@ are:
 
 | Finding | Proposed disposition |
 | --- | --- |
-| (fill during implementation) | |
+| Spike 1 (R1–R3), H2 battery (Bat-A/B), cold start (CS1), and lifecycle L1–L9 remain unexecuted on hardware | Residual (this item). Later handset WI executes [`validation/SP-094-validation-plan.md`](../validation/SP-094-validation-plan.md). Do not invent OEM realised results. |
+| Helsinki Spike 1 needs `.spa` on device (SP-053) | If missing at execution: Blocked — do not fake FPS on an empty overlay. |
+| Clear-app-data vs policy claims (L9) also needs landed Street Pixels policy/terms | Coupled residual with SP-093 / **SPD-080**. Do not retarget Help URLs here. |
+| `WeekBoundsFromUnix` ignores the IANA argument and always UTC-falls-back (`(void)ianaTz` in `libs/street_pixels_areas/weekly_city_week.cpp`). Store can persist tz (`SetCityIanaTz`) but query still uses UTC (`WeeklyCityLive_TzChangesWeekIdVsUtc` asserts that). Contradicts **SPD-060** “Monday 00:00 in the city IANA zone when known”. | Recorded, not fixed in this docs item. Owning follow-up is a later Fix WI (SP-073 family / new SP), not LOD or battery work. L6 device walk will observe UTC-only until then. |
