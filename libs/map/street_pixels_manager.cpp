@@ -540,10 +540,13 @@ street_pixels::FetchAreaSnapshotResult StreetPixelsManager::RequestCompetitionAr
   result.m_chrome.m_localOwnershipScore = query.m_ownershipScore;
   result.m_chrome.m_localEligible = query.m_eligible;
   result.m_chrome.m_localIsBoss = query.m_localIsBoss;
-  if (result.m_chrome.m_contested)
-    street_pixels::ProductAnalytics::RecordBecameContested();
-  if (result.m_chrome.m_unclaimed)
-    street_pixels::ProductAnalytics::RecordBecameUnclaimed();
+  if (!result.m_chrome.m_offline)
+  {
+    if (result.m_chrome.m_contested)
+      street_pixels::ProductAnalytics::RecordBecameContested();
+    if (result.m_chrome.m_unclaimed)
+      street_pixels::ProductAnalytics::RecordBecameUnclaimed();
+  }
   if (query.m_eligible)
     street_pixels::ProductAnalytics::RecordLeadershipQualified();
   if (query.m_localIsBoss)
@@ -2356,34 +2359,6 @@ void StreetPixelsManager::OnLocationUpdate(location::GpsInfo const & info)
       m_firstGoalCompleteHandler();
     if (hintReady && m_competitionHintReadyHandler)
       m_competitionHintReadyHandler();
-
-    auto const analyticsSnap = street_pixels::ProductAnalytics::LoadSnapshot();
-    if (!analyticsSnap.m_leadershipQualified || !analyticsSnap.m_becameBoss)
-    {
-      std::shared_ptr<street_pixels::ExplorationAreaResolver> liveResolver;
-      {
-        std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
-        liveResolver = m_completionResolver;
-      }
-      if (liveResolver)
-      {
-        for (int64_t const id : newlyExploredIds)
-        {
-          auto const * area =
-              liveResolver->LookupByHealpix(id, street_pixels::MercatorCentreFromNestId(id));
-          if (area == nullptr)
-            continue;
-          uint64_t const osm = street_pixels::StableOsmId(*area);
-          if (osm == 0)
-            continue;
-          auto const query = QueryCompetitionOwnership(osm);
-          if (query.m_eligible)
-            street_pixels::ProductAnalytics::RecordLeadershipQualified();
-          if (query.m_localIsBoss)
-            street_pixels::ProductAnalytics::RecordBecameBoss();
-        }
-      }
-    }
   }
   if (justCompleted)
     PlayExplorationHaptic(street_pixels::ExplorationHapticKind::FirstGoalComplete);

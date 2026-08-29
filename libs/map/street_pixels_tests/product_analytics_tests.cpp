@@ -1,5 +1,7 @@
 #include "testing/testing.hpp"
 
+#include "map/backend_config.hpp"
+#include "map/competition_snapshot.hpp"
 #include "map/competition_upload_payload.hpp"
 #include "map/completion_card_analytics.hpp"
 #include "map/explorer_pro.hpp"
@@ -63,6 +65,10 @@ public:
     explorer_pro::SetCapabilityAvailable(explorer_pro::Capability::GpxExport, false);
     explorer_pro::SetCapabilityAvailable(explorer_pro::Capability::AdvancedTrackManagement, false);
     ClearConsent();
+    backend::SetApiBaseUrl("");
+    street_pixels::SetCompetitionGetFnForTesting({});
+    street_pixels::ClearCompetitionSnapshotCacheForTesting();
+    street_pixels::ClearCompetitionWeeklyCacheForTesting();
   }
 
   ~ProductAnalyticsGuard()
@@ -79,6 +85,10 @@ public:
     explorer_pro::SetCapabilityAvailable(explorer_pro::Capability::GpxExport, false);
     explorer_pro::SetCapabilityAvailable(explorer_pro::Capability::AdvancedTrackManagement, false);
     ClearConsent();
+    backend::SetApiBaseUrl("");
+    street_pixels::SetCompetitionGetFnForTesting({});
+    street_pixels::ClearCompetitionSnapshotCacheForTesting();
+    street_pixels::ClearCompetitionWeeklyCacheForTesting();
   }
 
 private:
@@ -376,6 +386,19 @@ UNIT_TEST(ProductAnalytics_RecordingStartAndFinish)
   TEST_EQUAL(ProductAnalytics::LoadSnapshot().m_firstRecordingCompleted, 1, ());
 }
 
+UNIT_TEST(ProductAnalytics_ResumeDoesNotIncrementSessions)
+{
+  ProductAnalyticsGuard guard;
+  RecordingSession session;
+  TEST_EQUAL(session.Start(), RecordingSession::TransitionResult::Ok, ());
+  TEST_EQUAL(session.Pause(), RecordingSession::TransitionResult::Ok, ());
+  TEST_EQUAL(session.Resume(), RecordingSession::TransitionResult::Ok, ());
+  TEST_EQUAL(ProductAnalytics::LoadSnapshot().m_recordingSessions, 1, ());
+  TEST_EQUAL(ProductAnalytics::LoadSnapshot().m_firstRecordingStarted, 1, ());
+  TEST_EQUAL(session.Finish(), RecordingSession::TransitionResult::Ok, ());
+  TEST_EQUAL(ProductAnalytics::LoadSnapshot().m_firstRecordingCompleted, 1, ());
+}
+
 UNIT_TEST(ProductAnalytics_LiveCollectFirstTenAndGoal)
 {
   ProductAnalyticsGuard guard;
@@ -418,6 +441,23 @@ UNIT_TEST(ProductAnalytics_ImportDoesNotIncrementLiveEvents)
   TEST_EQUAL(snapshot.m_firstComplete, 0, ());
   TEST_EQUAL(snapshot.m_leadershipQualified, 0, ());
   TEST_EQUAL(snapshot.m_becameBoss, 0, ());
+}
+
+UNIT_TEST(ProductAnalytics_LiveCollectDoesNotFireCompetitionEvents)
+{
+  ProductAnalyticsGuard guard;
+  LiveCollectFixture fixture;
+  fixture.SetupUnexplored(3);
+  TEST_EQUAL(fixture.Session().Start(), RecordingSession::TransitionResult::Ok, ());
+  fixture.Collect(0);
+  fixture.Collect(1);
+  ProductAnalyticsSnapshot const snapshot = ProductAnalytics::LoadSnapshot();
+  TEST_EQUAL(snapshot.m_firstCollected, 1, ());
+  TEST_EQUAL(snapshot.m_newCollectedThisWeek, 2, ());
+  TEST_EQUAL(snapshot.m_leadershipQualified, 0, ());
+  TEST_EQUAL(snapshot.m_becameBoss, 0, ());
+  TEST_EQUAL(snapshot.m_becameContested, 0, ());
+  TEST_EQUAL(snapshot.m_becameUnclaimed, 0, ());
 }
 
 UNIT_TEST(ProductAnalytics_WeekBucketResetsOnNewWeek)
@@ -474,6 +514,77 @@ UNIT_TEST(ProductAnalytics_ImportDoesNotFireMilestones)
   TEST_EQUAL(snapshot.m_firstComplete, 0, ());
   TEST_EQUAL(snapshot.m_newCollectedThisWeek, 0, ());
   CleanupPaArea(fx);
+}
+
+UNIT_TEST(ProductAnalytics_ImportSnapshotDoesNotFireLeadership)
+{
+  ProductAnalyticsGuard guard;
+  auto fx = MakePaAreaFixture("sp091_import_snap");
+  FrozenDataSource dataSource;
+  RecordingSession session;
+  StreetPixelsManager manager(dataSource);
+  manager.SetRecordingSession(&session);
+  manager.ConfigureAreaMilestoneStoreForTesting(fx.dbPath);
+  TEST(manager.RebuildAreaCompletionCache(fx.leaf, fx.spaPath, fx.mapDataVersion), ());
+  manager.SetStreetPixelsForTesting({
+      street_pixels_tests::MakeStreetPixel(fx.districtId, false),
+      street_pixels_tests::MakeStreetPixel(fx.cityOnlyId, false),
+      street_pixels_tests::MakeStreetPixel(fx.outsideId, false),
+  });
+  TEST_EQUAL(session.Start(), RecordingSession::TransitionResult::Ok, ());
+  manager.MarkImportedPixelsForTesting({fx.cityOnlyId});
+  backend::SetApiBaseUrl("https://example.com/api");
+  street_pixels::SetCompetitionGetFnForTesting(
+      [](std::string const &, std::string & response,
+         std::vector<std::pair<std::string, std::string>> const &)
+      {
+        response = R"({
+  "profile_id": "p1",
+  "area_osm_id": 8,
+  "unclaimed": false,
+  "contested": true,
+  "stale": false,
+  "participant_count": 4,
+  "boss": null,
+  "ranking": []
+})";
+        return 200;
+      });
+  IdentityStore::GrantCompetitionConsent();
+  manager.RequestCompetitionAreaSnapshot(8);
+  ProductAnalyticsSnapshot const snapshot = ProductAnalytics::LoadSnapshot();
+  TEST_EQUAL(snapshot.m_leadershipQualified, 0, ());
+  TEST_EQUAL(snapshot.m_becameBoss, 0, ());
+  TEST_EQUAL(snapshot.m_firstCollected, 0, ());
+  TEST_EQUAL(snapshot.m_newCollectedThisWeek, 0, ());
+  TEST_EQUAL(snapshot.m_becameContested, 1, ());
+  CleanupPaArea(fx);
+}
+
+UNIT_TEST(ProductAnalytics_OfflineSnapshotDoesNotFireServerFlags)
+{
+  ProductAnalyticsGuard guard;
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  backend::SetApiBaseUrl("");
+  IdentityStore::GrantCompetitionConsent();
+  manager.RequestCompetitionAreaSnapshot(10);
+  ProductAnalyticsSnapshot const snapshot = ProductAnalytics::LoadSnapshot();
+  TEST_EQUAL(snapshot.m_becameContested, 0, ());
+  TEST_EQUAL(snapshot.m_becameUnclaimed, 0, ());
+  TEST_EQUAL(snapshot.m_leadershipQualified, 0, ());
+}
+
+UNIT_TEST(ProductAnalytics_WeeklyBoardRequiresConsent)
+{
+  ProductAnalyticsGuard guard;
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  manager.RequestCompetitionWeeklyBoard(20);
+  TEST_EQUAL(ProductAnalytics::LoadSnapshot().m_weeklyBoardUsed, 0, ());
+  IdentityStore::GrantCompetitionConsent();
+  manager.RequestCompetitionWeeklyBoard(20);
+  TEST_EQUAL(ProductAnalytics::LoadSnapshot().m_weeklyBoardUsed, 1, ());
 }
 
 UNIT_TEST(ProductAnalytics_LiveCollectionFiresMilestones)
@@ -619,6 +730,12 @@ UNIT_TEST(ProductAnalytics_ReleaseUploadPayloadsHaveNoLocation)
   TEST_EQUAL(json.find("Explore."), std::string::npos, (json));
   TEST_EQUAL(json.find("CardGenerated"), std::string::npos, (json));
   TEST_EQUAL(json.find("prefer-used"), std::string::npos, (json));
+  TEST_EQUAL(json.find("NewCollectedWeekId"), std::string::npos, (json));
+  TEST_EQUAL(json.find("LiveCollectedTotal"), std::string::npos, (json));
+  TEST(!PaJsonHasQuotedKey(json, "consent_policy_version"), (json));
+  TEST(!PaJsonHasQuotedKey(json, "consent_unix"), (json));
+  TEST(!PaJsonHasQuotedKey(json, "target_nickname"), (json));
+  TEST(!PaJsonHasQuotedKey(json, "username"), (json));
 
   ProductAnalytics::RecordLiveCollectedAt(1, 0);
   CompletionCardAnalytics::RecordGenerated();
