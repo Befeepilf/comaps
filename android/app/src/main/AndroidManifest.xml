@@ -26,6 +26,10 @@
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
   <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
+  <!-- SPD-082: keep ABL absent even if a library manifest tries to merge it. -->
+  <uses-permission
+      android:name="android.permission.ACCESS_BACKGROUND_LOCATION"
+      tools:node="remove" />
   <uses-permission android:name="android.permission.INTERNET"/>
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
   <!--

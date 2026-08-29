@@ -23,6 +23,7 @@ import app.organicmaps.sdk.display.DisplayManager;
 import app.organicmaps.sdk.display.DisplayType;
 import app.organicmaps.sdk.routing.RoutingController;
 import app.organicmaps.sdk.util.log.Logger;
+import app.organicmaps.settings.ExploreDeepLink;
 
 public final class IntentUtils
 {
@@ -60,6 +61,8 @@ public final class IntentUtils
 
     final Uri uri = intent.getData();
     if (uri == null)
+      return;
+    if (ExploreDeepLink.isAddFriendUri(uri))
       return;
 
     final ScreenManager screenManager = carContext.getCarService(ScreenManager.class);
