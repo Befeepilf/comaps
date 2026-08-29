@@ -1715,6 +1715,13 @@ std::set<std::int64_t> StreetPixelsManager::DeriveStreetPixelsFromFeatures(Featu
   if (countryId.empty())
     return std::set<std::int64_t>{};
 
+  return DeriveStreetPixelsUniverse(featuresVector);
+}
+
+std::set<std::int64_t> DeriveStreetPixelsUniverse(FeaturesVectorTest & featuresVector)
+{
+  LOG(LINFO, ("DeriveStreetPixelsUniverse"));
+
   auto const & healpix = hp::GetHealpixBase();
 
   size_t const totalFeatures = featuresVector.GetVector().GetNumFeatures();
@@ -1728,11 +1735,11 @@ std::set<std::int64_t> StreetPixelsManager::DeriveStreetPixelsFromFeatures(Featu
       unsigned const pct = static_cast<unsigned>(((featureIndex + 1) * 100) / totalFeatures);
       unsigned const prevPct = featureIndex > 0 ? static_cast<unsigned>((featureIndex * 100) / totalFeatures) : 0U;
       if (pct / 5 > prevPct / 5)
-        LOG(LINFO, ("DeriveStreetPixelsFromFeatures progress", (std::min)(pct, 100U), "%", featureIndex + 1, "of",
+        LOG(LINFO, ("DeriveStreetPixelsUniverse progress", (std::min)(pct, 100U), "%", featureIndex + 1, "of",
                     totalFeatures));
     }
 
-    if (!IsExplorable(feature))
+    if (!IsExplorableFeature(feature.GetGeomType(), feature::TypesHolder(feature)))
       return;
 
     numStreets++;
@@ -1751,7 +1758,7 @@ std::set<std::int64_t> StreetPixelsManager::DeriveStreetPixelsFromFeatures(Featu
       auto const point = feature.GetPoint(i);
       points.push_back(prevPoint);
 
-      SegmentizeStreet(prevPoint, point, [&](m2::PointD const & segmentPoint, double distFromPrevPoint)
+      SegmentizeStreet(prevPoint, point, [&](m2::PointD const & segmentPoint, double)
       { points.push_back(segmentPoint); });
 
       prevPoint = point;
@@ -1772,8 +1779,8 @@ std::set<std::int64_t> StreetPixelsManager::DeriveStreetPixelsFromFeatures(Featu
   return pixelIds;
 }
 
-void StreetPixelsManager::SegmentizeStreet(m2::PointD const & p1, m2::PointD const & p2,
-                                           std::function<void(m2::PointD const &, double)> const & callback) const
+void SegmentizeStreet(m2::PointD const & p1, m2::PointD const & p2,
+                      std::function<void(m2::PointD const &, double)> const & callback)
 {
   if (m2::AlmostEqualAbs(p1, p2, 1e-6))
     return;
@@ -1784,7 +1791,7 @@ void StreetPixelsManager::SegmentizeStreet(m2::PointD const & p1, m2::PointD con
   double const distanceMercator = p12.Length();
   double const distanceMeters = mercator::DistanceOnEarth(p1, p2);
 
-  size_t const numSegments = std::ceil(distanceMeters / kSegmentLengthMeters);
+  size_t const numSegments = std::ceil(distanceMeters / kPathSamplingStepMeters);
   if (numSegments <= 1)
     return;
 

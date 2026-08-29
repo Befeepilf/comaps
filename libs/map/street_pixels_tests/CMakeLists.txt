@@ -36,6 +36,7 @@ set(SRC
   isolation_historical_import_tests.cpp
   live_sample_acceptance_filter_tests.cpp
   pause_resume_semantics_tests.cpp
+  pix_derive_tests.cpp
   recording_session_tests.cpp
   rematch_tests.cpp
   sample_acceptance_manager_tests.cpp

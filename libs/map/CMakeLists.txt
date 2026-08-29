@@ -99,6 +99,8 @@ set(SRC
   street_pixels_file.hpp
   street_pixels_manager.cpp
   street_pixels_manager.hpp
+  street_pixels_pix_derive.cpp
+  street_pixels_pix_derive.hpp
   street_stats_db.cpp
   street_stats_db.hpp
   track.cpp
