@@ -3,6 +3,7 @@ import androidx.annotation.Keep;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.preference.Preference;
@@ -10,6 +11,7 @@ import androidx.preference.TwoStatePreference;
 import app.organicmaps.R;
 import app.organicmaps.downloader.OnmapDownloader;
 import app.organicmaps.sdk.ExplorerPro;
+import app.organicmaps.sdk.downloader.MapManager;
 import app.organicmaps.sdk.util.Config;
 
 @Keep
@@ -29,6 +31,7 @@ public class DataManagementSettingsFragment extends BaseXmlSettingsFragment
     initStoragePrefCallbacks();
     initBackupPrefCallback();
     initAutoDownloadPrefsCallbacks();
+    initIncompleteSpaPref();
     initGpxToolsPref();
   }
 
@@ -64,6 +67,36 @@ public class DataManagementSettingsFragment extends BaseXmlSettingsFragment
       return true;
     });
     getPreferenceScreen().addPreference(pref);
+  }
+
+  private void initIncompleteSpaPref()
+  {
+    String key = getString(R.string.pref_incomplete_spa);
+    Preference existing = getPreferenceScreen().findPreference(key);
+    String[] ids = MapManager.nativeGetIncompleteSpaCountries();
+    int count = ids == null ? 0 : ids.length;
+    if (!IncompleteSpaSettingsVisibility.showRow(count))
+    {
+      if (existing != null)
+        getPreferenceScreen().removePreference(existing);
+      return;
+    }
+    Preference pref = existing;
+    if (pref == null)
+    {
+      pref = new Preference(requireContext());
+      pref.setKey(key);
+      pref.setPersistent(false);
+      pref.setIcon(R.drawable.ic_download);
+      getPreferenceScreen().addPreference(pref);
+    }
+    pref.setTitle(R.string.pref_incomplete_spa_title);
+    pref.setSummary(getString(R.string.pref_incomplete_spa_summary, count));
+    pref.setOnPreferenceClickListener(preference -> {
+      MapManager.nativeRetryIncompleteSpaDownloads();
+      Toast.makeText(requireContext(), R.string.pref_incomplete_spa_retrying, Toast.LENGTH_SHORT).show();
+      return true;
+    });
   }
 
   private void initStoragePrefCallbacks()
