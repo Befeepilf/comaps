@@ -24,6 +24,11 @@ public class StreetExplorationRoutingOptions
     return new StreetExplorationRoutingOptions(MODE_PREFER, current.m_strength);
   }
 
+  public static StreetExplorationRoutingOptions normalFallback(StreetExplorationRoutingOptions current)
+  {
+    return new StreetExplorationRoutingOptions(MODE_NEITHER, current.m_strength);
+  }
+
   public static StreetExplorationRoutingOptions LoadFromSettings()
   {
     int mode = nativeGetMode();

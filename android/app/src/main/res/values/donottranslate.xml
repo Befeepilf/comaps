@@ -71,6 +71,13 @@
 
   <string name="pref_privacy" translatable="false">pref_privacy</string>
   <string name="pref_search_history" translatable="false">pref_search_history</string>
+  <string name="pref_competition_enabled" translatable="false">StreetPixels.CompetitionEnabled</string>
+  <string name="pref_public_nickname" translatable="false">StreetPixels.PublicNickname</string>
+  <string name="pref_delete_competition_profile" translatable="false">StreetPixels.DeleteCompetitionProfile</string>
+  <string name="pref_explore_friend_visibility" translatable="false">StreetPixels.FriendVisibility</string>
+  <string name="pref_privacy_information" translatable="false">StreetPixels.PrivacyInformation</string>
+  <string name="pref_competition_rules" translatable="false">StreetPixels.CompetitionRules</string>
+  <string name="pref_local_recordings" translatable="false">StreetPixels.LocalRecordings</string>
   <string name="never_enum_value" translatable="false">NEVER</string>
   <string name="always_enum_value" translatable="false">ALWAYS</string>
   <string name="auto_enum_value" translatable="false">AUTO</string>

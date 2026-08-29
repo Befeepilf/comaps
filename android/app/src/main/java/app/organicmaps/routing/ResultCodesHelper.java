@@ -97,6 +97,7 @@ public class ResultCodesHelper
     case ResultCodes.AVOID_EXPLORED_NO_ROUTE:
       titleRes = R.string.dialog_routing_avoid_explored_no_route_title;
       messages.add(resources.getString(R.string.dialog_routing_avoid_explored_no_route_message));
+      cancelBtnResId = R.string.dialog_routing_avoid_explored_normal_button;
       break;
     }
 

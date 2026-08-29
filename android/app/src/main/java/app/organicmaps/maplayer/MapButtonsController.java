@@ -7,6 +7,7 @@ import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -34,12 +35,14 @@ import app.organicmaps.R;
 import app.organicmaps.leftbutton.LeftButton;
 import app.organicmaps.leftbutton.LeftToggleButton;
 import app.organicmaps.MwmApplication;
+import app.organicmaps.location.GpsWaitingState;
 import app.organicmaps.maplayer.streetpixels.FocusedAreaDetailBottomSheet;
 import app.organicmaps.settings.ExploreConsentDialogFragment;
 import app.organicmaps.settings.MyAccountDialogFragment;
 import app.organicmaps.sdk.Framework;
 import app.organicmaps.sdk.downloader.MapManager;
 import app.organicmaps.sdk.downloader.UpdateInfo;
+import app.organicmaps.sdk.location.LocationListener;
 import app.organicmaps.sdk.location.RecordingSession;
 import app.organicmaps.location.RecordingSessionUiModel;
 import app.organicmaps.sdk.maplayer.isolines.IsolinesManager;
@@ -68,7 +71,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MapButtonsController extends Fragment
+public class MapButtonsController extends Fragment implements LocationListener
 {
   Map<MapButtons, View> mButtonsMap;
   private View mFrame;
@@ -82,6 +85,9 @@ public class MapButtonsController extends Fragment
   FloatingActionButton mTrackRecordingStatusButton;
   @Nullable
   private ExtendedFloatingActionButton mExplorationBadge;
+  @Nullable
+  private ExtendedFloatingActionButton mGpsWaitingBadge;
+  private boolean mGpsTimedOut;
   @Nullable
   private ExtendedFloatingActionButton mFirstGoalBadge;
   @Nullable
@@ -274,6 +280,12 @@ public class MapButtonsController extends Fragment
                                           progress.osmId, progress.citySummary);
       });
     }
+    mGpsWaitingBadge = mFrame.findViewById(R.id.gps_waiting_badge);
+    if (mGpsWaitingBadge != null)
+    {
+      mButtonsMap.put(MapButtons.gpsWaitingBanner, mGpsWaitingBadge);
+      showButton(false, MapButtons.gpsWaitingBanner);
+    }
     mFirstGoalBadge = mFrame.findViewById(R.id.first_goal_badge);
     if (mFirstGoalBadge != null)
     {
@@ -383,6 +395,9 @@ public class MapButtonsController extends Fragment
     case explorationBanner:
       UiUtils.showIf(show, buttonView);
       break;
+    case gpsWaitingBanner:
+      UiUtils.showIf(show, buttonView);
+      break;
     case firstGoalBanner:
       UiUtils.showIf(show, buttonView);
       break;
@@ -401,6 +416,42 @@ public class MapButtonsController extends Fragment
     updateLeftButtonToggleState(active);
     updateTrackRecordingStatusAppearance(state);
     refreshFirstGoalBadge();
+    refreshGpsWaitingBadge();
+  }
+
+  @Override
+  public void onLocationUpdated(@NonNull Location location)
+  {
+    mGpsTimedOut = false;
+    refreshGpsWaitingBadge();
+  }
+
+  @Override
+  public void onLocationUpdateTimeout()
+  {
+    mGpsTimedOut = true;
+    refreshGpsWaitingBadge();
+  }
+
+  private void refreshGpsWaitingBadge()
+  {
+    if (mGpsWaitingBadge == null)
+      return;
+    Context ctx = getContext();
+    if (ctx == null)
+    {
+      showButton(false, MapButtons.gpsWaitingBanner);
+      return;
+    }
+    int state = RecordingSession.getState();
+    boolean active = RecordingSession.isActive(state);
+    boolean paused = state == RecordingSession.STATE_PAUSED;
+    Location location = MwmApplication.from(ctx).getLocationHelper().getSavedLocation();
+    boolean hasLocation = location != null && !mGpsTimedOut;
+    boolean hasAccuracy = hasLocation && location.hasAccuracy();
+    float accuracy = hasAccuracy ? location.getAccuracy() : 0.0f;
+    showButton(GpsWaitingState.showWaiting(active, paused, hasLocation, hasAccuracy, accuracy),
+               MapButtons.gpsWaitingBanner);
   }
 
   private void updateTrackRecordingStatusAppearance(@RecordingSession.State int state)
@@ -986,6 +1037,7 @@ public class MapButtonsController extends Fragment
     getParentFragmentManager().setFragmentResultListener(MyAccountDialogFragment.RESULT_COMPETITION_ACCOUNT, this,
                                                          (key, bundle) -> refreshCompetitionToggle());
     mMapButtonsViewModel.getTopButtonsMarginTop().observe(activity, mTopButtonMarginObserver);
+    MwmApplication.from(activity).getLocationHelper().addListener(this);
   }
 
   public void onResume()
@@ -998,6 +1050,7 @@ public class MapButtonsController extends Fragment
     @Nullable StreetPixelsState state = mMapButtonsViewModel.getStreetPixelsState().getValue();
     updateExplorationBadge(state);
     refreshFirstGoalBadge();
+    refreshGpsWaitingBadge();
     refreshAreaMilestonePresentation();
     Context ctx = getContext();
     if (ctx != null)
@@ -1044,6 +1097,7 @@ public class MapButtonsController extends Fragment
     if (mExplorationBadge != null)
       mExplorationBadge.animate().cancel();
     mMapButtonsViewModel.getStreetPixelsState().removeObserver(mStreetPixelsStateObserver);
+    MwmApplication.from(requireActivity()).getLocationHelper().removeListener(this);
   }
 
   public void onSearchOptionChange(@Nullable SearchWheel.SearchOption searchOption)
@@ -1092,6 +1146,7 @@ public class MapButtonsController extends Fragment
     menu,
     help,
     explorationBanner,
+    gpsWaitingBanner,
     firstGoalBanner,
     trackRecordingStatus
   }

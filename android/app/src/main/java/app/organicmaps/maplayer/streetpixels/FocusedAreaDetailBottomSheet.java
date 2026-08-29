@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
+import app.organicmaps.settings.CompetitionEmptyState;
 import app.organicmaps.sdk.Framework;
 import app.organicmaps.sdk.maplayer.streetpixels.CompetitionAreaChrome;
 import app.organicmaps.sdk.maplayer.streetpixels.CompetitionRankingRow;
@@ -175,6 +176,8 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
 
     UiUtils.show(competitionBlock);
     applyCompetitionChrome(view, manager.getCompetitionAreaChrome(osmId), citySummary);
+    if (citySummary)
+      bindWeeklyBoard(view, osmId, manager);
     manager.requestCompetitionAreaSnapshot(osmId, chrome -> {
       if (!isAdded())
         return;
@@ -246,7 +249,7 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
     LinearLayout rankingRows = view.findViewById(R.id.competition_ranking_rows);
     rankingRows.removeAllViews();
     int count = Math.min(chrome.rankingRows.length, 4);
-    if (count == 0)
+    if (!CompetitionEmptyState.showRankingRows(count))
       UiUtils.hide(rankingRows);
     else
     {
@@ -265,26 +268,24 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
 
     MaterialTextView weeklyTitle = view.findViewById(R.id.competition_weekly_title);
     MaterialTextView weeklyBody = view.findViewById(R.id.competition_weekly_body);
-    if (citySummary)
-    {
-      weeklyTitle.setText(R.string.competition_weekly_title);
-      applyWeeklyChrome(view, manager.getCompetitionWeeklyChrome(osmId));
-      manager.requestCompetitionWeeklyBoard(osmId, chrome -> {
-        if (!isAdded())
-          return;
-        View bound = getView();
-        if (bound == null)
-          return;
-        applyWeeklyChrome(bound, chrome);
-      });
-      UiUtils.show(weeklyTitle);
-      UiUtils.show(weeklyBody);
-    }
-    else
+    if (!citySummary)
     {
       UiUtils.hide(weeklyTitle);
       UiUtils.hide(weeklyBody);
     }
+  }
+
+  private void bindWeeklyBoard(@NonNull View view, long osmId, @NonNull StreetPixelsManager manager)
+  {
+    applyWeeklyChrome(view, manager.getCompetitionWeeklyChrome(osmId));
+    manager.requestCompetitionWeeklyBoard(osmId, weeklyChrome -> {
+      if (!isAdded())
+        return;
+      View bound = getView();
+      if (bound == null)
+        return;
+      applyWeeklyChrome(bound, weeklyChrome);
+    });
   }
 
   private void applyWeeklyChrome(@NonNull View view, @NonNull CompetitionWeeklyChrome chrome)
@@ -303,11 +304,31 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
         text.append('\n');
       text.append(row);
     }
-    if (text.length() == 0)
-      weeklyBody.setText(R.string.competition_weekly_empty);
+    MaterialTextView weeklyTitle = view.findViewById(R.id.competition_weekly_title);
+    int lineCount = 0;
+    if (!chrome.body.isEmpty())
+      lineCount++;
+    for (String row : chrome.rows)
+    {
+      if (row != null && !row.isEmpty())
+        lineCount++;
+    }
+    if (!CompetitionEmptyState.showWeeklyBoard(lineCount))
+    {
+      UiUtils.hide(weeklyBody);
+      if (weeklyTitle != null)
+        UiUtils.hide(weeklyTitle);
+    }
     else
+    {
       weeklyBody.setText(text.toString());
-    UiUtils.show(weeklyBody);
+      UiUtils.show(weeklyBody);
+      if (weeklyTitle != null)
+      {
+        weeklyTitle.setText(R.string.competition_weekly_title);
+        UiUtils.show(weeklyTitle);
+      }
+    }
   }
 
   private void maybeShowOvertakingHint(@NonNull StreetPixelsManager manager)

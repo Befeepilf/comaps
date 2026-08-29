@@ -386,8 +386,8 @@
     <string name="pref_explore_sharing_title">Share exploration progress</string>
     <string name="pref_explore_sync_title">Sync exploration stats</string>
     <string name="pref_explore_friend_visibility_title">Visible to friends</string>
-    <string name="pref_explore_username_title">Username</string>
-    <string name="pref_explore_username_summary">Pick a username so friends can add you</string>
+    <string name="pref_explore_username_title">Public nickname</string>
+    <string name="pref_explore_username_summary">A public nickname will appear where rankings have enough participants.</string>
     <string name="pref_explore_username_hint">3-24 characters. Letters, numbers, spaces, and _ - . \' are allowed.</string>
     <string name="pref_explore_username_invalid">Invalid nickname. Use 3-24 letters, numbers, spaces, or _ - . \'</string>
     <string name="my_account">My Account</string>
@@ -415,6 +415,7 @@
     <string name="dialog_routing_avoid_explored_no_route_message">No route could be found without using fully explored streets.</string>
     <string name="dialog_routing_avoid_explored_warning_message">This can produce very long routes or no available route.</string>
     <string name="dialog_routing_avoid_explored_prefer_button">Switch to Prefer unexplored streets</string>
+    <string name="dialog_routing_avoid_explored_normal_button">Return to normal routing</string>
     <string name="dialog_routing_change_start_or_end">Please adjust your starting point or destination.</string>
     <string name="dialog_routing_change_start">Adjust starting point</string>
     <string name="dialog_routing_start_not_determined">Route was not created. Unable to locate starting point.</string>
@@ -580,7 +581,7 @@
     <string name="editor_category_unsuitable_title">Can\'t find a suitable category?</string>
     <string name="editor_category_unsuitable_text">CoMaps is only able to add simple point categories, it isn\'t able to add towns, roads, lakes, building outlines, etc. Please add such categories directly to <a href="https://www.openstreetmap.org">OpenStreetMap.org</a>. Check our <a href="https://www.comaps.app/support/advanced-map-editing/">guide</a> for detailed step by step instructions.</string>
     <string name="downloader_no_downloaded_maps_title">You haven\'t downloaded any maps</string>
-    <string name="downloader_no_downloaded_maps_message">Download maps to search and navigate offline</string>
+    <string name="downloader_no_downloaded_maps_message">The current area must be downloaded before reliable offline exploration works.</string>
     <string name="current_location_unknown_error_title">Current location is unknown</string>
     <!-- abbreviation for kilometers per hour -->
     <string name="kilometers_per_hour">km/h</string>
@@ -648,13 +649,15 @@
     <!-- Notification text while recording is paused -->
     <string name="track_recording_paused_text">Recording is paused. Resume to continue collecting.</string>
     <!-- Rationale shown before requesting location permission to start a recording session -->
-    <string name="track_recording_location_rationale">CoMaps needs location access to record your exploration session. Location is used only while a session is active and is not shared for competition signup.</string>
+    <string name="track_recording_location_rationale">Location access is needed to record exploration automatically. Location is used only while a session is active and is not shared for competition signup.</string>
     <!-- Toast / notification title when recording was interrupted -->
     <string name="track_recording_interrupted">Recording interrupted</string>
     <!-- Toast after cold-start recovery from an interrupted session (session ended) -->
     <string name="track_recording_interrupted_toast">Part of your recording may be missing.</string>
     <!-- Toast / notification text when a mid-session location gap interrupted recording -->
     <string name="track_recording_interrupted_text">Part of this session may be missing. Recording continues from the next location update.</string>
+    <string name="track_recording_background_explanation">Recording can continue while the screen is off. A notification stays visible during the session. If the system stops that notification, recording pauses. Tracking stops when you end the session. Foreground recording remains available.</string>
+    <string name="continue_browsing">Continue browsing</string>
     <!-- For the first routing -->
     <string name="accept">Accept</string>
     <!-- For the first routing -->
@@ -731,7 +734,7 @@
     </plurals>
     <!-- Settings privacy group in settings screen -->
     <string name="prefs_group_privacy">Privacy</string>
-    <string name="prefs_group_privacy_summary">Search history</string>
+    <string name="prefs_group_privacy_summary">Competition, nickname, privacy information</string>
     <string name="privacy_policy">Privacy policy</string>
     <string name="power_management">Power management</string>
     <string name="prefs_group_power_summary">Screen timeout, mobile data</string>
@@ -742,7 +745,12 @@
     <string name="street_pixels_more_to_explore">%1$s map was updated. Streets may have been added or removed, so your exploration stats may have changed slightly. Your progress is still saved.</string>
     <string name="street_pixels_no_exploration_area">No selected exploration area</string>
     <string name="street_pixels_no_exploration_area_title">No selected exploration area</string>
-    <string name="street_pixels_no_exploration_area_message">Personal pixels still work. Area percentage is unavailable until a supported settlement, administrative subdivision, or place boundary is present.</string>
+    <string name="street_pixels_no_exploration_area_message">Personal pixels still work. Area percentage and competition are unavailable until a supported settlement, administrative subdivision, or place boundary is present.</string>
+    <string name="street_pixels_waiting_for_gps">Waiting for a more accurate GPS signal</string>
+    <string name="street_pixels_location_denied">Location access is needed to record exploration automatically.</string>
+    <string name="street_pixels_first_run_title">Explore the streets around you</string>
+    <string name="street_pixels_first_run_message">Start a recording session and nearby streets will turn from red to green as you explore. Your personal routes and exploration history stay on this device unless you later choose to join local rankings.</string>
+    <string name="street_pixels_first_run_start">Start exploring</string>
     <string name="street_pixels_area_completed">Completed</string>
     <string name="street_pixels_first_goal">Explore your first 100 m</string>
     <string name="street_pixels_first_goal_progress">Explore your first 100 m • %1$d/%2$d</string>
@@ -757,7 +765,7 @@
     <string name="street_pixels_completion_card_competition_not_leading">%1$s fully explored. Revisiting older streets can strengthen your position.</string>
     <string name="competition_mode_explore">Explore</string>
     <string name="competition_mode_competition">Competition</string>
-    <string name="competition_status_offline">Offline — showing last rankings</string>
+    <string name="competition_status_offline">No competition connectivity. Personal exploration continues. Delayed aggregate updates will queue.</string>
     <string name="competition_status_stale">Rankings may be out of date</string>
     <string name="competition_unclaimed">Unclaimed</string>
     <string name="competition_contested">Contested</string>
@@ -1065,6 +1073,12 @@
     <string name="backup_interval_manual_only">Off (manual only)</string>
     <string name="pref_gpx_screen_title">GPX tools</string>
     <string name="pref_gpx_screen_summary">Import and export tracks</string>
+    <string name="pref_local_recordings_title">Local recordings</string>
+    <string name="pref_local_recordings_summary">Inspect and delete recorded tracks on this device</string>
+    <string name="pref_competition_enabled_title">Competition</string>
+    <string name="pref_competition_rules_title">Competition rules</string>
+    <string name="competition_claim_nickname">Use this nickname</string>
+    <string name="competition_nickname_saved">Nickname saved.</string>
     <string name="pref_gpx_import_title">Import GPX</string>
     <string name="pref_gpx_import_summary">Import one GPX track from a file</string>
     <string name="pref_gpx_batch_import_title">Import multiple GPX files</string>
@@ -1124,7 +1138,7 @@
     <string name="error_value_must_be_positive">The value must be positive</string>
     <string name="error_invalid_number">Invalid number</string>
     <string name="offline_explanation_title">Offline Maps</string>
-    <string name="offline_explanation_text">A map needs to be downloaded to view and navigate the area.\nDownload maps for areas you want to travel.</string>
+    <string name="offline_explanation_text">The current area must be downloaded before reliable offline exploration works.</string>
     <string name="list_description_empty">Edit the list to add a description</string>
     <!-- string name different as needs to match iOS -->
     <string name="pref_alt_map_lang_handling">Alternative Map Languages</string>

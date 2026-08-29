@@ -55,4 +55,14 @@ public class StreetExplorationRoutingOptionsTest
     assertEquals(StreetExplorationRoutingOptions.MODE_PREFER, next.m_mode);
     assertEquals(25.0, next.m_strength, 0.0);
   }
+
+  @Test
+  public void normalFallback_setsModeNeitherKeepsStrength_fromAvoid50()
+  {
+    StreetExplorationRoutingOptions current =
+        new StreetExplorationRoutingOptions(StreetExplorationRoutingOptions.MODE_AVOID, 50);
+    StreetExplorationRoutingOptions next = StreetExplorationRoutingOptions.normalFallback(current);
+    assertEquals(StreetExplorationRoutingOptions.MODE_NEITHER, next.m_mode);
+    assertEquals(50.0, next.m_strength, 0.0);
+  }
 }

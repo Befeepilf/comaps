@@ -9,6 +9,13 @@
     app:icon="@drawable/ic_sd_card"
     app:singleLineTitle="false" />
   <Preference
+    android:key="@string/pref_local_recordings"
+    android:persistent="false"
+    android:summary="@string/pref_local_recordings_summary"
+    android:title="@string/pref_local_recordings_title"
+    app:icon="@drawable/ic_bookmarks"
+    app:singleLineTitle="false" />
+  <Preference
     android:key="@string/pref_backup"
     android:persistent="false"
     android:summary="@string/pref_backup_summary"

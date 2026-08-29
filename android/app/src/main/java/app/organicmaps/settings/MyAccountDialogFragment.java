@@ -14,7 +14,6 @@ import androidx.fragment.app.FragmentManager;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -28,7 +27,6 @@ public class MyAccountDialogFragment extends DialogFragment
   public static final String ARG_ADD_FRIEND_USERNAME = "add_friend_username";
   public static final String RESULT_COMPETITION_ACCOUNT = "competition_account_changed";
 
-  private MaterialSwitch mSyncSwitch;
   private TextInputLayout mUsernameLayout;
   private TextInputEditText mUsernameEdit;
   private MaterialButton mBtnSignup;
@@ -52,9 +50,6 @@ public class MyAccountDialogFragment extends DialogFragment
   {
     LayoutInflater inflater = LayoutInflater.from(requireContext());
     View view = inflater.inflate(R.layout.dialog_my_account, null);
-
-    mSyncSwitch = view.findViewById(R.id.sync_switch);
-    mSyncSwitch.setChecked(Framework.nativeGetExploreSyncEnabled());
 
     mUsernameLayout = view.findViewById(R.id.username_input_layout);
     mUsernameEdit = view.findViewById(R.id.username_edit);
@@ -94,8 +89,7 @@ public class MyAccountDialogFragment extends DialogFragment
     return new MaterialAlertDialogBuilder(requireContext())
         .setTitle(R.string.my_account)
         .setView(view)
-        .setPositiveButton(R.string.save, (d, w) -> Framework.nativeSetExploreSyncEnabled(mSyncSwitch.isChecked()))
-        .setNegativeButton(R.string.cancel, null)
+        .setPositiveButton(R.string.close, null)
         .create();
   }
 
@@ -139,7 +133,7 @@ public class MyAccountDialogFragment extends DialogFragment
     String name = mUsernameEdit.getText() == null ? "" : mUsernameEdit.getText().toString();
     if (!Framework.nativeIsValidNickname(name))
     {
-      mUsernameLayout.setError(getString(R.string.friends_username_too_short));
+      mUsernameLayout.setError(getString(R.string.pref_explore_username_invalid));
       return;
     }
     mUsernameLayout.setError(null);
@@ -159,7 +153,7 @@ public class MyAccountDialogFragment extends DialogFragment
   {
     if (result == 0)
     {
-      Toast.makeText(requireContext(), R.string.friends_signup_success, Toast.LENGTH_SHORT).show();
+      Toast.makeText(requireContext(), R.string.competition_nickname_saved, Toast.LENGTH_SHORT).show();
       updateSignupVisibility();
       return;
     }

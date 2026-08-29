@@ -1,7 +1,7 @@
 # SP-090 — Settings, empty-state, and first-run audit
 
 **Phase:** 10 — Android release hardening
-**Status:** Planned
+**Status:** Accepted
 **Depends on:** SP-088 H4/H9 Accepted (**SPD-080**, **SPD-085**).
   Phase 10 implementation entry.
 **Unblocks:** SP-095 / SP-097 observe the surfaces (device execution
@@ -137,15 +137,63 @@ against the spec sentences.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| §30 table | |
-| §31 table | |
-| Test output | |
-| Accepted by | |
-| Accepted date | |
+| Branch | `cursor/sp-090-settings-empty-states-6383` |
+| §30 table | See §30 audit below. |
+| §31 table | See §31 audit below. |
+| Test output | `./gradlew :app:testGoogleDebugUnitTest --tests 'app.organicmaps.settings.*' --tests 'app.organicmaps.location.GpsWaitingStateTest' --tests 'app.organicmaps.location.RecordingSessionUiModelTest' :sdk:testDebugUnitTest --tests 'app.organicmaps.sdk.routing.StreetExplorationRoutingOptionsTest'` → **BUILD SUCCESSFUL**. JUnit XML: **51 tests, 0 failures, 0 errors, 0 skipped**. Independent-review re-run after review fixes (`c9adff9b5`). |
+| Accepted by | product owner (implement → review lock 2026-08-29) |
+| Accepted date | 2026-08-29 |
+
+### §30 settings audit
+
+| Spec §30 bullet | Surface | Verdict |
+| --- | --- | --- |
+| Exploration haptics on or off | `prefs_main.xml` `StreetPixels.ExplorationHaptics`; `SettingsPrefsFragment`. Duplicate Interface row removed. | Present (SPD-054 single toggle) |
+| Competition enabled or disabled | Privacy `pref_competition_enabled` only. My Account has no second sync switch | Present |
+| Public nickname | Privacy `pref_public_nickname` → `MyAccountDialogFragment`. Summary: rankings sentence, not friends | Present |
+| Delete competition profile | Privacy delete row + My Account delete | Present |
+| Map-data management | `prefs_data_management.xml` storage / autodownload / incomplete SPA | Present |
+| Local recording management | `pref_local_recordings` → `BookmarkCategoriesActivity` | Present |
+| Privacy information | In-app dialog reuses `location_privacy_info` + `explore_consent_message` (no paraphrase, no URL) | Present |
+| Terms and competition rules | In-app rules dialog from existing consent / leave / delete strings. Help still uses `comaps.app` `privacy/` and `terms/` | Copy present; **URL rows residual** (SPD-080 / SP-093) |
+| App name in Help / listing | Unchanged CoMaps product name | **Residual** SPD-084 / SP-093 |
+| GPX import/export | `GpxSettingsVisibility` capability+entitlement only (SP-084) | Present; public build adds nothing |
+| Purchase / restore / pricing | None added | Out of scope SPD-010 |
+| Friend settings | `prefs_privacy.xml` friend-visibility row is inflated then removed when `FriendSettingsVisibility.friendsCapabilityEnabled()` is false. Nickname copy is rankings-only | Hidden SPD-085. Manifest add-friend filters are SP-092 |
+| 25 m radius | Not in any `prefs_*.xml`. C++ `kExploreRadiusMeters = 25.0` | Confirmed not a setting |
+| HEALPix / GPS / decay / scoring internals | Not in prefs XML or Advanced settings | Confirmed not ordinary settings |
+
+### §31 empty-state audit
+
+| Spec §31 state | Copy + action | Verdict |
+| --- | --- | --- |
+| Location denied | Map stays up. `street_pixels_location_denied`. Open app settings + `continue_browsing` | Implemented |
+| Background location denied | No ABL. `track_recording_background_explanation` (FGS / notification / pause / foreground remains). Shown after first recording start, does not block recording | Implemented (SPD-082) |
+| No downloaded map | `downloader_no_downloaded_maps_message` and `offline_explanation_text` use the spec download sentence | Implemented |
+| Poor GPS accuracy | `GpsWaitingState` (>25 m or no fix while recording, not paused) → `gps_waiting_badge`; no interpolation | Implemented |
+| Interrupted recording | Existing `track_recording_interrupted_text` matches spec | Present (unchanged) |
+| No selected exploration area | `street_pixels_no_exploration_area_message` includes competition unavailable | Implemented |
+| No local competitors | `CompetitionEmptyState.showRankingRows`; weekly board hidden when empty | Implemented |
+| No competition connectivity | `competition_status_offline` queue copy | Implemented |
+| Avoid explored impossible | Prefer (SP-089) + `dialog_routing_avoid_explored_normal_button` → `normalFallback` (`MODE_NEITHER`) | Implemented |
+
+### §10 first-run (script for SP-095; not executed)
+
+1. App opens to the map. Splash does not request location (`FirstRunFlow.requestLocationOnAppOpen()` is false).
+2. Spec card: heading / body / **Start exploring**. Close marks the card seen.
+3. **Start exploring** starts recording, which shows the session-only location rationale (not bundled with competition).
+4. After permission, recording starts. One-shot FGS / screen-off explanation. No ABL request.
+5. Recording control + first-100 m badge already exist. No full tutorial.
+
+Device click-through remains SP-095 / SP-097.
 
 ## Discovered follow-up
 
 | Finding | Proposed disposition |
 | --- | --- |
-| (fill during implementation) | |
+| Help privacy/terms still `comaps.app` `privacy/` and `terms/`; app-name CoMaps in Help | SP-093 / SPD-080 / SPD-084 residual. Do not retarget in this item |
+| Manifest add-friend filters still present | SP-092 |
+| Device execution of the §31 matrix and §10 click-through | SP-095 / SP-097 residual |
+| First-run / empty-state English strings only | Translations follow CoMaps process |
+| `applyCompetitionChrome` weekly board used out-of-scope `osmId`/`manager` locals (pre-existing compile hole) | Fixed in this item so weekly empty-hide compiles |
+| Spec §10 first-run body says routes/history stay on device *unless* the user joins rankings. Spec §3.2 / §25 say tracks never upload; competition is aggregates only | Not rewritten in this item (copy matches spec §10). Residual for SP-093 / privacy copy |
