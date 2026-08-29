@@ -172,7 +172,7 @@ Purchase: no `BillingClient` / Play Billing in `android/app` or `android/sdk` Ja
 | Permission inventory | See table above. |
 | Listing brand copy | Residual (not rewritten). `android/app/src/google/play/listings/**` and F-Droid listing paths untouched. |
 | Data-safety doc | `docs/implementation/play-data-safety.md` |
-| Test output | (filled after JVM run) |
+| Test output | `./gradlew :app:testGoogleDebugUnitTest --tests 'app.organicmaps.settings.PublicManifestAssertionsTest' --tests 'app.organicmaps.settings.FriendSettingsVisibilityTest' --tests 'app.organicmaps.settings.PublicSettingsVisibilityTest'` → **BUILD SUCCESSFUL**. JUnit XML: PublicManifestAssertionsTest **5/5**, FriendSettingsVisibilityTest **7/7**, PublicSettingsVisibilityTest **1/1** (0 failures). `:sdk:testDebugUnitTest --tests 'app.organicmaps.sdk.ExplorerProGateTest' --tests 'app.organicmaps.sdk.ExplorerProAnalyticsTest' --rerun-tasks` → **BUILD SUCCESSFUL**. ExplorerProGateTest **11/11**, ExplorerProAnalyticsTest **2/2**. Merged `googleDebug` manifest: no `ACCESS_BACKGROUND_LOCATION`, no `add-friend`; `TrackRecordingService` / `NavigationService` `foregroundServiceType="location"`. |
 | Accepted by | |
 | Accepted date | |
 
