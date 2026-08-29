@@ -14,7 +14,8 @@ public class PublicSettingsVisibilityTest
     assertFalse(GpxSettingsVisibility.showExportRow(false));
     assertFalse(GpxSettingsVisibility.showBatchImportRow(false, false));
     assertFalse(GpxSettingsVisibility.showInfoPage(false, false, false));
-    assertFalse(FriendSettingsVisibility.showFriendRows(false));
-    assertFalse(FriendSettingsVisibility.showFriendFacingNicknameCopy(false));
+    assertFalse(FriendSettingsVisibility.showFriendRows(FriendSettingsVisibility.friendsCapabilityEnabled()));
+    assertFalse(FriendSettingsVisibility.showFriendFacingNicknameCopy(
+        FriendSettingsVisibility.friendsCapabilityEnabled()));
   }
 }

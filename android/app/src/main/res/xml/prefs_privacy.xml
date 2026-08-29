@@ -35,21 +35,25 @@
   <Preference
     android:key="@string/pref_delete_competition_profile"
     android:persistent="false"
-    android:summary="@string/competition_delete_confirm_message"
     android:title="@string/competition_delete"
+    app:icon="@drawable/ic_account"
+    app:singleLineTitle="false" />
+  <SwitchPreferenceCompat
+    android:key="@string/pref_explore_friend_visibility"
+    android:persistent="false"
+    android:title="@string/pref_explore_friend_visibility_title"
+    android:widgetLayout="@layout/preference_switch"
     app:icon="@drawable/ic_account"
     app:singleLineTitle="false" />
   <Preference
     android:key="@string/pref_privacy_information"
     android:persistent="false"
-    android:summary="@string/location_privacy_info"
     android:title="@string/location_privacy"
     app:icon="@drawable/ic_privacy"
     app:singleLineTitle="false" />
   <Preference
     android:key="@string/pref_competition_rules"
     android:persistent="false"
-    android:summary="@string/explore_consent_title"
     android:title="@string/pref_competition_rules_title"
     app:icon="@drawable/ic_privacy"
     app:singleLineTitle="false" />

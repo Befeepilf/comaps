@@ -20,4 +20,18 @@ public class CompetitionEmptyStateTest
     assertTrue(CompetitionEmptyState.showRankingRows(1));
     assertTrue(CompetitionEmptyState.showRankingRows(4));
   }
+
+  @Test
+  public void showWeeklyBoard_hiddenWhenEmpty()
+  {
+    assertFalse(CompetitionEmptyState.showWeeklyBoard(0));
+    assertFalse(CompetitionEmptyState.showWeeklyBoard(-1));
+  }
+
+  @Test
+  public void showWeeklyBoard_shownWhenAnyLine()
+  {
+    assertTrue(CompetitionEmptyState.showWeeklyBoard(1));
+    assertTrue(CompetitionEmptyState.showWeeklyBoard(3));
+  }
 }

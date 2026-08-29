@@ -8,4 +8,9 @@ public final class CompetitionEmptyState
   {
     return rankingCount > 0;
   }
+
+  public static boolean showWeeklyBoard(int weeklyLineCount)
+  {
+    return weeklyLineCount > 0;
+  }
 }

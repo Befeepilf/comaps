@@ -7,11 +7,11 @@ public final class GpsWaitingState
   private GpsWaitingState() {}
 
   public static boolean showWaiting(boolean recordingActive, boolean paused, boolean hasLocation,
-                                    float accuracyMeters)
+                                    boolean hasAccuracy, float accuracyMeters)
   {
     if (!recordingActive || paused)
       return false;
-    if (!hasLocation)
+    if (!hasLocation || !hasAccuracy)
       return true;
     return accuracyMeters > ACCURACY_LIMIT_METERS;
   }

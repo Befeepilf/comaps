@@ -87,6 +87,7 @@ public class MapButtonsController extends Fragment implements LocationListener
   private ExtendedFloatingActionButton mExplorationBadge;
   @Nullable
   private ExtendedFloatingActionButton mGpsWaitingBadge;
+  private boolean mGpsTimedOut;
   @Nullable
   private ExtendedFloatingActionButton mFirstGoalBadge;
   @Nullable
@@ -421,6 +422,14 @@ public class MapButtonsController extends Fragment implements LocationListener
   @Override
   public void onLocationUpdated(@NonNull Location location)
   {
+    mGpsTimedOut = false;
+    refreshGpsWaitingBadge();
+  }
+
+  @Override
+  public void onLocationUpdateTimeout()
+  {
+    mGpsTimedOut = true;
     refreshGpsWaitingBadge();
   }
 
@@ -438,9 +447,11 @@ public class MapButtonsController extends Fragment implements LocationListener
     boolean active = RecordingSession.isActive(state);
     boolean paused = state == RecordingSession.STATE_PAUSED;
     Location location = MwmApplication.from(ctx).getLocationHelper().getSavedLocation();
-    boolean hasLocation = location != null;
-    float accuracy = hasLocation ? location.getAccuracy() : 0.0f;
-    showButton(GpsWaitingState.showWaiting(active, paused, hasLocation, accuracy), MapButtons.gpsWaitingBanner);
+    boolean hasLocation = location != null && !mGpsTimedOut;
+    boolean hasAccuracy = hasLocation && location.hasAccuracy();
+    float accuracy = hasAccuracy ? location.getAccuracy() : 0.0f;
+    showButton(GpsWaitingState.showWaiting(active, paused, hasLocation, hasAccuracy, accuracy),
+               MapButtons.gpsWaitingBanner);
   }
 
   private void updateTrackRecordingStatusAppearance(@RecordingSession.State int state)

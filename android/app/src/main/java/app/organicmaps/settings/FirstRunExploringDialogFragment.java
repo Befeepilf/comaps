@@ -15,27 +15,19 @@ import app.organicmaps.sdk.util.Config;
 
 public class FirstRunExploringDialogFragment extends DialogFragment
 {
-  public interface Listener
-  {
-    void onStartExploring();
-  }
-
+  public static final String RESULT_START_EXPLORING = "first_run_start_exploring";
   private static final String TAG = "first_run_exploring_dialog";
 
-  public static boolean maybeShow(@NonNull FragmentManager fm, @NonNull Listener listener)
+  public static boolean maybeShow(@NonNull FragmentManager fm)
   {
     if (!FirstRunFlow.shouldShowExploringCard(Config.isFirstRunExploringCardSeen()))
       return false;
     if (fm.findFragmentByTag(TAG) != null)
       return true;
 
-    FirstRunExploringDialogFragment dialog = new FirstRunExploringDialogFragment();
-    dialog.mListener = listener;
-    dialog.show(fm, TAG);
+    new FirstRunExploringDialogFragment().show(fm, TAG);
     return true;
   }
-
-  private Listener mListener;
 
   @NonNull
   @Override
@@ -46,8 +38,7 @@ public class FirstRunExploringDialogFragment extends DialogFragment
         .setMessage(R.string.street_pixels_first_run_message)
         .setPositiveButton(R.string.street_pixels_first_run_start, (d, w) -> {
           Config.setFirstRunExploringCardSeen();
-          if (mListener != null)
-            mListener.onStartExploring();
+          getParentFragmentManager().setFragmentResult(RESULT_START_EXPLORING, new Bundle());
         })
         .setNegativeButton(R.string.close, (d, w) -> Config.setFirstRunExploringCardSeen())
         .setCancelable(true)

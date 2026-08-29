@@ -4,6 +4,11 @@ public final class FriendSettingsVisibility
 {
   private FriendSettingsVisibility() {}
 
+  public static boolean friendsCapabilityEnabled()
+  {
+    return false;
+  }
+
   public static boolean showFriendRows(boolean friendsCapabilityEnabled)
   {
     return friendsCapabilityEnabled;

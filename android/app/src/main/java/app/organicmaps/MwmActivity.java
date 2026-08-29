@@ -27,6 +27,7 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -315,7 +316,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     processIntent();
 
     if (!RecordingSession.isActive())
-      FirstRunExploringDialogFragment.maybeShow(getSupportFragmentManager(), this::startTrackRecording);
+      FirstRunExploringDialogFragment.maybeShow(getSupportFragmentManager());
   }
 
   /**
@@ -589,6 +590,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
       onRenderingInitializationFinished();
 
     backupRunner = new PeriodicBackupRunner(this);
+    getSupportFragmentManager().setFragmentResultListener(
+        FirstRunExploringDialogFragment.RESULT_START_EXPLORING, this, (key, bundle) -> startTrackRecording());
   }
 
   private void onSettingsResult(ActivityResult activityResult)
@@ -2184,7 +2187,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
       return;
     }
 
-    final Intent appSettings = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+    final Intent appSettings = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
     appSettings.setData(Uri.fromParts("package", getPackageName(), null));
     mLocationErrorDialog = new MaterialAlertDialogBuilder(this)
                                .setTitle(R.string.enable_location_services)
