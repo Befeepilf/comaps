@@ -137,6 +137,7 @@ public class MapButtonsController extends Fragment
   private final Handler mAreaMilestoneHandler = new Handler(Looper.getMainLooper());
   private final Runnable mAcknowledgeAreaMilestone = this::acknowledgeAreaMilestonePresentation;
   private boolean mCompletionCardDebugPreview;
+  private boolean mCompletionCardGeneratedRecorded;
   private final Observer<Integer> mTopButtonMarginObserver = this::updateTopButtonsMargin;
 
   private LeftButton mLeftButton;
@@ -734,6 +735,8 @@ public class MapButtonsController extends Fragment
     if (mCompletionCard != null)
       UiUtils.hide(mCompletionCard);
     mCompletionCardDebugPreview = presentation != null && presentation.debugPreview;
+    if (presentation == null || presentation.threshold != AreaMilestonePresentation.THRESHOLD_100)
+      mCompletionCardGeneratedRecorded = false;
     if (ctx == null || presentation == null)
       return;
     String name = presentation.displayName;
@@ -755,8 +758,11 @@ public class MapButtonsController extends Fragment
         mCompletionCardTitle.setText(getString(R.string.street_pixels_area_milestone_100, name));
       if (mCompletionCardBody != null)
         mCompletionCardBody.setText(getString(R.string.street_pixels_completion_card_body, name));
+      boolean recordGenerated = !mCompletionCardDebugPreview && !mCompletionCardGeneratedRecorded;
       bindCompletionCardOutline(MwmApplication.from(ctx).getStreetPixelsManager().getCurrentCompletionCard(
-          !mCompletionCardDebugPreview));
+          recordGenerated));
+      if (recordGenerated)
+        mCompletionCardGeneratedRecorded = true;
       if (mCompletionCard != null)
         UiUtils.show(mCompletionCard);
     }
