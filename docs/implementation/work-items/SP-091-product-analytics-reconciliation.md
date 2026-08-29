@@ -127,7 +127,7 @@ need a payload-shape proof, not a convention.
 | Branch | `cursor/sp-091-product-analytics-6383` |
 | §32 inventory | See §32 inventory below. 27 specified events: 20 new local `Explore.*` uint64 counters + 7 reused (SPD-044 / SPD-055 / SPD-075). Purchase conversion out of V1. |
 | H5 implementation | **SPD-081 local-only.** `street_pixels::ProductAnalytics` stores count-only `uint64` settings. No public analytics upload sink. Counters are not sent through Sentry and are not attached to the competition POST (`ProductAnalytics_ReleaseUploadPayloadsHaveNoLocation` asserts `Explore.` absent from the JSON). |
-| Test output | `--filter=ProductAnalytics` → **15/15 OK**, “All tests passed.” Focused filter `ProductAnalytics\|CompetitionUpload\|ExplorerProAnalytics\|CompletionCard\|FirstGoal\|RecordingSession\|Isolation\|AreaMilestone\|HistoricalImport\|WeeklyCity\|CompetitionHint` → **168/168 OK**. Android `./gradlew :sdk:testDebugUnitTest --tests ProductAnalyticsTest --tests ExplorerProAnalyticsTest --rerun-tasks` → **BUILD SUCCESSFUL**; JUnit XML: ProductAnalyticsTest **1/1**, ExplorerProAnalyticsTest **2/2**, 0 failures. Unfiltered `street_pixels_tests` reached **392 OK** then aborted on pre-existing `Eligibility_IncludesCommonHighways` (`classificator.txt` FileAbsentException); not an SP-091 failure. |
+| Test output | Independent review re-run (2026-08-29): `--filter=ProductAnalytics` → **20/20 OK**, “All tests passed.” Focused filter `ProductAnalytics\|CompetitionUpload\|ExplorerProAnalytics\|CompletionCard\|FirstGoal\|RecordingSession\|Isolation\|AreaMilestone\|HistoricalImport\|WeeklyCity\|CompetitionHint` → **173/173 OK**. Android `./gradlew :sdk:testDebugUnitTest --tests ProductAnalyticsTest --tests ExplorerProAnalyticsTest --rerun-tasks` → **BUILD SUCCESSFUL**; JUnit XML: ProductAnalyticsTest **1/1**, ExplorerProAnalyticsTest **2/2**, 0 failures. Review commit `4bbb78cbc` removed GPS-path `QueryCompetitionOwnership` and gated consent-prompt counts on first `onCreateDialog`. Agent does not mark Accepted. |
 | Accepted by | |
 | Accepted date | |
 
@@ -152,10 +152,10 @@ need a payload-shape proof, not a convention.
 | §32.2 Avoid-explored routing usage | `street_exploration_routing_analytics_avoid_used` | Existing SPD-044. Reused |
 | §32.3 Competition prompt viewed | `Explore.CompetitionPromptViewed` | New (count each consent dialog show) |
 | §32.3 Competition opt-in | `Explore.CompetitionOptIn` | New (count each `GrantCompetitionConsent`) |
-| §32.3 Users qualifying for leadership | `Explore.LeadershipQualified` | New (once). Live ownership only; import does not fire |
-| §32.3 Users becoming boss | `Explore.BecameBoss` | New (once). Live ownership only |
-| §32.3 Areas becoming contested | `Explore.BecameContested` | New (once-ever from server snapshot flag; no OSM ids stored) |
-| §32.3 Areas becoming unclaimed | `Explore.BecameUnclaimed` | New (once-ever from server snapshot flag; no OSM ids stored) |
+| §32.3 Users qualifying for leadership | `Explore.LeadershipQualified` | New (once). Consented area-snapshot fetch; live ownership only; import does not fire |
+| §32.3 Users becoming boss | `Explore.BecameBoss` | New (once). Consented area-snapshot fetch; live ownership only |
+| §32.3 Areas becoming contested | `Explore.BecameContested` | New (once-ever from non-offline server snapshot flag; no OSM ids stored) |
+| §32.3 Areas becoming unclaimed | `Explore.BecameUnclaimed` | New (once-ever from non-offline server snapshot flag; no OSM ids stored) |
 | §32.3 Weekly city leaderboard usage | `Explore.WeeklyBoardUsed` | New (count each consented weekly-board fetch) |
 | §32.4 Completion card generated | `Explore.CardGenerated` | Existing SPD-055. Confirmed no area id |
 | §32.4 Share action initiated | `Explore.ShareInitiated` | Existing SPD-055. Confirmed no area id |
@@ -168,6 +168,9 @@ need a payload-shape proof, not a convention.
 
 | Finding | Proposed disposition |
 | --- | --- |
+| Competition prompt viewed counts each first `onCreateDialog` (rotation uses `savedInstanceState != null` and does not increment) | Record. DialogFragment recreation after process death with a restored instance still does not increment; a fresh `maybeShow` does |
+| Leadership / boss fire on consented `RequestCompetitionAreaSnapshot`, not on the GPS sample path | Independent review (2026-08-29). GPS-path `QueryCompetitionOwnership` per newly explored pixel was unbounded main-thread work until both flags were set; removed |
+| Users who never open a consented area snapshot never increment leadership / boss | Record. Upload builder stays side-effect free; unique-area observation would need OSM ids |
 | Contested / unclaimed are once-ever flags, not unique-area counts (storing OSM ids is forbidden) | Record. Unique-area counts would need a product lock that does not store location-adjacent ids |
 | First 10 pixels and first 100 m fire at the same SPD-047 threshold (10 newly explored live pixels) | Expected under SPD-047. Spec lists both events; both counters increment once at that threshold |
 | POST_NOTIFICATIONS is absent on API 32 and below; FGS start also increments the notify counter once | Honest mapping of “background recording permission” under SPD-082 (no ABL) |
