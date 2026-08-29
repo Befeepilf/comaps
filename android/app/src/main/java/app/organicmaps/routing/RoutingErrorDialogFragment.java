@@ -131,23 +131,38 @@ public class RoutingErrorDialogFragment extends BaseRoutingErrorDialogFragment
 
     final AlertDialog dlg = (AlertDialog) getDialog();
     Button button = dlg.getButton(AlertDialog.BUTTON_POSITIVE);
-    if (button == null)
-      return;
 
     if (mResultCode == ResultCodes.AVOID_EXPLORED_NO_ROUTE)
     {
-      button.setOnClickListener(v -> {
-        StreetExplorationRoutingAnalytics.recordAvoidFallbackPrefer();
-        StreetExplorationRoutingOptions current = StreetExplorationRoutingOptions.LoadFromSettings();
-        StreetExplorationRoutingOptions next = StreetExplorationRoutingOptions.preferFallback(current);
-        StreetExplorationRoutingOptions.SaveToSettings(next);
-        mCancelled = false;
-        dismiss();
-        RoutingController.get().rebuildLastRoute();
-      });
+      if (button != null)
+      {
+        button.setOnClickListener(v -> {
+          StreetExplorationRoutingAnalytics.recordAvoidFallbackPrefer();
+          StreetExplorationRoutingOptions current = StreetExplorationRoutingOptions.LoadFromSettings();
+          StreetExplorationRoutingOptions next = StreetExplorationRoutingOptions.preferFallback(current);
+          StreetExplorationRoutingOptions.SaveToSettings(next);
+          mCancelled = false;
+          dismiss();
+          RoutingController.get().rebuildLastRoute();
+        });
+      }
+      Button normal = dlg.getButton(AlertDialog.BUTTON_NEGATIVE);
+      if (normal != null)
+      {
+        normal.setOnClickListener(v -> {
+          StreetExplorationRoutingOptions current = StreetExplorationRoutingOptions.LoadFromSettings();
+          StreetExplorationRoutingOptions next = StreetExplorationRoutingOptions.normalFallback(current);
+          StreetExplorationRoutingOptions.SaveToSettings(next);
+          mCancelled = false;
+          dismiss();
+          RoutingController.get().rebuildLastRoute();
+        });
+      }
+      return;
     }
-    else
-      button.setOnClickListener(v -> startDownload());
+    if (button == null)
+      return;
+    button.setOnClickListener(v -> startDownload());
   }
 
   @Override

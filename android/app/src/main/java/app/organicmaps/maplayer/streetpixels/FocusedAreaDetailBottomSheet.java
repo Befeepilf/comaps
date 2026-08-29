@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
+import app.organicmaps.settings.CompetitionEmptyState;
 import app.organicmaps.sdk.Framework;
 import app.organicmaps.sdk.maplayer.streetpixels.CompetitionAreaChrome;
 import app.organicmaps.sdk.maplayer.streetpixels.CompetitionRankingRow;
@@ -246,7 +247,7 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
     LinearLayout rankingRows = view.findViewById(R.id.competition_ranking_rows);
     rankingRows.removeAllViews();
     int count = Math.min(chrome.rankingRows.length, 4);
-    if (count == 0)
+    if (!CompetitionEmptyState.showRankingRows(count))
       UiUtils.hide(rankingRows);
     else
     {
@@ -277,8 +278,6 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
           return;
         applyWeeklyChrome(bound, chrome);
       });
-      UiUtils.show(weeklyTitle);
-      UiUtils.show(weeklyBody);
     }
     else
     {
@@ -303,11 +302,20 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
         text.append('\n');
       text.append(row);
     }
+    MaterialTextView weeklyTitle = view.findViewById(R.id.competition_weekly_title);
     if (text.length() == 0)
-      weeklyBody.setText(R.string.competition_weekly_empty);
+    {
+      UiUtils.hide(weeklyBody);
+      if (weeklyTitle != null)
+        UiUtils.hide(weeklyTitle);
+    }
     else
+    {
       weeklyBody.setText(text.toString());
-    UiUtils.show(weeklyBody);
+      UiUtils.show(weeklyBody);
+      if (weeklyTitle != null)
+        UiUtils.show(weeklyTitle);
+    }
   }
 
   private void maybeShowOvertakingHint(@NonNull StreetPixelsManager manager)
