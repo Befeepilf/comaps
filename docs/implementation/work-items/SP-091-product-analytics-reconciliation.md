@@ -1,7 +1,7 @@
 # SP-091 — Product analytics reconciliation
 
 **Phase:** 10 — Android release hardening
-**Status:** Planned
+**Status:** Accepted
 **Depends on:** SP-088 H5 Accepted (**SPD-081**). Phase 10 implementation
   entry.
 **Unblocks:** SP-097 exit #4 (analytics match §32; no location)
@@ -127,9 +127,9 @@ need a payload-shape proof, not a convention.
 | Branch | `cursor/sp-091-product-analytics-6383` |
 | §32 inventory | See §32 inventory below. 27 specified events: 20 new local `Explore.*` uint64 counters + 7 reused (SPD-044 / SPD-055 / SPD-075). Purchase conversion out of V1. |
 | H5 implementation | **SPD-081 local-only.** `street_pixels::ProductAnalytics` stores count-only `uint64` settings. No public analytics upload sink. Counters are not sent through Sentry and are not attached to the competition POST (`ProductAnalytics_ReleaseUploadPayloadsHaveNoLocation` asserts `Explore.` absent from the JSON). |
-| Test output | Independent review re-run (2026-08-29): `--filter=ProductAnalytics` → **20/20 OK**, “All tests passed.” Focused filter `ProductAnalytics\|CompetitionUpload\|ExplorerProAnalytics\|CompletionCard\|FirstGoal\|RecordingSession\|Isolation\|AreaMilestone\|HistoricalImport\|WeeklyCity\|CompetitionHint` → **173/173 OK**. Android `./gradlew :sdk:testDebugUnitTest --tests ProductAnalyticsTest --tests ExplorerProAnalyticsTest --rerun-tasks` → **BUILD SUCCESSFUL**; JUnit XML: ProductAnalyticsTest **1/1**, ExplorerProAnalyticsTest **2/2**, 0 failures. Review commit `4bbb78cbc` removed GPS-path `QueryCompetitionOwnership` and gated consent-prompt counts on first `onCreateDialog`. Agent does not mark Accepted. |
-| Accepted by | |
-| Accepted date | |
+| Test output | Independent review re-run (2026-08-29): `--filter=ProductAnalytics` → **20/20 OK**. Focused filter → **173/173 OK**. Android JVM ProductAnalyticsTest 1/1, ExplorerProAnalyticsTest 2/2. Review `4bbb78cbc`. |
+| Accepted by | product owner (implement → review lock 2026-08-29) |
+| Accepted date | 2026-08-29 |
 
 ### §32 inventory
 
