@@ -1,7 +1,8 @@
 # SP-097 — Phase 10 launch-requirement verification
 
 **Phase:** 10 — Android release hardening
-**Status:** Planned (automated suites + evidence mapping).
+**Status:** Automated mapping recorded 2026-08-29. Device Residual.
+  Brand Residual. Not Accepted. Phase 10 exit not met.
   **Device/manual hardware: Residual**
 **Depends on:** SP-088–096 implemented or explicitly residualled /
   waived by SPD. All other phases at exit. Release-configured
@@ -129,11 +130,11 @@ this item re-checks anything that drifted.
 
 | Field | Value |
 | --- | --- |
-| Validation plan | |
-| Evidence log | |
-| Test output | |
-| Device roster | Residual (SPD-077 matrix defined; not executed) |
-| Exit criteria table | |
+| Validation plan | [`validation/SP-097-validation-plan.md`](../validation/SP-097-validation-plan.md) |
+| Evidence log | [`validation/SP-097-evidence-log.md`](../validation/SP-097-evidence-log.md) |
+| Test output | SHA `c9336737a3e085275e7806317774c98ea2808542`. `street_pixels_tests` **499/499** All tests passed (Eligibility ran). Payload-shape **1/1**. Official smoke **exit=1** (`indexer_tests`/`map_tests`/`mwm_tests` abort on missing `World.mwm`; `platform_tests` missing after glaze compile fail; `routing_tests`/`search_tests` not reached). Separate `routing_tests` **307/307**. Separate `search_tests` abort on `World.mwm`. `:sdk:lintDebug` **FAILED** — **5 errors, 24 warnings**. `clang-format.sh` **exit=123** (clang-format-18 cannot parse `LeftWithLastLine`; CI uses 20) — **Residual env**, not a source-format Fail. Explorer friends-only; no backend tests. Logs under `/opt/cursor/artifacts/sp097_*.log`. Independent review 2026-08-29: §34 **Pass 48 / Residual 21 / Fail 0**; R6 inspect/delete Residual; clang-format Residual. |
+| Device roster | Residual (SPD-077 matrix defined; not executed). Do not copy Pixel 3a as Phase 10 D2. |
+| Exit criteria table | Evidence log: 1 Residual (21 Residual bullets); 2 Residual; 3 Residual; 4 Pass; 5 Residual; 6 Residual; 7 Residual; 8 Residual; 9 Residual; 10 Pass (SP-096 table, not Accepted); 11 Residual. Phase 10 exit **not met**. |
 | Accepted by | |
 | Accepted date | |
 
@@ -141,4 +142,13 @@ this item re-checks anything that drifted.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| (fill during implementation) | |
+| Independent review (2026-08-29): R6 was an over-claimed Pass (inspect/delete is device UI; `map_tests` aborted); clang-format labeled Fail despite 18-vs-20 env; tally 49/20 vs Exit 1 “21 Residual” | Mapping corrected: R6 Residual; clang-format Residual env; tally **48 Pass / 21 Residual / 0 Fail**. Tests not weakened. |
+| Official smoke not green: missing `data/World.mwm` / `WorldCoasts.mwm` aborts `indexer_tests` (`CitiesBoundaries_Compression`), `map_tests` (`Bookmarks_Sorting`), `mwm_tests` (`ForEachFeatureID_Test`), and separate `search_tests` (`LocalityFinderTest_Smoke`) | Environment residual. Do not invent World maps. Do not skip tests. Later WI / ops data bundle. |
+| `platform_tests` does not compile (glaze `std::expected` / Clang 18) | Environment residual. Not a Phase 10 coding fix in this WI. Official smoke dies with `Can't find test platform_tests`. |
+| `:sdk:lintDebug` 5 errors (4× `MissingPermission` VIBRATE in `Utils.java`; 1× `WrongConstant` in `RecordingSessionDebug.java`) + 24 warnings | Fail for H10 lint-clean. Pre-existing vs SP-096. Own a Fix WI or triage/baseline. Do not sneak-fix here. |
+| `clang-format.sh` exit 123 with clang-format-18 vs CI clang-format-20 (`AlignEscapedNewlines: LeftWithLastLine`) | Residual tooling. Re-run with clang-format-20. No source churn in this WI. |
+| Device/manual hardware (background, screen-off, OEM D2, Helsinki, battery, Spike 1, lifecycle, traffic capture, §10 walk) | Residual SP-094 / SP-095. **SPD-077** / **SPD-078**. Do not copy Pixel 3a as D2. |
+| Brand: app name, Play/F-Droid listing copy, privacy/terms URLs | Residual SP-093 / **SPD-080** / **SPD-084**. |
+| Signed `google` release/beta APK not produced | Residual Ops (SP-096). Secrets absent. Unsigned is not exit #11. |
+| Competition backend not in explorer `main` (`e13a124`); §26 #5 still open; N&lt;3 / decay / moderation / deletion *operational* unverified | Residual Ops (SP-096). Friends API is not a substitute. Do not run friends pytest as competition proof. |
+| Listing still advertises GPX while public V1 gates GPX | Residual **SPD-084**. Not rewritten here. |

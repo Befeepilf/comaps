@@ -85,7 +85,7 @@ V1 scope. Explorer Pro **purchasing** is not.
 | 7 | Milestones and share cards | [`phases/phase-07-milestones-and-share-cards.md`](phases/phase-07-milestones-and-share-cards.md) | In progress (SP-069 In review; exit awaiting maintainer) |
 | 8 | Competition | [`phases/phase-08-competition.md`](phases/phase-08-competition.md) | SP-070 Accepted; SP-071 in progress; SP-072–074 Accepted |
 | 9 | GPX and feature gating | [`phases/phase-09-gpx-and-feature-gating.md`](phases/phase-09-gpx-and-feature-gating.md) | Exit criteria met 2026-08-28 with residuals → Phase 10 |
-| 10 | Android release hardening | [`phases/phase-10-android-release-hardening.md`](phases/phase-10-android-release-hardening.md) | Not started (SP-088 Accepted 2026-08-29; brand + on-device testing residual; coding waits on other phases’ exit) |
+| 10 | Android release hardening | [`phases/phase-10-android-release-hardening.md`](phases/phase-10-android-release-hardening.md) | Not started (SP-088 Accepted 2026-08-29; SP-097 mapping recorded; brand + on-device testing residual; exit **not met**) |
 
 Phase order is unchanged from the originally proposed sequence. Repository
 inspection did not reveal a dependency requiring phases to be moved or split.
@@ -555,11 +555,12 @@ FromLatLon; system expat).
 | 94 | [SP-094](work-items/SP-094-battery-rendering-lifecycle.md) | Battery, rendering, and lifecycle measurement | 10 | **Protocol documented** 2026-08-29 ([plan](validation/SP-094-validation-plan.md), [evidence log](validation/SP-094-evidence-log.md)); **device execution Residual** (SPD-078); not Accepted |
 | 95 | [SP-095](work-items/SP-095-device-matrix-residual-close-out.md) | Device-matrix residual close-out | 10 | **Roster documented** 2026-08-29 ([plan](validation/SP-095-validation-plan.md), [evidence log](validation/SP-095-evidence-log.md)); **device execution Residual** (SPD-077 / SPD-083); not Accepted |
 | 96 | [SP-096](work-items/SP-096-risk-register-and-release-pipeline.md) | Risk-register close-out and release pipeline | 10 | **Close-out recorded** 2026-08-29 ([note](notes/SP-096-risk-register-close-out.md)); independent review same day (positions vs tree; test/gitignore wording); signed APK/ops residual; brand listing residual; §26 #5 competition backend residual Ops; not Accepted |
-| 97 | [SP-097](work-items/SP-097-phase10-launch-requirement-verification.md) | Phase 10 / §34 verification | 10 | **Planned** — automated suites + evidence mapping (SPD-086); device/manual Residual |
+| 97 | [SP-097](work-items/SP-097-phase10-launch-requirement-verification.md) | Phase 10 / §34 verification | 10 | **Mapping recorded** 2026-08-29 ([plan](validation/SP-097-validation-plan.md), [evidence](validation/SP-097-evidence-log.md)); automated gate executed; device Residual; brand Residual; **not Accepted**; Phase 10 exit **not met** |
 
 Phase 10 work-item planning (2026-08-29) recorded in
 [`phases/phase-10-android-release-hardening.md`](phases/phase-10-android-release-hardening.md).
 SP-088 **Accepted** 2026-08-29 (SPD-077–086). Brand writing and on-device
 testing are residual, not later Phase 10 coding items. Implementation of
-remaining coding items waits on other phases at exit. Do **not** treat
-Phase 10 exit as met.
+remaining coding items waits on other phases at exit. SP-097 mapping
+recorded 2026-08-29 (automated gate + §34 / exit 1–11 table); device
+Residual; not Accepted. Do **not** treat Phase 10 exit as met.

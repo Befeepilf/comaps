@@ -77,6 +77,19 @@ Competition backend not in the explorer checkout present here (§26 #5
 residual Ops). Brand listing residual (**SPD-084**). Do **not** mark
 Phase 10 exit met.
 
+**SP-097 mapping recorded (2026-08-29):** every spec §34 bullet and
+every Phase 10 exit criterion 1–11 is mapped to pass / fail /
+residual in
+[`validation/SP-097-evidence-log.md`](../validation/SP-097-evidence-log.md)
+(plan:
+[`validation/SP-097-validation-plan.md`](../validation/SP-097-validation-plan.md)).
+H10 executed on SHA `c9336737a3e085275e7806317774c98ea2808542`:
+`street_pixels_tests` 499/499; payload-shape 1/1; official smoke
+exit 1 (missing `World.mwm` + missing `platform_tests`); lint 5
+errors / 24 warnings; clang-format-18 cannot parse the repo style
+file. Device Residual. Brand Residual. Not Accepted. Do **not** mark
+Phase 10 exit met.
+
 ## Intended outcome
 
 - Every product spec §34 line item verified, with the evidence written down and
@@ -154,7 +167,7 @@ phases at exit. Residual WIs are not coding items.
 | 7 | [SP-094](../work-items/SP-094-battery-rendering-lifecycle.md) | Battery, rendering, and lifecycle measurement (**protocol documented** 2026-08-29; **device execution Residual**; **SPD-078**; not Accepted) |
 | 8 | [SP-095](../work-items/SP-095-device-matrix-residual-close-out.md) | Device-matrix residual close-out (**roster documented** 2026-08-29; **device execution Residual**; **SPD-077**/**SPD-083**; not Accepted) |
 | 9 | [SP-096](../work-items/SP-096-risk-register-and-release-pipeline.md) | Risk-register close-out and release pipeline (**close-out recorded** 2026-08-29; [note](../notes/SP-096-risk-register-close-out.md); signed APK/ops residual; brand listing residual; §26 #5 residual Ops; not Accepted) |
-| 10 | [SP-097](../work-items/SP-097-phase10-launch-requirement-verification.md) | Phase 10 / §34 verification (**exit gate**; automated + mapping; device/manual Residual) |
+| 10 | [SP-097](../work-items/SP-097-phase10-launch-requirement-verification.md) | Phase 10 / §34 verification (**mapping recorded** 2026-08-29; automated + evidence; device/manual Residual; **not Accepted**; exit **not met**) |
 
 Gate: SP-088 has locked H1–H10. This phase still **adds no features** beyond
 defects H7 classifies as Fix, disclosure text that is not brand, and
