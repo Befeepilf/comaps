@@ -85,7 +85,7 @@ V1 scope. Explorer Pro **purchasing** is not.
 | 7 | Milestones and share cards | [`phases/phase-07-milestones-and-share-cards.md`](phases/phase-07-milestones-and-share-cards.md) | In progress (SP-069 In review; exit awaiting maintainer) |
 | 8 | Competition | [`phases/phase-08-competition.md`](phases/phase-08-competition.md) | SP-070 Accepted; SP-071 in progress; SP-072–074 Accepted |
 | 9 | GPX and feature gating | [`phases/phase-09-gpx-and-feature-gating.md`](phases/phase-09-gpx-and-feature-gating.md) | Exit criteria met 2026-08-28 with residuals → Phase 10 |
-| 10 | Android release hardening | [`phases/phase-10-android-release-hardening.md`](phases/phase-10-android-release-hardening.md) | Not started |
+| 10 | Android release hardening | [`phases/phase-10-android-release-hardening.md`](phases/phase-10-android-release-hardening.md) | Not started (SP-088 Accepted 2026-08-29; brand + on-device testing residual; coding waits on other phases’ exit) |
 
 Phase order is unchanged from the originally proposed sequence. Repository
 inspection did not reveal a dependency requiring phases to be moved or split.
@@ -546,18 +546,20 @@ FromLatLon; system expat).
 
 | Order | ID | Title | Phase | Why first |
 | --- | --- | --- | --- | --- |
-| 88 | [SP-088](work-items/SP-088-launch-governance-decisions.md) | Launch-governance decisions | 10 | **Planned** — H1–H10 (OQ-30–OQ-39 / draft SPD-077–086); entry gate |
-| 89 | [SP-089](work-items/SP-089-residual-defect-close-out.md) | Locked residual defect close-out | 10 | **Planned** — H7 Fix list only |
-| 90 | [SP-090](work-items/SP-090-settings-empty-states-first-run.md) | Settings, empty-state, and first-run audit | 10 | **Planned** — spec §30 / §31 / §10 |
-| 91 | [SP-091](work-items/SP-091-product-analytics-reconciliation.md) | Product analytics reconciliation | 10 | **Planned** — spec §32 + H5 upload |
-| 92 | [SP-092](work-items/SP-092-permissions-manifest-store-disclosures.md) | Permissions, manifest, and store disclosures | 10 | **Planned** — Play listing / ABL / friends hide |
-| 93 | [SP-093](work-items/SP-093-privacy-policy-terms-consent.md) | Privacy policy, terms, and consent alignment | 10 | **Planned** — H4 policy ownership |
-| 94 | [SP-094](work-items/SP-094-battery-rendering-lifecycle.md) | Battery, rendering, and lifecycle measurement | 10 | **Planned** — Spike 1, H2 protocol, data-loss |
-| 95 | [SP-095](work-items/SP-095-device-matrix-residual-close-out.md) | Device-matrix residual close-out | 10 | **Planned** — carried device walks on H1 matrix |
-| 96 | [SP-096](work-items/SP-096-risk-register-and-release-pipeline.md) | Risk-register close-out and release pipeline | 10 | **Planned** — audit §22 / §26 + signed APK |
-| 97 | [SP-097](work-items/SP-097-phase10-launch-requirement-verification.md) | Phase 10 / §34 verification | 10 | **Planned** — exit gate |
+| 88 | [SP-088](work-items/SP-088-launch-governance-decisions.md) | Launch-governance decisions | 10 | **Accepted** (2026-08-29) — H1–H10 → SPD-077–086; brand + on-device testing residual |
+| 89 | [SP-089](work-items/SP-089-residual-defect-close-out.md) | Locked residual defect close-out | 10 | **Planned** — H7 Fix list (SPD-083); not brand, not device |
+| 90 | [SP-090](work-items/SP-090-settings-empty-states-first-run.md) | Settings, empty-state, and first-run audit | 10 | **Planned** — §30/§31/§10 except privacy/terms URL rows and app-name rebrand (residual); hide public friend settings (SPD-085) |
+| 91 | [SP-091](work-items/SP-091-product-analytics-reconciliation.md) | Product analytics reconciliation | 10 | **Planned** — local §32 counters + payload-shape (SPD-081); no upload sink |
+| 92 | [SP-092](work-items/SP-092-permissions-manifest-store-disclosures.md) | Permissions, manifest, and store disclosures | 10 | **Planned** — hide friends (SPD-085); ABL absent (SPD-082); listing brand copy residual |
+| 93 | [SP-093](work-items/SP-093-privacy-policy-terms-consent.md) | Privacy policy, terms, and consent alignment | 10 | **Residual** — brand: privacy policy + terms (SPD-080 landing) |
+| 94 | [SP-094](work-items/SP-094-battery-rendering-lifecycle.md) | Battery, rendering, and lifecycle measurement | 10 | **Planned** (protocol docs); **device execution Residual** (SPD-078) |
+| 95 | [SP-095](work-items/SP-095-device-matrix-residual-close-out.md) | Device-matrix residual close-out | 10 | **Residual** — device walks (SPD-077 / SPD-083 Device-verify execution) |
+| 96 | [SP-096](work-items/SP-096-risk-register-and-release-pipeline.md) | Risk-register close-out and release pipeline | 10 | **Planned** — §22/§26 risk table; signed APK/ops may residual; brand listing residual |
+| 97 | [SP-097](work-items/SP-097-phase10-launch-requirement-verification.md) | Phase 10 / §34 verification | 10 | **Planned** — automated suites + evidence mapping (SPD-086); device/manual Residual |
 
 Phase 10 work-item planning (2026-08-29) recorded in
 [`phases/phase-10-android-release-hardening.md`](phases/phase-10-android-release-hardening.md).
-Implementation of SP-089+ waits on H1–H10 locks **and** other phases at exit.
-SP-088 is docs-only and may run while Phases 5–8 await maintainer exit.
+SP-088 **Accepted** 2026-08-29 (SPD-077–086). Brand writing and on-device
+testing are residual, not later Phase 10 coding items. Implementation of
+remaining coding items waits on other phases at exit. Do **not** treat
+Phase 10 exit as met.

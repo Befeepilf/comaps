@@ -2,9 +2,12 @@
 
 **Phase:** 10 — Android release hardening
 **Status:** Planned
-**Depends on:** SP-088 H5 Accepted (SPD-081). Phase 10 implementation
+**Depends on:** SP-088 H5 Accepted (**SPD-081**). Phase 10 implementation
   entry.
 **Unblocks:** SP-097 exit #4 (analytics match §32; no location)
+**Notes:** Implement local §32 counters + payload-shape tests. **No
+  upload sink** (SPD-081 closes the Phase 10 upload residual from
+  SPD-044 / SPD-055 / SPD-075).
 
 ---
 
@@ -12,8 +15,8 @@
 
 Reconcile implemented counters with product spec §32, add any missing
 **local** count-only events the lock requires, prove no upload path
-can emit a location-shaped field, and either keep counters local
-(recommended H5) or implement the locked privacy-safe sink.
+can emit a location-shaped field, and keep counters local (**SPD-081**).
+Do not implement a public analytics sink.
 
 ---
 
@@ -34,14 +37,11 @@ need a payload-shape proof, not a convention.
 
 - Inventory every increment site vs §32.1–§32.5. Table in completion
   evidence: specified event → implemented key / missing / out of V1.
-- If H5 is **local-only** (recommended): implement missing §32
+- H5 is **local-only** (**SPD-081**): implement missing §32
   counters as local uint64 settings in the existing pattern
   (`Explore.*` keys). Increment only for the real user action. No
   lat/lon, pixel id, OSM id, area name, track geometry, file name,
-  screenshot, or view hierarchy.
-- If H5 instead locks a sink: implement that sink only, with consent
-  and deny-list as specified in the SPD. Never Sentry. Never mix
-  into competition POST.
+  screenshot, or view hierarchy. Do **not** build an upload sink.
 - Payload-shape test: every upload path in a **release-shaped**
   configuration is asserted not to contain location-shaped fields
   (GPS, track points, live lat/lon, home, route polyline). Include
@@ -49,21 +49,24 @@ need a payload-shape proof, not a convention.
 - Confirm monetisation counters still increment only when the
   matching Pro capability is **Available** (SPD-075).
 - Confirm growth counters have no area id (SPD-055).
-- Debug/readout of counters is not required (SP-061 R5 recommended
-  waive) unless H5 says otherwise.
+- Debug/readout of counters is not required (SP-061 R5 waived /
+  Accept in SPD-083) unless a later SPD says otherwise.
 
 ## Out-of-scope behavior
 
 - Purchase conversion metrics (spec §32.5 post-V1).
 - Sending analytics through Sentry.
+- Implementing a public analytics upload sink (SPD-081).
 - Device proof that a Play build’s Sentry project is empty of
-  screenshots (SP-097 / traffic capture).
+  screenshots (SP-097 / traffic capture — **residual**).
 - In-app public dashboard of stats.
 
 ## Relevant product requirements
 
 - Spec §25.1, §32, §34 Release governance / Privacy.
-- SPD-044, SPD-055, SPD-075, SP-003, draft SPD-081 (H5).
+- SPD-044, SPD-055, SPD-075, SP-003, **SPD-081** (H5). SPD-081
+  closes the Phase 10 upload residual from SPD-044 / SPD-055 /
+  SPD-075.
 
 ## Relevant source files or symbols
 
@@ -90,7 +93,7 @@ need a payload-shape proof, not a convention.
 ## Acceptance criteria
 
 1. §32 inventory table is complete.
-2. H5 is implemented (local-only **or** locked sink).
+2. H5 is implemented as local-only (**SPD-081**). No upload sink.
 3. Payload-shape tests green on release-shaped config.
 4. No location fields on any analytics increment.
 5. Agent does not mark Accepted.
@@ -106,14 +109,15 @@ need a payload-shape proof, not a convention.
 ## Required manual validation
 
 - None beyond inspecting the inventory table. Traffic capture of
-  uploads is SP-095 / SP-097.
+  uploads is SP-095 / SP-097 (**residual**; do not execute on a
+  handset in this item).
 
 ## Failure and rollback considerations
 
 - If adding §32.1 events requires a schema for “active week”, keep
   it local and crash-safe; do not block launch on a new backend.
-- If H5 is local-only, do not treat missing cloud dashboards as a
-  failed §32.
+- If H5 is local-only (Accepted SPD-081), do not treat missing cloud
+  dashboards as a failed §32. Do not build a sink.
 
 ## Completion evidence
 

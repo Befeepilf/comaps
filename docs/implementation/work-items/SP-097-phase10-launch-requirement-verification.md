@@ -1,21 +1,29 @@
 # SP-097 — Phase 10 launch-requirement verification
 
 **Phase:** 10 — Android release hardening
-**Status:** Planned
+**Status:** Planned (automated suites + evidence mapping).
+  **Device/manual hardware: Residual**
 **Depends on:** SP-088–096 implemented or explicitly residualled /
   waived by SPD. All other phases at exit. Release-configured
   installable build.
 **Notes:** Exit gate. Maintainer decides Phase 10 exit and public V1
-  go/no-go. Agent does not mark Accepted.
+  go/no-go. Agent does not mark Accepted. **Automated suites + evidence
+  mapping are in scope.** Device/manual §34 observations that need a
+  handset are residual (**SPD-077**, **SPD-078**, **SPD-083**,
+  **SPD-086**). Do not mark Phase 10 exit met.
 
 ---
 
 ## Objective
 
 Verify every product spec §34 line item with recorded evidence
-attributable to a person, device, build, and date, and map Phase 10
-exit criteria 1–11 to pass / fail / residual. Produce the S4 public
-Android V1 evidence pack.
+attributable to a person, device, build, and date **where evidence
+exists**, and map Phase 10 exit criteria 1–11 to pass / fail /
+residual. Produce the S4 public Android V1 evidence pack as far as
+automated suites and docs mapping allow.
+
+Device/manual hardware observations are residual. Do not mark
+Phase 10 exit met.
 
 ---
 
@@ -38,8 +46,11 @@ this item re-checks anything that drifted.
   privacy/competition, offline/updates, sharing, Explorer Pro,
   release governance, quality) → pass / fail / residual, with
   pointer to SP-094/SP-095/automated SHA or a new observation.
-- Phase 10 exit criteria 1–11 in the same log.
-- Automated gate (H10 / README §8.1):
+  Device/manual hardware bullets stay **residual** unless already
+  evidenced without a new handset walk.
+- Phase 10 exit criteria 1–11 in the same log. Do **not** mark
+  Phase 10 exit met.
+- Automated gate (H10 / **SPD-086** / README §8.1):
   - `./tools/unix/run_tests.sh -b ../omim-build-debug -s smoke`
   - `street_pixels_tests` (and areas/routing as relevant)
   - `cd android && ./gradlew -Pandroidauto=true lint`
@@ -52,6 +63,7 @@ this item re-checks anything that drifted.
   surface, no city allowlist.
 - Fresh-install §10 journey and offline-only session including
   routing (cite SP-090/SP-095 if already done on the same build).
+  Hardware execution of those journeys is residual.
 - Defects found → owning WI or new SP-NNN; do not fix in this
   item except test-only harnesses needed to observe.
 
@@ -60,6 +72,10 @@ this item re-checks anything that drifted.
 - New features.
 - iOS, billing, post-V1 §35.
 - Marking Phase 10 or S4 complete.
+- Executing H1 device-matrix walks, H2 battery/Spike 1 on a handset,
+  SP-095 walks, or other hardware observations (residual).
+- Brand writing (app name, listing copy, privacy/terms URLs;
+  SP-093 residual).
 - Weakening tests.
 - Performance work.
 
@@ -68,7 +84,8 @@ this item re-checks anything that drifted.
 - Spec §33 (context only; hypotheses are not exit numbers),
   §34 (complete), §30–§32 as already covered by SP-090/091.
 - All Phase 10 exit criteria in the phase file.
-- SPD-001–076 plus H1–H10 SPDs.
+- SPD-001–076 plus H1–H10 **SPD-077–086**. Brand and on-device
+  testing residuals as recorded in SP-088.
 
 ## Relevant source files or symbols
 
@@ -88,9 +105,10 @@ this item re-checks anything that drifted.
 1. Plan and evidence log exist and are filled for executed
    scenarios.
 2. Every §34 bullet and every Phase 10 exit criterion has
-   pass/fail/residual.
-3. Automated gate counts recorded.
-4. Maintainer accepts Phase 10 exit or records blockers.
+   pass/fail/residual. Device/manual hardware stays residual.
+3. Automated gate counts recorded (**SPD-086**).
+4. Maintainer accepts Phase 10 exit or records blockers. Agent does
+   not mark Phase 10 exit met.
 
 ## Required automated tests
 
@@ -99,7 +117,8 @@ this item re-checks anything that drifted.
 ## Required manual validation
 
 - Any §34 bullet not already evidenced on this build by SP-094 /
-  SP-095.
+  SP-095. **Hardware execution is residual**; do not walk a
+  handset in this item.
 
 ## Failure and rollback considerations
 
@@ -113,7 +132,7 @@ this item re-checks anything that drifted.
 | Validation plan | |
 | Evidence log | |
 | Test output | |
-| Device roster | |
+| Device roster | Residual (SPD-077 matrix defined; not executed) |
 | Exit criteria table | |
 | Accepted by | |
 | Accepted date | |

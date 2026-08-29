@@ -2,13 +2,15 @@
 
 **Phase:** 10 — Android release hardening
 **Status:** Planned
-**Depends on:** SP-088 H7 Accepted (SPD-083). Phase 10 implementation
+**Depends on:** SP-088 H7 Accepted (**SPD-083**). Phase 10 implementation
   entry (other phases at exit).
 **Unblocks:** SP-094 / SP-095 / SP-097 (those items observe the fixed
-  behaviour)
-**Notes:** Implements only residuals H7 classifies as **Fix**. One
-  logical commit per defect. If the locked Fix list spans more than one
-  non-trivial subsystem, split extra `SP-NNN` files before coding.
+  behaviour; device execution of SP-094/SP-095/SP-097 is residual)
+**Notes:** Implements only residuals H7 classifies as **Fix**
+  (**SPD-083**). One logical commit per defect. If the locked Fix list
+  spans more than one non-trivial subsystem, split extra `SP-NNN`
+  files before coding. **Not brand, not device.** Do not rewrite app
+  name, listing copy, privacy/terms URLs, or execute hardware walks.
 
 ---
 
@@ -35,8 +37,8 @@ mixed PR.
 
 ## In-scope behavior
 
-Implement **only** the H7 **Fix** rows. Recommended list until lock
-(investigation note):
+Implement **only** the H7 **Fix** rows (**SPD-083**, locked
+2026-08-29). Not brand, not device:
 
 1. Draw the completed-area check glyph when `m_showCheck` is set
    (`libs/street_pixels_areas/area_overlay.*`, drape/style path that
@@ -72,7 +74,8 @@ Re-verify symbols against the tree at implementation time.
 - New features not in the Fix list.
 - Schema changes unless a Fix item requires one (crash-safe; own
   commit; report in discovered-follow-up).
-- Device walks (SP-095).
+- Device walks (SP-095 is residual).
+- Brand writing (app name, listing copy, privacy/terms URLs).
 
 ## Relevant product requirements
 
@@ -93,7 +96,7 @@ Re-verify symbols against the tree at implementation time.
 
 ## Implementation notes / constraints
 
-- Wait for SPD-083. If lock drops a row, do not implement it.
+- SPD-083 is Accepted. If a later SPD drops a row, do not implement it.
 - Prefer one commit per defect (`[map]`, `[android]`, `[routing]` as
   appropriate).
 - Do not weaken tests. If a test blocks a Fix, stop and report.
@@ -126,7 +129,8 @@ Re-verify symbols against the tree at implementation time.
 
 ## Required manual validation
 
-- Desktop/harness where the defect is UI. Device eyeball → SP-095.
+- Desktop/harness where the defect is UI. Device eyeball → SP-095
+  (residual; do not execute hardware walks in this item).
   Do not fabricate a handset.
 
 ## Failure and rollback considerations
