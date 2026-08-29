@@ -31,7 +31,7 @@ Phase 10 **H2** is the battery/rendering *lock* (**SPD-078**). SP-041
 | --- | --- |
 | This slice | Protocol documentation only. Device execution **Residual** (product-owner lock 2026-08-29). Agent does **not** mark SP-094 or Phase 10 Accepted. |
 | Rendering bar | Spike 1 unchanged (**SPD-078** / SP-033): p95 ≥30 FPS at zoom 14–16 with a city loaded; overlay memory uplift &lt;150 MB. Fail vs bar → report; do **not** add LOD in the executing WI unless H2 / **SPD-078** is revised. |
-| Battery | Protocol lock only. **No numeric %/hour ceiling** (**SPD-078**). Maintainer accepts, waives with store copy, or opens a new SPD *after* numbers exist. |
+| Battery | Protocol lock only. **No numeric %/hour ceiling** (**SPD-078**). Duration ≥2 h is the SP-088 H2 / WI operationalization of SPD-078 “multi-hour”, not a %/hour bar. Maintainer accepts, waives with store copy, or opens a new SPD *after* numbers exist. |
 | Cold start | Time to first interactive frame is **recorded, not gated**, unless a later SPD adds a number. |
 | Device matrix | **D1** Pixel-class required. **D2** one aggressive-OEM skin **is required** because **SPD-077** (Phase 10 H1) locks D1 + D2. Optional **D3** a second API level if D1/D2 are the same generation. |
 | D2 OEM *functional* screen-off continuity | **Not this item.** That walk script is SP-095 residual. Battery Session A still *records* FGS survival on D1 and D2 as a measurement, not as SP-095’s OEM-kill script. |
@@ -101,8 +101,8 @@ administrative overlay (SP-053). If `.spa` is missing: **Blocked**.
 
 | ID | Scenario | Pass / measurement |
 | --- | --- | --- |
-| R1 | City loaded, overlay on, pan and zoom at zoom **14–16** for a sustained sample (minutes, not a single fling) | Record p95 FPS (or equivalent frame-time p95). **Pass bar:** p95 ≥30 FPS. Record GPU/driver. |
-| R2 | Overlay memory uplift vs overlay off (same city, same zoom band, same build) | Record RSS / app memory before overlay and with overlay on. **Pass bar:** overlay memory uplift &lt;150 MB. |
+| R1 | City loaded, overlay on, pan and zoom at zoom **14–16** for a sustained sample (minutes, not a single fling) | Record p95 FPS (or equivalent frame-time p95). **Pass bar:** p95 ≥30 FPS. Record GPU/driver. Record the FPS method in notes (`dumpsys gfxinfo`, FrameMetrics, systrace, or equivalent). Do not invent a method-specific pass bar. |
+| R2 | Overlay memory uplift vs overlay off (same city, same zoom band, same build) | Record app memory before overlay and with overlay on (method in notes: `dumpsys meminfo` PSS / Graphics, RSS, or equivalent — same method both sides). **Pass bar:** overlay memory uplift &lt;150 MB. |
 | R3 | Fail vs bar | **Fail** the Spike 1 row; report. Do **not** add LOD, drop overlay density, or retune nside in the executing WI. LOD is a new WI only if **SPD-078** / H2 is revised. |
 
 SP-033 qualitative Pixel 3a (Accepted 2026-08-07) is **not**
@@ -113,12 +113,16 @@ cells.
 
 Two sessions on the **same device**, **same** battery-saver /
 exemption / adaptive-battery settings, **same** APK. Screen off for
-both. No navigation in the control.
+both. Load-bearing H2 bullets (SP-088): Session A recording active,
+**no in-app navigation (routing)**, ≥2 h; Session B recording off,
+**app not force-stopped**, ≥2 h. **No navigation** means no turn-by-turn
+routing, not “remain stationary”. Walking with screen off is allowed
+and is what Bat-pix needs to prove collection continuity.
 
 | ID | Scenario | Pass / measurement |
 | --- | --- | --- |
-| Bat-A | Session A: **recording on**, screen off, ≥**2 hours** | Record start/end battery %, duration, %/hour, mAh if the OEM exposes it (dumpsys / AccuBattery / similar — method in notes). Record whether the location FGS survived the whole window. Record whether pixels continued (new greens after reopen vs start snapshot). |
-| Bat-B | Session B: **control** — app installed, **recording off**, screen off, **no navigation**, ≥**2 hours** | Same metrics as Bat-A. Subtract conceptually: recording cost ≈ A − B on that device. |
+| Bat-A | Session A: **recording on**, screen off, **no in-app navigation**, ≥**2 hours** (SP-088 H2) | Record start/end battery %, duration, %/hour, mAh if the OEM exposes it (dumpsys / AccuBattery / similar — method in notes). Record whether the location FGS survived the whole window. Record whether pixels continued (new greens after reopen vs start snapshot). |
+| Bat-B | Session B: **control** — app installed, **recording off**, screen off, **no in-app navigation**, **app not force-stopped**, ≥**2 hours** (SP-088 H2 / **SPD-078** control) | Same metrics as Bat-A. Subtract conceptually: recording cost ≈ A − B on that device. |
 | Bat-cmp | Compare A vs B on that device | Record both %/hour figures and the delta. **No numeric %/hour ceiling in this plan.** Maintainer accept / waive / new SPD only after numbers exist. |
 | Bat-FGS | FGS survival during Bat-A | Survived whole window / killed / interrupted. Interruption UX on reopen must match Phase 2 (toast; prior pixels kept; **no gap fill**). Do not add ABL to force survival (**SPD-082**). |
 | Bat-pix | Pixels continued during Bat-A | Yes / no / unknown (if the walker was stationary, record that — stationary screen-off cannot prove collection continuity; prefer a real walk or a known moving route). |
@@ -138,7 +142,7 @@ OEM-kill script.
 
 | ID | Scenario | Pass / measurement |
 | --- | --- | --- |
-| CS1 | Cold start with a large city loaded (Helsinki / Uusimaa-class MWM present; process not in memory) | Record time to **first interactive frame** (stopwatch or systrace; define the mark in notes: first pannable frame, not splash). **Recorded, not gated**, unless a later SPD adds a number. |
+| CS1 | Cold start with a large city loaded (Helsinki / Uusimaa-class MWM present; process not in memory) | Force-stop (or reboot) so the process is not in memory, then launch. Record time to **first interactive frame** (stopwatch or systrace; define the mark in notes: first pannable frame, not splash). **Recorded, not gated**, unless a later SPD adds a number. |
 
 ### Block L — Data-loss / lifecycle matrix
 
@@ -149,29 +153,34 @@ sample (product invariant). No schema change in this item.
 | --- | --- | --- |
 | L1 | **Upgrade** from a prior Street Pixels build with existing `.pix` | Explored greens survive; file migrates or remains readable; no wipe. Prefer a build old enough to carry a real `.pix` (headered; legacy headerless if a fixture exists). |
 | L2 | **Map update rematch** (Phase 3) + user-visible **§27.3** message | Surviving cells stay green. If the explored fraction drops because the denominator grew, toast uses `street_pixels_more_to_explore` (“…Your progress is still saved.”) and never claims personal progress was deleted. Record rematch wall-clock on large `.pix` (Phase 3 residual duration). Pointers (not a substitute): `Rematch_*` in `libs/map/street_pixels_tests/rematch_tests.cpp`. |
-| L3 | **Force stop** during recording | Interrupt toast on reopen; pixels from before the kill remain; **no gap fill**; session force-finished per SP-013. Pointers: `InterruptedSession_PixelsBeforeInterruptionIntact`, `InterruptedSession_AfterEffects_NoInterpolate_DiscCollected`. |
-| L4 | **Low-memory kill** during recording or rematch | Same permanence as L3 / rematch interrupt: no exploration wipe; no gap fill; rematch recovers or rolls back (`Rematch_InterruptBeforeRenameKeepsOld`). |
-| L5 | **Device restart** with an active session | Same as L3: interrupt UX; prior pixels; no gap fill; breadcrumb consumed (`RecordingSession_BreadcrumbPersistenceAcrossRestart` is a pointer only). |
-| L6 | **Time-zone change** / weekly boundary (**SPD-060**) | Weekly city week is Monday 00:00 in the **city IANA zone**, else **UTC**. **Never** the device’s local zone. Changing the phone time zone must not move the week bucket. Local timestamps on tracks/UI stay local-display. Pointers: `WeeklyCityWeek_DeviceTzIgnored`, `WeeklyCityWeek_UtcMondayBoundary`, `WeeklyCityLive_MondayBoundarySeparateWeeks`. See also the IANA-lookup gap recorded on the work item (code currently UTC-falls-back even when a tz is stored). |
-| L7 | **Storage nearly full** during pixel derive / migration | App does not wipe `.pix` to recover space. Failure is visible (error / incomplete), progress that was already durable remains. Optional: kill mid large derive (SP-022 C2). |
+| L3 | **Force stop** during recording | App info → Force stop (or `adb shell am force-stop` of the app id) during an **active** recording, then reopen. Interrupt toast on reopen; pixels from before the kill remain; **no gap fill**; session force-finished per SP-013. Pointers: `InterruptedSession_PixelsBeforeInterruptionIntact`, `InterruptedSession_AfterEffects_NoInterpolate_DiscCollected`. |
+| L4 | **Low-memory kill** during recording or rematch | Not the same as L3 force-stop. Use recents-kill, `adb shell am kill`, or fill RAM until the process dies. Same permanence as L3 / rematch interrupt: no exploration wipe; no gap fill; rematch recovers or rolls back (`Rematch_InterruptBeforeRenameKeepsOld`). |
+| L5 | **Device restart** with an active session | Reboot the handset while recording is active (FGS running). Same as L3: interrupt UX; prior pixels; no gap fill; breadcrumb consumed (`RecordingSession_BreadcrumbPersistenceAcrossRestart` is a pointer only). |
+| L6 | **Time-zone change** / weekly boundary (**SPD-060**) | Two clauses, both required for Pass: (1) weekly city week is Monday 00:00 in the **city IANA zone** when known, else **UTC**; (2) changing the **phone** time zone must not move the week bucket. **Never** the device’s local zone. Local timestamps on tracks/UI stay local-display. Pointers: `WeeklyCityWeek_DeviceTzIgnored`, `WeeklyCityWeek_UtcMondayBoundary`, `WeeklyCityLive_MondayBoundarySeparateWeeks`, `WeeklyCityLive_TzChangesWeekIdVsUtc`. **Until the IANA Fix WI:** `WeekBoundsFromUnix` ignores the IANA argument (see work-item follow-up). Do **not** mark device L6 Pass on clause (2) alone. Record UTC-only vs a stored city IANA as Fail or Residual against clause (1), not as Pass. |
+| L7 | **Storage nearly full** during pixel derive / migration | Fill free space (large file on shared storage / `fallocate`) until the derive or migration cannot complete. App does not wipe `.pix` to recover space. Failure is visible (error / incomplete), progress that was already durable remains. Optional: kill mid large derive (SP-022 C2). |
 | L8 | **Delete competition profile** | Local exploration (`.pix` greens, personal completion) **intact**. Recency / identity / upload queue clear as designed. Pointer: `CompetitionDeletion_SuccessClearsRecencyKeepsPix`. |
 | L9 | **Clear app data** wipes as the privacy policy claims | Everything the policy says is on-device is gone (exploration, tracks, identity, DBs). **Policy/terms landing is SP-093 residual** — this row stays Residual until (a) this walk runs **and** (b) landed policy sentences exist to check against. Do not retarget Help URLs here. |
 
 ## Automated pointers (optional in the executing WI)
 
 None new required. If the tree is built, record counts; do not weaken
-tests. `data/classificator.txt` missing aborts Eligibility and must
-be recorded as **environment**, not a product Fail.
+tests.
 
 ```bash
 # pointers only — do not treat green unit tests as device Pass
-./tools/unix/build_omim.sh -d street_pixels_tests
-# or existing binary:
+# omim --filter is ECMAScript std::regex (unescaped | is alternation; \| matches a literal pipe)
+./tools/unix/build_omim.sh -d street_pixels_tests street_pixels_areas_tests
+# or existing binaries:
 # $BIN/street_pixels_tests --data_path=... --user_resource_path=... --filter='Rematch_'
 # $BIN/street_pixels_tests ... --filter='InterruptedSession_'
+# $BIN/street_pixels_tests ... --filter='RecordingSession_Breadcrumb'
 # $BIN/street_pixels_tests ... --filter='CompetitionDeletion_'
-# street_pixels_areas_tests --filter='WeeklyCityWeek_\|WeeklyCityLive_Monday\|WeeklyCityLive_Tz'
+# $BIN/street_pixels_areas_tests --data_path=... --user_resource_path=... --filter='WeeklyCityWeek_|WeeklyCityLive_Monday|WeeklyCityLive_Tz'
 ```
+
+Filtered pointer runs above do not load Eligibility. A **full**
+`street_pixels_tests` run without `data/classificator.txt` aborts
+Eligibility; record that as **environment**, not a product Fail.
 
 This protocol-only slice does **not** require those commands.
 
@@ -190,7 +199,8 @@ Do **not** mark Phase 10 exit met.
 1. Confirm release/beta APK SHA; install on D1 (then D2).
 2. Confirm Helsinki / Uusimaa MWM and `.spa`. If `.spa` missing, Block R is **Blocked**.
 3. CS1 cold start (before warming the process for other work).
-4. R1–R3 Spike 1 (overlay on; record GPU/driver).
+4. R1–R2 Spike 1 (overlay on; record GPU/driver). R3 is fail-vs-bar
+   disposition, not a separate walk.
 5. L1 upgrade (may be first install of the walk APK over a prior build).
 6. Bat-A then Bat-B on D1 (≥2 h each; same saver settings).
 7. L2–L9 as opportunity allows (L6 before/after a Monday boundary if scheduling permits).

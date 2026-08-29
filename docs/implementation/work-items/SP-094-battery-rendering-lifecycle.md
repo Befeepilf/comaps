@@ -7,7 +7,7 @@
   SP-089 glyph fix if H7 includes it (re-measure overlay after;
   measurement on device is residual). Phase 10 implementation entry.
   A release-configured APK is required only when device execution is
-    no longer residual.
+  no longer residual.
 **Unblocks:** SP-097 exit #6, #7, #8 (those remain residual until a
   handset run exists)
 **Notes:** **Device execution residual.** H2 / Spike 1 / lifecycle
@@ -135,7 +135,9 @@ are:
 
 ## Required manual validation
 
-- All in-scope measurements are manual on H1 devices (**SPD-077** D1 + D2).
+- All in-scope measurements are manual on the **SPD-077** matrix
+  (D1 Pixel-class + D2 aggressive OEM). Do not read “H1” here as
+  SP-041 Helsinki UX walks.
   Protocol: [`validation/SP-094-validation-plan.md`](../validation/SP-094-validation-plan.md).
   **Execution is residual** in this Phase 10 coding slice.
 
