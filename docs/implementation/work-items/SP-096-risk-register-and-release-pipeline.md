@@ -1,7 +1,9 @@
 # SP-096 — Risk-register close-out and release pipeline
 
 **Phase:** 10 — Android release hardening
-**Status:** Planned
+**Status:** Close-out recorded 2026-08-29. Signed APK / ops residual.
+  Brand listing residual (**SPD-084**). Competition backend unverified
+  in the explorer checkout present here. Not Accepted.
 **Depends on:** SP-088 H3/H8/H10 Accepted (**SPD-079**, **SPD-084**,
   **SPD-086**). SP-092 disclosures. Phase 10 implementation entry. Ops
   access for signing secrets as needed.
@@ -132,10 +134,11 @@ Django settings) sit here as **Ops**, not as client features.
 
 | Field | Value |
 | --- | --- |
-| Branch | |
-| Risk table | |
-| §26 table | |
-| Artefact | |
+| Branch | `cursor/sp-096-risk-register-6383` (parent `street-pixels` `30eb240904d3a61aa5b36f4ddfa62e459d92352d`) |
+| Risk table | [`notes/SP-096-risk-register-close-out.md`](../notes/SP-096-risk-register-close-out.md) §22 |
+| §26 table | same note, §26 |
+| Artefact | **Residual Ops.** `android/app/release.keystore`, `secure.properties` / `secure.properties.release`, and `google-play.json` absent. Gradle printed `NO` keys / `secure.properties.release doesn't exist` during lint configure. No signed `google` APK produced. No hash. Unsigned/debug-signed APK is not exit #11. |
+| Test output | Focused `street_pixels_tests` `--filter` (executed): CollectionGate **10/10**, SampleAcceptance **20/20**, Rematch_ **15/15**, BackendConfig **26/26**, LiveSampleAcceptance **15/15**, CompetitionUpload **22/22** (`All tests passed.`). Full `street_pixels_tests`: aborted at `Eligibility_IncludesCommonHighways` (`classificator.txt` absent); log **393** Running / **392** OK / **1** FAILED then abort. Smoke **not run** (same gap). `./gradlew -Pandroidauto=true lint`: `:sdk:lintDebug` **FAILED** — **5 errors, 24 warnings** (4× `MissingPermission` VIBRATE in `Utils.java`; 1× `WrongConstant` in `RecordingSessionDebug.java`). |
 | Accepted by | |
 | Accepted date | |
 
@@ -143,4 +146,11 @@ Django settings) sit here as **Ops**, not as client features.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| (fill during implementation) | |
+| Signed `google` release/beta APK not produced (secrets absent) | Residual Ops. Restore Forgejo `RELEASE_KEYSTORE` / `SECURE_PROPERTIES` / `GOOGLE_PLAY_JSON` and materialise the file Gradle actually reads (`secure.properties.release`). Do not substitute an unsigned APK as Phase 10 exit #11. |
+| Forgejo writes `android/app/secure.properties`; Gradle applies `secure.properties.release` | Residual Ops / workflow. Align restore path with Gradle or document the ops copy step. Not a listing-brand rewrite. |
+| Application name / Play/F-Droid listing still CoMaps (GPX advertised) | Residual **SPD-084**. Do not rewrite in SP-097 coding. |
+| Explorer `main` (`e13a124`) has no `competition/` app; SQLite default; no `prod.py` | Residual Ops. Friends API is not a substitute. Blocks §26 condition 5 / SP-097 until a production competition backend is inspectable. |
+| Sparse-area N&lt;3 not verified against a direct API call | Residual Ops (same missing backend). Client chrome hide is not protection. |
+| Exact EU region string | Residual Ops (**SPD-062**). |
+| H10 smoke / full `street_pixels_tests` / lint clean | Environment residual: missing `data/classificator.txt` aborted full suite; `:sdk:lintDebug` 5 errors / 24 warnings (pre-existing, not fixed here). Leave the full recorded gate to SP-097. Do not weaken tests. |
+| Renderer / battery / OEM | Residual SP-094 / SP-095. Not realised. Do not invent D2 kills. |
