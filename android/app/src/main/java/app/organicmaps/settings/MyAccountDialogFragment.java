@@ -41,6 +41,8 @@ public class MyAccountDialogFragment extends DialogFragment
 
   public static void showWithAddFriend(@NonNull FragmentManager fm, @NonNull String username)
   {
+    if (!FriendSettingsVisibility.showAddFriendOnboarding(FriendSettingsVisibility.friendsCapabilityEnabled()))
+      return;
     show(fm);
   }
 

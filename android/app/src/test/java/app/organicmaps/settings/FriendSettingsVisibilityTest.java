@@ -39,4 +39,18 @@ public class FriendSettingsVisibilityTest
   {
     assertTrue(FriendSettingsVisibility.showFriendFacingNicknameCopy(true));
   }
+
+  @Test
+  public void showAddFriendOnboarding_hiddenWhenCapabilityOff()
+  {
+    assertFalse(FriendSettingsVisibility.showAddFriendOnboarding(false));
+    assertFalse(FriendSettingsVisibility.showAddFriendOnboarding(
+        FriendSettingsVisibility.friendsCapabilityEnabled()));
+  }
+
+  @Test
+  public void showAddFriendOnboarding_shownWhenCapabilityOn()
+  {
+    assertTrue(FriendSettingsVisibility.showAddFriendOnboarding(true));
+  }
 }
