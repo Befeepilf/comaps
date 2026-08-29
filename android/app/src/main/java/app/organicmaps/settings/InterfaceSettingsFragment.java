@@ -42,7 +42,6 @@ public class InterfaceSettingsFragment extends BaseXmlSettingsFragment implement
 
     initMapStylePrefsCallbacks();
     initZoomPrefsCallbacks();
-    initExplorationHapticsPrefsCallbacks();
     initLeftButtonPrefs();
   }
 
@@ -51,7 +50,6 @@ public class InterfaceSettingsFragment extends BaseXmlSettingsFragment implement
   {
     super.onResume();
     updateAppLanguageCodeSummary();
-    refreshExplorationHapticsPref();
   }
 
   @Override
@@ -124,22 +122,6 @@ public class InterfaceSettingsFragment extends BaseXmlSettingsFragment implement
       Config.setShowZoomButtons((boolean) newValue);
       return true;
     });
-  }
-
-  private void initExplorationHapticsPrefsCallbacks()
-  {
-    final Preference pref = getPreference(getString(R.string.pref_exploration_haptics));
-    refreshExplorationHapticsPref();
-    pref.setOnPreferenceChangeListener((preference, newValue) -> {
-      Config.setExplorationHapticsEnabled((boolean) newValue);
-      return true;
-    });
-  }
-
-  private void refreshExplorationHapticsPref()
-  {
-    final Preference pref = getPreference(getString(R.string.pref_exploration_haptics));
-    ((TwoStatePreference) pref).setChecked(Config.explorationHapticsEnabled());
   }
 
   private void initLeftButtonPrefs()

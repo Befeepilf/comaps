@@ -14,13 +14,6 @@
     android:title="@string/pref_zoom_title"
     android:widgetLayout="@layout/preference_switch"
     app:singleLineTitle="false" />
-  <SwitchPreferenceCompat
-    android:key="@string/pref_exploration_haptics"
-    android:persistent="false"
-    android:summary="@string/pref_exploration_haptics_summary"
-    android:title="@string/pref_exploration_haptics_title"
-    android:widgetLayout="@layout/preference_switch"
-    app:singleLineTitle="false" />
   <ListPreference
     android:key="@string/pref_left_button"
     android:persistent="true"
