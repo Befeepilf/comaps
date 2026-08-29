@@ -9,6 +9,7 @@
 #include "geometry/region2d.hpp"
 #include "platform/platform.hpp"
 
+#include <algorithm>
 #include <optional>
 #include <vector>
 
@@ -66,6 +67,36 @@ UNIT_TEST(AreaOverlay_StyleCompletedDistinctFromInProgress)
 
   TEST(IsAreaCompleted(1.0), ());
   TEST(!IsAreaCompleted(0.999), ());
+}
+
+UNIT_TEST(AreaOverlay_CompletedCheckDrawPathInvokedWhenShowCheck)
+{
+  auto const cityDone = StyleForCompletion(1.0, AreaOverlayZoomBand::City);
+  TEST(cityDone.m_showCheck, ());
+  m2::RectD bounds(0.0, 0.0, 10.0, 8.0);
+  m2::PointD const label = bounds.Center();
+  auto const path = OverlayCheckDrawPath(cityDone, label, bounds);
+  TEST_EQUAL(path.size(), 3u, ());
+  TEST(!path[0].EqualDxDy(path[1], 1e-12), ());
+  TEST(!path[1].EqualDxDy(path[2], 1e-12), ());
+  auto const expected = CompletedCheckPolyline(label, std::max(bounds.SizeX(), bounds.SizeY()) * 0.12);
+  TEST_EQUAL(path.size(), expected.size(), ());
+  for (size_t i = 0; i < path.size(); ++i)
+    TEST(path[i].EqualDxDy(expected[i], 1e-12), ());
+
+  auto const neighbourhoodDone = StyleForCompletion(1.0, AreaOverlayZoomBand::Neighbourhood);
+  TEST(neighbourhoodDone.m_showCheck, ());
+  TEST_EQUAL(OverlayCheckDrawPath(neighbourhoodDone, label, bounds).size(), 3u, ());
+
+  auto const streetDone = StyleForCompletion(1.0, AreaOverlayZoomBand::Street);
+  TEST(!streetDone.m_showCheck, ());
+  TEST(OverlayCheckDrawPath(streetDone, label, bounds).empty(), ());
+
+  auto const inProgress = StyleForCompletion(0.99, AreaOverlayZoomBand::City);
+  TEST(!inProgress.m_showCheck, ());
+  TEST(OverlayCheckDrawPath(inProgress, label, bounds).empty(), ());
+
+  TEST(CompletedCheckPolyline(label, 0.0).empty(), ());
 }
 
 UNIT_TEST(AreaOverlay_TriangulateBox)
