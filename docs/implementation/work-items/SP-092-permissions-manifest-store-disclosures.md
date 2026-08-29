@@ -1,7 +1,7 @@
 # SP-092 — Permissions, manifest, and store disclosures
 
 **Phase:** 10 — Android release hardening
-**Status:** Planned
+**Status:** Accepted
 **Depends on:** SP-088 H3, H6, H8, H9 Accepted (**SPD-079**,
   **SPD-082**, **SPD-084**, **SPD-085**). Phase 10 implementation
   entry.
