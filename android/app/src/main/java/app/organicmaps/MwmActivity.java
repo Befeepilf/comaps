@@ -128,6 +128,7 @@ import app.organicmaps.search.SearchActivity;
 import app.organicmaps.search.SearchFragment;
 import app.organicmaps.settings.ExploreConsentDialogFragment;
 import app.organicmaps.settings.ExploreDeepLink;
+import app.organicmaps.settings.FirstRunExploringDialogFragment;
 import app.organicmaps.settings.MyAccountDialogFragment;
 import app.organicmaps.settings.RoutingOptionsActivity;
 import app.organicmaps.settings.SettingsActivity;
@@ -312,6 +313,9 @@ public class MwmActivity extends BaseMwmFragmentActivity
     }
 
     processIntent();
+
+    if (!RecordingSession.isActive())
+      FirstRunExploringDialogFragment.maybeShow(getSupportFragmentManager(), this::startTrackRecording);
   }
 
   /**
@@ -2108,6 +2112,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
   @UiThread
   private void onLocationPermissionsResult(java.util.Map<String, Boolean> permissions)
   {
+    Config.setLocationRequested();
     // Print permissions that have been granted or refused.
     for (java.util.Map.Entry<String, Boolean> entry : permissions.entrySet())
     {
@@ -2179,11 +2184,14 @@ public class MwmActivity extends BaseMwmFragmentActivity
       return;
     }
 
+    final Intent appSettings = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+    appSettings.setData(Uri.fromParts("package", getPackageName(), null));
     mLocationErrorDialog = new MaterialAlertDialogBuilder(this)
                                .setTitle(R.string.enable_location_services)
-                               .setMessage(R.string.location_is_disabled_long_text)
+                               .setMessage(R.string.street_pixels_location_denied)
                                .setOnDismissListener(dialog -> mLocationErrorDialog = null)
-                               .setNegativeButton(R.string.close, null)
+                               .setPositiveButton(R.string.settings, (dialog, which) -> startActivity(appSettings))
+                               .setNegativeButton(R.string.continue_browsing, null)
                                .show();
   }
 
@@ -2554,7 +2562,19 @@ public class MwmActivity extends BaseMwmFragmentActivity
     Toast.makeText(this, toastRes, Toast.LENGTH_SHORT).show();
     TrackRecordingService.startForegroundService(getApplicationContext());
     mMapButtonsViewModel.setRecordingSessionState(RecordingSession.getState());
+    maybeExplainRecordingBackground();
     return true;
+  }
+
+  private void maybeExplainRecordingBackground()
+  {
+    if (Config.isRecordingBackgroundExplained())
+      return;
+    Config.setRecordingBackgroundExplained();
+    new MaterialAlertDialogBuilder(this)
+        .setMessage(R.string.track_recording_background_explanation)
+        .setPositiveButton(R.string.close, null)
+        .show();
   }
 
   private void showRecordingLocationPermissionRationaleThenRequest()
