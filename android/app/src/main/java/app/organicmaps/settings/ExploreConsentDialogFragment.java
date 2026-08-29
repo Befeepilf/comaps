@@ -12,6 +12,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import app.organicmaps.R;
 import app.organicmaps.sdk.Framework;
+import app.organicmaps.sdk.ProductAnalytics;
 
 public class ExploreConsentDialogFragment extends DialogFragment
 {
@@ -40,6 +41,7 @@ public class ExploreConsentDialogFragment extends DialogFragment
   @Override
   public Dialog onCreateDialog(@Nullable Bundle savedInstanceState)
   {
+    ProductAnalytics.recordCompetitionPromptViewed();
     return new MaterialAlertDialogBuilder(requireContext())
         .setTitle(R.string.explore_consent_title)
         .setMessage(R.string.explore_consent_message)
