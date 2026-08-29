@@ -3,14 +3,14 @@
 #include "map/street_pixels_file.hpp"
 #include "map/street_pixels_manager.hpp"
 
+#include "indexer/data_header.hpp"
 #include "indexer/features_vector.hpp"
 
+#include "platform/constants.hpp"
 #include "platform/mwm_version.hpp"
 #include "platform/platform.hpp"
 
-#include "coding/file_reader.hpp"
 #include "coding/files_container.hpp"
-#include "coding/reader.hpp"
 
 #include "base/exception.hpp"
 #include "base/file_name_utils.hpp"
@@ -23,6 +23,25 @@
 
 namespace street_pixels
 {
+namespace
+{
+bool IsWorldOrCoastsLeafId(std::string const & leafId)
+{
+  return leafId == WORLD_FILE_NAME || leafId == WORLD_COASTS_FILE_NAME;
+}
+
+bool ContainerHasRequiredMwmTags(FilesContainerR const & container)
+{
+  return container.IsExist(VERSION_FILE_TAG) && container.IsExist(HEADER_FILE_TAG) &&
+         container.IsExist(FEATURES_FILE_TAG);
+}
+
+bool IsCountryMwmHeader(feature::DataHeader const & header)
+{
+  return header.GetType() == feature::DataHeader::MapType::Country;
+}
+}  // namespace
+
 std::string DebugPrint(PixDeriveStatus status)
 {
   switch (status)
@@ -33,6 +52,7 @@ std::string DebugPrint(PixDeriveStatus status)
   case PixDeriveStatus::EmptyUniverse: return "EmptyUniverse";
   case PixDeriveStatus::WriteFailed: return "WriteFailed";
   case PixDeriveStatus::BadOutput: return "BadOutput";
+  case PixDeriveStatus::NotALeaf: return "NotALeaf";
   }
   return "Unknown";
 }
@@ -47,6 +67,7 @@ int PixDeriveStatusExitCode(PixDeriveStatus status)
   case PixDeriveStatus::EmptyUniverse: return 3;
   case PixDeriveStatus::WriteFailed: return 4;
   case PixDeriveStatus::BadOutput: return 5;
+  case PixDeriveStatus::NotALeaf: return 1;
   }
   return 1;
 }
@@ -61,31 +82,6 @@ PixDeriveStatus WriteUnexploredUniversePix(std::string const & outPath, std::set
   if (!street_pixels_file::SaveUnexploredIds(outPath, universe, mapDataVersion))
     return PixDeriveStatus::WriteFailed;
   return PixDeriveStatus::Ok;
-}
-
-bool ContainerLooksLikeMwm(std::string const & mwmPath)
-{
-  try
-  {
-    FileReader reader(mwmPath);
-    if (reader.Size() < sizeof(uint64_t))
-      return false;
-    uint64_t const offset = ReadPrimitiveFromPos<uint64_t>(reader, 0);
-    if (offset >= reader.Size())
-      return false;
-
-    FilesContainerR const container(mwmPath);
-    return container.IsExist(VERSION_FILE_TAG) && container.IsExist(HEADER_FILE_TAG) &&
-           container.IsExist(FEATURES_FILE_TAG);
-  }
-  catch (RootException const &)
-  {
-    return false;
-  }
-  catch (std::exception const &)
-  {
-    return false;
-  }
 }
 
 PixDeriveResult DeriveAndWritePixFile(std::string const & mwmPath, std::string const & outDir,
@@ -111,23 +107,34 @@ PixDeriveResult DeriveAndWritePixFile(std::string const & mwmPath, std::string c
     result.m_status = PixDeriveStatus::MissingMwm;
     return result;
   }
-  if (!ContainerLooksLikeMwm(mwmPath))
+  if (IsWorldOrCoastsLeafId(result.m_leafId))
   {
-    result.m_status = PixDeriveStatus::UnreadableMwm;
+    result.m_status = PixDeriveStatus::NotALeaf;
     return result;
   }
 
   try
   {
+    FilesContainerR const container(mwmPath, READER_CHUNK_LOG_SIZE, READER_CHUNK_LOG_COUNT);
+    if (!ContainerHasRequiredMwmTags(container))
+    {
+      result.m_status = PixDeriveStatus::UnreadableMwm;
+      return result;
+    }
+
+    feature::DataHeader const header(container);
+    if (!IsCountryMwmHeader(header))
+    {
+      result.m_status = PixDeriveStatus::NotALeaf;
+      return result;
+    }
+
     int64_t mapDataVersion = mapDataVersionOverride;
     if (mapDataVersion == 0)
-    {
-      FilesContainerR const container(mwmPath);
       mapDataVersion = static_cast<int64_t>(version::MwmVersion::Read(container).GetVersion());
-    }
     result.m_mapDataVersion = mapDataVersion;
 
-    FeaturesVectorTest featuresVector(mwmPath);
+    FeaturesVectorTest featuresVector(container);
     std::set<std::int64_t> const universe = DeriveStreetPixelsUniverse(featuresVector);
     result.m_universeSize = universe.size();
     result.m_status = WriteUnexploredUniversePix(result.m_outPath, universe, mapDataVersion);
