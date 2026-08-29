@@ -2,7 +2,7 @@
 
 **Document status:** Living project index
 **Scope of this document:** Android public V1
-**Last structural update:** 2026-08-28
+**Last structural update:** 2026-08-29
 
 This file is the index for Street Pixels implementation work. It intentionally
 contains no implementation detail. Detail belongs in `phases/` and
@@ -85,7 +85,7 @@ V1 scope. Explorer Pro **purchasing** is not.
 | 7 | Milestones and share cards | [`phases/phase-07-milestones-and-share-cards.md`](phases/phase-07-milestones-and-share-cards.md) | In progress (SP-069 In review; exit awaiting maintainer) |
 | 8 | Competition | [`phases/phase-08-competition.md`](phases/phase-08-competition.md) | SP-070 Accepted; SP-071 in progress; SP-072–074 Accepted |
 | 9 | GPX and feature gating | [`phases/phase-09-gpx-and-feature-gating.md`](phases/phase-09-gpx-and-feature-gating.md) | Exit criteria met 2026-08-28 with residuals → Phase 10 |
-| 10 | Android release hardening | [`phases/phase-10-android-release-hardening.md`](phases/phase-10-android-release-hardening.md) | Not started |
+| 10 | Android release hardening | [`phases/phase-10-android-release-hardening.md`](phases/phase-10-android-release-hardening.md) | Not started (SP-088 Accepted 2026-08-29; brand + on-device testing residual; coding waits on other phases’ exit) |
 
 Phase order is unchanged from the originally proposed sequence. Repository
 inspection did not reveal a dependency requiring phases to be moved or split.
@@ -544,5 +544,22 @@ SPD-067–076). SP-081–087 **Accepted** (2026-08-28). G1–G10 closed. Phase 9
 Eligibility env → Phase 10; Qt ungated; reload no-paint; multi-cat KMZ;
 FromLatLon; system expat).
 
-Detailed work items exist for Phases 1–9. Phase 10 is broken down after
-other phases meet exit.
+| Order | ID | Title | Phase | Why first |
+| --- | --- | --- | --- | --- |
+| 88 | [SP-088](work-items/SP-088-launch-governance-decisions.md) | Launch-governance decisions | 10 | **Accepted** (2026-08-29) — H1–H10 → SPD-077–086; brand + on-device testing residual |
+| 89 | [SP-089](work-items/SP-089-residual-defect-close-out.md) | Locked residual defect close-out | 10 | **Planned** — H7 Fix list (SPD-083); not brand, not device |
+| 90 | [SP-090](work-items/SP-090-settings-empty-states-first-run.md) | Settings, empty-state, and first-run audit | 10 | **Planned** — §30/§31/§10 except privacy/terms URL rows and app-name rebrand (residual); hide public friend settings (SPD-085) |
+| 91 | [SP-091](work-items/SP-091-product-analytics-reconciliation.md) | Product analytics reconciliation | 10 | **Planned** — local §32 counters + payload-shape (SPD-081); no upload sink |
+| 92 | [SP-092](work-items/SP-092-permissions-manifest-store-disclosures.md) | Permissions, manifest, and store disclosures | 10 | **Planned** — hide friends (SPD-085); ABL absent (SPD-082); listing brand copy residual |
+| 93 | [SP-093](work-items/SP-093-privacy-policy-terms-consent.md) | Privacy policy, terms, and consent alignment | 10 | **Residual** — brand: privacy policy + terms (SPD-080 landing) |
+| 94 | [SP-094](work-items/SP-094-battery-rendering-lifecycle.md) | Battery, rendering, and lifecycle measurement | 10 | **Planned** (protocol docs); **device execution Residual** (SPD-078) |
+| 95 | [SP-095](work-items/SP-095-device-matrix-residual-close-out.md) | Device-matrix residual close-out | 10 | **Residual** — device walks (SPD-077 / SPD-083 Device-verify execution) |
+| 96 | [SP-096](work-items/SP-096-risk-register-and-release-pipeline.md) | Risk-register close-out and release pipeline | 10 | **Planned** — §22/§26 risk table; signed APK/ops may residual; brand listing residual |
+| 97 | [SP-097](work-items/SP-097-phase10-launch-requirement-verification.md) | Phase 10 / §34 verification | 10 | **Planned** — automated suites + evidence mapping (SPD-086); device/manual Residual |
+
+Phase 10 work-item planning (2026-08-29) recorded in
+[`phases/phase-10-android-release-hardening.md`](phases/phase-10-android-release-hardening.md).
+SP-088 **Accepted** 2026-08-29 (SPD-077–086). Brand writing and on-device
+testing are residual, not later Phase 10 coding items. Implementation of
+remaining coding items waits on other phases at exit. Do **not** treat
+Phase 10 exit as met.

@@ -1,6 +1,7 @@
 # Phase 10 — Android release hardening
 
-**Status:** Not started
+**Status:** Not started (work-item planning 2026-08-29; implementation
+blocked on other phases’ exit)
 **Depends on:** every other phase
 **Blocks:** public release
 
@@ -37,23 +38,30 @@ or a defect found during verification.
 
 ## Current code locations
 
-Verified 2026-07-25 against the working tree.
+Verified 2026-07-25 against the working tree. **Re-verified 2026-08-29**
+during work-item planning. Extra detail in
+[`notes/SP-088-launch-governance-architecture.md`](../notes/SP-088-launch-governance-architecture.md).
 
 | Concern | Location | Observed state |
 | --- | --- | --- |
-| Android manifest | `android/app/src/main/AndroidManifest.xml` | Location permissions present; `ACCESS_BACKGROUND_LOCATION` absent; foreground service types `location` for `NavigationService` and `TrackRecordingService`, `dataSync` for `DownloaderService`; add-friend deep links registered |
+| Android manifest | `android/app/src/main/AndroidManifest.xml` | Location permissions present; `ACCESS_BACKGROUND_LOCATION` still absent; FGS types `location` (`NavigationService`, `TrackRecordingService`), `dataSync` (`DownloaderService`); **`comaps://add-friend` and HTTPS `/add-friend` still registered** (SPD-061 not applied to intent-filters) |
 | Store credentials | `docs/CREDENTIALS.md` | Documents the CI secrets required for signed store builds |
-| Release workflows | `.forgejo/workflows/android-release.yaml`, `android-beta.yaml`, `android-check-metadata.yaml`, `android-release-metadata.yaml` | Present; upstream CoMaps release machinery |
+| Release workflows | `.forgejo/workflows/android-release.yaml`, `android-beta.yaml`, `android-check-metadata.yaml`, `android-release-metadata.yaml` | Present; upstream CoMaps release machinery and listing identity |
 | Android lint | `.github/workflows/android-check.yaml` | `./gradlew -Pandroidauto=true lint` |
 | Flavors | `android/app/build.gradle` | `google`, `web`, `fdroid`, `huawei`; build types `debug`, `release`, `beta` |
-| Android tests | `android/app/src/test/`, `android/sdk/src/test/` | Three JVM unit-test files total. **No `androidTest` instrumented tests anywhere.** |
-| Error and empty states | across the Android app | Not yet audited against spec §31 |
-| Privacy policy and terms | — | Not located in this repository |
+| Android tests | `android/app/src/test/`, `android/sdk/src/test/` | JVM tests now include Street Pixels gates (Explorer Pro, GPX, recording UI, routing options). **Still no `androidTest` instrumented tests.** |
+| Play listing | `android/app/src/google/play/listings/en-US/full-description.txt` | Upstream CoMaps copy; advertises GPX import/export; no Street Pixels session/competition disclosure |
+| Privacy policy and terms | `HelpFragment` → `https://comaps.app/privacy/` and `terms/` | No Street Pixels policy text in this repository |
+| Privacy settings | `PrivacySettingsFragment` / `prefs_privacy.xml` | Search history + Play services. Spec §30 Street Pixels rows not present |
+| Product analytics | routing / card / Pro uint64 helpers | Local count-only. No §32.1 / §32.3. No upload sink |
+| Error and empty states | across the Android app | Partial (no-area, interruption, Avoid no-route). Not yet audited against spec §31 |
 
-**Difference from the technical audit:** the audit did not note that there are
-no instrumented Android tests at all, and that Android unit-test coverage is
-three files. Any Android-side verification in this phase is manual unless
-instrumentation is added.
+**Difference from the technical audit (2026-07-20) and the 2026-07-25
+snapshot:** Phases 1–9 have landed session gating, rematch, areas, routing,
+milestones, competition, and GPX gates. Instrumented tests are still absent.
+Friends deep links and CoMaps store/privacy URLs are unchanged. ABL is still
+absent (SP-012 Pixel 3a without it). H1–H10 are **Accepted** 2026-08-29 as
+**SPD-077–086**. Brand writing and on-device testing are residual.
 
 ## Intended outcome
 
@@ -64,43 +72,79 @@ instrumentation is added.
 - Battery and rendering behaviour measured over realistic sessions.
 - Every risk in the audit register closed out with a stated position.
 
+Product-owner lock 2026-08-29 residualised brand writing and on-device
+execution, so several of these outcomes cannot close in the Phase 10
+coding slice (see Exit criteria). Do **not** mark Phase 10 exit met.
+
 ## Dependencies
 
-All other phases at their exit criteria. This phase cannot start early, and
-partial entry produces false confidence.
+All other phases at their exit criteria before **implementation** (SP-089+).
+Partial implementation entry produces false confidence.
+
+SP-088 is **Accepted** 2026-08-29 (SPD-077–086). Brand writing and
+on-device testing are residual. Coding SP-089+ still waits on other
+phases at exit.
 
 ## Carried residuals from earlier phases
 
-These do not block earlier phase exits. Phase 10 must close them with recorded
-device evidence (or an explicit accepted waiver).
+These do not block earlier phase exits. H7 / **SPD-083** classifies each
+row. Phase 10 coding closes Fix (SP-089), local Follow-H5 (SP-091), and
+Ops docs (SP-096). Device-verify *execution*, H2 measurement execution,
+and brand writing are residual (product-owner lock 2026-08-29). Full
+inventory:
+[`notes/SP-088-launch-governance-architecture.md`](../notes/SP-088-launch-governance-architecture.md).
 
-| From | Residual | Source |
+| From | Residual | Source | H7 class (SPD-083) |
+| --- | --- | --- | --- |
+| Phase 2 | Aggressive-OEM screen-off / background sample continuity (exit #7 partial; Pixel 3a done) | SP-014 | Device-verify (SP-095; **execution residual**) |
+| Phase 3 | Maintainer device walks (Pixel 3a / Uusimaa-scale reconciliation UX); rematch timing | SP-022 | Device-verify + Measure (**execution residual**) |
+| Phase 4 | R3 device walks: Helsinki UX, rural/coastal, no MWM-id as neighbourhood name in UI | SP-031 | Device-verify (SP-095; **execution residual**) |
+| Phase 4 | R1 (narrowed): production mapgen collectors → `.spa` / CDN shipping | SP-042–048 **Accepted** 2026-08-08 (**SPD-033**); Option A remains residual | **Not Phase 10** |
+| Phase 4 | LAN/CDN publish mirror; S2–S8 device download | SP-049–053 | Device *enabler* for Helsinki; not a Phase 10 feature |
+| Phase 4 | Incomplete-`.spa` Android chrome | SP-048 | Fix (SP-089) |
+| Phase 5 | Quantitative Spike 1 FPS/memory (Pixel 3a qualitative OK; numbers deferred) | SP-033 / SP-041 R2 | Measure (SP-094; **execution residual**) |
+| Phase 5 | Device Helsinki walks: badge/focus/tap/city zoom/completed chrome/§31 empty/no country-world UI | SP-041 R1 — needs `.spa` via download (SP-053) | Device-verify (SP-095; **execution residual**) |
+| Phase 5 | Completed check glyph not drawn (`m_showCheck` reserved; outline+fill shipped) | SP-040 / SP-041 R3 | Fix (SP-089) |
+| Phase 5 | Overlay neighbourhood-baked push retune | SP-041 R4 | Accept/waive |
+| Phase 6 | Spike 7 city-scale / device; all routing device walks | SP-054 / SP-061 | Measure + Device-verify (**execution residual**) |
+| Phase 6 | GPS off-route Prefer dialog not shown (`nullptr` removeRouteCallback) | SP-061 R3 | Fix (SP-089) |
+| Phase 6 | Routing analytics upload | SP-060 / SPD-044 | Follow H5 (SP-091; **SPD-081** stay local, no sink) |
+| Phase 6 | No in-app debug readout of counters | SP-061 R5 | Accept/waive |
+| Phase 7 | Device celebration, card, share, haptics, nav | SP-069 | Device-verify (SP-095; **execution residual**) |
+| Phase 7 | Date checkbox vs SPD-056; 4 s PNG lifetime; `onResume` counter | SP-069 | Fix (SP-089) |
+| Phase 7 | Growth-counter upload | SPD-055 | Follow H5 (SP-091; **SPD-081** stay local, no sink) |
+| Phase 8 | Device opt-in, traffic capture, opt-out, queue, N&lt;3, delete | SP-079 | Device-verify (SP-095; **execution residual**) |
+| Phase 8 | Weekly GET not JNI-wired; recency rows survive revoke | SP-079 / SP-072 | Fix (SP-089) |
+| Phase 8 | Postgres production deploy; exact EU region string | SP-075 / SPD-062 | Ops (SP-096) |
+| Phase 8 | Failed POST `/leave` no retry; HTTP 409 mapping; 7-day gates after admin reset | SP-077 | Accept (SPD-083; not SP-089 Fix, not SP-096 Ops) |
+| Phase 9 | Device GPX / public APK / share-sheet / internal Pro | SP-087 | Device-verify (SP-095; **execution residual**) |
+| Phase 9 | Monetisation analytics upload | SPD-075 | Follow H5 (SP-091; **SPD-081** stay local, no sink) |
+| Phase 9 | Qt ungated; reload no-paint; multi-cat KMZ; FromLatLon; system expat | SP-087 | Accept (not Android V1) |
+
+## Work-item breakdown
+
+Work-item planning 2026-08-29. Locks H1–H10 live in
+[`SP-088`](../work-items/SP-088-launch-governance-decisions.md) as
+**Accepted SPD-077–086** (product-owner lock 2026-08-29; brand writing
+and on-device testing residualised). Coding SP-089+ waits on other
+phases at exit. Residual WIs are not coding items.
+
+| Order | ID | Title |
 | --- | --- | --- |
-| Phase 2 | Aggressive-OEM screen-off / background sample continuity (exit #7 partial; Pixel 3a done) | SP-014 |
-| Phase 3 | Maintainer device walks (Pixel 3a / Uusimaa-scale reconciliation UX) | Phase 3 exit |
-| Phase 4 | R3 device walks: Helsinki UX, rural/coastal, no MWM-id as neighbourhood name in UI | SP-031 |
-| Phase 4 | R1 (narrowed): production mapgen collectors → `.spa` / CDN shipping | Pre-production packaging — SP-042–048 **Accepted** 2026-08-08 ([SP-042](../work-items/SP-042-sidecar-shipping-decisions.md) / **SPD-033**); Option A mapgen collectors remain residual. LAN/CDN publish mirror **Planned** SP-049–053 (device enabler, still not a Phase 10 device residual itself) |
-| Phase 5 | Quantitative Spike 1 FPS/memory (Pixel 3a qualitative OK; numbers deferred) | SP-033 / SP-041 R2 |
-| Phase 5 | Device Helsinki walks: badge/focus/tap/city zoom/completed chrome/§31 empty/no country-world UI | SP-041 R1 — **blocked on-device until** leaf `.spa` arrives via download (SP-053); scoped storage prevents reliable `adb push` |
-| Phase 5 | Completed check glyph not drawn (`m_showCheck` reserved; outline+fill shipped) | SP-040 / SP-041 R3 |
+| 1 | [SP-088](../work-items/SP-088-launch-governance-decisions.md) | Launch-governance decisions (**Accepted** 2026-08-29; SPD-077–086) |
+| 2 | [SP-089](../work-items/SP-089-residual-defect-close-out.md) | Locked residual defect close-out (**SPD-083** Fix list; not brand, not device) |
+| 3 | [SP-090](../work-items/SP-090-settings-empty-states-first-run.md) | Settings, empty-state, and first-run audit (§30/§31/§10 except privacy/terms URLs and app-name rebrand; hide public friend settings **SPD-085**) |
+| 4 | [SP-091](../work-items/SP-091-product-analytics-reconciliation.md) | Product analytics reconciliation (local §32; **SPD-081** no sink) |
+| 5 | [SP-092](../work-items/SP-092-permissions-manifest-store-disclosures.md) | Permissions, manifest, and store disclosures (hide friends **SPD-085**; ABL absent **SPD-082**; listing brand residual) |
+| 6 | [SP-093](../work-items/SP-093-privacy-policy-terms-consent.md) | Privacy policy, terms, and consent alignment (**Residual** — brand; **SPD-080** landing) |
+| 7 | [SP-094](../work-items/SP-094-battery-rendering-lifecycle.md) | Battery, rendering, and lifecycle measurement (**device execution Residual**; protocol docs **SPD-078**) |
+| 8 | [SP-095](../work-items/SP-095-device-matrix-residual-close-out.md) | Device-matrix residual close-out (**Residual** — device walks; **SPD-077**/**SPD-083**) |
+| 9 | [SP-096](../work-items/SP-096-risk-register-and-release-pipeline.md) | Risk-register close-out and release pipeline (docs table; signed APK/ops may residual; brand listing residual) |
+| 10 | [SP-097](../work-items/SP-097-phase10-launch-requirement-verification.md) | Phase 10 / §34 verification (**exit gate**; automated + mapping; device/manual Residual) |
 
-## Proposed work-item breakdown
-
-Not yet decomposed. Likely shape:
-
-1. Launch-requirement verification pass over spec §34, producing an evidence
-   log.
-2. Error and empty-state audit against spec §31.
-3. Settings audit against spec §30.
-4. Analytics audit: every event reviewed for location content, and the §32 list
-   reconciled with what is implemented.
-5. Permission, manifest, and store data-safety disclosure alignment.
-6. Privacy policy, terms, and competition consent text alignment.
-7. Battery measurement during active recording.
-8. Rendering performance re-measurement on the release build.
-9. Device matrix pass, including at least one aggressive-OEM device.
-10. Data-loss and crash-recovery pass.
-11. Risk-register close-out.
+Gate: SP-088 has locked H1–H10. This phase still **adds no features** beyond
+defects H7 classifies as Fix, disclosure text that is not brand, and
+verification that is not on-device. Do **not** mark Phase 10 exit met.
 
 ## Data and migration concerns
 
@@ -122,12 +166,15 @@ The final privacy gate. What must be true before release:
 - Analytics contain no location values, no screenshots, and no view
   hierarchies.
 - The privacy policy accurately describes what stays local and what is
-  uploaded.
+  uploaded. **Landing** that policy text is residual (**SPD-080**;
+  SP-093 residual); `https://comaps.app/privacy/` may stay for now.
 - The competition consent text matches actual upload behaviour item by item.
 - Store permission declarations and background-location disclosure are
-  accurate. If `ACCESS_BACKGROUND_LOCATION` was added in Phase 2, the Play
-  Console background-location declaration and its justification video must
-  match the session-based behaviour.
+  accurate. ABL was **not** added in Phase 2 (SP-012). **SPD-082** keeps it
+  absent. D2 measurement execution is residual, so the exception path
+  cannot fire in Phase 10 coding. If a later SPD adds ABL, the Play
+  Console background-location declaration and its justification
+  video must match the session-based behaviour.
 - No known path reveals another user's live or exact location.
 - Logs in release builds contain no coordinates.
 - Sparse-area anonymity holds against direct API calls, not only in the UI.
@@ -144,18 +191,21 @@ The final privacy gate. What must be true before release:
 
 Note the standing CI gap: `.forgejo/workflows/linux-check.yaml` excludes
 `map_tests` and most other suites through `CTEST_EXCLUDE_REGEX`, and
-`.github/workflows/` has no C++ test job. Before release, either the exclusions
-are narrowed so Street Pixels-relevant suites actually run, or the manual test
-run is part of the release checklist with recorded output.
+`.github/workflows/` has no C++ test job. **SPD-086:** the recorded local
+run is the V1 gate; narrowing exclusions is not a Phase 10 coding task.
 
 ## Manual validation strategy
 
 This phase is mostly manual, structured as an evidence log rather than a
-walkthrough.
+walkthrough. Product-owner lock 2026-08-29 residualised **on-device
+execution**. The scripts remain defined; do **not** execute hardware walks
+in SP-089–097.
 
-- Execute every spec §34 line item and record: who, which device, which OS
+On-device scripts (residual until a later WI executes them):
+
+- Every spec §34 line item, recording: who, which device, which OS
   version, which build, what was observed.
-- Execute every spec §31 error and empty state deliberately, including denied
+- Every spec §31 error and empty state deliberately, including denied
   location, denied background location, no downloaded map, poor GPS accuracy,
   interrupted recording, no exploration area, no local competitors, no
   connectivity, and an impossible avoid-explored route.
@@ -169,26 +219,40 @@ walkthrough.
 
 ## Entry criteria
 
-- Every other phase has met its exit criteria.
-- No open work item is in progress.
-- A release-configured build exists and is installable.
+- Every other phase has met its exit criteria (required for SP-089+; not for
+  SP-088).
+- No open work item is in progress (required for SP-089+).
+- A release-configured build exists and is installable (required for
+  SP-094–097).
 
 ## Exit criteria
 
+These remain the phase exit bar. Product-owner lock 2026-08-29 residualised
+brand writing and on-device execution, so several items cannot be closed in
+this coding slice. **Do not mark Phase 10 exit met.**
+
 1. Every product spec §34 line item is verified with recorded evidence.
+   Device/manual hardware observations residual (SP-095 / SP-097 device).
 2. Every spec §31 error and empty state is implemented and observed.
+   Device observation residual; SP-090 implements copy/actions except
+   privacy/terms URL rows and app-name rebrand.
 3. Settings match spec §30, with no radius or internal-parameter exposure.
+   Privacy-policy/terms URL rows and app-name rebrand residual.
 4. Analytics match spec §32 and contain no location data.
+   Local counters + payload-shape in SP-091; no upload sink (**SPD-081**).
 5. Privacy policy, terms, consent text, and store disclosures match actual
-   behaviour.
+   behaviour. Policy/terms landing and listing brand copy residual
+   (**SPD-080**, **SPD-084**; SP-093 residual).
 6. Battery consumption during active recording is measured and accepted.
+   Protocol locked (**SPD-078**); measurement execution residual.
 7. Rendering performance on the release build meets the recorded criteria.
+   Spike 1 bar locked; measurement execution residual.
 8. No critical exploration-data-loss path exists across the tested lifecycle
-   events.
+   events. Device lifecycle walks residual (SP-094).
 9. No known path reveals another user's live or exact location.
-10. Every audit risk has a stated final position.
+10. Every audit risk has a stated final position (SP-096 docs table).
 11. Store build signing works and the release pipeline produces an installable
-    artefact.
+    artefact. Signed APK/ops may residual.
 
 ## Explicit non-goals
 
@@ -203,17 +267,26 @@ walkthrough.
 
 ## Known uncertainties
 
-- Whether battery consumption during multi-hour recording is acceptable, and
-  what "acceptable" is numerically. The spec does not set a threshold; one must
-  be agreed before this phase can pass its own criterion.
-- Whether Play Store review accepts the background-location justification. This
-  is outside the team's control and may require copy or behaviour changes late.
-- Which device matrix is sufficient. The audit suggests a Pixel-class device
-  plus at least one aggressive OEM.
-- Where the privacy policy and terms live and who owns their text.
-- Whether the upstream CoMaps release workflows can be reused as-is for a fork
-  with a different application identity and store listing.
-- Whether the friends feature is present in the released build (OQ-6), which
-  changes the store listing, the privacy policy, and the moderation surface.
-- Whether the F-Droid, Huawei, and Google flavors are all in scope for the
-  first release, or only one.
+H1–H10 are **locked** 2026-08-29 via
+[`SP-088`](../work-items/SP-088-launch-governance-decisions.md) as
+**SPD-077–086**. **OQ-30–OQ-39** are closed. Brand writing and on-device
+testing remain residual (not later Phase 10 coding items).
+
+| Ref | Question | Accepted lock | Residual |
+| --- | --- | --- | --- |
+| H1 | Device matrix | D1 Pixel-class + D2 one aggressive OEM (**SPD-077**) | Execution residual |
+| H2 | Battery / rendering bars | Spike 1 unchanged; battery protocol now, numeric ceiling after measurement or waiver (**SPD-078**) | Measurement execution residual |
+| H3 | Store flavors | Google Play is the V1 gate; F-Droid same artefact optional; Huawei/web not a gate (**SPD-079**) | Listing brand copy residual |
+| H4 | Privacy policy / terms | Product-owned Street Pixels text (**SPD-080**) | Landing text/URLs residual; SP-093 residual |
+| H5 | Analytics upload | No new public sink; local uint64 only (**SPD-081**); closes SPD-044/055/075 upload residual | SP-091 local counters; no sink |
+| H6 | `ACCESS_BACKGROUND_LOCATION` | Keep absent (**SPD-082**) | D2 exception path residual |
+| H7 | Residual disposition | Fix / Measure / Device-verify / Ops / Follow H5 / Accept table in the note (**SPD-083**) | Device-verify execution residual |
+| H8 | Release workflows | Reuse machinery (**SPD-084**) | Application name, listing copy, privacy/terms URLs residual |
+| H9 | Friends in public APK | Operationalize SPD-061 (hide UI and add-friend filters) (**SPD-085**) | Implementable in SP-092 |
+| H10 | C++ CI exclusions | Not a launch blocker; recorded local suites are the V1 gate (**SPD-086**) | Device/manual §34 residual |
+
+Friends *presence* in V1 is already **SPD-061** (hidden). H9 is how far the
+public APK strips the leftover surface.
+
+Play Store review of an ABL justification (only if a later SPD adds ABL)
+remains outside the team’s control.
