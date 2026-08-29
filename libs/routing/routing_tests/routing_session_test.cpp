@@ -923,4 +923,45 @@ UNIT_CLASS_TEST(AsyncGuiThreadTestWithRoutingSession, TestAssignRouteIncrementsE
   TEST_EQUAL(snapshot.m_avoidUsed, 1, ());
   TEST_EQUAL(snapshot.m_avoidFallbackPrefer, 0, ());
 }
+
+UNIT_CLASS_TEST(AsyncGuiThreadTestWithRoutingSession, RebuildRoute_AvoidExploredNoRouteInvokesRemoveRoute)
+{
+  TimedSignal built;
+  TimedSignal removed;
+  RouterResultCode seen = RouterResultCode::NoError;
+  size_t counter = 0;
+
+  GetPlatform().RunTask(Platform::Thread::Gui, [&built, &removed, &seen, &counter, this]()
+  {
+    InitRoutingSession();
+    Route masterRoute("dummy", kTestRoute.begin(), kTestRoute.end(), 0 /* route id */);
+    unique_ptr<DummyRouter> okRouter = make_unique<DummyRouter>(masterRoute, RouterResultCode::NoError, counter);
+    m_session->SetRouter(std::move(okRouter), nullptr);
+    m_session->SetRoutingCallbacks([&built](Route const &, RouterResultCode) { built.Signal(); },
+                                   nullptr /* rebuildReadyCallback */, nullptr /* needMoreMapsCallback */,
+                                   [](RouterResultCode) {});
+    m_session->BuildRoute(Checkpoints(kTestRoute.front(), kTestRoute.back()), RouterDelegate::kNoTimeout);
+  });
+  TEST(built.WaitUntil(steady_clock::now() + kRouteBuildingMaxDuration), ("Route was not built."));
+
+  GetPlatform().RunTask(Platform::Thread::Gui, [&removed, &seen, &counter, this]()
+  {
+    Route masterRoute("dummy", kTestRoute.begin(), kTestRoute.end(), 0 /* route id */);
+    unique_ptr<DummyRouter> avoidRouter =
+        make_unique<DummyRouter>(masterRoute, RouterResultCode::AvoidExploredNoRoute, counter);
+    m_session->SetRouter(std::move(avoidRouter), nullptr);
+    m_session->RebuildRoute(kTestRoute.front(), [](Route const &, RouterResultCode) {},
+                            nullptr /* needMoreMapsCallback */,
+                            [&removed, &seen](RouterResultCode code)
+    {
+      seen = code;
+      removed.Signal();
+    },
+                            RouterDelegate::kNoTimeout, SessionState::RouteRebuilding, true /* adjustToPrevRoute */);
+  });
+
+  TEST(removed.WaitUntil(steady_clock::now() + kRouteBuildingMaxDuration), ("Remove route was not invoked."));
+  TEST_EQUAL(seen, RouterResultCode::AvoidExploredNoRoute, ());
+  TEST_GREATER_OR_EQUAL(counter, 2, ());
+}
 }  // namespace routing_session_test
