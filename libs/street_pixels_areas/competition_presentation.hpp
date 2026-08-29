@@ -88,6 +88,13 @@ struct CompetitionWeeklyBoard
   std::vector<CompetitionWeeklyEntry> m_ranking;
 };
 
+struct CompetitionWeeklyChrome
+{
+  bool m_offline = false;
+  std::string m_body;
+  std::vector<std::string> m_rows;
+};
+
 struct CompetitionAreaChrome
 {
   bool m_offline = false;
@@ -175,6 +182,9 @@ std::string ComposeSparseBossLine(std::optional<CompetitionBoss> const & boss, i
 std::string ComposeSparseGapLine(CompetitionRankingEntry const & otherOrLeader);
 
 CompetitionAreaChrome BuildCompetitionAreaChrome(std::optional<CompetitionAreaSnapshot> const & snapshot);
+
+std::string FormatWeeklyRemaining(int64_t secondsRemaining);
+CompetitionWeeklyChrome BuildCompetitionWeeklyChrome(std::optional<CompetitionWeeklyBoard> const & board);
 
 CompetitionHintKind SelectCompetitionHintKind(std::optional<CompetitionAreaSnapshot> const & snapshot,
                                               bool localApproachingEligibility, bool localIsBoss,

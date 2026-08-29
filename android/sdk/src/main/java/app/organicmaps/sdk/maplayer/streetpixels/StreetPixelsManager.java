@@ -53,6 +53,11 @@ public class StreetPixelsManager
     void onCompetitionAreaSnapshot(@NonNull CompetitionAreaChrome chrome);
   }
 
+  public interface CompetitionWeeklyBoardCallback
+  {
+    void onCompetitionWeeklyBoard(@NonNull CompetitionWeeklyChrome chrome);
+  }
+
   @NonNull
   private static final java.util.List<Callback> sCallbacks = new java.util.ArrayList<>();
   @NonNull
@@ -232,6 +237,11 @@ public class StreetPixelsManager
   @WorkerThread
   @NonNull
   private static native CompetitionAreaChrome nativeRequestCompetitionAreaSnapshot(long osmId);
+  @NonNull
+  private static native CompetitionWeeklyChrome nativeGetCompetitionWeeklyChrome(long cityOsmId);
+  @WorkerThread
+  @NonNull
+  private static native CompetitionWeeklyChrome nativeRequestCompetitionWeeklyBoard(long cityOsmId);
 
   public void attach(@NonNull StreetPixelsErrorDialogListener listener)
   {
@@ -358,6 +368,22 @@ public class StreetPixelsManager
       if (callback == null)
         return;
       UiThread.run(() -> callback.onCompetitionAreaSnapshot(chrome));
+    });
+  }
+
+  @NonNull
+  public CompetitionWeeklyChrome getCompetitionWeeklyChrome(long cityOsmId)
+  {
+    return nativeGetCompetitionWeeklyChrome(cityOsmId);
+  }
+
+  public void requestCompetitionWeeklyBoard(long cityOsmId, @Nullable CompetitionWeeklyBoardCallback callback)
+  {
+    ThreadPool.getWorker().execute(() -> {
+      CompetitionWeeklyChrome chrome = nativeRequestCompetitionWeeklyBoard(cityOsmId);
+      if (callback == null)
+        return;
+      UiThread.run(() -> callback.onCompetitionWeeklyBoard(chrome));
     });
   }
 

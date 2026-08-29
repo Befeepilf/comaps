@@ -41,6 +41,18 @@ std::mutex & SnapshotCacheMutex()
   return mutex;
 }
 
+std::optional<CompetitionWeeklyBoard> & WeeklyCache()
+{
+  static std::optional<CompetitionWeeklyBoard> cache;
+  return cache;
+}
+
+std::mutex & WeeklyCacheMutex()
+{
+  static std::mutex mutex;
+  return mutex;
+}
+
 int DefaultCompetitionGet(std::string const & url, std::string & response,
                           std::vector<std::pair<std::string, std::string>> const & headers)
 {
@@ -136,6 +148,24 @@ FetchAreaSnapshotResult ChromeFromCacheOrOffline(int64_t areaOsmId)
   }
   else
   {
+    result.m_chrome.m_offline = true;
+  }
+  return result;
+}
+
+FetchWeeklyBoardResult WeeklyChromeFromCacheOrOffline(int64_t cityOsmId)
+{
+  FetchWeeklyBoardResult result;
+  auto last = LastWeeklyBoard();
+  if (last.has_value() && last->m_cityOsmId == cityOsmId)
+  {
+    result.m_board = last;
+    result.m_chrome = BuildCompetitionWeeklyChrome(last);
+    result.m_chrome.m_offline = true;
+  }
+  else
+  {
+    result.m_chrome = BuildCompetitionWeeklyChrome(std::nullopt);
     result.m_chrome.m_offline = true;
   }
   return result;
@@ -313,6 +343,57 @@ FetchAreaSnapshotResult FetchAreaSnapshot(int64_t areaOsmId, std::string const &
   }
   result.m_snapshot = parsed;
   result.m_chrome = BuildCompetitionAreaChrome(parsed);
+  return result;
+}
+
+std::optional<CompetitionWeeklyBoard> LastWeeklyBoard()
+{
+  std::lock_guard<std::mutex> lock(WeeklyCacheMutex());
+  return WeeklyCache();
+}
+
+void ClearCompetitionWeeklyCacheForTesting()
+{
+  std::lock_guard<std::mutex> lock(WeeklyCacheMutex());
+  WeeklyCache().reset();
+}
+
+FetchWeeklyBoardResult FetchWeeklyBoard(int64_t cityOsmId, std::string const & profileId)
+{
+  FetchWeeklyBoardResult result;
+  result.m_url = backend::GetCompetitionWeeklyBoardRequestUrl(cityOsmId, profileId);
+  if (result.m_url.empty())
+    return WeeklyChromeFromCacheOrOffline(cityOsmId);
+
+  std::string body;
+  result.m_didGet = true;
+  result.m_httpStatus = GetCompetitionJson(result.m_url, body);
+  if (result.m_httpStatus != 200)
+  {
+    auto cached = WeeklyChromeFromCacheOrOffline(cityOsmId);
+    cached.m_didGet = true;
+    cached.m_httpStatus = result.m_httpStatus;
+    cached.m_url = result.m_url;
+    return cached;
+  }
+
+  CompetitionWeeklyBoard parsed;
+  if (!ParseWeeklyBoardJson(body, parsed))
+  {
+    auto cached = WeeklyChromeFromCacheOrOffline(cityOsmId);
+    cached.m_didGet = true;
+    cached.m_httpStatus = result.m_httpStatus;
+    cached.m_url = result.m_url;
+    return cached;
+  }
+
+  parsed.m_cityOsmId = cityOsmId;
+  {
+    std::lock_guard<std::mutex> lock(WeeklyCacheMutex());
+    WeeklyCache() = parsed;
+  }
+  result.m_board = parsed;
+  result.m_chrome = BuildCompetitionWeeklyChrome(parsed);
   return result;
 }
 

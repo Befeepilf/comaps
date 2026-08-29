@@ -160,6 +160,50 @@ CompetitionAreaChrome BuildCompetitionAreaChrome(std::optional<CompetitionAreaSn
   return chrome;
 }
 
+std::string FormatWeeklyRemaining(int64_t secondsRemaining)
+{
+  if (secondsRemaining <= 0)
+    return "0h";
+  int64_t const days = secondsRemaining / 86400;
+  int64_t const hours = (secondsRemaining % 86400) / 3600;
+  char buf[32];
+  if (days > 0)
+  {
+    std::snprintf(buf, sizeof(buf), "%lldd %lldh", static_cast<long long>(days), static_cast<long long>(hours));
+    return buf;
+  }
+  std::snprintf(buf, sizeof(buf), "%lldh", static_cast<long long>(hours));
+  return buf;
+}
+
+CompetitionWeeklyChrome BuildCompetitionWeeklyChrome(std::optional<CompetitionWeeklyBoard> const & board)
+{
+  CompetitionWeeklyChrome chrome;
+  if (!board.has_value() || board->m_ranking.empty())
+  {
+    chrome.m_body = kCompetitionWeeklyEmpty;
+    return chrome;
+  }
+  int64_t userCount = 0;
+  for (auto const & row : board->m_ranking)
+  {
+    if (row.m_isCurrentUser)
+      userCount = row.m_newLiveCount;
+    char line[160];
+    std::snprintf(line, sizeof(line), "%d  %s  %lld", row.m_rank,
+                  RankingDisplayName(row.m_nickname, row.m_isCurrentUser, {}).c_str(),
+                  static_cast<long long>(row.m_newLiveCount));
+    chrome.m_rows.emplace_back(line);
+  }
+  char pixels[96];
+  std::snprintf(pixels, sizeof(pixels), kCompetitionWeeklyPixelsFmt, static_cast<int>(userCount));
+  char remain[96];
+  std::snprintf(remain, sizeof(remain), kCompetitionWeeklyRemainingFmt,
+                FormatWeeklyRemaining(board->m_secondsRemaining).c_str());
+  chrome.m_body = std::string(pixels) + "\n" + remain;
+  return chrome;
+}
+
 CompetitionHintKind SelectCompetitionHintKind(std::optional<CompetitionAreaSnapshot> const & snapshot,
                                               bool localApproachingEligibility, bool localIsBoss,
                                               bool hasAreaName)
