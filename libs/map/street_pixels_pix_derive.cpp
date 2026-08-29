@@ -10,7 +10,9 @@
 #include "platform/mwm_version.hpp"
 #include "platform/platform.hpp"
 
+#include "coding/file_reader.hpp"
 #include "coding/files_container.hpp"
+#include "coding/reader.hpp"
 
 #include "base/exception.hpp"
 #include "base/file_name_utils.hpp"
@@ -39,6 +41,26 @@ bool ContainerHasRequiredMwmTags(FilesContainerR const & container)
 bool IsCountryMwmHeader(feature::DataHeader const & header)
 {
   return header.GetType() == feature::DataHeader::MapType::Country;
+}
+
+bool TocOffsetLooksValid(std::string const & mwmPath)
+{
+  try
+  {
+    FileReader reader(mwmPath);
+    if (reader.Size() < sizeof(uint64_t))
+      return false;
+    uint64_t const offset = ReadPrimitiveFromPos<uint64_t>(reader, 0);
+    return offset < reader.Size();
+  }
+  catch (RootException const &)
+  {
+    return false;
+  }
+  catch (std::exception const &)
+  {
+    return false;
+  }
 }
 }  // namespace
 
@@ -110,6 +132,11 @@ PixDeriveResult DeriveAndWritePixFile(std::string const & mwmPath, std::string c
   if (IsWorldOrCoastsLeafId(result.m_leafId))
   {
     result.m_status = PixDeriveStatus::NotALeaf;
+    return result;
+  }
+  if (!TocOffsetLooksValid(mwmPath))
+  {
+    result.m_status = PixDeriveStatus::UnreadableMwm;
     return result;
   }
 
