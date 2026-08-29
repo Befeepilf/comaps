@@ -2,6 +2,8 @@
 
 #include "map/backend_config.hpp"
 
+#include "street_pixels_areas/live_recency_store.hpp"
+
 #include "platform/http_client.hpp"
 #include "platform/secure_storage.hpp"
 #include "platform/settings.hpp"
@@ -550,6 +552,7 @@ void IdentityStore::RevokeCompetitionConsent()
   settings::Delete(std::string_view(kConsentPolicyVersionKey));
   settings::Delete(std::string_view(kConsentUnixTimeKey));
   settings::Delete(std::string_view(kExploreConsentKey));
+  street_pixels::LiveRecencyStore::Instance().ClearAll();
 }
 
 bool IdentityStore::ShouldUploadCompetitionIdentity()

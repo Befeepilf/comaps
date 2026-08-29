@@ -29,6 +29,7 @@ public:
   std::optional<int64_t> GetLastLiveVisit(int64_t healpixId) const;
   std::vector<std::optional<int64_t>> GetLastLiveVisits(std::vector<int64_t> const & ids) const;
 
+  void ClearAll();
   void Reopen(std::string const & dbPath);
 
 private:
