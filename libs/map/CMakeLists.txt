@@ -31,6 +31,8 @@ set(SRC
   explorer_pro.hpp
   explorer_pro_analytics.cpp
   explorer_pro_analytics.hpp
+  product_analytics.cpp
+  product_analytics.hpp
   area_milestone_presentation.cpp
   area_milestone_presentation.hpp
   completion_card_analytics.cpp
