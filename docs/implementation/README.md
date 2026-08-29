@@ -195,7 +195,7 @@ SP-043–048 — **not** Phase 5, **not** Phase 10 device work). Evidence:
 | SP-047 | **Accepted** 2026-08-08 — `.spa` full-refetch on update + delete-with-map (**SPD-029**, **SPD-030**) |
 | SP-048 | **Accepted** 2026-08-08 — incomplete / retry signaling (**SPD-031**) |
 | SP-049–053 | SP-049 **Accepted** 2026-08-08 (D8–D14 → **SPD-035–039**); SP-050–053 **In review** — LAN/CDN `.spa` publish mirror (device S2–S8 residual; not Phase 5 exit) |
-| SP-098–104 | SP-098 **Accepted** 2026-08-29 (**SPD-087–096**; P9 extras **on**); SP-099–104 **Planned** |
+| SP-098–104 | SP-098 **Accepted** 2026-08-29 (**SPD-087–096**; P9 extras **on**); SP-099 **In review**; SP-100–104 **Planned** |
 | SP-033 | **Accepted** 2026-08-07 — qualitative Pixel 3a OK; quantitative Spike 1 → Phase 10 |
 | SP-034 | **Accepted** 2026-08-07 — area completion cache + SPD-026 |
 | SP-035 | **Accepted** 2026-08-07 — focused-area badge binding (map-centre stub → SP-036) |
@@ -583,7 +583,7 @@ Residual; not Accepted. Do **not** treat Phase 10 exit as met.
 | Order | ID | Title | Phase | Why first |
 | --- | --- | --- | --- | --- |
 | 98 | [SP-098](work-items/SP-098-map-pipeline-architecture-decisions.md) | Independent map-pipeline architecture decisions | 11 | **Accepted** (2026-08-29) — P1–P10 → **SPD-087–096**; P9 extras **on** |
-| 99 | [SP-099](work-items/SP-099-offline-mwm-pix-derive.md) | Offline leaf MWM → `.pix` derive | 11 | **Planned** — closes SP-044 U residual |
+| 99 | [SP-099](work-items/SP-099-offline-mwm-pix-derive.md) | Offline leaf MWM → `.pix` derive | 11 | **In review** — `pix_derive_tool`; closes SP-044 U residual (not Accepted) |
 | 100 | [SP-100](work-items/SP-100-operator-map-pipeline.md) | Operator map pipeline CLI | 11 | **Planned** — one build-host entrypoint |
 | 101 | [SP-101](work-items/SP-101-independent-map-identity.md) | Independent map identity (keys, hosts, configure) | 11 | **Planned** — no CoMaps map origin in stock path |
 | 102 | [SP-102](work-items/SP-102-publish-and-serve-origin.md) | Publish and serve origin (VPS) | 11 | **Planned** — rsync + static HTTP |

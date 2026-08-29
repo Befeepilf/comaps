@@ -1,7 +1,7 @@
 # SP-099 — Offline leaf MWM → `.pix` derive
 
 **Phase:** 11 — Independent map build and serve
-**Status:** Planned
+**Status:** In review
 **Depends on:** SP-098 lock (**SPD-089**; **SPD-095** extras on does not affect this)
 **Unblocks:** SP-100, SP-103
 
@@ -92,16 +92,53 @@ the PR and keep the CLI tiny. **Never** invent a second eligibility table.
 - Do not write ever-live / explored from packaging.
 - Do not change on-device derive to “match a simpler tool”.
 
+## Operator flags (`pix_derive_tool`)
+
+Links the `map` library. Derive is `DeriveStreetPixelsUniverse` (shared with
+the client). The manager wrapper still returns empty on empty `countryId`; the
+helper does not.
+
+```text
+pix_derive_tool --mwm_dir /path/to/mwms --out_dir /path/to/pix
+pix_derive_tool --mwm /path/to/{leaf}.mwm --out_dir /path/to/pix
+pix_derive_tool --mwm_dir /path/to/mwms --mwm extra.mwm leftover.mwm --out_dir /path/to/pix
+```
+
+| Flag | Meaning |
+| --- | --- |
+| `--mwm_dir` | Directory of leaf `.mwm` (skips `World` / `WorldCoasts` in the directory listing) |
+| `--mwm` | Single `.mwm` path (can combine with `--mwm_dir` and leftover argv files) |
+| leftover argv | Extra `.mwm` paths |
+| `--out_dir` | Output directory for `{leaf}.pix` (required) |
+| `--map_data_version` | YYMMDD stamp; **0** (default) reads from the MWM header |
+
+Fail-closed exit codes: missing MWM **1**, unreadable/corrupt **2**, empty U **3**,
+write failure **4**, bad `--out_dir` **5**. No silent empty `.pix`. Sequential
+leaves; one universe in RAM at a time. Explored / ever-live bits are empty
+(`SaveUnexploredIds`). Production emit: `spa_emit_tool --mode=production --pix_dir`
+on this output. Full FI rings + Helsinki MWM emit is **SP-103**.
+
 ## Completion evidence
 
 | Field | Value |
 | --- | --- |
-| Branch | — |
-| Implemented by | — |
+| Branch | `cursor/sp-099-offline-pix-derive-b3d3` |
+| Commits | `c3dc852e7` `[map] Extract shared street-pixel universe derive helper`; `e0f5ca0c4` `[tools] Add pix_derive_tool for offline MWM to .pix`; `a1be562dd` `[map] Fail closed on corrupt MWM without debug abort`; `210b6907e` `[tools] Report pix_derive failures on stderr`; this `[docs]` commit |
+| Tool | `tools/pix_derive_tool` — links `map`; shared `DeriveStreetPixelsUniverse` / `IsExplorableFeature` / `kPathSamplingStepMeters` (15) |
+| Fixture | `data/minsk-pass.mwm` — \|U\| **24069**, 3718 streets, `map_data_version=210811` |
+| Test output | `/workspace/omim-build-debug/street_pixels_tests --data_path=/workspace/data --user_resource_path=/workspace/data` — **503/503** OK (includes `PixDerive_*` 4/4 and existing `Eligibility_*` 9/9). `street_pixels_areas_tests` — **153/153** OK |
+| CLI smoke | `--helpshort` prints flags. Missing MWM exit **1**. Corrupt MWM exit **2**, no `.pix`. Fixture `--mwm data/minsk-pass.mwm --out_dir /tmp/sp099_cli_ok` exit **0**, `leaf=minsk-pass \|U\|=24069` |
+| Build | `SKIP_MAP_DOWNLOAD=1 ./tools/unix/build_omim.sh -d -n 3 -p /workspace pix_derive_tool street_pixels_tests street_pixels_areas_tests` (default `../omim-build-debug` was not writable here) |
+| Implemented by | Cloud agent (`befeepilf@protonmail.com`) |
 | Accepted by | — |
+
+On-device U compare vs this fixture \|U\| is residual to SP-103/104 (no device
+in this environment). Phase 11 exit is **not** met.
 
 ## Discovered follow-up
 
 | Finding | Disposition |
 | --- | --- |
 | Wire into operator CLI | SP-100 |
+| Full `spa_emit_tool --mode=production` with FI rings + Helsinki MWM | SP-103 (no Helsinki MWM / rings in this env; do not invent proxy U) |
+| On-device first-open U vs `pix_derive_tool` on the same leaf MWM | SP-103/104 |
