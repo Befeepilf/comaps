@@ -336,7 +336,17 @@ public class MwmActivity extends BaseMwmFragmentActivity
     intent.putExtra(EXTRA_CONSUMED, true);
 
     if (ExploreDeepLink.isAddFriendUri(data))
+    {
+      // Generic VIEW filters can still deliver add-friend URIs. Do not present
+      // friends onboarding in public V1 (SPD-085).
+      if (ExploreDeepLink.shouldPresentAddFriendOnboarding(data))
+      {
+        String username = ExploreDeepLink.getAddFriendUsername(data);
+        if (username != null)
+          MyAccountDialogFragment.showWithAddFriend(getSupportFragmentManager(), username);
+      }
       return;
+    }
 
     if (handleStopTrackRecordingIntent(intent))
       return;

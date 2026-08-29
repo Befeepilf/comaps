@@ -9,7 +9,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.junit.Test;
@@ -20,43 +25,104 @@ import org.w3c.dom.NodeList;
 public class PublicManifestAssertionsTest
 {
   private static final String ANDROID_NS = "http://schemas.android.com/apk/res/android";
+  private static final String TOOLS_NS = "http://schemas.android.com/tools";
+  private static final String ABL = "android.permission.ACCESS_BACKGROUND_LOCATION";
 
   @Test
-  public void accessBackgroundLocation_absentFromPublicManifests() throws Exception
+  public void accessBackgroundLocation_absentFromMergedManifests() throws Exception
   {
-    for (File manifest : publicManifests())
+    List<File> merged = mergedManifests();
+    assertFalse("merged manifest missing; unit tests must run process*MainManifest",
+                merged.isEmpty());
+    for (File manifest : merged)
+    {
+      assertFalse(manifest.getPath(), usesPermission(parse(manifest), ABL));
       assertFalse(manifest.getPath(), readUtf8(manifest).contains("ACCESS_BACKGROUND_LOCATION"));
+    }
   }
 
   @Test
-  public void addFriendIntentFilters_absentFromPublicManifests() throws Exception
+  public void accessBackgroundLocation_sourceOnlyRemovesLibraryMerge() throws Exception
   {
-    Document appManifest = parse(appManifest());
-    NodeList dataNodes = appManifest.getElementsByTagName("data");
-    for (int i = 0; i < dataNodes.getLength(); i++)
+    for (File manifest : sourceManifests())
     {
-      Element data = (Element) dataNodes.item(i);
-      assertFalse(data.getAttributeNS(ANDROID_NS, "host").equals("add-friend"));
-      assertFalse(data.getAttributeNS(ANDROID_NS, "pathPrefix").equals("/add-friend"));
-      assertFalse(data.getAttributeNS(ANDROID_NS, "path").startsWith("/add-friend"));
+      Document document = parse(manifest);
+      NodeList nodes = document.getElementsByTagName("uses-permission");
+      for (int i = 0; i < nodes.getLength(); i++)
+      {
+        Element element = (Element) nodes.item(i);
+        if (!ABL.equals(element.getAttributeNS(ANDROID_NS, "name")))
+          continue;
+        assertEquals(manifest.getPath(), "remove", element.getAttributeNS(TOOLS_NS, "node"));
+      }
     }
-    assertFalse(readUtf8(appManifest()).contains("add-friend"));
+  }
+
+  @Test
+  public void addFriendIntentFilters_absentFromSourceAndMergedManifests() throws Exception
+  {
+    List<File> all = new ArrayList<>();
+    all.addAll(sourceManifests());
+    List<File> merged = mergedManifests();
+    assertFalse("merged manifest missing; unit tests must run process*MainManifest",
+                merged.isEmpty());
+    all.addAll(merged);
+    for (File manifest : all)
+    {
+      Document document = parse(manifest);
+      NodeList dataNodes = document.getElementsByTagName("data");
+      for (int i = 0; i < dataNodes.getLength(); i++)
+      {
+        Element data = (Element) dataNodes.item(i);
+        assertFalse(manifest.getPath(),
+                    "add-friend".equalsIgnoreCase(data.getAttributeNS(ANDROID_NS, "host")));
+        assertFalse(manifest.getPath(),
+                    "/add-friend".equalsIgnoreCase(data.getAttributeNS(ANDROID_NS, "pathPrefix")));
+        String path = data.getAttributeNS(ANDROID_NS, "path");
+        assertFalse(manifest.getPath(),
+                    path.toLowerCase(Locale.ROOT).startsWith("/add-friend"));
+        String pattern = data.getAttributeNS(ANDROID_NS, "pathPattern");
+        assertFalse(manifest.getPath(),
+                    pattern.toLowerCase(Locale.ROOT).contains("add-friend"));
+      }
+      assertFalse(manifest.getPath(), readUtf8(manifest).contains("add-friend"));
+    }
   }
 
   @Test
   public void locationForegroundServiceTypes_matchTrackRecordingAndNavigation() throws Exception
   {
-    Map<String, String> types = serviceForegroundTypes(parse(appManifest()));
-    assertEquals("location", types.get("app.organicmaps.location.TrackRecordingService"));
-    assertEquals("location", types.get("app.organicmaps.routing.NavigationService"));
-    assertEquals("dataSync", types.get("app.organicmaps.downloader.DownloaderService"));
+    List<File> toCheck = new ArrayList<>();
+    toCheck.add(appManifest());
+    toCheck.addAll(mergedManifests());
+    assertFalse("merged manifest missing; unit tests must run process*MainManifest",
+                mergedManifests().isEmpty());
+    for (File manifest : toCheck)
+    {
+      Map<String, String> types = serviceForegroundTypes(parse(manifest));
+      assertEquals(manifest.getPath(), "location",
+                   types.get("app.organicmaps.location.TrackRecordingService"));
+      assertEquals(manifest.getPath(), "location",
+                   types.get("app.organicmaps.routing.NavigationService"));
+      assertEquals(manifest.getPath(), "dataSync",
+                   types.get("app.organicmaps.downloader.DownloaderService"));
+    }
   }
 
   @Test
-  public void foregroundServiceLocationPermission_declared() throws Exception
+  public void foregroundServiceLocationPermission_declaredInMergedManifest() throws Exception
   {
-    assertTrue(usesPermission(parse(appManifest()), "android.permission.FOREGROUND_SERVICE_LOCATION"));
-    assertTrue(usesPermission(parse(appManifest()), "android.permission.FOREGROUND_SERVICE_DATA_SYNC"));
+    List<File> merged = mergedManifests();
+    assertFalse("merged manifest missing; unit tests must run process*MainManifest",
+                merged.isEmpty());
+    for (File manifest : merged)
+    {
+      Document document = parse(manifest);
+      assertTrue(manifest.getPath(),
+                 usesPermission(document, "android.permission.FOREGROUND_SERVICE_LOCATION"));
+      assertTrue(manifest.getPath(),
+                 usesPermission(document, "android.permission.FOREGROUND_SERVICE_DATA_SYNC"));
+    }
   }
 
   @Test
@@ -65,11 +131,58 @@ public class PublicManifestAssertionsTest
     assertFalse(FriendSettingsVisibility.friendsCapabilityEnabled());
     assertFalse(FriendSettingsVisibility.showAddFriendOnboarding(
         FriendSettingsVisibility.friendsCapabilityEnabled()));
+    assertFalse(ExploreDeepLink.shouldPresentAddFriendOnboarding(null));
   }
 
-  private static File[] publicManifests()
+  private static List<File> sourceManifests()
   {
-    return new File[]{appManifest(), sdkManifest()};
+    File appSrc = appManifest().getParentFile().getParentFile();
+    File[] flavorDirs = appSrc.listFiles(File::isDirectory);
+    assertNotNull(flavorDirs);
+    Arrays.sort(flavorDirs, Comparator.comparing(File::getName));
+    List<File> out = new ArrayList<>();
+    for (File flavorDir : flavorDirs)
+    {
+      File manifest = new File(flavorDir, "AndroidManifest.xml");
+      if (manifest.isFile())
+        out.add(manifest);
+    }
+    out.add(sdkManifest());
+    assertTrue("expected app flavor manifests", out.size() >= 3);
+    return out;
+  }
+
+  private static List<File> mergedManifests()
+  {
+    File appDir = appManifest().getParentFile().getParentFile().getParentFile();
+    File intermediates = new File(appDir, "build/intermediates");
+    List<File> out = new ArrayList<>();
+    collectMergedManifests(new File(intermediates, "merged_manifest"), out);
+    collectMergedManifests(new File(intermediates, "merged_manifests"), out);
+    out.sort(Comparator.comparing(File::getPath));
+    List<File> googleDebug = new ArrayList<>();
+    for (File file : out)
+    {
+      if (file.getPath().contains("googleDebug"))
+        googleDebug.add(file);
+    }
+    return googleDebug.isEmpty() ? out : googleDebug;
+  }
+
+  private static void collectMergedManifests(File dir, List<File> out)
+  {
+    if (!dir.isDirectory())
+      return;
+    File[] children = dir.listFiles();
+    if (children == null)
+      return;
+    for (File child : children)
+    {
+      if (child.isDirectory())
+        collectMergedManifests(child, out);
+      else if ("AndroidManifest.xml".equals(child.getName()))
+        out.add(child);
+    }
   }
 
   private static File appManifest()

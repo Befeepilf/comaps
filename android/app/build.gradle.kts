@@ -406,6 +406,16 @@ android.applicationVariants.configureEach {
     resValue("string", "app_id", applicationId)
 }
 
+afterEvaluate {
+    android.applicationVariants.all {
+        val cap = name.replaceFirstChar { it.uppercase() }
+        val testTask = tasks.findByName("test${cap}UnitTest")
+        val manifestTask = tasks.findByName("process${cap}MainManifest")
+        if (testTask != null && manifestTask != null)
+            testTask.dependsOn(manifestTask)
+    }
+}
+
 play {
     enabled = false
     track = "production"
