@@ -118,7 +118,7 @@ Inspect, do not install:
 | R3 | Screen off | Residual SP-095. Protocol SP-094 Session A is measurement, not OEM close. |
 | R4 | Session state clearly visible | Implementation SP-012/090. Device eyeball residual SP-095. |
 | R5 | Interrupted sessions no false connecting lines | Automated: `InterruptedSession_*`, `SegmentInterpolation_Barrier_*`. Prior SP-011/013. |
-| R6 | Tracks inspect and delete locally | Automated: gps-track / bookmark tests. Device residual SP-095. |
+| R6 | Tracks inspect and delete locally | Residual SP-095. Track save is automated; inspect-and-delete is device UI. Do not Pass from aborted `map_tests` or Pixel 3a. |
 
 ## §34 catalogue — GPS integrity
 
@@ -137,9 +137,9 @@ Inspect, do not install:
 | --- | --- | --- |
 | P1 | First-use guidance | SP-090 §10 script. Device click-through residual SP-095. |
 | P2 | Area focus predictable | Automated: focus-selection tests. Prior SP-036/041. Device residual SP-095. |
-| P3 | 25 / 50 / 100% milestones | Automated: `AreaMilestone_*`. Prior SP-065/069. Device residual SP-095. |
-| P4 | Completed areas clear visual | Automated overlay + SP-089 check glyph. Device residual SP-095. |
-| P5 | City-level aggregate progress | Automated: city rollup. Prior SP-039/041. Device residual SP-095. |
+| P3 | 25 / 50 / 100% milestones | Automated: `AreaMilestoneManager_*` / `AreaMilestonePresentation_*` in `street_pixels_tests`. Prior SP-065/069. Device residual SP-095. |
+| P4 | Completed areas clear visual | SP-089 check glyph. Overlay tests are in `street_pixels_areas_tests` (separate binary). Device residual SP-095. |
+| P5 | City-level aggregate progress | Automated: `FocusEngine_Manager_CitySummaryUsesRollupFraction` in `street_pixels_tests`. Dedicated `CityCompletion_*` is `street_pixels_areas_tests`. Prior SP-039/041. Device residual SP-095. |
 | P6 | No achievement-history screen required | Code: none added (spec §35). Pass by absence. |
 
 ## §34 catalogue — Routing

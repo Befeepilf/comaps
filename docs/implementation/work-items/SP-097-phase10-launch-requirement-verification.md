@@ -132,9 +132,9 @@ this item re-checks anything that drifted.
 | --- | --- |
 | Validation plan | [`validation/SP-097-validation-plan.md`](../validation/SP-097-validation-plan.md) |
 | Evidence log | [`validation/SP-097-evidence-log.md`](../validation/SP-097-evidence-log.md) |
-| Test output | SHA `c9336737a3e085275e7806317774c98ea2808542`. `street_pixels_tests` **499/499** All tests passed (Eligibility ran). Payload-shape **1/1**. Official smoke **exit=1** (`indexer_tests`/`map_tests`/`mwm_tests` abort on missing `World.mwm`; `platform_tests` missing after glaze compile fail; `routing_tests`/`search_tests` not reached). Separate `routing_tests` **307/307**. Separate `search_tests` abort on `World.mwm`. `:sdk:lintDebug` **FAILED** — **5 errors, 24 warnings**. `clang-format.sh` **exit=123** (clang-format-18 cannot parse `LeftWithLastLine`; CI uses 20). Explorer friends-only; no backend tests. Logs under `/opt/cursor/artifacts/sp097_*.log`. |
+| Test output | SHA `c9336737a3e085275e7806317774c98ea2808542`. `street_pixels_tests` **499/499** All tests passed (Eligibility ran). Payload-shape **1/1**. Official smoke **exit=1** (`indexer_tests`/`map_tests`/`mwm_tests` abort on missing `World.mwm`; `platform_tests` missing after glaze compile fail; `routing_tests`/`search_tests` not reached). Separate `routing_tests` **307/307**. Separate `search_tests` abort on `World.mwm`. `:sdk:lintDebug` **FAILED** — **5 errors, 24 warnings**. `clang-format.sh` **exit=123** (clang-format-18 cannot parse `LeftWithLastLine`; CI uses 20) — **Residual env**, not a source-format Fail. Explorer friends-only; no backend tests. Logs under `/opt/cursor/artifacts/sp097_*.log`. Independent review 2026-08-29: §34 **Pass 48 / Residual 21 / Fail 0**; R6 inspect/delete Residual; clang-format Residual. |
 | Device roster | Residual (SPD-077 matrix defined; not executed). Do not copy Pixel 3a as Phase 10 D2. |
-| Exit criteria table | Evidence log: 1 Residual; 2 Residual; 3 Residual; 4 Pass; 5 Residual; 6 Residual; 7 Residual; 8 Residual; 9 Residual; 10 Pass (SP-096 table, not Accepted); 11 Residual. Phase 10 exit **not met**. |
+| Exit criteria table | Evidence log: 1 Residual (21 Residual bullets); 2 Residual; 3 Residual; 4 Pass; 5 Residual; 6 Residual; 7 Residual; 8 Residual; 9 Residual; 10 Pass (SP-096 table, not Accepted); 11 Residual. Phase 10 exit **not met**. |
 | Accepted by | |
 | Accepted date | |
 
@@ -142,6 +142,7 @@ this item re-checks anything that drifted.
 
 | Finding | Proposed disposition |
 | --- | --- |
+| Independent review (2026-08-29): R6 was an over-claimed Pass (inspect/delete is device UI; `map_tests` aborted); clang-format labeled Fail despite 18-vs-20 env; tally 49/20 vs Exit 1 “21 Residual” | Mapping corrected: R6 Residual; clang-format Residual env; tally **48 Pass / 21 Residual / 0 Fail**. Tests not weakened. |
 | Official smoke not green: missing `data/World.mwm` / `WorldCoasts.mwm` aborts `indexer_tests` (`CitiesBoundaries_Compression`), `map_tests` (`Bookmarks_Sorting`), `mwm_tests` (`ForEachFeatureID_Test`), and separate `search_tests` (`LocalityFinderTest_Smoke`) | Environment residual. Do not invent World maps. Do not skip tests. Later WI / ops data bundle. |
 | `platform_tests` does not compile (glaze `std::expected` / Clang 18) | Environment residual. Not a Phase 10 coding fix in this WI. Official smoke dies with `Can't find test platform_tests`. |
 | `:sdk:lintDebug` 5 errors (4× `MissingPermission` VIBRATE in `Utils.java`; 1× `WrongConstant` in `RecordingSessionDebug.java`) + 24 warnings | Fail for H10 lint-clean. Pre-existing vs SP-096. Own a Fix WI or triage/baseline. Do not sneak-fix here. |
