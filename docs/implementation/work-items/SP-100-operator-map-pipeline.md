@@ -106,12 +106,13 @@ failure. “Seamless” is this command, not a VPS daemon.
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-100-operator-map-pipeline-b3d3` |
-| Commits | `888f2c80e` `[tools] Add street_pixels map_pipeline operator CLI`; `edde5d4b2` `[tools] Clarify map_pipeline wikipedia skip warning`; this `[docs]` commit |
+| Commits | `888f2c80e` `[tools] Add street_pixels map_pipeline operator CLI`; `edde5d4b2` `[tools] Clarify map_pipeline wikipedia skip warning`; `c3ae80135` `[docs] Document map_pipeline generate path`; `a4c879d8c` `[tools] Fix map_pipeline MD5 sidecar and origin checks`; this `[docs]` commit |
 | CLI | `python3 -m street_pixels map_pipeline` — stages mapgen → pix_derive → rings → spa_emit → assemble (optional rsync last) |
 | Default grain | `--countries World,Finland_*`; `WorldCoasts` omitted; Coastline **not** skipped unless `--skip-coast` and World is absent from the **expanded** set |
-| Origin | Default ini has no CoMaps map hosts; `--cdn-base` / CoMaps hosts refused unless `--allow-comaps-origin` (default off) |
-| Tests | `cd tools/python && PYTHONPATH=. python3 -m unittest street_pixels.tests.test_map_pipeline` — **17/17** OK. Existing `test_prepare_spa_debug_root` + `test_serve_spa_publish_tree` — **24/24** OK. `--help` documents stages. Dry-run with `file:///tmp/finland.osm.pbf` does not invoke urllib / `maps_generator`. Full FI mapgen **not** run (SP-103). |
+| Origin | Default ini has no CoMaps map hosts; `--cdn-base` / CoMaps hosts (`*.comaps.app`, `*.comaps.tech`, listed community mirrors) refused unless `--allow-comaps-origin` (default off). HTTPS `--pbf` limited to Geofabrik / planet.openstreetmap.org. |
+| Tests | `cd tools/python && PYTHONPATH=. python3 -m unittest street_pixels.tests.test_map_pipeline` — **36/36** OK. Existing `test_prepare_spa_debug_root` + `test_serve_spa_publish_tree` — **24/24** OK. `--help` documents stages. Dry-run with `file:///tmp/finland.osm.pbf` does not invoke urllib / `maps_generator` / MD5 write / publish-tree mkdir. Full FI mapgen **not** run (SP-103). |
 | Implemented by | Cloud agent (`befeepilf@protonmail.com`) |
+| Reviewed by | Independent review agent (fixes in `a4c879d8c`; not Accepted) |
 | Accepted by | — |
 
 Phase 11 exit is **not** met.
@@ -123,3 +124,6 @@ Phase 11 exit is **not** met.
 | Rsync / nginx / TLS | SP-102 (`--rsync-dest` is thin glue only) |
 | Real FI extract run | SP-103 |
 | `maps_generator/__main__.py` skip-coast iterates `options.countries` as characters | Left unfixed; operator CLI preflights the **expanded** country set |
+| Local PBF without `.md5` never written (predicted `file://` short-circuit) | Fixed in `a4c879d8c` |
+| CoMaps denylist substring holes (`*.comaps.app` not listed; path false positives) | Fixed in `a4c879d8c` (hostname + suffix; HTTPS PBF allowlist) |
+| Skip-token / from-stage / MD5 tests were incomplete (false greens) | Strengthened in `a4c879d8c` (36 tests) |
