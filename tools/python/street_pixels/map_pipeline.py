@@ -849,6 +849,8 @@ def print_plan(plan):
     print("  pix_derive_tool: {}".format(plan["pix_derive_bin"]))
     print("  spa_emit_tool: {}".format(plan["spa_emit_bin"]))
     print("  rsync_dest: {}".format(plan["rsync_dest"] or "(none)"))
+    if plan["rsync_dest"]:
+        print("  rsync argv: {}".format(" ".join(build_rsync_argv(plan))))
     print("  VPS generate: unsupported (SPD-088); this CLI is build-host only")
     if plan["dry_run"]:
         print("  dry-run: no subprocess, no network")
@@ -1080,13 +1082,16 @@ def run_assemble(plan, runtime):
         raise MapPipelineError("assemble_spa_publish_tree failed with code {}".format(rc))
 
 
-def run_rsync(plan):
+def build_rsync_argv(plan):
     dest = plan["rsync_dest"]
     if not dest:
         raise MapPipelineError("--rsync-dest is required for the rsync stage")
     src = plan["out"].rstrip("/") + "/"
-    argv = ["rsync", "-a", src, dest]
-    run_command(argv)
+    return ["rsync", "-a", "--delete-delay", src, dest]
+
+
+def run_rsync(plan):
+    run_command(build_rsync_argv(plan))
 
 
 def run_stage(stage, plan, runtime):
@@ -1181,7 +1186,15 @@ def build_arg_parser():
         default=None,
         help="Refused unless --allow-comaps-origin (not the production path)",
     )
-    parser.add_argument("--rsync-dest", default=None, help="Optional rsync destination of --out")
+    parser.add_argument(
+        "--rsync-dest",
+        default=None,
+        help=(
+            "Optional rsync destination of --out "
+            "(rsync -a --delete-delay; source trailing slash). "
+            "Placeholder: user@vps:/var/www/street-pixels/"
+        ),
+    )
     parser.add_argument("--dry-run", action="store_true", help="Print the graph and paths; no network")
     parser.add_argument("--work-dir", default=None, help="Scratch dir (default {out}.work)")
     parser.add_argument("--omim-path", default=None, help="Repository root (generator revision)")
