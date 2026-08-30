@@ -70,11 +70,36 @@ Community tools above mirror **MWMs only**. Street Pixels exploration sidecars
 (`.spa`) must sit beside matching `.mwm` under the CDN layout the app already
 requests (`meta/maps.json` + `maps/{MAP_SERIES}/{version}/`).
 
-### 1. Debug prepare (CDN countries + spa) — recommended
+Operator generate (build host, **SPD-087** / **SPD-096**) is documented in
+[`tools/python/street_pixels/README.md`](../tools/python/street_pixels/README.md).
+**VPS generate is unsupported.**
 
-Fetches **public CDN** `meta/maps.json` latest for `MAP_SERIES`, downloads that
-`countries.txt`, injects spa meta from your emit dir, and builds the publish
-root (spa-only by default — phone already has MWMs from CDN):
+### 1. Generate (production path) — `map_pipeline`
+
+On a ≥32 GiB builder, one CLI runs `maps_generator` → `pix_derive_tool` →
+rings extract → `spa_emit_tool --mode=production` → `assemble_spa_publish_tree`
+and writes an SP-050 `--out` tree. OSM input is `file://` or Geofabrik /
+planet OSM — not CoMaps map CDNs.
+
+```bash
+cd tools/python
+PYTHONPATH=. python3 -m street_pixels map_pipeline --help
+PYTHONPATH=. python3 -m street_pixels map_pipeline --dry-run \
+  --pbf file:///path/to/finland.osm.pbf \
+  --out /tmp/sp100 \
+  --countries 'World,Finland_*'
+```
+
+`--dry-run` prints the stage graph and paths and does not hit the network.
+Optional `--rsync-dest` copies the tree (nginx/TLS is SP-102). Do **not** use
+`prepare_spa_debug_root` as the production countries source (**SPD-087**).
+
+### 2. Debug prepare (CoMaps CDN countries + spa) — not production
+
+Fetches **public CoMaps CDN** `meta/maps.json` latest for `MAP_SERIES`, downloads
+that `countries.txt`, injects spa meta from your emit dir, and builds the
+publish root (spa-only by default — phone already has MWMs from CDN).
+**This is not the production path.**
 
 ```bash
 cd tools/python
@@ -84,7 +109,7 @@ PYTHONPATH=. python3 -m street_pixels prepare_spa_debug_root \
   --channel serve-only
 ```
 
-Then serve (`--root /tmp/spa_debug_root`) as in §2. Channels A/B:
+Then serve (`--root /tmp/spa_debug_root`) as in §4. Channels A/B:
 `--channel A --secret-key …` or `--channel B` (writes `{out}/_channel_b/countries.txt`
 for a local APK only — do not merge). Override mirrors with repeated
 `--cdn-base`; override catalog with `--countries` / `--data-version` if needed.
@@ -92,11 +117,12 @@ for a local APK only — do not merge). Override mirrors with repeated
 Do not invent placeholder spa meta. Full Channel A/B recipes:
 `docs/implementation/notes/spa-advertise-channels.md` (SP-052).
 
-### 2. Assemble manually (SP-050)
+### 3. Assemble manually (SP-050)
 
 Build the CDN-identical tree from a local `countries.txt`, `{leaf}.spa` (from
-`spa_emit_tool`), and matching MWMs. Prefer §1 when the device is on CDN latest.
-See `docs/implementation/work-items/SP-050-spa-publish-tree-assemble.md`.
+`spa_emit_tool`), and matching MWMs. Prefer §1 (`map_pipeline`) for an
+independent origin. Prefer §2 only for CoMaps-CDN debug. See
+`docs/implementation/work-items/SP-050-spa-publish-tree-assemble.md`.
 
 ```bash
 cd tools/python
@@ -109,9 +135,9 @@ PYTHONPATH=. python3 post_generation/assemble_spa_publish_tree.py \
   --spa-only
 ```
 
-### 3. Serve on the LAN (SP-051)
+### 4. Serve on the LAN (SP-051)
 
-Serve the prepare/assemble `--out` root with the in-repo server (Range GETs for large
+Serve the `map_pipeline` / assemble `--out` root with the in-repo server (Range GETs for large
 MWMs; `/health`; debug inventory opt-in only):
 
 ```bash

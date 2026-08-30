@@ -86,7 +86,7 @@ V1 scope. Explorer Pro **purchasing** is not.
 | 8 | Competition | [`phases/phase-08-competition.md`](phases/phase-08-competition.md) | SP-070 Accepted; SP-071 in progress; SP-072–074 Accepted |
 | 9 | GPX and feature gating | [`phases/phase-09-gpx-and-feature-gating.md`](phases/phase-09-gpx-and-feature-gating.md) | Exit criteria met 2026-08-28 with residuals → Phase 10 |
 | 10 | Android release hardening | [`phases/phase-10-android-release-hardening.md`](phases/phase-10-android-release-hardening.md) | Not started (SP-088 Accepted 2026-08-29; SP-097 mapping recorded; brand + on-device testing residual; exit **not met**) |
-| 11 | Independent map build and serve | [`phases/phase-11-independent-map-build-and-serve.md`](phases/phase-11-independent-map-build-and-serve.md) | In progress (SP-098 **Accepted** 2026-08-29 — **SPD-087–096**; coding SP-099+; exit **not met**) |
+| 11 | Independent map build and serve | [`phases/phase-11-independent-map-build-and-serve.md`](phases/phase-11-independent-map-build-and-serve.md) | In progress (SP-098 **Accepted** 2026-08-29 — **SPD-087–096**; SP-099–100 **In review**; exit **not met**) |
 
 Phase order 1–10 is unchanged from the originally proposed sequence. **Phase 11**
 was added 2026-08-29 as operator infrastructure (own MWM+`.spa` origin). It
@@ -195,7 +195,7 @@ SP-043–048 — **not** Phase 5, **not** Phase 10 device work). Evidence:
 | SP-047 | **Accepted** 2026-08-08 — `.spa` full-refetch on update + delete-with-map (**SPD-029**, **SPD-030**) |
 | SP-048 | **Accepted** 2026-08-08 — incomplete / retry signaling (**SPD-031**) |
 | SP-049–053 | SP-049 **Accepted** 2026-08-08 (D8–D14 → **SPD-035–039**); SP-050–053 **In review** — LAN/CDN `.spa` publish mirror (device S2–S8 residual; not Phase 5 exit) |
-| SP-098–104 | SP-098 **Accepted** 2026-08-29 (**SPD-087–096**; P9 extras **on**); SP-099 **In review**; SP-100–104 **Planned** |
+| SP-098–104 | SP-098 **Accepted** 2026-08-29 (**SPD-087–096**; P9 extras **on**); SP-099–100 **In review**; SP-101–104 **Planned** |
 | SP-033 | **Accepted** 2026-08-07 — qualitative Pixel 3a OK; quantitative Spike 1 → Phase 10 |
 | SP-034 | **Accepted** 2026-08-07 — area completion cache + SPD-026 |
 | SP-035 | **Accepted** 2026-08-07 — focused-area badge binding (map-centre stub → SP-036) |
@@ -221,8 +221,9 @@ Coding SP-056+ may proceed. See
 [`phases/phase-06-exploration-aware-routing.md`](phases/phase-06-exploration-aware-routing.md).
 
 **Phase 11 (map origin):** SP-098 **Accepted** 2026-08-29 (**SPD-087–096**;
-P9 override extras **on**). Coding SP-099+ may proceed in parallel with
-Phases 5–10. It does not change the Phase 5 active-phase pointer.
+P9 override extras **on**). SP-099 and SP-100 **In review**. Coding SP-101+
+may proceed in parallel with Phases 5–10. It does not change the Phase 5
+active-phase pointer. Phase 11 exit **not met**.
 
 ## 5. Release slices
 
@@ -584,7 +585,7 @@ Residual; not Accepted. Do **not** treat Phase 10 exit as met.
 | --- | --- | --- | --- | --- |
 | 98 | [SP-098](work-items/SP-098-map-pipeline-architecture-decisions.md) | Independent map-pipeline architecture decisions | 11 | **Accepted** (2026-08-29) — P1–P10 → **SPD-087–096**; P9 extras **on** |
 | 99 | [SP-099](work-items/SP-099-offline-mwm-pix-derive.md) | Offline leaf MWM → `.pix` derive | 11 | **In review** — `pix_derive_tool`; closes SP-044 U residual (not Accepted) |
-| 100 | [SP-100](work-items/SP-100-operator-map-pipeline.md) | Operator map pipeline CLI | 11 | **Planned** — one build-host entrypoint |
+| 100 | [SP-100](work-items/SP-100-operator-map-pipeline.md) | Operator map pipeline CLI | 11 | **In review** — `map_pipeline`; not Accepted |
 | 101 | [SP-101](work-items/SP-101-independent-map-identity.md) | Independent map identity (keys, hosts, configure) | 11 | **Planned** — no CoMaps map origin in stock path |
 | 102 | [SP-102](work-items/SP-102-publish-and-serve-origin.md) | Publish and serve origin (VPS) | 11 | **Planned** — rsync + static HTTP |
 | 103 | [SP-103](work-items/SP-103-finland-first-country-run.md) | Finland first-country pipeline run | 11 | **Planned** — evidence; eight leaves |
