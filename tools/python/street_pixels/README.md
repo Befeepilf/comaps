@@ -17,8 +17,8 @@ One entrypoint, given an OSM extract and a country/leaf selector:
 4. `spa_emit_tool --mode=production`
 5. `assemble_spa_publish_tree` (SP-050)
 
-Optional last step: `--rsync-dest` (`rsync -a --delete-delay`, source
-trailing slash). Placeholder: `user@vps:/var/www/street-pixels/`.
+Optional last step: `--rsync-dest` (`rsync -a --delete-delay`, trailing
+slash on source and dest). Placeholder: `user@vps:/var/www/street-pixels/`.
 
 ```bash
 cd tools/python

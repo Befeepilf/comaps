@@ -111,8 +111,28 @@ class RsyncArgvTest(unittest.TestCase):
             argv = build_rsync_argv(plan)
             self.assertEqual(["rsync", "-a", "--delete-delay", out.rstrip("/") + "/", dest], argv)
             self.assertTrue(argv[3].endswith("/"))
+            self.assertTrue(argv[4].endswith("/"))
             self.assertIn(STAGE_RSYNC, plan["stages"])
             self.assertEqual(STAGE_RSYNC, plan["stages"][-1])
+
+    def test_dest_without_trailing_slash_is_normalized(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            out = os.path.join(tmp, "out")
+            dest = "user@vps:/var/www/street-pixels"
+            plan = build_plan(
+                pbf="file:///tmp/finland.osm.pbf",
+                out=out,
+                borders_dir=borders,
+                rsync_dest=dest,
+                dry_run=True,
+            )
+            argv = build_rsync_argv(plan)
+            self.assertEqual(
+                ["rsync", "-a", "--delete-delay", out.rstrip("/") + "/", dest + "/"],
+                argv,
+            )
+            self.assertTrue(argv[4].endswith("/"))
 
     def test_missing_dest_errors(self):
         with tempfile.TemporaryDirectory() as tmp:

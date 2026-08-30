@@ -1087,6 +1087,7 @@ def build_rsync_argv(plan):
     if not dest:
         raise MapPipelineError("--rsync-dest is required for the rsync stage")
     src = plan["out"].rstrip("/") + "/"
+    dest = dest.rstrip("/") + "/"
     return ["rsync", "-a", "--delete-delay", src, dest]
 
 
@@ -1191,7 +1192,7 @@ def build_arg_parser():
         default=None,
         help=(
             "Optional rsync destination of --out "
-            "(rsync -a --delete-delay; source trailing slash). "
+            "(rsync -a --delete-delay; trailing slash on source and dest). "
             "Placeholder: user@vps:/var/www/street-pixels/"
         ),
     )
