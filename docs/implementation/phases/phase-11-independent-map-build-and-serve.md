@@ -50,7 +50,7 @@ Verified 2026-08-29. Detail:
 | Rings extract | `street_pixels_spike/extract_admin_place_polygons.py` | Spike, FI-proven; called by `map_pipeline` (ring semantics unchanged). |
 | Assemble / serve | `assemble_spa_publish_tree`, `serve_spa_publish_tree` | SP-050/051 In review. **Reuse.** |
 | Debug CDN fetch | `prepare_spa_debug_root` | Hits public CoMaps `meta/maps.json`. Not production origin. |
-| Stock map URLs | gitignored `private.h` + `private.h.street-pixels.example` | Template placeholder `https://maps.example.invalid/`; `METASERVER_URL` empty; `MAP_SERIES` `2026.06.28`. `configure.sh` calls `street_pixels.map_identity configure-world` and refuses CoMaps map hosts. Public origin is SP-102. |
+| Stock map URLs | untracked gitignored `private.h` + `private.h.street-pixels.example` | Template placeholder `https://maps.example.invalid/`; `METASERVER_URL` empty; `MAP_SERIES` `2026.06.28`. Clones copy the example via `ensure-private-h` / CMake when `private.h` is missing. `configure.sh` calls `configure-world` and refuses CoMaps map hosts. Public origin is SP-102. |
 | Policy | `data/street_pixels/country_policies.json` | FI only. |
 | Layout / ads / sig | **SPD-035–039**, **SPD-028**, **SPD-036** | Locked. Phase 11 must not invent a second protocol. |
 
