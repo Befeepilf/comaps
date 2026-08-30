@@ -4,6 +4,7 @@
 import json
 import os
 import re
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -30,6 +31,7 @@ from street_pixels.map_identity import comaps_map_host_in  # noqa: E402
 from street_pixels.map_identity import configure_world  # noqa: E402
 from street_pixels.map_identity import download_to_file  # noqa: E402
 from street_pixels.map_identity import ed25519_public_key_hex  # noqa: E402
+from street_pixels.map_identity import ensure_private_h  # noqa: E402
 from street_pixels.map_identity import generate_ed25519_pem_pair  # noqa: E402
 from street_pixels.map_identity import join_world_url  # noqa: E402
 from street_pixels.map_identity import main as map_identity_main  # noqa: E402
@@ -42,7 +44,9 @@ from street_pixels.map_pipeline import COMAPS_MAP_HOSTS  # noqa: E402
 SERIES = "2026.06.28"
 VERSION = "260714"
 CONFIGURE_SH = os.path.join(_REPO_ROOT, "configure.sh")
+CMAKE_LISTS = os.path.join(_REPO_ROOT, "CMakeLists.txt")
 FILE_PY = os.path.join(_TOOLS_PYTHON, "maps_generator", "utils", "file.py")
+COMAPS_PUBLIC_HEX = "91c0a9f6aa182371f047e256ab46489211acc2b51b13197fbe8c94eaa9749c7b"
 
 
 def _write_countries(path, series=SERIES, version=int(VERSION)):
@@ -77,11 +81,65 @@ class TemplateAuditTest(unittest.TestCase):
         self.assertIsNotNone(hex_match)
         self.assertEqual(64, len(hex_match.group(1)))
         self.assertNotEqual(
-            "91c0a9f6aa182371f047e256ab46489211acc2b51b13197fbe8c94eaa9749c7b",
+            COMAPS_PUBLIC_HEX,
             hex_match.group(1).lower(),
         )
         self.assertNotRegex(text, r'https?://10\.')
         self.assertNotRegex(text, r'https?://172\.(1[6-9]|2[0-9]|3[0-1])\.')
+
+    def test_private_h_is_not_tracked_by_git(self):
+        proc = subprocess.run(
+            ["git", "-C", _REPO_ROOT, "ls-files", "--", "private.h"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        self.assertEqual("", proc.stdout.strip())
+
+    def test_ensure_private_h_copies_example_when_missing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            example_src = EXAMPLE_PRIVATE_H
+            self.assertTrue(os.path.isfile(example_src))
+            shutil_example = os.path.join(tmp, "private.h.street-pixels.example")
+            with open(example_src, encoding="utf-8") as f:
+                body = f.read()
+            with open(shutil_example, "w", encoding="utf-8") as f:
+                f.write(body)
+            dest, copied = ensure_private_h(tmp)
+            self.assertTrue(copied)
+            self.assertEqual(os.path.join(tmp, "private.h"), dest)
+            with open(dest, encoding="utf-8") as f:
+                copied_text = f.read()
+            self.assertEqual(body, copied_text)
+            for host in COMAPS_MAP_HOSTS:
+                self.assertNotIn(host, copied_text)
+            self.assertNotIn(COMAPS_PUBLIC_HEX, copied_text.lower())
+            dest2, copied2 = ensure_private_h(tmp)
+            self.assertFalse(copied2)
+            self.assertEqual(dest, dest2)
+
+    def test_ensure_private_h_does_not_overwrite_existing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with open(
+                os.path.join(tmp, "private.h.street-pixels.example"),
+                "w",
+                encoding="utf-8",
+            ) as f:
+                f.write('#define DEFAULT_URLS_JSON R"([ "https://maps.example.invalid/" ])"\n')
+            existing = os.path.join(tmp, "private.h")
+            with open(existing, "w", encoding="utf-8") as f:
+                f.write('#define DEFAULT_URLS_JSON R"([ "https://mapgen-fi-1.comaps.app/" ])"\n')
+            dest, copied = ensure_private_h(tmp)
+            self.assertFalse(copied)
+            self.assertEqual(existing, dest)
+            with open(existing, encoding="utf-8") as f:
+                self.assertIn("mapgen-fi-1.comaps.app", f.read())
+
+    def test_ensure_private_h_errors_when_example_missing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(MapIdentityError) as ctx:
+                ensure_private_h(tmp)
+            self.assertIn("private.h.street-pixels.example", str(ctx.exception))
 
 
 class ConfigureScriptTest(unittest.TestCase):
@@ -94,10 +152,54 @@ class ConfigureScriptTest(unittest.TestCase):
             self.assertNotIn(host, text)
         self.assertIn("street_pixels.map_identity", text)
         self.assertIn("configure-world", text)
+        self.assertIn("ensure-private-h", text)
+        self.assertIn('export PYTHONPATH="$REPO_ROOT/tools/python', text)
+        pythonpath_at = text.find("export PYTHONPATH=")
+        module_at = text.find("python3 -m street_pixels.map_identity")
+        self.assertGreater(pythonpath_at, 0)
+        self.assertGreater(module_at, pythonpath_at)
         self.assertIn("STREET_PIXELS_MAPS_BASE_URL", text)
         self.assertIn("SKIP_MAP_DOWNLOAD", text)
         self.assertIn("STREET_PIXELS_LOCAL_WORLD", text)
         self.assertIn("STREET_PIXELS_WORLD_DIR", text)
+
+    def test_cmake_seeds_private_h_from_example_when_missing(self):
+        with open(CMAKE_LISTS, encoding="utf-8") as f:
+            text = f.read()
+        self.assertIn("private.h.street-pixels.example", text)
+        self.assertIn('NOT EXISTS "${OMIM_ROOT}/private.h"', text)
+        self.assertIn("COPYONLY", text)
+        for host in COMAPS_MAP_HOSTS:
+            self.assertNotIn(host, text)
+
+    def test_map_identity_module_runs_with_configure_sh_pythonpath(self):
+        env = os.environ.copy()
+        extra = _TOOLS_PYTHON
+        existing = env.get("PYTHONPATH", "")
+        env["PYTHONPATH"] = extra if not existing else extra + os.pathsep + existing
+        proc = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "street_pixels.map_identity",
+                "resolve",
+                "--skip-map-download",
+                "1",
+                "--map-series",
+                SERIES,
+                "--mwm-version",
+                VERSION,
+            ],
+            cwd=_REPO_ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(0, proc.returncode, proc.stderr)
+        plan = json.loads(proc.stdout)
+        self.assertEqual(ACTION_SKIP, plan["action"])
+        self.assertIsNone(plan["world_url"])
 
     def test_resolve_cli_refuses_comaps_maps_base_url(self):
         with tempfile.TemporaryDirectory() as tmp:

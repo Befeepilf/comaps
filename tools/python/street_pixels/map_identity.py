@@ -22,6 +22,7 @@ _TOOLS_PYTHON = os.path.dirname(_MODULE_DIR)
 _REPO_ROOT = os.path.dirname(os.path.dirname(_TOOLS_PYTHON))
 
 EXAMPLE_PRIVATE_H = os.path.join(_REPO_ROOT, "private.h.street-pixels.example")
+PRIVATE_H = os.path.join(_REPO_ROOT, "private.h")
 PLACEHOLDER_MAP_ORIGIN = "https://maps.example.invalid/"
 LOCKED_MAP_SERIES = "2026.06.28"
 
@@ -60,6 +61,21 @@ class MapIdentityError(Exception):
 
 def is_nonempty(value):
     return value is not None and str(value).strip() != ""
+
+
+def ensure_private_h(repo_root=None):
+    root = _REPO_ROOT if repo_root is None else os.path.abspath(str(repo_root))
+    dest = os.path.join(root, "private.h")
+    if os.path.isfile(dest):
+        return dest, False
+    example = os.path.join(root, "private.h.street-pixels.example")
+    if not os.path.isfile(example):
+        raise MapIdentityError(
+            "private.h is missing and {} was not found. Copy the Street Pixels "
+            "example to private.h before configuring.".format(example)
+        )
+    shutil.copyfile(example, dest)
+    return dest, True
 
 
 def host_is_private(host):
@@ -494,6 +510,14 @@ def verify_rawin(file_path, signature_path, public_pem):
     return proc.returncode == 0
 
 
+def _cmd_ensure_private_h(args):
+    dest, copied = ensure_private_h(args.repo_root)
+    if copied:
+        print("Copied private.h.street-pixels.example to {}".format(dest))
+        print("Placeholder map origin; replace before a stock build (SP-101).")
+    return 0
+
+
 def _cmd_configure_world(args):
     configure_world(
         data_dir=args.data_dir,
@@ -538,6 +562,13 @@ def main(argv=None):
         description="Street Pixels map identity helpers (SP-101)"
     )
     sub = parser.add_subparsers(dest="command")
+
+    seed = sub.add_parser(
+        "ensure-private-h",
+        help="Copy private.h.street-pixels.example when private.h is missing",
+    )
+    seed.add_argument("--repo-root", default=_REPO_ROOT)
+    seed.set_defaults(handler=_cmd_ensure_private_h)
 
     conf = sub.add_parser(
         "configure-world",
