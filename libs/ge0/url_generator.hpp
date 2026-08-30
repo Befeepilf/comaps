@@ -16,7 +16,7 @@ inline static int constexpr kMaxCoordBits = kMaxPointBytes * 3;
 //          |+-------+---------  9 bytes: lat,lon
 //          ||       | +--+----  Variable number of bytes: point name
 //          ||       | |  |
-// comaps://ZCoordba64/Name
+// streifzug://ZCoordba64/Name
 std::string GenerateShortShowMapUrl(double lat, double lon, double zoomLevel, std::string const & name);
 
 // Generates a geo: uri.

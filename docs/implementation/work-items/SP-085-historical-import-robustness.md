@@ -104,7 +104,7 @@ measured (G10).
 | Branch | `cursor/sp-085-historical-import-robustness-db9d` |
 | 10k-point measurement | Parse 10k Δ RSS **+1.3 MiB**; parse 50k **+3.0 MiB**; import 10k **+9.4 MiB**; import 50k **+45.1 MiB**. Budget 256 MiB. Filtered-alone runs. |
 | Chunking implemented? | **No.** Cap **no.** G10: measurement did not require it. |
-| Test output | `XmlParser_` **5/5**; new `Gpx_Malformed_*` / skip / log / entity / 10k/50k parse pass; `HistoricalImport` (11) pass; `IsolationHistoricalImport` **16/16**. Pre-existing `Gpx_ImportExport_*` creator mismatch (`CoMaps` vs `Organic Maps`) unchanged. |
+| Test output | `XmlParser_` **5/5**; new `Gpx_Malformed_*` / skip / log / entity / 10k/50k parse pass; `HistoricalImport` (11) pass; `IsolationHistoricalImport` **16/16**. Pre-existing `Gpx_ImportExport_*` creator mismatch (`Streifzug` vs `Organic Maps`) unchanged. |
 | Accepted by | Product owner |
 | Accepted date | 2026-08-28 |
 
@@ -116,4 +116,4 @@ measured (G10).
 | `WITH_SYSTEM_PROVIDED_3PARTY` may link libexpat with GE/DTD on | **Accepted residual**; in-tree Expat is `EXPAT_GE OFF` / `EXPAT_DTD OFF` |
 | `FromLatLon` clamp can still resurrect lat>90 for non-GPX `LineT` | **Accepted residual.** Do not change global mercator; GPX parser skip is the untrusted-input fix |
 | Device multi-hour GPX memory | SP-087 / Phase 10 |
-| `Gpx_ImportExport_*` creator mismatch (`CoMaps` vs `Organic Maps`) | **Closed** 2026-08-28: goldens updated to `CoMaps`; writer unchanged |
+| `Gpx_ImportExport_*` creator mismatch (`Streifzug` vs `Organic Maps`) | **Closed** 2026-08-28: goldens updated to `Streifzug`; writer unchanged |

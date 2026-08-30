@@ -1,6 +1,6 @@
 # French National Library Archiving
 
-The library has taken an interest in archiving the CoMaps app and its map data as a snapshot
+The library has taken an interest in archiving the Streifzug app and its map data as a snapshot
 of our world and the way people interact with maps, in a way that doesn't rely on
 maintaining servers etc. (With an APK and MWM files and some copy-paste, you can
 reproduce our app on an emulator etc.)
@@ -15,6 +15,6 @@ Credentials for `frlibrary` are in the mapgen rclone, or in zyphlar/pastk's pass
 To upload the APK app and MWM map files (modify dates accordingly):
 
 ```
-rclone copy CoMaps-25110702-google-release.apk frlibrary:/apk/
+rclone copy Streifzug-25110702-google-release.apk frlibrary:/apk/
 rclone copy 251104 frlibrary:/maps/251104
 ```

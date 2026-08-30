@@ -14,7 +14,7 @@ enum SocialMedia: CaseIterable, Identifiable {
     // MARK: Properties
     
     /// The e-mail address
-    static let emailAddress: String = "ios@comaps.app"
+    static let emailAddress: String = "ios@streifzug.app"
     
     
     //// The id
@@ -48,15 +48,15 @@ enum SocialMedia: CaseIterable, Identifiable {
             case .codeberg:
                 return URL(string: "https://codeberg.org/comaps/")!
             case .mastodon:
-                return URL(string: "https://floss.social/@CoMaps")!
+                return URL(string: "https://floss.social/@Streifzug")!
             case .matrix:
                 return URL(string: "https://matrix.to/#/#comaps:matrix.org")!
             case .lemmy:
-                return URL(string: "https://sopuli.xyz/c/CoMaps")!
+                return URL(string: "https://sopuli.xyz/c/Streifzug")!
             case .bluesky:
-                return URL(string: "https://bsky.app/profile/comaps.app")!
+                return URL(string: "https://bsky.app/profile/streifzug.app")!
             case .pixelfed:
-                return URL(string: "https://pixelfed.social/CoMaps")!
+                return URL(string: "https://pixelfed.social/Streifzug")!
             case .email:
                 return URL(string: "mailto:\(SocialMedia.emailAddress)")!
         }

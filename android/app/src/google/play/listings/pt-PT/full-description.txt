@@ -30,7 +30,7 @@ Junte-se à comunidade e ajude a fazer a melhor aplicação de mapas
 • Melhore a informação do mapa para todos com um editor básico embebido
 • Suporte para ‘Android Auto’
 
-Por favor, reporte problemas da aplicação, sugira ideias e junte-se à nossa comunidade no website <b><i>comaps.app</i></b>.
+Por favor, reporte problemas da aplicação, sugira ideias e junte-se à nossa comunidade no website <b><i>streifzug.app</i></b>.
 
 <b>A liberdade chegou</b>
 Descubra a sua jornada, navegue o mundo com privacidade e a comunidade à frente!

@@ -82,7 +82,7 @@ UNIT_TEST(OSM_ServerAPI_ChangesetAndNode)
 
   ServerApi06 const api = CreateAPI();
   uint64_t changeSetId =
-      api.CreateChangeSet({{"created_by", "CoMaps Unit Test"}, {"comment", "For test purposes only."}});
+      api.CreateChangeSet({{"created_by", "Streifzug Unit Test"}, {"comment", "For test purposes only."}});
   auto const changesetCloser = [&]() { api.CloseChangeSet(changeSetId); };
 
   {
@@ -110,7 +110,7 @@ UNIT_TEST(OSM_ServerAPI_ChangesetAndNode)
 
     // All tags must be specified, because there is no merging of old and new tags.
     api.UpdateChangeSet(changeSetId,
-                        {{"created_by", "CoMaps Unit Test"}, {"comment", "For test purposes only (updated)."}});
+                        {{"created_by", "Streifzug Unit Test"}, {"comment", "For test purposes only (updated)."}});
 
     // To retrieve created node, changeset should be closed first.
     // It is done here via Scope Guard.
@@ -123,7 +123,7 @@ UNIT_TEST(OSM_ServerAPI_ChangesetAndNode)
   TEST_EQUAL(node.GetAttribute("id"), features[0].GetAttribute("id"), ());
 
   // Cleanup - delete unit test node from the server.
-  changeSetId = api.CreateChangeSet({{"created_by", "CoMaps Unit Test"}, {"comment", "For test purposes only."}});
+  changeSetId = api.CreateChangeSet({{"created_by", "Streifzug Unit Test"}, {"comment", "For test purposes only."}});
   SCOPE_GUARD(guard, changesetCloser);
   // New changeset has new id.
   node.SetAttribute("changeset", strings::to_string(changeSetId));

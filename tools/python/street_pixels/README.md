@@ -34,7 +34,7 @@ PYTHONPATH=. python3 -m street_pixels map_pipeline --dry-run \
 ```
 
 `--pbf` must be `file://` or Geofabrik / planet OSM HTTPS. Other HTTPS
-hosts and CoMaps map hosts (`*.comaps.app`, `*.comaps.tech`, community
+hosts and Streifzug map hosts (`*.streifzug.app`, `*.comaps.tech`, community
 mirrors) plus `--cdn-base` are refused unless `--allow-comaps-origin`
 (default **off**). Default countries: `World,Finland_*` (eight Finland
 leaves + extract World; `WorldCoasts` omitted). `--skip-coast` is an error
@@ -45,7 +45,7 @@ gets one written at mapgen time (not during `--dry-run`).
 
 Extras (hotels, isolines, SRTM, subway, UGC, Wikipedia/descriptions) are
 **on** when an independent local path or URL exists. Empty feeds skip with a
-warning. Do not fetch CoMaps map hosts or `cdn.organicmaps.app/subway.json`
+warning. Do not fetch Streifzug map hosts or `cdn.organicmaps.app/subway.json`
 to complete them. Pass `--hotels-url`, `--srtm-path`, `--subway-url`,
 `--enable-wikipedia`, … when you have sources.
 
@@ -59,13 +59,13 @@ Finland full-data evidence is SP-103. Do not run full FI mapgen as a unit test.
 
 ## World bootstrap (SP-101)
 
-`configure.sh` does not fetch CoMaps World. It sets `PYTHONPATH` to
+`configure.sh` does not fetch Streifzug World. It sets `PYTHONPATH` to
 `tools/python`, then calls `ensure-private-h` (copy example → `private.h`
 when missing) and `configure-world`.
 
 - `SKIP_MAP_DOWNLOAD=1` — skip (already used by `build_omim.sh` for targeted builds)
 - `STREET_PIXELS_LOCAL_WORLD` / `STREET_PIXELS_WORLD_DIR` — copy operator World.mwm
-- `STREET_PIXELS_MAPS_BASE_URL` — HTTPS Street Pixels origin (not CoMaps; public host is ops, documented as `maps.example.invalid` in git)
+- `STREET_PIXELS_MAPS_BASE_URL` — HTTPS Street Pixels origin (not Streifzug; public host is ops, documented as `maps.example.invalid` in git)
 
 `private.h` is gitignored and untracked. Clones get the header by copying
 [private.h.street-pixels.example](../../../private.h.street-pixels.example).
@@ -74,7 +74,7 @@ Keygen, `COUNTRIES_TXT_SIGNATURE_HEX`, and the template:
 
 ## Debug prepare — not production (SPD-087)
 
-`prepare_spa_debug_root` fetches CoMaps CDN `countries.txt`. It is a LAN
+`prepare_spa_debug_root` fetches Streifzug CDN `countries.txt`. It is a LAN
 debug helper only. Stock / production origin must not use it.
 
 ## Serve LAN (SP-051)

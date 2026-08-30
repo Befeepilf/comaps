@@ -66,7 +66,7 @@ cross-platform; the gap is the iOS product surface.
 
 ## SPD-003 — The product is available worldwide
 
-**Decision.** Street Pixels is available wherever compatible CoMaps map data
+**Decision.** Street Pixels is available wherever compatible Streifzug map data
 exists.
 
 **Status.** Accepted.
@@ -1796,11 +1796,11 @@ says so. Competition identity is not the friends `MyAccount` surface.
 
 **Decision.**
 
-- Production host remains `https://api.comaps.app` (SP-004 release/beta
+- Production host remains `https://api.streifzug.app` (SP-004 release/beta
   inject). Debug stays fail-closed empty.
 - Competition routes live at `{apiBase}/v1/competition/…` with
-  `apiBase = https://api.comaps.app/api`, i.e.
-  `https://api.comaps.app/api/v1/competition/…`. Freeze `/v1/` before the
+  `apiBase = https://api.streifzug.app/api`, i.e.
+  `https://api.streifzug.app/api/v1/competition/…`. Freeze `/v1/` before the
   first public client. Do **not** reuse `/stats/upload`.
 - Hosting region is **EU** (GDPR). The exact provider/region string for
   the privacy policy is an ops lock, not a code constant.
@@ -2250,7 +2250,7 @@ SP-092; SP-096.
 ## SPD-080 — Privacy policy and terms are product-owned Street Pixels text
 
 **Decision.** The *intended* owner of privacy policy and terms is the
-Street Pixels product (or a clearly versioned CoMaps addendum that
+Street Pixels product (or a clearly versioned Streifzug addendum that
 describes session GPS, local `.pix`, competition aggregates, and
 deletion). Policy version string stays the consent key
 (`IdentityStore`). Exact EU region string remains ops (SPD-062).
@@ -2264,12 +2264,12 @@ in-app URLs residualised). Closes OQ-33.
 **Consequences.**
 
 - **Landing** the actual policy/terms text, hosting, and in-app URLs
-  is residual. `https://comaps.app/privacy/` and `terms/` may stay for
+  is residual. `https://streifzug.app/privacy/` and `terms/` may stay for
   now.
 - SP-093 is residual, not a Phase 10 coding item.
 - SP-090 implements spec §30/§31/§10 except privacy-policy/terms URL
   rows and app-name string rebrand (those rows residual).
-- Do not treat unmodified CoMaps pages as the long-term product policy;
+- Do not treat unmodified Streifzug pages as the long-term product policy;
   a later work item lands Street Pixels text. Do not implement brand
   writing in SP-089–097.
 
@@ -2396,11 +2396,11 @@ SP-089–097; `notes/SP-088-launch-governance-architecture.md`.
 
 ---
 
-## SPD-084 — Reuse CoMaps release machinery; brand listing and app name are residual
+## SPD-084 — Reuse Streifzug release machinery; brand listing and app name are residual
 
 **Decision.** Reuse the *machinery* (Gradle flavors, Forgejo
 `android-release.yaml` shape, `docs/CREDENTIALS.md` secret names). Do
-not treat unmodified CoMaps Play copy as the long-term Street Pixels
+not treat unmodified Streifzug Play copy as the long-term Street Pixels
 listing: listing, application identity, data-safety answers, and
 signing identity are conceptually Street Pixels / this fork.
 **Application name, listing copy (marketing/brand), and privacy/terms
@@ -2418,7 +2418,7 @@ with brand listing / app name residualised). Closes OQ-37.
 - SP-092 implements non-brand disclosure work (permission inventory, ABL
   absent, friends hide, factual data-safety answers). It does **not**
   rewrite Play listing brand copy or the application name.
-- Help title, listing title, and location rationale that say “CoMaps”
+- Help title, listing title, and location rationale that say “Streifzug”
   stay residual.
 
 **Related documents.** Spec §34; `.forgejo/workflows/android-release.yaml`;
@@ -2430,7 +2430,7 @@ OQ-37; SP-088; SP-092; SP-096.
 
 **Decision.** Hide friend settings, add-friend deep links, and
 friend-facing nickname copy in **public** builds (capability-off).
-Code may stay in-tree. Do not register `comaps://add-friend` / HTTPS
+Code may stay in-tree. Do not register `streifzug://add-friend` / HTTPS
 `/add-friend` in the public manifest if the OS still offers them. Do
 not reopen OQ-6 / SPD-061 (hidden in public Android V1).
 
@@ -2443,7 +2443,7 @@ This is **implementable** in SP-092 (not brand). Closes OQ-38.
 
 - SP-092 hides friends UI and public add-friend intent-filters.
 - SP-090 hides public-V1 friend settings rows (H9); does not rewrite
-  app-name / CoMaps branding.
+  app-name / Streifzug branding.
 - SP-095 records the public-APK friends-absent eyeball as Device-verify
   residual (execution residual).
 - Friends feature revival remains out of V1 (SPD-061).
@@ -2476,14 +2476,14 @@ Closes OQ-39.
 
 ---
 
-## SPD-087 — Stock builds do not use CoMaps map CDNs
+## SPD-087 — Stock builds do not use Streifzug map CDNs
 
-**Decision.** Stock Street Pixels APKs must not request CoMaps map hosts
+**Decision.** Stock Street Pixels APKs must not request Streifzug map hosts
 for `.mwm`, `.spa`, `countries.txt`, or `meta/maps.json`.
 `DEFAULT_URLS_JSON`, `METASERVER_URL`, and `configure.sh` World fetch must
-not use CoMaps map peers (including community mirrors of that CDN). OSM
+not use Streifzug map peers (including community mirrors of that CDN). OSM
 extracts for generation come from Geofabrik / planet.openstreetmap.org.
-**SPD-003** means compatible **MWM format**, not CoMaps CDN origin.
+**SPD-003** means compatible **MWM format**, not Streifzug CDN origin.
 Custom Maps URL remains a user Advanced override (D12). Debug
 `prepare_spa_debug_root` is not the production countries source.
 
@@ -2495,7 +2495,7 @@ Closes OQ-40.
 **Consequences.**
 
 - SP-101 replaces stock host list and World bootstrap.
-- Reject shipping CoMaps URLs “until ours is ready” in a public APK.
+- Reject shipping Streifzug URLs “until ours is ready” in a public APK.
 
 **Related documents.** SPD-003; D12; SP-004; SP-098; SP-101; OQ-40.
 
@@ -2584,7 +2584,7 @@ Closes OQ-44.
 
 **Decision.** Keep `MAP_SERIES` `2026.06.28` unless generator/app
 compatibility requires a new epoch. The string is a client URL epoch,
-not a CoMaps brand claim.
+not a Streifzug brand claim.
 
 **Status.** Accepted.
 
@@ -2599,10 +2599,10 @@ Closes OQ-45.
 
 ---
 
-## SPD-093 — Phase 11 does not block Phase 10; S4 must not ship CoMaps map URLs
+## SPD-093 — Phase 11 does not block Phase 10; S4 must not ship Streifzug map URLs
 
 **Decision.** Phase 11 does **not** block Phase 10 exit. Public slice **S4**
-must not ship CoMaps map URLs in `DEFAULT_URLS_JSON` / `METASERVER_URL` /
+must not ship Streifzug map URLs in `DEFAULT_URLS_JSON` / `METASERVER_URL` /
 `configure.sh`. Phase 11 may run in parallel with Phases 5–10. Reject
 Finland-only runtime in the client.
 
@@ -2651,10 +2651,10 @@ primarily a **map** tool; exploration and gamification are secondary, so
 generated MWMs should carry the usual map layers when datasets exist.
 
 **P1 / SPD-087 still holds for the phone:** extras are **build-host**
-inputs, not CoMaps map-CDN URLs in the APK. Prefer local files, OSM/SRTM,
+inputs, not Streifzug map-CDN URLs in the APK. Prefer local files, OSM/SRTM,
 self-generated subway (`docs/SUBWAY_GENERATION.md`), and operator-configured
 paths. If a named extra has no independent source, skip that feed with a
-recorded warning in SP-100/SP-103 — do not fetch CoMaps map hosts to
+recorded warning in SP-100/SP-103 — do not fetch Streifzug map hosts to
 “complete” it.
 
 **Status.** Accepted.
@@ -2720,7 +2720,7 @@ OQ-1–OQ-49 remain struck so that history is not lost.
 | OQ-4 | ~~Nickname uniqueness: the spec says nicknames need not be unique, but the current backend enforces a unique `username`.~~ | Product spec §20.4; backend `core/models.py` | **Closed by SPD-059** — V1 nicknames are unique (spec divergence; spec not edited). |
 | OQ-5 | ~~Bridge and tunnel eligibility, and the motorway-with-explicit-bicycle-access case, after a tag-survival audit.~~ | Product spec §13.1; audit §6, §27 Q9 | **Closed by SP-020** — bridges include; tunnels exclude; motorway/motorway_link (incl. bridge) require `hwtag-yesbicycle`. |
 | OQ-6 | ~~Whether the in-progress friends feature is retained in Street Pixels builds.~~ | Product spec §6; audit §15, §27 Q7 | **Closed by SPD-061** — hidden in public Android V1; code may stay in-tree. |
-| OQ-7 | ~~Production API base URL, hosting region, and data-retention policy.~~ | Audit §27 Q6 | **Closed by SPD-062** — `https://api.comaps.app/api/v1/competition/`; EU; retain until delete or 24 months idle. Exact EU region string remains ops. |
+| OQ-7 | ~~Production API base URL, hosting region, and data-retention policy.~~ | Audit §27 Q6 | **Closed by SPD-062** — `https://api.streifzug.app/api/v1/competition/`; EU; retain until delete or 24 months idle. Exact EU region string remains ops. |
 | OQ-8 | ~~Whether HEALPix `nside` stays at 1048576 after rendering measurement.~~ | Audit §27 Q8 | **Closed for V1 by SPD-017** — `nside = 1048576` locked. |
 | OQ-9 | ~~Phase 7 M1 compositor: how is the stylised map on the completion card rendered?~~ | SP-062 (2026-08-19); spec §19.1 | **Closed by SPD-046** — rings-only outline from `m_rings`; never a live Drape / `MapView` screenshot. |
 | OQ-10 | ~~Phase 7 M2: what is “approximately 100 metres of new live street pixels”?~~ | SP-062 (2026-08-19); spec §10 steps 9–10 | **Closed by SPD-047** — 10 newly explored live pixels; not `IsEverLive` flips. |
@@ -2746,20 +2746,20 @@ OQ-1–OQ-49 remain struck so that history is not lost.
 | OQ-30 | ~~Phase 10 H1: which device matrix is sufficient for public V1?~~ | SP-088 (2026-08-29); phase-10; audit §22 OEM | **Closed by SPD-077** — D1 Pixel-class + D2 one aggressive OEM; optional D3. Device-matrix *execution* residual. |
 | OQ-31 | ~~Phase 10 H2: what is “acceptable” battery and rendering?~~ | SP-088 (2026-08-29); spec §34 Quality; SP-033 Spike 1 | **Closed by SPD-078** — Spike 1 bar unchanged; battery protocol now, numeric ceiling after measurement or waiver. Measurement *execution* residual. |
 | OQ-32 | ~~Phase 10 H3: which store flavors are the first public V1?~~ | SP-088 (2026-08-29); spec §5; `android/app/build.gradle` | **Closed by SPD-079** — Google Play `google` is the V1 gate; F-Droid same artefact optional; Huawei/web not a gate. Listing brand copy residual. |
-| OQ-33 | ~~Phase 10 H4: where do privacy policy and terms live, and who owns them?~~ | SP-088 (2026-08-29); spec §34; `HelpFragment` → comaps.app | **Closed by SPD-080** — intended product-owned Street Pixels text. Landing text/URLs residual (`comaps.app` may stay for now). |
+| OQ-33 | ~~Phase 10 H4: where do privacy policy and terms live, and who owns them?~~ | SP-088 (2026-08-29); spec §34; `HelpFragment` → streifzug.app | **Closed by SPD-080** — intended product-owned Street Pixels text. Landing text/URLs residual (`streifzug.app` may stay for now). |
 | OQ-34 | ~~Phase 10 H5: do product-analytics counters upload in V1?~~ | SP-088 (2026-08-29); spec §32; SPD-044, SPD-055, SPD-075 | **Closed by SPD-081** — no new public sink; local uint64 only; closes the Phase 10 upload residual from SPD-044/055/075. |
 | OQ-35 | ~~Phase 10 H6: add `ACCESS_BACKGROUND_LOCATION`?~~ | SP-088 (2026-08-29); SP-012; spec §34 | **Closed by SPD-082** — keep absent. D2 exception path cannot fire until device execution is no longer residual. |
 | OQ-36 | ~~Phase 10 H7: how is each carried residual classified (Fix / Measure / Device-verify / Ops / Accept / not Phase 10)?~~ | SP-088 (2026-08-29); phase-10 residual table | **Closed by SPD-083** — disposition table in the investigation note. Device-verify *execution* residual; Fix list remains SP-089 (except brand). |
-| OQ-37 | ~~Phase 10 H8: reuse upstream CoMaps release workflows and Play listing as-is?~~ | SP-088 (2026-08-29); `.forgejo/workflows/android-release.yaml` | **Closed by SPD-084** — reuse machinery; application name, listing copy, privacy/terms URLs residual. |
+| OQ-37 | ~~Phase 10 H8: reuse upstream Streifzug release workflows and Play listing as-is?~~ | SP-088 (2026-08-29); `.forgejo/workflows/android-release.yaml` | **Closed by SPD-084** — reuse machinery; application name, listing copy, privacy/terms URLs residual. |
 | OQ-38 | ~~Phase 10 H9: how far does SPD-061 hide friends in the public APK?~~ | SP-088 (2026-08-29); SPD-061; add-friend intent-filters | **Closed by SPD-085** — hide UI and public add-friend filters; implementable in SP-092 (not brand). |
 | OQ-39 | ~~Phase 10 H10: must Forgejo C++ test exclusions be narrowed before launch?~~ | SP-088 (2026-08-29); README §8.1; SP-002 | **Closed by SPD-086** — recorded local suites are the V1 gate; CI narrowing not a Phase 10 blocker. |
-| OQ-40 | ~~May stock Street Pixels builds use CoMaps map CDNs for `.mwm` / `.spa` / countries / `maps.json`?~~ | Phase 11; SP-098 P1; SPD-003 | **Closed by SPD-087** — no. Format-compatible maps, own origin. |
+| OQ-40 | ~~May stock Street Pixels builds use Streifzug map CDNs for `.mwm` / `.spa` / countries / `maps.json`?~~ | Phase 11; SP-098 P1; SPD-003 | **Closed by SPD-087** — no. Format-compatible maps, own origin. |
 | OQ-41 | ~~Where do we generate vs serve?~~ | Phase 11; SP-098 P2 | **Closed by SPD-088** — ≥32 GiB builder; 8 GiB VPS serve-only. |
 | OQ-42 | ~~Option A mapgen collectors in this phase?~~ | Phase 11; SP-098 P3; SPD-033 | **Closed by SPD-089** — no; glue Option B. |
 | OQ-43 | ~~First publish grain?~~ | Phase 11; SP-098 P4 | **Closed by SPD-090** — eight FI leaves + extract World. |
 | OQ-44 | ~~Map-signing keys and Channel A vs B?~~ | Phase 11; SP-098 P5; SPD-036/037 | **Closed by SPD-091** — Street Pixels Ed25519; Channel A on the public origin. |
 | OQ-45 | ~~Keep `MAP_SERIES` `2026.06.28`?~~ | Phase 11; SP-098 P6 | **Closed by SPD-092** — keep unless compatibility requires a bump. |
-| OQ-46 | ~~Does Phase 11 block Phase 10? Is it an S4 hosting gate?~~ | Phase 11; SP-098 P7 | **Closed by SPD-093** — not a Phase 10 blocker; S4 must not ship CoMaps map URLs. |
+| OQ-46 | ~~Does Phase 11 block Phase 10? Is it an S4 hosting gate?~~ | Phase 11; SP-098 P7 | **Closed by SPD-093** — not a Phase 10 blocker; S4 must not ship Streifzug map URLs. |
 | OQ-47 | ~~Coastline / WorldCoasts for extract builds?~~ | Phase 11; SP-098 P8 | **Closed by SPD-094** — skip if extract coasts fail; document missing water fill. |
 | OQ-48 | ~~Optional mapgen extras (hotels, isolines, SRTM, subway, UGC, Wikipedia)?~~ | Phase 11; SP-098 P9 | **Closed by SPD-095** — **on** by default (map tool first; override of recommended off). |
 | OQ-49 | ~~Orchestration shape (CLI vs VPS generate daemon)?~~ | Phase 11; SP-098 P10 | **Closed by SPD-096** — one build-host CLI + rsync; reuse SPD-035 layout. |

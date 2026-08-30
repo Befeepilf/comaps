@@ -4111,7 +4111,7 @@
 				BuildIndependentTargetsInParallel = YES;
 				DefaultBuildSystemTypeForWorkspace = Latest;
 				LastUpgradeCheck = 2620;
-				ORGANIZATIONNAME = CoMaps;
+				ORGANIZATIONNAME = Streifzug;
 				TargetAttributes = {
 					6741A93D1BF340DE002C974C = {
 						LastSwiftMigration = 1110;
@@ -5174,7 +5174,7 @@
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.navigation";
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = NO;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2025 CoMaps Contributors. All rights reserved.";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2025 Streifzug Contributors. All rights reserved.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Determining your location is necessary for navigation and for saving your recently travelled track.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
@@ -5209,7 +5209,7 @@
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.navigation";
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = NO;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2025 CoMaps Contributors. All rights reserved.";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2025 Streifzug Contributors. All rights reserved.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Determining your location is necessary for navigation and for saving your recently travelled track.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
@@ -5270,8 +5270,8 @@
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CoMapsWidgetExtension/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = CoMaps;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2025 CoMaps Contributors. All rights reserved.";
+				INFOPLIST_KEY_CFBundleDisplayName = Streifzug;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2025 Streifzug Contributors. All rights reserved.";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -5300,8 +5300,8 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CoMapsWidgetExtension/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = CoMaps;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2025 CoMaps Contributors. All rights reserved.";
+				INFOPLIST_KEY_CFBundleDisplayName = Streifzug;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2025 Streifzug Contributors. All rights reserved.";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

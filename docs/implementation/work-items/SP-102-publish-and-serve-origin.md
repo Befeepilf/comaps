@@ -40,7 +40,7 @@ SP-051 is the LAN server. A public origin needs TLS, a stable hostname for
 - Confirm 8 GiB RAM is enough to **serve** (yes); warn if someone starts
   mapgen there.
 - Update `docs/DEPLOY_OWN_MAP_SERVER.md` Street Pixels section: generate on
-  builder, serve here; community CoMaps distributors remain MWM-only and
+  builder, serve here; community Streifzug distributors remain MWM-only and
   are **not** our production path (P1).
 - Tests: none against the live VPS in CI. Reuse SP-051 unit tests.
 
@@ -68,7 +68,7 @@ SP-051 is the LAN server. A public origin needs TLS, a stable hostname for
 
 ## Acceptance criteria
 
-1. Written VPS recipe a maintainer can follow without CoMaps.
+1. Written VPS recipe a maintainer can follow without Streifzug.
 2. Local SP-051 still the supported LAN path.
 3. rsync/publish command documented from pipeline `--out`.
 4. Maintainer decides acceptance.

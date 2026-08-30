@@ -33,7 +33,7 @@ production binary changes here.
 Phase 10 adds no features. Everything it touches is verification,
 disclosure, or a defect found during verification. The phase file’s
 known uncertainties (battery “acceptable”, device matrix, policy
-ownership, flavor scope, CoMaps release-workflow reuse, ABL) would
+ownership, flavor scope, Streifzug release-workflow reuse, ABL) would
 otherwise be decided silently inside coding or device PRs.
 
 Carried residuals from Phases 2–9 now outnumber the 2026-07-25 phase-10
@@ -55,11 +55,11 @@ Product owner accepted **all** recommended H1–H10 positions as
 
 **Brand-related residuals** (do not implement in SP-089–097):
 
-- App name / product branding (CoMaps vs Street Pixels in
+- App name / product branding (Streifzug vs Street Pixels in
   user-visible strings, Help, listing title, location rationale that
-  says “CoMaps”)
+  says “Streifzug”)
 - Privacy policy text, hosting, and in-app URLs
-  (`https://comaps.app/privacy/` may stay for now)
+  (`https://streifzug.app/privacy/` may stay for now)
 - Terms of use text, hosting, and in-app URLs
 - Play/F-Droid listing copy rewrite that is marketing/brand
   (H3/H8 listing identity)
@@ -119,12 +119,12 @@ with brand writing and on-device testing residualised. Full text in
 | H1 | Which device matrix is sufficient? | **D1** Pixel-class already used in this project (Pixel 3a and/or Pixel 10a). **D2** one aggressive-OEM skin (Xiaomi / HyperOS, Samsung with aggressive sleep, or Huawei). Optional **D3** a second API level (Android 10–12 vs 14–15) if D1/D2 are the same generation. Screen-off recording, OEM kill, and Helsinki walks are defined on D1+D2. **Executing** the matrix on a handset is residual. | Audit and phase-10 already name Pixel-class + aggressive OEM. One device cannot close SP-014 exit #7. | OQ-30 / **SPD-077** |
 | H2 | What is “acceptable” battery and rendering? | **Rendering:** keep Spike 1 — p95 ≥30 FPS at zoom 14–16 with a city loaded; overlay memory uplift &lt;150 MB (SP-033). **Battery:** lock the *protocol* now — multi-hour screen-off recording vs a same-device control (app installed, recording off, screen off, no navigation); record %/hour and mAh if available. Do **not** invent a numeric ceiling in this item. After SP-094 numbers, either accept, waive with store copy, or open a new SPD. Cold-start-to-first-interactive-frame is recorded, not gated, unless a later SPD adds a number. **Executing** the protocol and Spike 1 on a handset is residual. | Spec §34 Quality has no number. A guessed % would fail or pass by accident. Rendering already has a recorded bar. | OQ-31 / **SPD-078** |
 | H3 | Which store flavors are the first public V1? | **Google Play `google` release** is the public V1 store gate (listing, data-safety, signing). **F-Droid** may ship the same artefact in the same slice but is not a separate product surface. **Huawei** and **web** are not V1 launch gates. Every flavor still must not expose a purchase action or Pro capabilities (SPD-010 / SPD-011). **Listing brand copy** (marketing/identity) is residual. | Spec is Android public V1, not “every store on day one”. Huawei review is a second pipeline. | OQ-32 / **SPD-079** |
-| H4 | Where do privacy policy and terms live, and who owns them? | Product-owned **Street Pixels** privacy policy and terms (or a clearly versioned CoMaps addendum that describes session GPS, local `.pix`, competition aggregates, and deletion). Policy version string stays the consent key (`IdentityStore`). Exact EU region string remains ops (SPD-062). **Landing** the actual policy/terms text, hosting, and in-app URLs is residual; `https://comaps.app/privacy/` / `terms/` may stay for now. **SP-093 is residual**, not a coding item. | Current Help opens unmodified CoMaps pages. Spec §34 requires the policy to describe local vs uploaded data; that landing work is residual. | OQ-33 / **SPD-080** |
+| H4 | Where do privacy policy and terms live, and who owns them? | Product-owned **Street Pixels** privacy policy and terms (or a clearly versioned Streifzug addendum that describes session GPS, local `.pix`, competition aggregates, and deletion). Policy version string stays the consent key (`IdentityStore`). Exact EU region string remains ops (SPD-062). **Landing** the actual policy/terms text, hosting, and in-app URLs is residual; `https://streifzug.app/privacy/` / `terms/` may stay for now. **SP-093 is residual**, not a coding item. | Current Help opens unmodified Streifzug pages. Spec §34 requires the policy to describe local vs uploaded data; that landing work is residual. | OQ-33 / **SPD-080** |
 | H5 | Do product-analytics counters upload in V1? | **No new public upload sink.** Keep count-only local uint64 (SPD-044 / SPD-055 / SPD-075). Do not send through Sentry. Do not attach analytics to competition POST. §32 “measure” for public V1 means the counters exist and are inspectable in debug; §33 hypotheses are closed-beta observation, not a telemetry pipeline. If a later SPD wants an aggregate sink, it needs a separate consent, a closed payload deny-list, and a new SPD that supersedes this one. **Closes the Phase 10 upload residual from SPD-044/055/075.** | A new endpoint without consent would violate private-by-default. Competition opt-in is not analytics consent. | OQ-34 / **SPD-081** |
 | H6 | Add `ACCESS_BACKGROUND_LOCATION`? | **Keep absent** unless a later D2 measurement (SP-095) proves the location FGS does not survive screen-off on the aggressive OEM. If added: Play Console background-location declaration + justification video in SP-092; session-only copy; never claim tracking outside a session. D2 *execution* is residual, so Phase 10 coding keeps ABL absent. | SP-012 / SP-014 Pixel 3a worked without ABL. Adding ABL is a store-review and disclosure cost. | OQ-35 / **SPD-082** |
 | H7 | How is each carried residual classified? | Use the disposition table in the investigation note. **Fix** → SP-089 (code defects; not brand, not device). **Measure** → SP-094 (protocol in docs; device execution residual). **Device-verify** → SP-095; *execution* residual. **Ops** → SP-096. **Follow H5** → SP-091. Option A mapgen, Qt/desktop GPX, iOS, friends revival, boss haptic stay out. If the Fix list is more than one non-trivial subsystem after lock, split extra `SP-NNN` files before coding rather than one mixed PR. | Phase 10 must not silently drop OEM/Helsinki evidence or silently implement post-V1 work. | OQ-36 / **SPD-083** |
-| H8 | Reuse upstream CoMaps release workflows as-is? | **No.** Reuse the *machinery* (Gradle flavors, Forgejo `android-release.yaml` shape, `docs/CREDENTIALS.md` secret names) but the **listing, application identity, data-safety answers, and signing identity** must be Street Pixels / this fork. **Application name, listing copy, and privacy/terms URLs are residual.** | Shipping CoMaps metadata for a competition-capable explorer would fail spec §34 disclosures; brand writing is nonetheless residual for this slice. | OQ-37 / **SPD-084** |
-| H9 | How far does SPD-061 hide friends in the public APK? | Hide friend settings, add-friend deep links, and friend-facing nickname copy in **public** builds (capability-off). Code may stay in-tree. Do not register `comaps://add-friend` / HTTPS `/add-friend` in the public manifest if the OS still offers them. Do not reopen OQ-6. **This is implementable in SP-092** (not brand). | Manifest still registers add-friend. Store listing and policy would otherwise describe a feature V1 does not ship. | OQ-38 / **SPD-085** |
+| H8 | Reuse upstream Streifzug release workflows as-is? | **No.** Reuse the *machinery* (Gradle flavors, Forgejo `android-release.yaml` shape, `docs/CREDENTIALS.md` secret names) but the **listing, application identity, data-safety answers, and signing identity** must be Street Pixels / this fork. **Application name, listing copy, and privacy/terms URLs are residual.** | Shipping Streifzug metadata for a competition-capable explorer would fail spec §34 disclosures; brand writing is nonetheless residual for this slice. | OQ-37 / **SPD-084** |
+| H9 | How far does SPD-061 hide friends in the public APK? | Hide friend settings, add-friend deep links, and friend-facing nickname copy in **public** builds (capability-off). Code may stay in-tree. Do not register `streifzug://add-friend` / HTTPS `/add-friend` in the public manifest if the OS still offers them. Do not reopen OQ-6. **This is implementable in SP-092** (not brand). | Manifest still registers add-friend. Store listing and policy would otherwise describe a feature V1 does not ship. | OQ-38 / **SPD-085** |
 | H10 | Must Forgejo C++ test exclusions be narrowed before launch? | **No** as a launch blocker. V1 gate is recorded local `street_pixels_tests`, smoke, Android lint, `clang-format`, plus the SP-097 evidence log. Narrowing `CTEST_EXCLUDE_REGEX` / adding a GitHub C++ job remains the SP-002 follow-up, not Phase 10 exit. | README §8.1 already states this posture. Rewriting upstream CI is unrelated scope. | OQ-39 / **SPD-086** |
 
 ### Later work items: coding vs residual
@@ -249,8 +249,8 @@ Last Accepted SPD is **SPD-086**.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| Play listing still CoMaps + advertises GPX | Residual (brand listing copy). Not SP-092 coding. |
-| Help privacy/terms URLs are `comaps.app` | Residual (SP-093). `https://comaps.app/privacy/` may stay for now. |
+| Play listing still Streifzug + advertises GPX | Residual (brand listing copy). Not SP-092 coding. |
+| Help privacy/terms URLs are `streifzug.app` | Residual (SP-093). `https://streifzug.app/privacy/` may stay for now. |
 | `prefs_privacy.xml` has no Street Pixels rows | SP-090 except privacy-policy/terms URL rows (residual) and app-name rebrand (residual) |
 | Spec §32.1 / §32.3 counters absent | SP-091 local uint64 after SPD-081; no upload sink |
 | add-friend intent-filters still registered | SP-092 after SPD-085 (implementable) |

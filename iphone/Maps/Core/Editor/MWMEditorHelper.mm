@@ -41,7 +41,7 @@
     osm::Editor::Instance().UploadChanges(
         oauthToken,
         {{"created_by",
-          std::string("CoMaps " OMIM_OS_NAME " ") + AppInfo.sharedInfo.bundleVersion.UTF8String},
+          std::string("Streifzug " OMIM_OS_NAME " ") + AppInfo.sharedInfo.bundleVersion.UTF8String},
          {"bundle_id", NSBundle.mainBundle.bundleIdentifier.UTF8String}},
         lambda);
   }

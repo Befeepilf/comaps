@@ -274,14 +274,14 @@ This phase has the highest uncertainty in the plan.
   and who maintains that configuration. **Partial:** format/review locked by
   SPD-023; coverage breadth remains SP-025 incremental data work.
 - Whether admin levels 5, 6, and 8 can be added to the classificator without
-  disrupting upstream CoMaps behaviour that depends on the current mapping.
+  disrupting upstream Streifzug behaviour that depends on the current mapping.
   Sidecar emission (SPD-020) may reduce pressure to map every level into
   drawable MWM types — still verify under SP-026.
 - Whether the three-box `CityBoundary` approximation can be reused for
   settlement detection while true polygons are used for subdivisions, or
   whether settlements also need true polygons. **Closed by SPD-025** — true
   municipal rings from the sidecar; three-box is not assignment authority.
-- How to keep divergence from upstream CoMaps manageable, given that the
+- How to keep divergence from upstream Streifzug manageable, given that the
   generator and classificator are shared with upstream.
 - Whether "meaningfully smaller than the containing settlement" and
   "containing a meaningful street-pixel set" can be expressed as concrete

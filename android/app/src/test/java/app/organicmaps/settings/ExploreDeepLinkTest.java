@@ -12,9 +12,9 @@ public class ExploreDeepLinkTest
   {
     assertTrue(ExploreDeepLink.isAddFriend("add-friend", null));
     assertTrue(ExploreDeepLink.isAddFriend("ADD-FRIEND", ""));
+    assertTrue(ExploreDeepLink.isAddFriend("streifzug.app", "/add-friend"));
     assertTrue(ExploreDeepLink.isAddFriend("comaps.at", "/add-friend"));
-    assertTrue(ExploreDeepLink.isAddFriend("comaps.app", "/add-friend"));
-    assertTrue(ExploreDeepLink.isAddFriend("comaps.at", "/Add-Friend/next"));
+    assertTrue(ExploreDeepLink.isAddFriend("streifzug.app", "/Add-Friend/next"));
     assertTrue(ExploreDeepLink.isAddFriend("COMAPS.AT", "/add-friend/"));
   }
 
@@ -22,7 +22,7 @@ public class ExploreDeepLinkTest
   public void isAddFriend_ignoresGe0MapLinks()
   {
     assertFalse(ExploreDeepLink.isAddFriend("o4B4pYZsRs", "/Zoo"));
-    assertFalse(ExploreDeepLink.isAddFriend("comaps.at", "/o4B4pYZsRs"));
+    assertFalse(ExploreDeepLink.isAddFriend("streifzug.app", "/o4B4pYZsRs"));
     assertFalse(ExploreDeepLink.isAddFriend("ge0.me", "/add-friend"));
     assertFalse(ExploreDeepLink.isAddFriend("map", null));
     assertFalse(ExploreDeepLink.isAddFriend(null, "/add-friend"));

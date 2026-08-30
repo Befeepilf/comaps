@@ -7,4 +7,4 @@
 • Iskanje po vseh seznamih priljubljenih
 • Nastavitve razdeljene na podstrani
 
-Več podrobnosti na comaps.app/latest
+Več podrobnosti na streifzug.app/latest

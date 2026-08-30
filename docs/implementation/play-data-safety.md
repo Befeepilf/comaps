@@ -152,6 +152,6 @@ Paste line: *Approximate location is collected only when the user opts into comp
 - Do not list friends, contacts, or social graph.
 - Do not list precise location as shared.
 - Do not declare `ACCESS_BACKGROUND_LOCATION` or Play background-location use.
-- Do not paste upstream CoMaps listing sentences that claim the app “does not track” or “does not collect personal information” without the competition-opt-in exception (listing brand rewrite is residual; this questionnaire must stay accurate).
+- Do not paste upstream Streifzug listing sentences that claim the app “does not track” or “does not collect personal information” without the competition-opt-in exception (listing brand rewrite is residual; this questionnaire must stay accurate).
 
 Privacy-policy and terms URLs remain **SP-093 / SPD-080 residual**. The form still needs a policy URL before Publish; that URL is not invented here.

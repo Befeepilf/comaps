@@ -7,4 +7,4 @@
 • Search across all favorites lists
 • Settings split into sub-pages
 
-More details on comaps.app/latest
+More details on streifzug.app/latest

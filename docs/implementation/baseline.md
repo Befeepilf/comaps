@@ -74,7 +74,7 @@ download failed:
 
 ```
 Downloading world map...
---2026-07-25 02:26:10--  https://mapgen-fi-1.comaps.app/maps/260603/World.mwm
+--2026-07-25 02:26:10--  https://mapgen-fi-1.streifzug.app/maps/260603/World.mwm
 ...
 2026-07-25 02:26:11 ERROR 404: Not Found.
 ln: World.mwm: File exists
@@ -172,14 +172,14 @@ cd android
 **Gradle build (after Java fix):** Exit 0. Wall-clock **141.7 s** real on incremental rebuild
 (~464 s first cold build before fix).  
 **Flavor / build type:** `web` + `debug` (`assembleWebDebug`).  
-**APK path:** `android/app/build/outputs/apk/web/debug/CoMaps-26072405-web-debug.apk` (190 MB).
+**APK path:** `android/app/build/outputs/apk/web/debug/Streifzug-26072405-web-debug.apk` (190 MB).
 
 **Initial attempt (before fix):** Exit 1 — `MyAccountDialogFragment.java:381` missing `}`.
 
 ### 6. Physical device validation
 
 ```bash
-adb install -r android/app/build/outputs/apk/web/debug/CoMaps-26072405-web-debug.apk
+adb install -r android/app/build/outputs/apk/web/debug/Streifzug-26072405-web-debug.apk
 ```
 
 | Field | Value |
@@ -256,8 +256,8 @@ flavors (`google`, `web`, `fdroid`, `huawei`) share the SDK build type; the
 
 | Destination | Scheme | Trigger | Frequency | Gated by |
 | --- | --- | --- | --- | --- |
-| Map meta `cdn-us-1.comaps.app/servers` | HTTPS | Map download / update | On user download | User action; offline uses local maps |
-| Map CDN peers (`comaps.firewall-gateway.de`, `cdn-us-2.comaps.tech`, `cdn-fi-1.comaps.app`, `comaps.openstreetmap.fr`, `comaps-it1.unfoxo.it`, `comaps-cdn.s3-website.cloud.ru`, `mapgen-fi-1.comaps.app`) | HTTPS | Map file fetch after meta | On download | Same; fallback list in `private.h` |
+| Map meta `cdn-us-1.streifzug.app/servers` | HTTPS | Map download / update | On user download | User action; offline uses local maps |
+| Map CDN peers (`comaps.firewall-gateway.de`, `cdn-us-2.comaps.tech`, `cdn-fi-1.streifzug.app`, `comaps.openstreetmap.fr`, `comaps-it1.unfoxo.it`, `comaps-cdn.s3-website.cloud.ru`, `mapgen-fi-1.streifzug.app`) | HTTPS | Map file fetch after meta | On download | Same; fallback list in `private.h` |
 | Custom map download URL (`pref_custom_map_download_url` → `nativeSetCustomMapDownloadUrl`) | As configured | Map download | On download | Optional user override |
 | Explore `{apiBase}/stats/upload` | From base (HTTPS in release/beta) | `ExploreStatsService::TryUpload` | 1-minute check loop; upload if sync on and dirty | `Explore.SyncEnabled` **and** `backend::IsApiConfigured()`; endpoint not implemented (Phase 8) |
 | Friends/account `{apiBase}/friends/*`, `/signup`, `/update_username`, `/account`, `/account/export` | From base | `FriendsManager` UI actions | On user action; `Refresh` on account UI open | `backend::IsApiConfigured()`; UI also gates sync/visibility (OQ-6: feature retained) |
@@ -273,7 +273,7 @@ friends callers return before `HttpClient`. No LAN or private-range default.
 **SP-101 note (2026-08-30):** Stock map hosts become the Street Pixels HTTPS
 origin in gitignored `private.h` (`DEFAULT_URLS_JSON` / `METASERVER_URL`;
 committed template `private.h.street-pixels.example` uses
-`https://maps.example.invalid/`). CoMaps map CDNs are not the Street Pixels
+`https://maps.example.invalid/`). Streifzug map CDNs are not the Street Pixels
 default. Geofabrik and planet.openstreetmap.org remain **build-host** extract
 sources for mapgen (SP-100), not APK egress. The public origin URL is SP-102.
 See [SP-101](work-items/SP-101-independent-map-identity.md) and
@@ -284,11 +284,11 @@ See [SP-101](work-items/SP-101-independent-map-identity.md) and
 | Build type | Injected value |
 | --- | --- |
 | `debug` | `""` (empty — unconfigured) |
-| `release` | `https://api.comaps.app/api` |
-| `beta` | `https://api.comaps.app/api` (explicit; `matchingFallbacks` does not copy BuildConfig) |
+| `release` | `https://api.streifzug.app/api` |
+| `beta` | `https://api.streifzug.app/api` (explicit; `matchingFallbacks` does not copy BuildConfig) |
 
 Local override for configured debug builds:
-`./gradlew assembleWebDebug -PexploreApiBaseUrl=https://api.comaps.app/api`
+`./gradlew assembleWebDebug -PexploreApiBaseUrl=https://api.streifzug.app/api`
 
 Verified via `./gradlew :sdk:generateDebugBuildConfig` (and release/beta) on
 2026-07-26.
@@ -316,7 +316,7 @@ cd android && ./gradlew -Parm64 assembleWebBeta
 ```
 
 **Result:** Exit 0 on both. `EXPLORE_API_BASE_URL` in generated SDK
-`BuildConfig`: debug `""`, release/beta `https://api.comaps.app/api`.
+`BuildConfig`: debug `""`, release/beta `https://api.streifzug.app/api`.
 
 **LAN string audit:** no `192.168.178.89` in compiled sources (`backend_config`,
 `sdk/build.gradle`, `network_security_config.xml`).
@@ -453,5 +453,5 @@ Guard: `./tools/unix/check_sentry_privacy.sh` (also wired into GitHub and Forgej
 
 Release-configured validation build used for SP-003 packaging inspection:
 `cd android && ./gradlew -Parm64 assembleWebBeta` →
-`app/build/outputs/apk/web/beta/CoMaps-*-web-beta.apk`.
+`app/build/outputs/apk/web/beta/Streifzug-*-web-beta.apk`.
 Device crash/logcat confirmation still pending (see SP-003 evidence).

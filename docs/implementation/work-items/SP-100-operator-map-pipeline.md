@@ -26,7 +26,7 @@ documents the remote layout; the CLI may `--rsync-dest` once that WI lands).
 ## Motivation
 
 Today a maintainer must stitch ini files, spike scripts, and three CLIs.
-Missed `--pix_dir` or a CoMaps `prepare_spa_debug_root` is the default
+Missed `--pix_dir` or a Streifzug `prepare_spa_debug_root` is the default
 failure. “Seamless” is this command, not a VPS daemon.
 
 ---
@@ -41,11 +41,11 @@ failure. “Seamless” is this command, not a VPS daemon.
   / generator version; `--iso`; `--policy`; `--borders-dir`; `--secret-key`
   optional until SP-101.
 - Default ini fragment in-repo: `NODE_STORAGE: map`, low `THREADS_COUNT`,
-  P9 extras **on** (**SPD-095**), no CoMaps map-CDN URLs (**SPD-087**).
+  P9 extras **on** (**SPD-095**), no Streifzug map-CDN URLs (**SPD-087**).
   Extra feeds with no independent source: skip that stage with a warning.
 - Stages skippable (`--from-stage`) so a failed spa emit does not rebuild
   MWMs.
-- Refuse to run if `--cdn-base` / CoMaps hosts are set unless
+- Refuse to run if `--cdn-base` / Streifzug hosts are set unless
   `--allow-comaps-origin` (default **off**; tests assert off).
 - `--dry-run` prints the graph and paths.
 - Promote `extract_admin_place_polygons.py` to an operator-called module
@@ -82,7 +82,7 @@ failure. “Seamless” is this command, not a VPS daemon.
 
 1. `python3 -m street_pixels map_pipeline --help` documents stages.
 2. Dry-run on a fake layout does not hit the network.
-3. Default config contains no CoMaps map host strings.
+3. Default config contains no Streifzug map host strings.
 4. `maps_generator` skip-coast vs World* rule is enforced or documented as a
    preflight error (P8).
 5. Maintainer decides acceptance.
@@ -99,7 +99,7 @@ failure. “Seamless” is this command, not a VPS daemon.
 ## Failure and rollback considerations
 
 - Do not default `prepare_spa_debug_root`.
-- Do not download CoMaps World as a fallback if extract World fails.
+- Do not download Streifzug World as a fallback if extract World fails.
 
 ## Completion evidence
 
@@ -109,7 +109,7 @@ failure. “Seamless” is this command, not a VPS daemon.
 | Commits | `888f2c80e` `[tools] Add street_pixels map_pipeline operator CLI`; `edde5d4b2` `[tools] Clarify map_pipeline wikipedia skip warning`; `c3ae80135` `[docs] Document map_pipeline generate path`; `a4c879d8c` `[tools] Fix map_pipeline MD5 sidecar and origin checks`; this `[docs]` commit |
 | CLI | `python3 -m street_pixels map_pipeline` — stages mapgen → pix_derive → rings → spa_emit → assemble (optional rsync last) |
 | Default grain | `--countries World,Finland_*`; `WorldCoasts` omitted; Coastline **not** skipped unless `--skip-coast` and World is absent from the **expanded** set |
-| Origin | Default ini has no CoMaps map hosts; `--cdn-base` / CoMaps hosts (`*.comaps.app`, `*.comaps.tech`, listed community mirrors) refused unless `--allow-comaps-origin` (default off). HTTPS `--pbf` limited to Geofabrik / planet.openstreetmap.org. |
+| Origin | Default ini has no Streifzug map hosts; `--cdn-base` / Streifzug hosts (`*.streifzug.app`, `*.comaps.tech`, listed community mirrors) refused unless `--allow-comaps-origin` (default off). HTTPS `--pbf` limited to Geofabrik / planet.openstreetmap.org. |
 | Tests | `cd tools/python && PYTHONPATH=. python3 -m unittest street_pixels.tests.test_map_pipeline` — **36/36** OK. Existing `test_prepare_spa_debug_root` + `test_serve_spa_publish_tree` — **24/24** OK. `--help` documents stages. Dry-run with `file:///tmp/finland.osm.pbf` does not invoke urllib / `maps_generator` / MD5 write / publish-tree mkdir. Full FI mapgen **not** run (SP-103). |
 | Implemented by | Cloud agent (`befeepilf@protonmail.com`) |
 | Reviewed by | Independent review agent (fixes in `a4c879d8c`; not Accepted) |
@@ -125,5 +125,5 @@ Phase 11 exit is **not** met.
 | Real FI extract run | SP-103 |
 | `maps_generator/__main__.py` skip-coast iterates `options.countries` as characters | Left unfixed; operator CLI preflights the **expanded** country set |
 | Local PBF without `.md5` never written (predicted `file://` short-circuit) | Fixed in `a4c879d8c` |
-| CoMaps denylist substring holes (`*.comaps.app` not listed; path false positives) | Fixed in `a4c879d8c` (hostname + suffix; HTTPS PBF allowlist) |
+| Streifzug denylist substring holes (`*.streifzug.app` not listed; path false positives) | Fixed in `a4c879d8c` (hostname + suffix; HTTPS PBF allowlist) |
 | Skip-token / from-stage / MD5 tests were incomplete (false greens) | Strengthened in `a4c879d8c` (36 tests) |

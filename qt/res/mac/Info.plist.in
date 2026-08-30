@@ -38,14 +38,14 @@
       <true/>
       <key>NSExceptionDomains</key>
       <dict>
-        <key>comaps.app</key>
+        <key>streifzug.app</key>
         <dict>
           <key>NSExceptionAllowsInsecureHTTPLoads</key>
           <true/>
           <key>NSIncludesSubdomains</key>
           <true/>
         </dict>
-        <key>comaps.at</key>
+        <key>streifzug.app</key>
         <dict>
           <key>NSExceptionAllowsInsecureHTTPLoads</key>
           <true/>

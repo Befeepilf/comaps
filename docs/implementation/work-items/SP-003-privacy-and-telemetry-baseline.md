@@ -25,7 +25,7 @@ taken during a recording session shows the user's position on a map, and the
 view hierarchy of the map screen can carry the same information in text form.
 Product spec §32 states that raw GPS coordinates and tracks are never sent to
 product analytics, and §34 requires that analytics contain no raw location
-data. The technical audit records this tension directly: CoMaps markets privacy
+data. The technical audit records this tension directly: Streifzug markets privacy
 while the Android build ships PII and screenshot capture.
 
 The audit also notes GPS filter debug logging that includes latitude and
@@ -86,7 +86,7 @@ already captured.
 1. Enumerate every `io.sentry.*` meta-data entry with its current value, which
    is already captured in the phase file, and confirm it against the tree at
    implementation time.
-2. Determine which entries came from upstream CoMaps and which were added for
+2. Determine which entries came from upstream Streifzug and which were added for
    this fork. Upstream defaults still need to satisfy this product's promise,
    but knowing the origin matters for merge conflicts later.
 3. Change PII, screenshot, and view-hierarchy settings to off.
@@ -162,7 +162,7 @@ Telemetry configuration is manifest data and is not directly unit-testable.
 | Sentry settings after | `send-default-pii=false`, `attach-screenshot=false`, `attach-view-hierarchy=false`, `traces.sample-rate=0.1`, profiling session-sample-rate `0.1`, `start-on-app-start=false`, `logs.enabled=false`, user-interaction `true` (unchanged) |
 | Chosen sample rates and rationale | Trace and profiling session sample rates `0.1` (10%): enough crash-adjacent performance signal without 100% volume in a location app. Profiling remains coupled to sampled traces (`lifecycle=trace`). App-start profiling off to avoid always-on launch capture and known ART risk. |
 | Log statements changed | `gps_track_filter.cpp` LDEBUG: dropped lat/lon. `mwm_url.cpp`, `geo_url_parser.cpp`, `serdes_gpx.cpp`: LWARNING/LERROR no longer print coordinate values or raw geo strings. |
-| Release build telemetry inventory | Packaged `web`+`beta` APK `CoMaps-26072602-web-beta.apk` (`assembleWebBeta -Parm64`). `aapt dump xmltree` confirms privacy meta-data. **Received event** `735bcdc1625d457988a9592b99c1af57` (issue ANDROID-J): stack trace for `?emulateJavaCrash`; release `app.comaps.test@2026.07.26-2-test+26072602`; device context (model, OS, battery, permissions); coarse `user.geo` country (NZ) only — no lat/lon, no screenshot attachment, no view-hierarchy attachment, no email/username/IP fields in event payload. `tracking::Reporter` unused outside `tracking_tests`. |
+| Release build telemetry inventory | Packaged `web`+`beta` APK `Streifzug-26072602-web-beta.apk` (`assembleWebBeta -Parm64`). `aapt dump xmltree` confirms privacy meta-data. **Received event** `735bcdc1625d457988a9592b99c1af57` (issue ANDROID-J): stack trace for `?emulateJavaCrash`; release `app.comaps.test@2026.07.26-2-test+26072602`; device context (model, OS, battery, permissions); coarse `user.geo` country (NZ) only — no lat/lon, no screenshot attachment, no view-hierarchy attachment, no email/username/IP fields in event payload. `tracking::Reporter` unused outside `tracking_tests`. |
 | Deliberate-crash report link | https://comaps-dl.sentry.io/issues/136654865/events/735bcdc1625d457988a9592b99c1af57/ |
 | Test device model and OS version | Google Pixel 3a; Android 15 (LineageOS `lineage_sargo-userdebug 15 BP1A.250505.005`) |
 | Implemented by | Cursor agent, 2026-07-26 |
