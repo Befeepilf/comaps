@@ -1,1 +1,1 @@
-"""Street Pixels maintainer tools (publish / serve / recipes)."""
+"""Street Pixels maintainer tools (map pipeline / publish / serve)."""
