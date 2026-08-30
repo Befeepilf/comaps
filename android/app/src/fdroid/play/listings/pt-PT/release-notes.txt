@@ -7,4 +7,4 @@
 • Pesquisa em todas as listas de favoritos
 • Definições divididas em subpáginas
 
-Mais detalhes em comaps.app/latest
+Mais detalhes em streifzug.app/latest

@@ -16,7 +16,7 @@ recorded 2026-08-30; exit **not met**)
 Stand up a **Street Pixels–owned** pipeline that generates MWM leaves and
 production dense `{leaf}.spa` from OSM extracts, assembles the locked CDN≡LAN
 publish tree, and serves that tree from our HTTP origin — without fetching
-map bytes from CoMaps CDNs.
+map bytes from Streifzug CDNs.
 
 This phase is operator infrastructure plus the small client/config changes
 that point stock builds at that origin. It does not add product features.
@@ -24,7 +24,7 @@ It does not implement in-pipeline mapgen `.spa` collectors (Option A).
 
 ## Product-spec references
 
-- Geographic coverage: wherever compatible CoMaps **map data** exists
+- Geographic coverage: wherever compatible Streifzug **map data** exists
   (format; origin is ours — **SPD-087**).
 - §8.3 country-configured polygons; sidecar already **SPD-020**.
 - §27.3 / §34 “Offline and map updates”: **manual** map updates remain; no
@@ -51,8 +51,8 @@ Verified 2026-08-29. Detail:
 | MWM→`.pix` | `tools/pix_derive_tool` (`DeriveStreetPixelsUniverse`) | Packaging CLI (SP-099 **In review**). Same 15 m / `IsExplorable` as the client. Empty explored/ever-live. |
 | Rings extract | `street_pixels_spike/extract_admin_place_polygons.py` | Spike, FI-proven; called by `map_pipeline` (ring semantics unchanged). |
 | Assemble / serve | `assemble_spa_publish_tree`, `serve_spa_publish_tree` | SP-050/051 In review. **Reuse.** LAN: SP-051. Public origin: nginx/Caddy in front of the same root (SP-102 **In review**). |
-| Debug CDN fetch | `prepare_spa_debug_root` | Hits public CoMaps `meta/maps.json`. Not production origin. |
-| Stock map URLs | untracked gitignored `private.h` + `private.h.street-pixels.example` | Template placeholder `https://maps.example.invalid/`; `METASERVER_URL` empty; `MAP_SERIES` `2026.06.28`. Clones copy the example via `ensure-private-h` / CMake when `private.h` is missing. `configure.sh` calls `configure-world` and refuses CoMaps map hosts. Public origin recipe: SP-102 (`origin.nginx.conf` / `origin.Caddyfile`; live hostname is ops). |
+| Debug CDN fetch | `prepare_spa_debug_root` | Hits public Streifzug `meta/maps.json`. Not production origin. |
+| Stock map URLs | untracked gitignored `private.h` + `private.h.street-pixels.example` | Template placeholder `https://maps.example.invalid/`; `METASERVER_URL` empty; `MAP_SERIES` `2026.06.28`. Clones copy the example via `ensure-private-h` / CMake when `private.h` is missing. `configure.sh` calls `configure-world` and refuses Streifzug map hosts. Public origin recipe: SP-102 (`origin.nginx.conf` / `origin.Caddyfile`; live hostname is ops). |
 | Policy | `data/street_pixels/country_policies.json` | FI only. |
 | Layout / ads / sig | **SPD-035–039**, **SPD-028**, **SPD-036** | Locked. Phase 11 must not invent a second protocol. |
 
@@ -68,7 +68,7 @@ unwired.
   plus an extract-sourced `World.mwm`, matching `.spa`, signed `countries.txt`,
   and `meta/maps.json`, then publish to the 8 GiB VPS.
 - A Street Pixels APK built with `SKIP_MAP_DOWNLOAD=1` and our `private.h`
-  downloads those files without contacting CoMaps map hosts.
+  downloads those files without contacting Streifzug map hosts.
 - Dense `assign[]` matches client universe U (pix derive, not highway proxy).
 - Layout remains **SPD-035**. Signatures still verify (**SPD-036**).
 
@@ -80,7 +80,7 @@ unwired.
 - Product-owner lock of P1–P10 (**SP-098 Accepted**; **SPD-087–096**).
 
 Does not wait for Phase 5–10 exit. Helsinki device walks that today residual
-to SP-053 / Phase 10 may consume this origin instead of CoMaps.
+to SP-053 / Phase 10 may consume this origin instead of Streifzug.
 
 ## Carried residuals this phase absorbs or leaves
 
@@ -90,7 +90,7 @@ to SP-053 / Phase 10 may consume this origin instead of CoMaps.
 | Eight-leaf FI dense `.spa` with real \|U\| | **SP-103** **In review** — dry-run recorded 2026-08-30; generate **not executed** (Cloud Agent ~15 GiB; residual maintainer ≥32 GiB MacBook, **SPD-088**) |
 | Option A `StageMwm` collectors | **Out** — **SPD-089** |
 | SP-050–053 LAN tools | **Reuse**; do not rewrite the layout |
-| `prepare_spa_debug_root` CoMaps fetch | Production path **must not** use it (**SPD-087**) |
+| `prepare_spa_debug_root` Streifzug fetch | Production path **must not** use it (**SPD-087**) |
 | Country policies beyond FI | After pipeline exists; not a Phase 11 exit |
 | Planet-quality World + WorldCoasts | Residual (**SPD-094**) |
 
@@ -105,9 +105,9 @@ phase exit. Do **not** treat exit as met.
 | 1 | [SP-098](../work-items/SP-098-map-pipeline-architecture-decisions.md) | Architecture decisions (**Accepted** 2026-08-29; **SPD-087–096**) |
 | 2 | [SP-099](../work-items/SP-099-offline-mwm-pix-derive.md) | Offline leaf MWM → `.pix` derive matching the client (**In review**; not Accepted) |
 | 3 | [SP-100](../work-items/SP-100-operator-map-pipeline.md) | Operator CLI: extract → mapgen → pix → rings → spa → assemble (**In review**; not Accepted) |
-| 4 | [SP-101](../work-items/SP-101-independent-map-identity.md) | Own map keys, stock host list, `configure.sh` without CoMaps (**In review**; not Accepted) |
+| 4 | [SP-101](../work-items/SP-101-independent-map-identity.md) | Own map keys, stock host list, `configure.sh` without Streifzug (**In review**; not Accepted) |
 | 5 | [SP-102](../work-items/SP-102-publish-and-serve-origin.md) | VPS static origin, rsync, TLS, Range (**In review**; not Accepted) |
-| 6 | [SP-103](../work-items/SP-103-finland-first-country-run.md) | Recorded Finland generate+publish with no CoMaps map fetch (**In review**; dry-run only; generate not executed; not Accepted) |
+| 6 | [SP-103](../work-items/SP-103-finland-first-country-run.md) | Recorded Finland generate+publish with no Streifzug map fetch (**In review**; dry-run only; generate not executed; not Accepted) |
 | 7 | [SP-104](../work-items/SP-104-phase11-end-to-end-validation.md) | Phase 11 exit validation (**In review** 2026-08-30; not Accepted; exit **not met**) |
 
 ## Pipeline (locked layout, recommended glue)
@@ -142,7 +142,7 @@ See the investigation note §3. HTTP contract is already **SPD-035**:
 
 - SP-099: derive→`ScanUniverseAscending` vs a fixture MWM; header/version;
   empty explored; 15 m / `IsExplorable` alignment tests.
-- SP-100: dry-run / stage graph unit tests; refuse CoMaps base URLs unless
+- SP-100: dry-run / stage graph unit tests; refuse Streifzug base URLs unless
   an explicit override that tests assert is off by default.
 - SP-101: no production test can require the gitignored `private.h`; document
   a template. Signature round-trip with a **test** key, not production keys.
@@ -155,9 +155,9 @@ See the investigation note §3. HTTP contract is already **SPD-035**:
 ## Manual validation strategy
 
 - SP-103/104: curl `meta/maps.json` and a Helsinki `.mwm`/`.spa` from the VPS;
-  APK with our `DEFAULT_URLS_JSON` downloads both; `HasRemoteSpa`; no CoMaps
+  APK with our `DEFAULT_URLS_JSON` downloads both; `HasRemoteSpa`; no Streifzug
   map host in a traffic capture **or** a documented hosts-file/DNS block of
-  the CoMaps list during the run.
+  the Streifzug list during the run.
 - Device walk remains Phase 10 residual if hardware is residual; this phase’s
   exit is **pipeline evidence**, not Helsinki UX.
 
@@ -174,14 +174,14 @@ See the investigation note §3. HTTP contract is already **SPD-035**:
 2. Offline MWM→`.pix` derive exists and is the only production U source for
    emit (no highway proxy).
 3. One documented operator command produces the SP-050 tree from an OSM
-   extract for Finland (eight leaves) without CoMaps map URLs.
+   extract for Finland (eight leaves) without Streifzug map URLs.
 4. VPS (or equivalent) serves that tree; Range GET works for a large MWM.
 5. Stock-path advertisement: signed countries with spa fields; Channel B
    not required for the recorded run if P5 keys exist.
-6. `configure.sh` / World bootstrap documented without CoMaps (`SKIP_MAP_DOWNLOAD`
+6. `configure.sh` / World bootstrap documented without Streifzug (`SKIP_MAP_DOWNLOAD`
    + self-generated World, or fetch from **our** origin).
 7. Evidence log: commands, versions, artifact sizes, and a statement that
-   CoMaps map hosts were not used.
+   Streifzug map hosts were not used.
 8. Option A still explicitly out; worldwide policies beyond FI not required
    for this phase’s exit.
 
@@ -205,16 +205,16 @@ P1–P10 are **locked** 2026-08-29 via
 
 | Ref | Accepted lock | SPD |
 | --- | --- | --- |
-| P1 | Stock APK must not list CoMaps map hosts | **SPD-087** |
+| P1 | Stock APK must not list Streifzug map hosts | **SPD-087** |
 | P2 | ≥32 GiB builder; 8 GiB VPS serve-only | **SPD-088** |
 | P3 | Glue Option B; Option A residual | **SPD-089** |
 | P4 | Eight FI leaves + extract World | **SPD-090** |
 | P5 | Our Ed25519; Channel A on the public origin | **SPD-091** |
 | P6 | Keep `MAP_SERIES` `2026.06.28` | **SPD-092** |
-| P7 | Not a Phase 10 blocker; S4 must not ship CoMaps map URLs | **SPD-093** |
+| P7 | Not a Phase 10 blocker; S4 must not ship Streifzug map URLs | **SPD-093** |
 | P8 | Skip coastline if extract coasts fail | **SPD-094** |
 | P9 | Extras **on** (map tool first) | **SPD-095** |
 | P10 | One build-host CLI + rsync | **SPD-096** |
 
 SP-100 residual: extra feeds with no independent source skip+warn (**SPD-095**),
-never CoMaps map CDN.
+never Streifzug map CDN.

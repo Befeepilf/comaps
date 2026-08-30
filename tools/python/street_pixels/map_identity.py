@@ -46,12 +46,12 @@ _PRIVATE_NETWORKS = (
 )
 
 _MISSING_BOOTSTRAP = (
-    "Street Pixels will not download World.mwm from CoMaps map hosts "
+    "Street Pixels will not download World.mwm from Streifzug map hosts "
     "(SPD-087). Set SKIP_MAP_DOWNLOAD=1, or STREET_PIXELS_LOCAL_WORLD to a "
     "World.mwm file, or STREET_PIXELS_WORLD_DIR to a directory containing "
-    "World.mwm, or STREET_PIXELS_MAPS_BASE_URL to a non-CoMaps HTTPS origin "
-    "(SP-102 fills the public host). Do not use mapgen-fi-1.comaps.app or "
-    "other CoMaps map CDNs."
+    "World.mwm, or STREET_PIXELS_MAPS_BASE_URL to a non-Streifzug HTTPS origin "
+    "(SP-102 fills the public host). Do not use mapgen-fi-1.streifzug.app or "
+    "other Streifzug map CDNs."
 )
 
 
@@ -122,7 +122,7 @@ def require_https_maps_origin(url):
     denied = comaps_map_host_in(text)
     if denied:
         raise MapIdentityError(
-            "refusing CoMaps map host {!r} in STREET_PIXELS_MAPS_BASE_URL "
+            "refusing Streifzug map host {!r} in STREET_PIXELS_MAPS_BASE_URL "
             "(SPD-087)".format(denied)
         )
     return text.rstrip("/") + "/"
@@ -267,7 +267,7 @@ def resolve_world_bootstrap(
         denied = comaps_map_host_in(chosen)
         if denied:
             raise MapIdentityError(
-                "refusing CoMaps map host {!r} as World download origin "
+                "refusing Streifzug map host {!r} as World download origin "
                 "(SPD-087). {}".format(denied, _MISSING_BOOTSTRAP)
             )
         origin = require_https_maps_origin(chosen)
@@ -290,7 +290,7 @@ def download_to_file(url, dest):
     denied = comaps_map_host_in(url)
     if denied:
         raise MapIdentityError(
-            "refusing to download from CoMaps map host {!r}".format(denied)
+            "refusing to download from Streifzug map host {!r}".format(denied)
         )
     if origin_is_private(url):
         raise MapIdentityError(
@@ -377,7 +377,7 @@ def apply_world_bootstrap(plan, data_dir, downloader=None):
         denied = comaps_map_host_in(world_url) or comaps_map_host_in(coasts_url)
         if denied:
             raise MapIdentityError(
-                "refusing to fetch World from CoMaps map host {!r}".format(denied)
+                "refusing to fetch World from Streifzug map host {!r}".format(denied)
             )
         print("Downloading world map from STREET_PIXELS_MAPS_BASE_URL...")
         os.makedirs(os.path.dirname(world_dest), exist_ok=True)
@@ -572,7 +572,7 @@ def main(argv=None):
 
     conf = sub.add_parser(
         "configure-world",
-        help="Provision data/World.mwm without CoMaps map hosts",
+        help="Provision data/World.mwm without Streifzug map hosts",
     )
     conf.add_argument("--data-dir", required=True)
     conf.add_argument("--countries", required=True)

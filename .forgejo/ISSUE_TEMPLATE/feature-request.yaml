@@ -1,5 +1,5 @@
 name: "💡 Feature Request"
-description: "Suggest an idea or improvement for CoMaps"
+description: "Suggest an idea or improvement for Streifzug"
 labels:
   - "enhancement"
 body:
@@ -22,8 +22,8 @@ body:
     id: ideal-solution
     attributes:
       label: "Describe the ideal solution"
-      description: "What would you like to see in CoMaps?"
-      placeholder: "I would like CoMaps to..."
+      description: "What would you like to see in Streifzug?"
+      placeholder: "I would like Streifzug to..."
     validations:
       required: false
 
@@ -32,7 +32,7 @@ body:
     attributes:
       label: "Describe alternatives you have considered"
       description: |
-        How do you solve this issue now with CoMaps or other apps?
+        How do you solve this issue now with Streifzug or other apps?
         You can also share screenshots or examples from other apps.
     validations:
       required: false

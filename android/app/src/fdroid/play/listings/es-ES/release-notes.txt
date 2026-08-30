@@ -6,4 +6,4 @@
 • Búsqueda en todas las listas de favoritos
 • Ajustes reorganizados en subpáginas
 
-Más detalles en comaps.app/latest
+Más detalles en streifzug.app/latest

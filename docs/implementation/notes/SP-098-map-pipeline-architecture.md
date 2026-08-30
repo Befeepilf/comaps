@@ -15,12 +15,12 @@ locked 2026-08-29 as **SPD-087–096** in
 Phase 4 residual SP-042–048 shipped **client** download of advertised `.spa`
 beside MWM. SP-049–053 shipped **assemble + LAN serve** of a CDN-identical
 tree. None of that **generates** MWMs or production dense `.spa` from OSM,
-and the documented debug helper still **fetches CoMaps CDN** `meta/maps.json`
+and the documented debug helper still **fetches Streifzug CDN** `meta/maps.json`
 (`prepare_spa_debug_root`).
 
 Community map servers in `docs/DEPLOY_OWN_MAP_SERVER.md` only **mirror**
-official CoMaps MWMs. Using them as Street Pixels production would put
-download load on CoMaps for a different app.
+official Streifzug MWMs. Using them as Street Pixels production would put
+download load on Streifzug for a different app.
 
 That is an **ops / origin** problem, not Android release hardening (Phase 10
 adds no features) and not a Phase 5 UI exit. Option A in-pipeline mapgen
@@ -90,9 +90,9 @@ One operator entrypoint on the build host. The VPS does not build.
 | Country policy | `data/street_pixels/country_policies.json` | **FI only.** |
 | Assemble | `tools/python/post_generation/assemble_spa_publish_tree.py` | SP-050 In review. CDN≡LAN tree (**SPD-035**). |
 | Serve | `python3 -m street_pixels serve_spa_publish_tree` | SP-051 In review. Range GETs. |
-| Debug prepare | `prepare_spa_debug_root` | Fetches **public CoMaps CDN** countries. Not a production origin. |
-| Stock map hosts | `private.h` (gitignored) `DEFAULT_URLS_JSON`, `METASERVER_URL` | CoMaps CDN list. `configure.sh` curls `mapgen-fi-1.comaps.app` unless `SKIP_MAP_DOWNLOAD=1`. |
-| Countries signature | `COUNTRIES_TXT_SIGNATURE_HEX` | CoMaps public half. Custom server does **not** skip verify (**SPD-036**). |
+| Debug prepare | `prepare_spa_debug_root` | Fetches **public Streifzug CDN** countries. Not a production origin. |
+| Stock map hosts | `private.h` (gitignored) `DEFAULT_URLS_JSON`, `METASERVER_URL` | Streifzug CDN list. `configure.sh` curls `mapgen-fi-1.streifzug.app` unless `SKIP_MAP_DOWNLOAD=1`. |
+| Countries signature | `COUNTRIES_TXT_SIGNATURE_HEX` | Streifzug public half. Custom server does **not** skip verify (**SPD-036**). |
 | Layout | **SPD-035** / **SPD-039** | Locked. Do not invent a second URL scheme. |
 | Custom Maps URL | Advanced setting | Never a build default (D12 / SP-004). Stock **default host list** is a different knob (`DEFAULT_URLS_JSON`). |
 
@@ -103,10 +103,10 @@ Finland leaf sizes in bundled `data/countries.txt` (CDN bytes, order-of-magnitud
 ## 5. Gaps this phase must close
 
 1. **Pix derive** matching client eligibility/sampling, so dense `assign_count == |U|`.
-2. **One operator CLI** that runs mapgen → derive → rings → emit → assemble → optional rsync, with explicit extract/country args and no silent CoMaps URLs.
-3. **Street Pixels map identity:** own Ed25519 keys; stock APK host list; `configure.sh` never hits CoMaps for World.
+2. **One operator CLI** that runs mapgen → derive → rings → emit → assemble → optional rsync, with explicit extract/country args and no silent Streifzug URLs.
+3. **Street Pixels map identity:** own Ed25519 keys; stock APK host list; `configure.sh` never hits Streifzug for World.
 4. **VPS serve recipe** for the SP-050 tree (TLS, Range, no gzip of binaries).
-5. **A recorded Finland run** that never contacted CoMaps map hosts.
+5. **A recorded Finland run** that never contacted Streifzug map hosts.
 
 Not in this phase: Option A collectors; planet-quality World/coasts unless a later lock says otherwise; country policies beyond FI (incremental after the pipeline exists).
 
@@ -116,11 +116,11 @@ Not in this phase: Option A collectors; planet-quality World/coasts unless a lat
 
 | Tension | Notes |
 | --- | --- |
-| Spec / **SPD-003** “wherever compatible CoMaps map data exists” | **SPD-087**: **format** compatibility (MWM + our `.spa`), **not** CoMaps CDN origin. Do not edit the spec. |
+| Spec / **SPD-003** “wherever compatible Streifzug map data exists” | **SPD-087**: **format** compatibility (MWM + our `.spa`), **not** Streifzug CDN origin. Do not edit the spec. |
 | README §3 “Automatic map updates” is post-V1 | This phase uses the **existing manual** download/update path. No new auto-update protocol. |
 | **SPD-033** packaging is Phase 4 residual | Client/layout work stays there. Phase 11 is **origin + generate**. Do not reopen SP-042–048. |
 | D12 Custom URL never a build default | Keep. Changing `DEFAULT_URLS_JSON` to a Street Pixels HTTPS origin is the stock path, not a baked LAN Custom Maps URL. |
-| **SPD-084** reuse CoMaps **release machinery** | Listing/signing identity is residual brand. Map **file** origin is this phase. |
+| **SPD-084** reuse Streifzug **release machinery** | Listing/signing identity is residual brand. Map **file** origin is this phase. |
 
 ---
 

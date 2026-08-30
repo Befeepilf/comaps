@@ -29,10 +29,10 @@ production binary changes here.
 
 The client already downloads `{leaf}.mwm` and advertised `{leaf}.spa` from
 one Custom Maps / default-host URL (**SPD-035**). What is missing is an
-origin we operate: CoMaps CDN must not carry Street Pixels map traffic, and
+origin we operate: Streifzug CDN must not carry Street Pixels map traffic, and
 the 256 GiB planet builder is not the hardware we have.
 
-Without locks, later items will either hit CoMaps “just for World.mwm”,
+Without locks, later items will either hit Streifzug “just for World.mwm”,
 run `maps_generator` on the 8 GiB VPS, or expand into Option A.
 
 ---
@@ -57,7 +57,7 @@ may proceed. Do **not** mark Phase 11 exit met.
   in the investigation note).
 - Append **SPD-087–096**. Strike **OQ-40–OQ-49**. Annotate SP-099–104 and
   the phase file. Update README §5 S4 hosting gate (**SPD-093**).
-- Record the SPD-003 interpretation (format vs CoMaps CDN). Do not edit the
+- Record the SPD-003 interpretation (format vs Streifzug CDN). Do not edit the
   product spec.
 - Do not mark Phase 11 exit Accepted unilaterally.
 
@@ -75,13 +75,13 @@ may proceed. Do **not** mark Phase 11 exit met.
 
 | Ref | Question | Accepted position | SPD |
 | --- | --- | --- | --- |
-| P1 | May stock builds use CoMaps map CDNs? | **No.** Own origin; SPD-003 = format. | **SPD-087** |
+| P1 | May stock builds use Streifzug map CDNs? | **No.** Own origin; SPD-003 = format. | **SPD-087** |
 | P2 | Build vs serve | ≥32 GiB builder; 8 GiB VPS serve-only. | **SPD-088** |
 | P3 | Option A this phase? | **No.** Glue Option B. | **SPD-089** |
 | P4 | First grain | Eight `Finland_*` + extract World. No allowlist. | **SPD-090** |
 | P5 | Signing | Street Pixels Ed25519; Channel A public; B debug-only. | **SPD-091** |
 | P6 | `MAP_SERIES` | Keep `2026.06.28` unless compatibility requires a bump. | **SPD-092** |
-| P7 | Phase 10 / S4 | Not a Phase 10 blocker. S4 must not ship CoMaps map URLs. | **SPD-093** |
+| P7 | Phase 10 / S4 | Not a Phase 10 blocker. S4 must not ship Streifzug map URLs. | **SPD-093** |
 | P8 | Coastline | Skip if extract coasts fail; document missing water. | **SPD-094** |
 | P9 | Hotels, isolines, SRTM, subway, UGC, Wikipedia | **On** by default (map tool first). | **SPD-095** |
 | P10 | Orchestration | One build-host CLI + rsync; reuse SPD-035. | **SPD-096** |
@@ -90,10 +90,10 @@ may proceed. Do **not** mark Phase 11 exit met.
 
 **Accepted** → **SPD-087**.
 
-Stock Street Pixels must not request CoMaps map peers for `.mwm`, `.spa`,
+Stock Street Pixels must not request Streifzug map peers for `.mwm`, `.spa`,
 `countries.txt`, or `meta/maps.json`. Custom Maps remains user-set (D12).
 
-**Reject.** Shipping CoMaps URLs “until our CDN is ready.” Community mirrors.
+**Reject.** Shipping Streifzug URLs “until our CDN is ready.” Community mirrors.
 
 ### P3 — Glue, not Option A (load-bearing)
 
@@ -106,7 +106,7 @@ Stock Street Pixels must not request CoMaps map peers for `.mwm`, `.spa`,
 **Accepted** → **SPD-093**.
 
 SP-089+ stay gated on Phases 1–9. Phase 11 may run in parallel. Public S4
-must not ship CoMaps map URLs.
+must not ship Streifzug map URLs.
 
 **Reject.** Making Phase 10 wait on Finland mapgen. Finland-only client.
 
@@ -117,7 +117,7 @@ must not ship CoMaps map URLs.
 Operator defaults enable hotels, isolines, SRTM, subway, UGC, and
 Wikipedia/description stages. Phone origin is still **SPD-087**: extras are
 build-host datasets. Missing independent source → skip that feed with a
-warning, not a CoMaps map-CDN fetch.
+warning, not a Streifzug map-CDN fetch.
 
 ---
 
@@ -145,7 +145,7 @@ warning, not a CoMaps map-CDN fetch.
 - Do not weaken countries signatures.
 - Do not commit spa-bearing `data/countries.txt` before the stock URL serves
   blobs (**SPD-037**).
-- Do not fetch CoMaps map hosts to satisfy **SPD-095**.
+- Do not fetch Streifzug map hosts to satisfy **SPD-095**.
 
 ## Completion evidence
 
@@ -170,4 +170,4 @@ warning, not a CoMaps map-CDN fetch.
 | Exit evidence | SP-104 |
 | Option A | Still unallocated (**SPD-089**) |
 | Policies beyond FI | After Phase 11 exit |
-| Extra feeds with no independent source | SP-100 skip+warn; not CoMaps map CDN |
+| Extra feeds with no independent source | SP-100 skip+warn; not Streifzug map CDN |

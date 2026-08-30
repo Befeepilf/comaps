@@ -30,7 +30,7 @@ Připojte se ke komunitě a pomáhejte s vytvářením nejlepší mapové aplika
 • Zlepšování mapových dat pro všechny pomocí jednoduchého vestavěného editoru
 • Podpora Android Auto
 
-Nahlaste problémy s aplikací, navrhněte funkce a připojte se k naší komunitě na webu <b><i>comaps.app</i></b>.
+Nahlaste problémy s aplikací, navrhněte funkce a připojte se k naší komunitě na webu <b><i>streifzug.app</i></b>.
 
 <b>Svoboda je tady</b>
 Objevujte své cesty, navigujte se světem se soukromím a komunitou na prvním místě!

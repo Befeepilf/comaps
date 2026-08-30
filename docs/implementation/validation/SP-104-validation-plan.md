@@ -35,7 +35,7 @@ device download are residual.
 | E5 | Exit 8 / Option A | `generator/` links `street_pixels_areas` but has **no emit call sites** (grep). Residual **SPD-089** |
 | E6 | Focused Python tests | Re-run SP-099/100/101/051 suites listed below. Executed output only. Do not weaken |
 | E7 | Optional C++ filters | If `omim-build-debug/street_pixels_tests` exists: `PixDerive` / `Eligibility`. Do **not** start a full desktop rebuild |
-| E8 | Stock-path P1 | No CoMaps map fetch on the recorded stock path. Any such fetch → **Fail** exit 1 / P1 |
+| E8 | Stock-path P1 | No Streifzug map fetch on the recorded stock path. Any such fetch → **Fail** exit 1 / P1 |
 
 ## What this Cloud Agent run does not execute
 
@@ -45,7 +45,7 @@ device download are residual.
 - Channel B inject (not the public path — **SPD-037**)
 - VPS rsync / live `curl` of `meta/maps.json` or Helsinki objects
 - APK download / hosts-file traffic capture / spec §34 device matrix
-- Fallback to CoMaps MWMs; highway-proxy U
+- Fallback to Streifzug MWMs; highway-proxy U
 
 SP-103 dry-run evidence is reused, not re-executed as a fake generate.
 
@@ -63,7 +63,7 @@ after tree checks and executed tests.
 | 3 | Operator command produces FI tree | **Residual** (SP-103 dry-run only) |
 | 4 | VPS serves tree + Range | **Residual** (snippets only; no live origin) |
 | 5 | Signed countries with spa on stock path | **Residual** (no Channel A keys, no generate) |
-| 6 | `configure.sh` without CoMaps | **Pass** for documented fail-closed path; live origin fetch residual SP-102 |
+| 6 | `configure.sh` without Streifzug | **Pass** for documented fail-closed path; live origin fetch residual SP-102 |
 | 7 | Evidence log of real Finland artifacts | **Residual** (SP-103) |
 | 8 | Option A out; FI-only policies OK | **Pass** for Option A out |
 

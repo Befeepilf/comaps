@@ -46,7 +46,7 @@ def getCommitMessage() {
 }
 
 project.ext.appId = 'app.comaps'
-project.ext.appName = 'CoMaps'
+project.ext.appName = 'Streifzug'
 
 
 java {
@@ -91,7 +91,7 @@ android {
     minSdk = propMinSdkVersion.toInteger()
     targetSdk = propTargetSdkVersion.toInteger()
     applicationId project.ext.appId
-    buildConfigField 'String', 'SUPPORT_MAIL', '"android@comaps.app"'
+    buildConfigField 'String', 'SUPPORT_MAIL', '"android@streifzug.app"'
     // Should be customized in flavors.
     buildConfigField 'String', 'REVIEW_URL', '""'
 
@@ -110,7 +110,7 @@ android {
       dimension 'default'
       applicationIdSuffix '.google'
       versionName = android.defaultConfig.versionName + '-Google'
-      buildConfigField 'String', 'SUPPORT_MAIL', '"gplay@comaps.app"'
+      buildConfigField 'String', 'SUPPORT_MAIL', '"gplay@streifzug.app"'
       buildConfigField 'String', 'REVIEW_URL', '"market://details?id=app.comaps.google"'
     }
 
@@ -118,14 +118,14 @@ android {
     web {
       dimension 'default'
       versionName = android.defaultConfig.versionName
-      buildConfigField 'String', 'SUPPORT_MAIL', '"apk@comaps.app"'
+      buildConfigField 'String', 'SUPPORT_MAIL', '"apk@streifzug.app"'
     }
 
     fdroid {
       dimension 'default'
       applicationIdSuffix '.fdroid'
       versionName = android.defaultConfig.versionName + '-FDroid'
-      buildConfigField 'String', 'SUPPORT_MAIL', '"fdroid@comaps.app"'
+      buildConfigField 'String', 'SUPPORT_MAIL', '"fdroid@streifzug.app"'
     }
 
     huawei {
@@ -133,7 +133,7 @@ android {
       applicationIdSuffix '.huawei'
       versionName = android.defaultConfig.versionName + '-Huawei'
       versionCode = HUAWEI_VERSION_CODE_BASE + android.defaultConfig.versionCode
-      buildConfigField 'String', 'SUPPORT_MAIL', '"huawei@comaps.app"'
+      buildConfigField 'String', 'SUPPORT_MAIL', '"huawei@streifzug.app"'
       buildConfigField 'String', 'REVIEW_URL', '"appmarket://details?id=app.comaps"'
     }
   }
@@ -187,7 +187,7 @@ android {
     debug {
       storeFile file('comaps-debug.keystore')
       storePassword '12345678'
-      keyAlias 'CoMaps Debug'
+      keyAlias 'Streifzug Debug'
       keyPassword '12345678'
     }
 
@@ -222,7 +222,7 @@ android {
       versionNameSuffix '-debug'
       zipAlignEnabled true
       signingConfig = signingConfigs.debug
-      resValue 'string', 'app_name', 'CoMaps Debug'
+      resValue 'string', 'app_name', 'Streifzug Debug'
       packagingOptions.jniLibs.useLegacyPackaging true
       android.packagingOptions.jniLibs.keepDebugSymbols += '**/liborganicmaps.so'
     }
@@ -266,7 +266,7 @@ android {
       // To learn more, go to the documentation section about R8 configuration files.
       proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
       matchingFallbacks = ['release'] // use dependencies of "release" build type
-      resValue 'string', 'app_name', 'CoMaps Test'
+      resValue 'string', 'app_name', 'Streifzug Test'
       android.packagingOptions.jniLibs.keepDebugSymbols += '**/liborganicmaps.so'
     }
   }

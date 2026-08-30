@@ -4,7 +4,7 @@
   <a href="https://codeberg.org/comaps/Governance#comaps-project-governance-docs">Governance</a> |
   <a href="https://codeberg.org/comaps/Governance/src/branch/main/FAQ.md">FAQ</a> |
   <a href="#contributing">Contribute</a> |
-  <a href="https://www.comaps.app/donate">Donate</a> |
+  <a href="https://www.streifzug.app/donate">Donate</a> |
   <a href="https://codeberg.org/comaps#keep-connected">Keep Connected</a>
 </p>
 
@@ -14,7 +14,7 @@
 
 
 <div align="center">
-<h1><a href="https://comaps.app/">CoMaps</a></h1>
+<h1><a href="https://streifzug.app/">Streifzug</a></h1>
 <h2>Hike, Bike, Drive Offline - Easy Map Navigation with Privacy</h2>
 </div>
 <div align="center">
@@ -25,8 +25,8 @@
     <a href="https://opencollective.com/comaps">
       <img src="https://img.shields.io/opencollective/all/comaps?label=Open%20Collective%20Donors&logo=opencollective&logoColor=white&style=for-the-badge&color=588157" alt="Open Collective Donors"/>
     </a>
-    <a href="https://liberapay.com/CoMaps">
-      <img src="https://img.shields.io/liberapay/patrons/CoMaps?label=Liberapay%20Patrons&logo=liberapay&logoColor=white&style=for-the-badge&color=588157" alt="Liberapay Patrons"/>
+    <a href="https://liberapay.com/Streifzug">
+      <img src="https://img.shields.io/liberapay/patrons/Streifzug?label=Liberapay%20Patrons&logo=liberapay&logoColor=white&style=for-the-badge&color=588157" alt="Liberapay Patrons"/>
     </a>
   </p>
 </div>
@@ -139,8 +139,8 @@ There is a dedicated [Zulip](https://codeberg.org/comaps/Governance/src/branch/m
 
 ## 💸 Funding
 
-CoMaps is free. To fund development, we rely on your voluntary support ♥️
-Donate via [OpenCollective](https://opencollective.com/comaps/donate) or [Liberapay](https://liberapay.com/CoMaps).  
+Streifzug is free. To fund development, we rely on your voluntary support ♥️
+Donate via [OpenCollective](https://opencollective.com/comaps/donate) or [Liberapay](https://liberapay.com/Streifzug).  
 The project's financial information is completely open and transparent at [our Open Collective](https://opencollective.com/comaps).
 
 ---
@@ -156,7 +156,7 @@ SHA-1: 8b7b5739f917e9f7c681671ced0c9c8562123ade
 MD5: 9cce0ffea281dc2f0e0a154d6d2e281e
 ```
 
-To verify CoMaps via [AppVerifier](https://github.com/soupslurpr/AppVerifier), use the following signing certificate fingerprint:
+To verify Streifzug via [AppVerifier](https://github.com/soupslurpr/AppVerifier), use the following signing certificate fingerprint:
 ```
 app.comaps
 48:94:E8:E6:96:36:27:EF:66:00:31:D8:59:3F:E7:72:97:F8:35:AC:B4:E2:38:10:00:3E:92:61:35:02:3B:4C

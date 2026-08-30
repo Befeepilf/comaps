@@ -7,4 +7,4 @@
 • Søgning i alle favoritlister
 • Indstillinger opdelt i undersider
 
-Flere detaljer på comaps.app/latest
+Flere detaljer på streifzug.app/latest

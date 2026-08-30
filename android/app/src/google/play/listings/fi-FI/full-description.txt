@@ -30,7 +30,7 @@ Liity yhteisöön ja auta kehittämään parasta karttasovellusta
 • Paranna karttadataa kaikille sisäänrakennetulla editorilla
 • Android Auto -tuki
 
-Raportoi sovellusvirheistä, ehdota ideoita liity yhteisöön osoitteessa <b><i>comaps.app</i></b>
+Raportoi sovellusvirheistä, ehdota ideoita liity yhteisöön osoitteessa <b><i>streifzug.app</i></b>
 
 <b>Vapaus on täällä</b>
 Löydä matkasi, navigoi maailmassa yksityisyyden ja yhteisön tukemana!

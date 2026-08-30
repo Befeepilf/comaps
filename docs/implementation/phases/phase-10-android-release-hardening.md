@@ -44,14 +44,14 @@ during work-item planning. Extra detail in
 
 | Concern | Location | Observed state |
 | --- | --- | --- |
-| Android manifest | `android/app/src/main/AndroidManifest.xml` | Location permissions present; `ACCESS_BACKGROUND_LOCATION` still absent (`tools:node="remove"`; **SPD-082**); FGS types `location` (`NavigationService`, `TrackRecordingService`), `dataSync` (`DownloaderService`); dedicated `comaps://add-friend` and HTTPS `/add-friend` filters **removed** (SP-092 / **SPD-085**; generic VIEW can still deliver leftover URIs, onboarding hidden) |
+| Android manifest | `android/app/src/main/AndroidManifest.xml` | Location permissions present; `ACCESS_BACKGROUND_LOCATION` still absent (`tools:node="remove"`; **SPD-082**); FGS types `location` (`NavigationService`, `TrackRecordingService`), `dataSync` (`DownloaderService`); dedicated `streifzug://add-friend` and HTTPS `/add-friend` filters **removed** (SP-092 / **SPD-085**; generic VIEW can still deliver leftover URIs, onboarding hidden) |
 | Store credentials | `docs/CREDENTIALS.md` | Documents the CI secrets required for signed store builds |
-| Release workflows | `.forgejo/workflows/android-release.yaml`, `android-beta.yaml`, `android-check-metadata.yaml`, `android-release-metadata.yaml` | Present; upstream CoMaps release machinery and listing identity |
+| Release workflows | `.forgejo/workflows/android-release.yaml`, `android-beta.yaml`, `android-check-metadata.yaml`, `android-release-metadata.yaml` | Present; upstream Streifzug release machinery and listing identity |
 | Android lint | `.github/workflows/android-check.yaml` | `./gradlew -Pandroidauto=true lint` |
 | Flavors | `android/app/build.gradle` | `google`, `web`, `fdroid`, `huawei`; build types `debug`, `release`, `beta` |
 | Android tests | `android/app/src/test/`, `android/sdk/src/test/` | JVM tests now include Street Pixels gates (Explorer Pro, GPX, recording UI, routing options). **Still no `androidTest` instrumented tests.** |
-| Play listing | `android/app/src/google/play/listings/en-US/full-description.txt` | Upstream CoMaps copy; advertises GPX import/export; no Street Pixels session/competition disclosure |
-| Privacy policy and terms | `HelpFragment` → `https://comaps.app/privacy/` and `terms/` | No Street Pixels policy text in this repository |
+| Play listing | `android/app/src/google/play/listings/en-US/full-description.txt` | Upstream Streifzug copy; advertises GPX import/export; no Street Pixels session/competition disclosure |
+| Privacy policy and terms | `HelpFragment` → `https://streifzug.app/privacy/` and `terms/` | No Street Pixels policy text in this repository |
 | Privacy settings | `PrivacySettingsFragment` / `prefs_privacy.xml` | Search history + Play services. Spec §30 Street Pixels rows not present |
 | Product analytics | routing / card / Pro uint64 helpers | Local count-only. No §32.1 / §32.3. No upload sink |
 | Error and empty states | across the Android app | Partial (no-area, interruption, Avoid no-route). Not yet audited against spec §31 |
@@ -60,7 +60,7 @@ during work-item planning. Extra detail in
 snapshot:** Phases 1–9 have landed session gating, rematch, areas, routing,
 milestones, competition, and GPX gates. Instrumented tests are still absent.
 Dedicated add-friend intent-filters were removed (SP-092 / **SPD-085**);
-leftover URIs are swallowed. CoMaps store/privacy URLs are unchanged.
+leftover URIs are swallowed. Streifzug store/privacy URLs are unchanged.
 ABL is still absent (SP-012 Pixel 3a without it). H1–H10 are **Accepted**
 2026-08-29 as **SPD-077–086**. Brand writing and on-device testing are
 residual.
@@ -199,7 +199,7 @@ The final privacy gate. What must be true before release:
   hierarchies.
 - The privacy policy accurately describes what stays local and what is
   uploaded. **Landing** that policy text is residual (**SPD-080**;
-  SP-093 residual); `https://comaps.app/privacy/` may stay for now.
+  SP-093 residual); `https://streifzug.app/privacy/` may stay for now.
 - The competition consent text matches actual upload behaviour item by item.
 - Store permission declarations and background-location disclosure are
   accurate. ABL was **not** added in Phase 2 (SP-012). **SPD-082** keeps it
@@ -306,7 +306,7 @@ this coding slice. **Do not mark Phase 10 exit met.**
 - Refactoring.
 - Marketing assets and campaign material, which are not code and are not gated
   here.
-- Independent map generation and CoMaps-free map origin (Phase 11).
+- Independent map generation and Streifzug-free map origin (Phase 11).
 
 ## Known uncertainties
 

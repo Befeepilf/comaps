@@ -79,7 +79,7 @@ Include `Work item: SP-NNN` when the change implements a work item.
 ```
 [platform] Include cstddef for size_t in vibration.hpp
 
-[map] Align smoke tests with KMZ paths and comaps.at URLs
+[map] Align smoke tests with KMZ paths and streifzug.app URLs
 
 [docs] Record 9/9 smoke suite baseline on rebased main
 Work item: SP-001

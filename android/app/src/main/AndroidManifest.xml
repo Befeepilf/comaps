@@ -116,6 +116,7 @@
         <data android:scheme="ge0"/>
         <data android:scheme="cm"/>
         <data android:scheme="comaps"/>
+        <data android:scheme="streifzug"/>
       </intent-filter>
 
       <intent-filter>
@@ -137,6 +138,7 @@
 
         <data android:scheme="http"/>
         <data android:scheme="https"/>
+        <data android:host="streifzug.app"/>
         <data android:host="comaps.at"/>
       </intent-filter>
 

@@ -32,9 +32,9 @@ No Channel A production keys in git.
 
 This SP-104 pass re-verified the tree and re-ran focused tests. It did
 **not** start Finland mapgen. It did **not** fabricate VPS curl, APK
-download, leaf size tables, or a CoMaps-free live origin.
+download, leaf size tables, or a Streifzug-free live origin.
 
-No CoMaps map fetch was recorded on the **stock** path (template
+No Streifzug map fetch was recorded on the **stock** path (template
 `DEFAULT_URLS_JSON`, `configure.sh` fail-closed resolver, `map_pipeline`
 denylist). That is **not** a Pass of exit 3–5 or 7.
 
@@ -97,13 +97,13 @@ No full desktop rebuild was started.
 
 | # | Criterion | Result | Evidence |
 | --- | --- | --- | --- |
-| 1 | P1–P10 recorded as Accepted SPDs | **Pass** | `docs/implementation/DECISIONS.md` **SPD-087–096**. SP-098 **Accepted** 2026-08-29 (`1f4a5a88d`). OQ-40–OQ-49 closed. P9 extras **on** (**SPD-095**). No CoMaps map fetch on the recorded stock path (see E8) |
+| 1 | P1–P10 recorded as Accepted SPDs | **Pass** | `docs/implementation/DECISIONS.md` **SPD-087–096**. SP-098 **Accepted** 2026-08-29 (`1f4a5a88d`). OQ-40–OQ-49 closed. P9 extras **on** (**SPD-095**). No Streifzug map fetch on the recorded stock path (see E8) |
 | 2 | Offline MWM→`.pix` derive exists; only production U source for emit; no highway proxy | **Pass** (tool + wiring); **residual** on-device U | `tools/pix_derive_tool` present. Shared `DeriveStreetPixelsUniverse` (`libs/map/street_pixels_manager.cpp` / `street_pixels_pix_derive.cpp`). `map_pipeline` spa_emit argv includes `--pix_dir`. No `highway proxy` / `HighwayProxy` under `tools/`. Fixture `PixDerive_*` **6/6**. On-device first-open U vs packaging U **not** compared (no handset / no FI MWM) |
-| 3 | One operator command produces the SP-050 tree from a Finland OSM extract (eight leaves) without CoMaps map URLs | **Residual** | SP-103 dry-run only: `map_pipeline --dry-run --pbf https://download.geofabrik.de/europe/finland-latest.osm.pbf --countries 'World,Finland_*'` — eight `Finland_*` + `World`, no PBF download, no CoMaps in plan/ini. Generate **not executed**. `generator_tool` / `spa_emit_tool` missing here |
+| 3 | One operator command produces the SP-050 tree from a Finland OSM extract (eight leaves) without Streifzug map URLs | **Residual** | SP-103 dry-run only: `map_pipeline --dry-run --pbf https://download.geofabrik.de/europe/finland-latest.osm.pbf --countries 'World,Finland_*'` — eight `Finland_*` + `World`, no PBF download, no Streifzug in plan/ini. Generate **not executed**. `generator_tool` / `spa_emit_tool` missing here |
 | 4 | VPS (or equivalent) serves that tree; Range GET works for a large MWM | **Residual** | Committed snippets `origin.nginx.conf` / `origin.Caddyfile` (`gzip off`, placeholder `maps.example.invalid`, no `/spa/`, no debug routes). Local SP-051 Range unit tests **Pass** (not a live origin). No VPS; no `curl` of `meta/maps.json` or Helsinki objects |
 | 5 | Stock-path advertisement: signed countries with spa fields; Channel B not required if P5 keys exist | **Residual** | Git `data/countries.txt` has **0** `"spa"` / `"spa_sha1_base64"` nodes (`v` 260714, `map_series` `2026.06.28`) — correct until blobs exist (**SPD-037**). No Channel A secret in git; template `COUNTRIES_TXT_SIGNATURE_HEX` is 64 zero hex chars. Signing **not executed**. Channel B **not** used |
-| 6 | `configure.sh` / World bootstrap documented without CoMaps | **Pass** (fail-closed path); **residual** live origin fetch | `configure.sh` calls `map_identity configure-world`. Template origin `https://maps.example.invalid/`. Tests refuse CoMaps / LAN. Live fetch from a real Street Pixels origin is SP-102 residual (placeholder host; no VPS) |
-| 7 | Evidence log: commands, versions, artifact sizes, CoMaps map hosts not used | **Residual** | [SP-103-evidence-log.md](SP-103-evidence-log.md) has dry-run + host facts + Geofabrik md5 sidecar only. **No** per-leaf MWM/spa sizes. This log does not invent them |
+| 6 | `configure.sh` / World bootstrap documented without Streifzug | **Pass** (fail-closed path); **residual** live origin fetch | `configure.sh` calls `map_identity configure-world`. Template origin `https://maps.example.invalid/`. Tests refuse Streifzug / LAN. Live fetch from a real Street Pixels origin is SP-102 residual (placeholder host; no VPS) |
+| 7 | Evidence log: commands, versions, artifact sizes, Streifzug map hosts not used | **Residual** | [SP-103-evidence-log.md](SP-103-evidence-log.md) has dry-run + host facts + Geofabrik md5 sidecar only. **No** per-leaf MWM/spa sizes. This log does not invent them |
 | 8 | Option A still explicitly out; worldwide policies beyond FI not required | **Pass** | **SPD-089**. `generator/CMakeLists.txt:262` still links `street_pixels_areas`. Grep of `generator/**/*.{cpp,hpp,h,cc}` for `EmitSpa`, `spa_emit`, `WriteSpa`, `StageMwm`, `street_pixels`: **no matches**. Policy file countries keys: `['FI']` only |
 
 **Overall:** Phase 11 exit **not met** (exit 3, 4, 5, and 7 Residual; incomplete Finland generate).
@@ -218,10 +218,10 @@ Log: `/opt/cursor/artifacts/sp104_python_unittests.log`. Existing
 suites. Tests were **not** weakened, skipped, deleted, or narrowed.
 Production Python/C++ was **not** edited on this branch.
 
-`test_prepare_spa_debug_root` still covers the **debug** CoMaps-fetch
+`test_prepare_spa_debug_root` still covers the **debug** Streifzug-fetch
 helper. That helper is **not** the stock path (`map_pipeline.py`
 states `prepare_spa_debug_root is not this path`). Its default bases
-listing CoMaps hosts remains a documented debug residual, not a P1
+listing Streifzug hosts remains a documented debug residual, not a P1
 Fail on the stock APK origin.
 
 ---
@@ -265,27 +265,27 @@ this docs SHA).
 
 ---
 
-## E8 — Stock path vs CoMaps (P1)
+## E8 — Stock path vs Streifzug (P1)
 
 Recorded stock path in git:
 
 - Template `DEFAULT_URLS_JSON` = `https://maps.example.invalid/` (no
-  `comaps.app` / `comaps.tech`).
-- `configure.sh` → `map_identity configure-world`; CoMaps
-  `MAPS_BASE_URL` / `mapgen-fi-1.comaps.app` refused in tests (executed
-  `ERROR: refusing CoMaps map host 'mapgen-fi-1.comaps.app'…` then **ok**).
-- `map_pipeline` default ini / plan refuse CoMaps unless
+  `streifzug.app` / `comaps.tech`).
+- `configure.sh` → `map_identity configure-world`; Streifzug
+  `MAPS_BASE_URL` / `mapgen-fi-1.streifzug.app` refused in tests (executed
+  `ERROR: refusing Streifzug map host 'mapgen-fi-1.streifzug.app'…` then **ok**).
+- `map_pipeline` default ini / plan refuse Streifzug unless
   `--allow-comaps-origin` (default **off**). HTTPS `--pbf` allowlist is
   Geofabrik / planet.openstreetmap.org.
 - SP-103 dry-run PBF URL was Geofabrik; extras skip+warn rather than
-  filling from CoMaps CDNs.
+  filling from Streifzug CDNs.
 
-**No** CoMaps map fetch on the recorded stock path → not a P1 Fail.
+**No** Streifzug map fetch on the recorded stock path → not a P1 Fail.
 
 Not claimed: live APK traffic capture, live origin GET, or Finland
-generate without CoMaps (those are Residual).
+generate without Streifzug (those are Residual).
 
-Debug-only `prepare_spa_debug_root` default bases still include CoMaps
+Debug-only `prepare_spa_debug_root` default bases still include Streifzug
 CDNs (SP-101 residual). Production CLI must not use it.
 
 ---
@@ -297,7 +297,7 @@ CDNs (SP-101 residual). Production CLI must not use it.
 | Spec §34 device matrix | Out of scope (Phase 10) |
 | APK with template `private.h` downloading Helsinki `.mwm` then `.spa` | **Residual** — no handset, no FI tree, no live origin |
 | `HasRemoteSpa` / SHA on device | **Residual** |
-| Hosts-file/DNS block of CoMaps map peers | **Residual** |
+| Hosts-file/DNS block of Streifzug map peers | **Residual** |
 | Live `curl` `https://<origin>/meta/maps.json` | **Residual** — hostname is ops; git has `maps.example.invalid` only |
 
 ---
@@ -314,10 +314,10 @@ CDNs (SP-101 residual). Production CLI must not use it.
 5. Device download of Helsinki `.mwm`+`.spa` from our origin (Phase 10
    / SP-095 residual if no handset).
 6. Option A still unallocated (**SPD-089**).
-7. `DEFAULT_CONNECTION_CHECK_IP` still CoMaps Fastly (connectivity, not
+7. `DEFAULT_CONNECTION_CHECK_IP` still Streifzug Fastly (connectivity, not
    map CDN).
 8. Country policies beyond FI — after Phase 11 exit.
 
-Do **not** fall back to CoMaps MWMs. Do **not** use highway-proxy U.
+Do **not** fall back to Streifzug MWMs. Do **not** use highway-proxy U.
 Do **not** merge spa ads into git `data/countries.txt` until the stock
 URL serves matching blobs.

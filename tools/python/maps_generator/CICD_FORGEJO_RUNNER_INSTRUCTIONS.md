@@ -1,4 +1,4 @@
-# Setting up Forgejo Runners for CoMaps
+# Setting up Forgejo Runners for Streifzug
 
 > This document is a work in progress but should provide enough guidance to eventually figure it out.
 

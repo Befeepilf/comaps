@@ -41,7 +41,7 @@ if using Apache, try this:
 cd /var/www/html/
 mkdir maps
 rm index.nginx-debian.html
-wget https://www.comaps.app/favicon.ico
+wget https://www.streifzug.app/favicon.ico
 vim robots.txt
 
 ```
@@ -59,17 +59,17 @@ vim index.html
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-  <title>CoMaps CDN</title>
+  <title>Streifzug CDN</title>
 </head>
 
 <body>
-  <h1>This is a CDN for <a href="https://comaps.app">CoMaps</a></h1>
+  <h1>This is a CDN for <a href="https://streifzug.app">Streifzug</a></h1>
 
   <h2>Resources:</h2>
   <ol>
-    <li>CoMaps <a href="https://cdn.comaps.app/subway/">subway validator</a></li>
-    <li>CoMaps <a href="https://comaps.app/news/">News</a></li>
-    <li><a href="https://comaps.app/donate/">Donate</a></li>
+    <li>Streifzug <a href="https://cdn.streifzug.app/subway/">subway validator</a></li>
+    <li>Streifzug <a href="https://streifzug.app/news/">News</a></li>
+    <li><a href="https://streifzug.app/donate/">Donate</a></li>
   </ol>
 </body>
 </html>

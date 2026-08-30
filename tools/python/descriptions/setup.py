@@ -16,8 +16,8 @@ with chdir(os.path.abspath(os.path.dirname(__file__))):
     setuptools.setup(
         name="omim-descriptions",
         version=str(get_version()),
-        author="CoMaps",
-        author_email="info@comaps.app",
+        author="Streifzug",
+        author_email="info@streifzug.app",
         description="This package is a library that provides descriptions "
         "(such as those from Wikipedia) to geographic objects.",
         url="https://codeberg.org/comaps",

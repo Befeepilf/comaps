@@ -48,7 +48,7 @@ In scope for public Android V1 (see product spec §5 and §34):
 - Exploration-aware routing: prefer-unexplored **and** hard avoid-explored.
 - Opt-in competition: pseudonymous identity, nickname, area ownership,
   server-side decay, weekly city leaderboard, aggregate-only uploads.
-- Worldwide availability wherever compatible CoMaps map data exists.
+- Worldwide availability wherever compatible Streifzug map data exists.
 
 ---
 
@@ -141,7 +141,7 @@ Notes on the graph:
 - Phase 9 can start as soon as Phase 3 lands. It is sequenced late only because
   it is not on the critical path.
 - Phase 11 is **not** a Phase 10 prerequisite. It may run in parallel. Stock
-  map origin independent of CoMaps is a public S4 hosting gate (**SPD-093** /
+  map origin independent of Streifzug is a public S4 hosting gate (**SPD-093** /
   **SPD-087**).
 
 ### 4.2 Phase entry and exit criteria
@@ -161,7 +161,7 @@ roadmap tracks.
 | 8 | Phase 4 exit criteria met; competition formulas resolved in `DECISIONS.md`. | Opt-in consent recorded with policy version and timestamp; aggregate-only uploads batched with delay and jitter; ownership, eligibility, decay, unclaimed and contested states work; weekly city leaderboard excludes imports; sparse-area anonymity enforced server-side; profile deletion works. |
 | 9 | Phase 3 exit criteria met; Phase 1 feature-flag foundation in place. | GPX import marks pixels `imported` and never touches recency or competition queues; export gated by build flag plus entitlement; public builds present no non-functional purchase action. |
 | 10 | Phases 1–9 at exit. Phase 11 is **not** required. | Every item in product spec §34 is verified with recorded evidence; store disclosures accurate; battery and rendering acceptable; no known path reveals another user's live or exact location. |
-| 11 | Phase 4 residual client/layout tools present; SP-098 P1–P10 locked (**SPD-087–096**). | Own origin generates Finland MWM+dense `.spa`, assembles the SPD-035 tree, serves it; stock path does not use CoMaps map hosts (**SPD-087**); extras on (**SPD-095**); Option A still out (**SPD-089**). |
+| 11 | Phase 4 residual client/layout tools present; SP-098 P1–P10 locked (**SPD-087–096**). | Own origin generates Finland MWM+dense `.spa`, assembles the SPD-035 tree, serves it; stock path does not use Streifzug map hosts (**SPD-087**); extras on (**SPD-095**); Option A still out (**SPD-089**). |
 
 ### 4.3 Current phase status
 
@@ -237,7 +237,7 @@ not calendar milestones.
 | **S1 — Correctness build** | Phases 1–3 | Maintainer only | Recording gate holds; no exploration is collected outside a session; map updates preserve exploration. |
 | **S2 — Progress build** | Phases 4–5 | Maintainer plus a small internal group | Real administrative areas with correct percentages; acceptable rendering at city scale. |
 | **S3 — Feature-complete beta** | Phases 6–9 | Closed beta | Routing, milestones, share cards, competition, and GPX behind flags all functional; competition backend reachable. |
-| **S4 — Public Android V1** | Phase 10 + Phase 11 hosting | Public release | All product spec §34 launch requirements verified (Phase 10). Stock map URLs must not be CoMaps (**SPD-093** / **SPD-087**). Phase 11 is not a Phase 10 exit criterion. |
+| **S4 — Public Android V1** | Phase 10 + Phase 11 hosting | Public release | All product spec §34 launch requirements verified (Phase 10). Stock map URLs must not be Streifzug (**SPD-093** / **SPD-087**). Phase 11 is not a Phase 10 exit criterion. |
 
 Explorer Pro purchasing is not part of any V1 slice. iOS is not part of any V1
 slice.
@@ -257,7 +257,7 @@ the maintainer explicitly asks for an isolated experiment.
 (no unrelated local modifications). Commits for a work item stack on `street-pixels`
 in reviewable order — build fixes separate from docs when the work item requires it.
 
-**Commits** follow `docs/PR_GUIDE.md` and match upstream CoMaps history on this
+**Commits** follow `docs/PR_GUIDE.md` and match upstream Streifzug history on this
 fork:
 
 | Part | Rule |

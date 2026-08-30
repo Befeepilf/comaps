@@ -19,7 +19,7 @@ accepts). G1–G10 remain **Open**.
 | Map screenshots | **Forbidden**. Even if a device appears, do not capture the map. |
 | Phase 9 not self-accepted | After evidence: SP-087 Status → **In review**. Leave Accepted empty. Do **not** set phase-09 Status to exit Met. G1–G10 stay Open. |
 | Highway `Eligibility_*` | **Not a Phase 9 exit.** If full `street_pixels_tests` aborts because `data/classificator.txt` is absent, environment residual. Re-check at run time. Do not weaken Eligibility. |
-| `Gpx_ImportExport_*` | Pre-existing creator mismatch. Residual. Do not change the writer. Prefer `--suppress='Gpx_ImportExport'` on the named existing-GPX suite so exit 7 is not blocked by a CoMaps rebrand golden. |
+| `Gpx_ImportExport_*` | Pre-existing creator mismatch. Residual. Do not change the writer. Prefer `--suppress='Gpx_ImportExport'` on the named existing-GPX suite so exit 7 is not blocked by a Streifzug rebrand golden. |
 | Debug-entitle compile-out | Known SP-083 follow-up: `DebugEntitlementSource` / `InstallDebugEntitlementSource` / `nativeInstallExplorerProDebugEntitlement` remain in the native binary. Public APK `nm`/dump is device/APK residual → Phase 10. Code-review of `build.gradle` (release/beta `EXPLORER_PRO_DEBUG_ENTITLE` hardcoded `'false'`) is in-scope. |
 | `prefs_gpx.xml` in public APK | Strings/XML exist. SP-084: dump the **inflated Preference tree**, not `aapt` of prefs XML or a `strings.xml` grep. No handset → residual. |
 | `BookmarkManagerGpxGateTest` | Class-load hits `Framework.nativeGetBookmarksFilesExts()` → `UnsatisfiedLinkError` in this JVM. Environment residual (SP-084). Do not “fix” JNI loading here. |
@@ -213,7 +213,7 @@ Binary: **`kml_tests`** (`libs/kml/kml_tests/gpx_tests.cpp`).
 | ID | Scenario | Pass condition | Exit # |
 | --- | --- | --- | --- |
 | G1 | Named Gpx family except ImportExport | `kml_tests --filter='Gpx' --suppress='Gpx_ImportExport'` | 7 |
-| G2 | Known golden fail | `kml_tests --filter='Gpx_ImportExport'` → **Residual** (`creator="CoMaps"` vs golden `Organic Maps` in `data/test_data/gpx/export_test.gpx` and `export_test_empty.gpx`). Do not change the writer. | 7 |
+| G2 | Known golden fail | `kml_tests --filter='Gpx_ImportExport'` → **Residual** (`creator="Streifzug"` vs golden `Organic Maps` in `data/test_data/gpx/export_test.gpx` and `export_test_empty.gpx`). Do not change the writer. | 7 |
 | G3 | ColorMap exact roundtrip | If `Gpx_ColorMapExport_Test` fails on the same `creator=` byte (`color_map_dst.gpx`), residual with G2. Do not change the writer. If it passes, record pass. | 7 |
 | G4 | Other gpx_tests.cpp names without `Gpx_` prefix | `GoMap`, `GpxStudio`, `OsmTrack`, `TowerCollector`, `PointsOnly`, `Route`, `Color`, `ParseExportedGpxColor`, `MultiTrackNames`, `Empty`, `ImportExportWptColor`, `PointWithPredefinedColor`, `OsmandColor1`, `OsmandColor2`, `OpentracksColor`, `ParseFromString`, `MapGarminColor` — include in G1 via `--filter='Gpx'` which matches both `Gpx_` and `GpxStudio` | 7 |
 
@@ -418,7 +418,7 @@ Do not start another work item. Do not force-push. Do not amend.
 | No handset: M1–M7 | Phase 10. Map screenshots forbidden. |
 | `adb` / public APK inflated settings dump / share-sheet VIEW | Phase 10 |
 | Debug-entitle grant symbols in native / public APK `nm` | SP-083 follow-up; Phase 10 APK |
-| `Gpx_ImportExport_*` CoMaps vs Organic Maps | Pre-existing residual; do not change writer |
+| `Gpx_ImportExport_*` Streifzug vs Organic Maps | Pre-existing residual; do not change writer |
 | `Gpx_ColorMapExport_Test` if same creator byte | Same residual family |
 | `BookmarkManagerGpxGateTest` UnsatisfiedLinkError | Environment residual (SP-084) |
 | `data/classificator.txt` Eligibility abort | Environment residual; do not weaken |

@@ -64,12 +64,12 @@ struct AboutView: View {
             List {
                 Section {
                     if #available(iOS 16, *) {
-                        AboutCoMapsView()
+                        AboutStreifzugView()
                         .alignmentGuide(.listRowSeparatorLeading) { _ in
                             return 0
                         }
                     } else {
-                        AboutCoMapsView()
+                        AboutStreifzugView()
                     }
                     
                     NavigationLink(isActive: $showFaq) {
@@ -88,7 +88,7 @@ struct AboutView: View {
                     .tint(.alternativeAccent)
                     
                     Button {
-                        openUrl(URL(string: "https://www.comaps.app/news/")!)
+                        openUrl(URL(string: "https://www.streifzug.app/news/")!)
                     } label: {
                         Label("news", systemImage: "newspaper")
                     }

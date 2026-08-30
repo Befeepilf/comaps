@@ -1,6 +1,6 @@
 # Reviews
 
-This file documents how place reviews are handled in CoMaps. It contains both the ops instructions and pointers
+This file documents how place reviews are handled in Streifzug. It contains both the ops instructions and pointers
 to the relevant parts of the codebase. If you're primarily interested in generating MWM files with reviews, see
 the [Operation](#operation) section. If you'd like to make changes to where the reviews are sourced, how they are stored
 or displayed, head to [Development](#development).
@@ -145,7 +145,7 @@ The review summaries are displayed in `PlacePageDialogUser` and `PlacePageDialog
        `ln -s /home/me/Projects/OSS/comaps/maps_build/2026_05_01__10_04_46/260501 data/260421`; whatever map was used
        by the generator, the date in `data` must be on or before the one used by `World.mwm`, otherwise the app won't
        pick up the map.
-7. start the app: `../omim-build-debug/CoMaps`, then search for `Tekla`; the top result should be a café with at least
+7. start the app: `../omim-build-debug/Streifzug`, then search for `Tekla`; the top result should be a café with at least
    one review.
 
 ### Debugging

@@ -30,7 +30,7 @@ Alătură-te comunității și ajută la crearea celei mai bune aplicații de h�
 • Îmbunătățește datele hărții pentru toți, folosind un editor de bază încorporat
 • Suport Android Auto
 
-Te rugăm să raportezi probleme ale aplicației, să sugerezi idei și să ni te alături comunității pe site-ul <b><i>comaps.app</i></b>.
+Te rugăm să raportezi probleme ale aplicației, să sugerezi idei și să ni te alături comunității pe site-ul <b><i>streifzug.app</i></b>.
 
 <b>Libertatea este aici</b>
 Descoperă-ți călătoria, navighează prin lume cu confidențialitate și comunitate în prim plan!

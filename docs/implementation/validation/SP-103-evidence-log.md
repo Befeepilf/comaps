@@ -37,7 +37,7 @@ Additional blockers recorded (not used as a reason to “try anyway”):
 - `spa_emit_tool` binary **missing**
 - No VPS in this environment (SP-102 origin documented only)
 
-No CoMaps MWM fallback. No highway-proxy U. No fabricated leaf size
+No Streifzug MWM fallback. No highway-proxy U. No fabricated leaf size
 table. No PBF / `.mwm` / `.spa` / `.pix` committed.
 
 ---
@@ -155,13 +155,13 @@ Street Pixels map_pipeline (SP-100)
   rsync_dest: (none)
   VPS generate: unsupported (SPD-088); this CLI is build-host only
   dry-run: no subprocess, no network
-warning: hotels: no independent source; skipping with warning (do not fetch CoMaps map hosts to complete extras)
-warning: ugc: no independent source; skipping with warning (do not fetch CoMaps map hosts to complete extras)
-warning: subway: no independent source; skipping with warning (do not fetch CoMaps map hosts to complete extras)
-warning: srtm: no independent source; skipping with warning (do not fetch CoMaps map hosts to complete extras)
-warning: isolines: no independent source; skipping with warning (do not fetch CoMaps map hosts to complete extras)
-warning: wikipedia/descriptions: no local dump; skipping (pass --enable-wikipedia to download from Wikipedia; do not fetch CoMaps map hosts)
-warning: reviews: no independent source; skipping with warning (do not fetch CoMaps map hosts to complete extras)
+warning: hotels: no independent source; skipping with warning (do not fetch Streifzug map hosts to complete extras)
+warning: ugc: no independent source; skipping with warning (do not fetch Streifzug map hosts to complete extras)
+warning: subway: no independent source; skipping with warning (do not fetch Streifzug map hosts to complete extras)
+warning: srtm: no independent source; skipping with warning (do not fetch Streifzug map hosts to complete extras)
+warning: isolines: no independent source; skipping with warning (do not fetch Streifzug map hosts to complete extras)
+warning: wikipedia/descriptions: no local dump; skipping (pass --enable-wikipedia to download from Wikipedia; do not fetch Streifzug map hosts)
+warning: reviews: no independent source; skipping with warning (do not fetch Streifzug map hosts to complete extras)
 ```
 
 Expanded set (9 names): `World` + eight Finland leaves. **`WorldCoasts`
@@ -193,11 +193,11 @@ THREADS_COUNT_FEATURES_STAGE: 4
 Empty extra-feed URLs (`HOTELS_URL:`, `UGC_URL:`, `SUBWAY_URL:`,
 `SRTM_PATH:`, `ISOLINES_PATH:`, …). **SPD-095** extras default on; with
 no independent source the plan skips those mapgen stages and warns.
-It does **not** fill them from CoMaps map hosts.
+It does **not** fill them from Streifzug map hosts.
 
 Needle scan of printed plan fields + rendered ini:
-`comaps.app`, `comaps.tech`, `mapgen-fi`, `cdn-us-1`, `cdn-fi-1`,
-`cdn.comaps` — **absent**. No `*.comaps.app` URL was fetched as a
+`streifzug.app`, `comaps.tech`, `mapgen-fi`, `cdn-us-1`, `cdn-fi-1`,
+`cdn.comaps` — **absent**. No `*.streifzug.app` URL was fetched as a
 “check”.
 
 ---
@@ -267,7 +267,7 @@ maintainer on the real origin after a qualifying generate.
 | --- | --- |
 | 1. Eight FI `{leaf}.spa` `format_version` 2, `assign_count == \|U\|`, `assign_count > 0` | **Not produced.** Generate did not run. |
 | 2. Matching eight `.mwm` in the publish version dir | **Not produced.** |
-| 3. Evidence: CoMaps map hosts not used (build + publish) | **Dry-run plan/ini:** no CoMaps hosts; PBF URL is Geofabrik; extras skipped rather than filled from CoMaps. **Build + publish:** not executed — residual. No CoMaps MWM fallback. |
+| 3. Evidence: Streifzug map hosts not used (build + publish) | **Dry-run plan/ini:** no Streifzug hosts; PBF URL is Geofabrik; extras skipped rather than filled from Streifzug. **Build + publish:** not executed — residual. No Streifzug MWM fallback. |
 | 4. Origin `meta/maps.json` `latest` equals published `"v"` | **Not executed** (no VPS). |
 | 5. Maintainer decides acceptance | **Accepted by** empty. |
 
@@ -290,5 +290,5 @@ Helsinki `VerifyDenseAssignments`: **not executed.**
    object.
 5. SP-104 phase-exit checklist. Device download residual if no handset.
 
-Do **not** fall back to CoMaps MWMs. Do **not** use highway-proxy U if
+Do **not** fall back to Streifzug MWMs. Do **not** use highway-proxy U if
 derive fails.

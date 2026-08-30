@@ -52,7 +52,7 @@ extension BottomMenuInteractor: BottomMenuInteractorProtocol {
   func donate() {
     close()
     guard var url = SettingsBridge.donateUrl() else { return }
-    if url == "https://www.comaps.app/donate/" {
+    if url == "https://www.streifzug.app/donate/" {
       url = L("translated_om_site_url") + "donate/"
     }
     viewController?.openUrl(url, externally: true)
