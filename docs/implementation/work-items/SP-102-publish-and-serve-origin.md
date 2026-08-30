@@ -91,14 +91,14 @@ SP-051 is the LAN server. A public origin needs TLS, a stable hostname for
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-102-publish-serve-origin-b3d3` |
-| Commits | `c1046ee3e` `[tools] Align map_pipeline rsync with delete-delay`; `a75a7b0d2` `[tools] Add nginx and Caddy origin example configs`; `f060e4513` `[docs] Document VPS publish and static origin serve`; this `[docs]` commit |
+| Commits | `c1046ee3e` `[tools] Align map_pipeline rsync with delete-delay`; `a75a7b0d2` `[tools] Add nginx and Caddy origin example configs`; `f060e4513` `[docs] Document VPS publish and static origin serve`; `ed64dd046` `[docs] Record SP-102 in-review evidence`; `5dd65b684` `[tools] Force rsync dest trailing slash`; this `[docs]` commit |
 | Recipe | [notes/sp-102-publish-and-serve-origin.md](../notes/sp-102-publish-and-serve-origin.md) — document root parent of `maps/` and `meta/`; TLS Let’s Encrypt / Caddy auto-HTTPS; `gzip off`; Range on; no `--enable-debug-routes`; health `GET /meta/maps.json` 200 + `status: active`; keep N=2 old version dirs **manual**; 8 GiB serves, mapgen on VPS unsupported |
-| rsync | `rsync -a --delete-delay {out}/ user@vps:/var/www/street-pixels/` — same argv as `map_pipeline --rsync-dest`. Trailing slash on source. Hostname in git is `maps.example.invalid` / `user@vps` only |
+| rsync | `rsync -a --delete-delay {out}/ user@vps:/var/www/street-pixels/` — same argv as `map_pipeline --rsync-dest`. Trailing slash on source and dest (`build_rsync_argv` appends dest `/` if omitted). Hostname in git is `maps.example.invalid` / `user@vps` only |
 | nginx / Caddy | `tools/python/street_pixels/var/etc/origin.nginx.conf`; `tools/python/street_pixels/var/etc/origin.Caddyfile` |
 | LAN | SP-051 `serve_spa_publish_tree` unchanged |
-| Tests | `cd tools/python && PYTHONPATH=. python3 -m unittest street_pixels.tests.test_serve_spa_publish_tree street_pixels.tests.test_map_pipeline street_pixels.tests.test_origin_configs` — **60/60** OK (`test_serve_spa_publish_tree` 18; `test_map_pipeline` 39; `test_origin_configs` 3). No live VPS curl. Full FI mapgen **not** run (SP-103). |
+| Tests | `cd tools/python && PYTHONPATH=. python3 -m unittest street_pixels.tests.test_serve_spa_publish_tree street_pixels.tests.test_map_pipeline street_pixels.tests.test_origin_configs` — **61/61** OK (`test_serve_spa_publish_tree` 18; `test_map_pipeline` 40; `test_origin_configs` 3). No live VPS curl. Full FI mapgen **not** run (SP-103). |
 | Implemented by | Cursor Agent (`cursoragent@cursor.com`) |
-| Reviewed by | — |
+| Reviewed by | Independent review agent (fix `5dd65b684`; not Accepted) |
 | Accepted by | — |
 
 Phase 11 exit is **not** met.
@@ -109,3 +109,5 @@ Phase 11 exit is **not** met.
 | --- | --- |
 | Finland publish | SP-103 |
 | `curl` maps.json and a Helsinki object from the VPS | SP-103 (this environment has no VPS) |
+| `--rsync-dest` dest without trailing slash + `--delete-delay` can replace a dest symlink | Fixed in `5dd65b684` (`build_rsync_argv` appends dest `/`) |
+| nginx `types` maps `.txt` → `application/json` | Not a defect: `countries.txt` is JSON; SP-051 allows `application/json` or `text/plain`; client hashes/parses the body, not Content-Type |
