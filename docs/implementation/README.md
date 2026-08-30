@@ -86,7 +86,7 @@ V1 scope. Explorer Pro **purchasing** is not.
 | 8 | Competition | [`phases/phase-08-competition.md`](phases/phase-08-competition.md) | SP-070 Accepted; SP-071 in progress; SP-072–074 Accepted |
 | 9 | GPX and feature gating | [`phases/phase-09-gpx-and-feature-gating.md`](phases/phase-09-gpx-and-feature-gating.md) | Exit criteria met 2026-08-28 with residuals → Phase 10 |
 | 10 | Android release hardening | [`phases/phase-10-android-release-hardening.md`](phases/phase-10-android-release-hardening.md) | Not started (SP-088 Accepted 2026-08-29; SP-097 mapping recorded; brand + on-device testing residual; exit **not met**) |
-| 11 | Independent map build and serve | [`phases/phase-11-independent-map-build-and-serve.md`](phases/phase-11-independent-map-build-and-serve.md) | In progress (SP-098 **Accepted** 2026-08-29 — **SPD-087–096**; SP-099–103 **In review**; exit **not met**) |
+| 11 | Independent map build and serve | [`phases/phase-11-independent-map-build-and-serve.md`](phases/phase-11-independent-map-build-and-serve.md) | In progress (SP-098 **Accepted** 2026-08-29 — **SPD-087–096**; SP-099–104 **In review**; SP-103 dry-run only; SP-104 evidence recorded; exit **not met**) |
 
 Phase order 1–10 is unchanged from the originally proposed sequence. **Phase 11**
 was added 2026-08-29 as operator infrastructure (own MWM+`.spa` origin). It
@@ -195,7 +195,7 @@ SP-043–048 — **not** Phase 5, **not** Phase 10 device work). Evidence:
 | SP-047 | **Accepted** 2026-08-08 — `.spa` full-refetch on update + delete-with-map (**SPD-029**, **SPD-030**) |
 | SP-048 | **Accepted** 2026-08-08 — incomplete / retry signaling (**SPD-031**) |
 | SP-049–053 | SP-049 **Accepted** 2026-08-08 (D8–D14 → **SPD-035–039**); SP-050–053 **In review** — LAN/CDN `.spa` publish mirror (device S2–S8 residual; not Phase 5 exit) |
-| SP-098–104 | SP-098 **Accepted** 2026-08-29 (**SPD-087–096**; P9 extras **on**); SP-099–103 **In review**; SP-104 **Planned** |
+| SP-098–104 | SP-098 **Accepted** 2026-08-29 (**SPD-087–096**; P9 extras **on**); SP-099–104 **In review**; SP-104 evidence recorded 2026-08-30; Finland generate residual; Phase 11 exit **not met** |
 | SP-033 | **Accepted** 2026-08-07 — qualitative Pixel 3a OK; quantitative Spike 1 → Phase 10 |
 | SP-034 | **Accepted** 2026-08-07 — area completion cache + SPD-026 |
 | SP-035 | **Accepted** 2026-08-07 — focused-area badge binding (map-centre stub → SP-036) |
@@ -221,10 +221,11 @@ Coding SP-056+ may proceed. See
 [`phases/phase-06-exploration-aware-routing.md`](phases/phase-06-exploration-aware-routing.md).
 
 **Phase 11 (map origin):** SP-098 **Accepted** 2026-08-29 (**SPD-087–096**;
-P9 override extras **on**). SP-099, SP-100, SP-101, SP-102, and SP-103 **In
-review**. SP-103 recorded a Finland **dry-run** only (Cloud Agent ~15 GiB;
-eight-leaf generate residual to a ≥32 GiB builder, **SPD-088**). It does not
-change the Phase 5 active-phase pointer. Phase 11 exit **not met**.
+P9 override extras **on**). SP-099–104 **In review**. SP-103 recorded a
+Finland **dry-run** only (Cloud Agent ~15 GiB; eight-leaf generate residual
+to a ≥32 GiB builder, **SPD-088**). SP-104 recorded the exit 1–8 checklist
+(Pass / Residual; no Fail). It does not change the Phase 5 active-phase
+pointer. Phase 11 exit **not met**.
 
 ## 5. Release slices
 
@@ -590,12 +591,15 @@ Residual; not Accepted. Do **not** treat Phase 10 exit as met.
 | 101 | [SP-101](work-items/SP-101-independent-map-identity.md) | Independent map identity (keys, hosts, configure) | 11 | **In review** — template + configure.sh fail-closed; not Accepted |
 | 102 | [SP-102](work-items/SP-102-publish-and-serve-origin.md) | Publish and serve origin (VPS) | 11 | **In review** — rsync + nginx/Caddy; not Accepted |
 | 103 | [SP-103](work-items/SP-103-finland-first-country-run.md) | Finland first-country pipeline run | 11 | **In review** — dry-run recorded; eight-leaf generate **not executed** (RAM below 32 GiB); not Accepted |
-| 104 | [SP-104](work-items/SP-104-phase11-end-to-end-validation.md) | Phase 11 end-to-end validation | 11 | **Planned** — exit gate |
+| 104 | [SP-104](work-items/SP-104-phase11-end-to-end-validation.md) | Phase 11 end-to-end validation | 11 | **In review** — exit checklist recorded; Finland generate residual; not Accepted |
 
 Phase 11 work-item planning (2026-08-29) recorded in
 [`phases/phase-11-independent-map-build-and-serve.md`](phases/phase-11-independent-map-build-and-serve.md).
 Investigation:
 [`notes/SP-098-map-pipeline-architecture.md`](notes/SP-098-map-pipeline-architecture.md).
-Coding SP-104 may proceed after a real Finland generate. Do **not** treat
-Phase 11 exit as met.
+SP-104 evidence:
+[`validation/SP-104-validation-plan.md`](validation/SP-104-validation-plan.md),
+[`validation/SP-104-evidence-log.md`](validation/SP-104-evidence-log.md).
+Incomplete Finland generate (SP-103 dry-run only) → Phase 11 exit **not
+met**. Do **not** treat Phase 11 exit as met.
 Option A mapgen collectors remain out of this phase (**SPD-089**).

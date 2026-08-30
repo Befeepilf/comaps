@@ -1,8 +1,9 @@
 # Phase 11 — Independent map build and serve
 
 **Status:** In progress (SP-098 **Accepted** 2026-08-29 — **SPD-087–096**;
-SP-099, SP-100, SP-101, SP-102, and SP-103 **In review**; SP-103 dry-run
-only — eight-leaf generate residual; exit **not met**)
+SP-099, SP-100, SP-101, SP-102, SP-103, and SP-104 **In review**; SP-103
+dry-run only — eight-leaf generate residual; SP-104 exit checklist
+recorded 2026-08-30; exit **not met**)
 **Depends on:** Phase 4 residual client/layout track (SP-042–051 tools;
 **SPD-027–039**). Does **not** depend on Phase 5–10 exit.
 **Blocks:** public S4 stock map URLs (**SPD-093** / **SPD-087**). Does
@@ -95,8 +96,9 @@ to SP-053 / Phase 10 may consume this origin instead of CoMaps.
 
 ## Work-item breakdown
 
-Coding SP-104 remains the exit gate (SP-098 **Accepted**; SP-099–103 **In
-review**; Finland generate still residual).
+SP-104 recorded the exit 1–8 checklist (SP-098 **Accepted**; SP-099–104
+**In review**; Finland generate still residual). Maintainer decides
+phase exit. Do **not** treat exit as met.
 
 | Order | ID | Title |
 | --- | --- | --- |
@@ -106,7 +108,7 @@ review**; Finland generate still residual).
 | 4 | [SP-101](../work-items/SP-101-independent-map-identity.md) | Own map keys, stock host list, `configure.sh` without CoMaps (**In review**; not Accepted) |
 | 5 | [SP-102](../work-items/SP-102-publish-and-serve-origin.md) | VPS static origin, rsync, TLS, Range (**In review**; not Accepted) |
 | 6 | [SP-103](../work-items/SP-103-finland-first-country-run.md) | Recorded Finland generate+publish with no CoMaps map fetch (**In review**; dry-run only; generate not executed; not Accepted) |
-| 7 | [SP-104](../work-items/SP-104-phase11-end-to-end-validation.md) | Phase 11 exit validation |
+| 7 | [SP-104](../work-items/SP-104-phase11-end-to-end-validation.md) | Phase 11 exit validation (**In review** 2026-08-30; not Accepted; exit **not met**) |
 
 ## Pipeline (locked layout, recommended glue)
 
@@ -146,7 +148,9 @@ See the investigation note §3. HTTP contract is already **SPD-035**:
   a template. Signature round-trip with a **test** key, not production keys.
 - SP-102: reuse SP-051 Range / health tests against a local root; snippet
   tests for committed nginx/Caddy (`gzip off`, no debug routes).
-- SP-104: evidence log of a real Finland run (not CI).
+- SP-104: evidence log of a real Finland run (not CI). Observed
+  2026-08-30: Residual — SP-103 dry-run only; see
+  [`validation/SP-104-evidence-log.md`](../validation/SP-104-evidence-log.md).
 
 ## Manual validation strategy
 
