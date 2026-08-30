@@ -75,6 +75,26 @@ COMAPS_MAP_HOSTS = (
 
 ORGANIC_MAPS_SUBWAY_HOST = "cdn.organicmaps.app"
 
+ALLOWED_PBF_HOST_SUFFIXES = (
+    "geofabrik.de",
+    "planet.openstreetmap.org",
+)
+
+_HTTP_URL_RE = re.compile(r"https?://[^\s\"']+", re.IGNORECASE)
+
+MAPGEN_SKIP_STAGE_NAMES = (
+    "Ugc",
+    "Srtm",
+    "IsolinesInfo",
+    "RoutingTransit",
+    "DownloadDescriptions",
+    "Descriptions",
+    "Reviews",
+    "Popularity",
+    "PopularityWorld",
+    "Coastline",
+)
+
 
 class MapPipelineError(Exception):
     """Operator-facing fail-closed error."""
@@ -85,22 +105,85 @@ def load_default_ini_text():
         return f.read()
 
 
+def url_hostname(value):
+    if not value:
+        return None
+    parsed = urlparse(str(value).strip())
+    if parsed.scheme in ("http", "https") and parsed.hostname:
+        return parsed.hostname.lower()
+    return None
+
+
+def _host_has_suffix(host, suffix):
+    return host == suffix or host.endswith("." + suffix)
+
+
+def _host_matches_denied(host):
+    if not host:
+        return None
+    if _host_has_suffix(host, "comaps.app") or _host_has_suffix(host, "comaps.tech"):
+        return host
+    for denied in COMAPS_MAP_HOSTS:
+        if _host_has_suffix(host, denied.lower()):
+            return denied
+    return None
+
+
 def denied_host_in(value):
     if not value:
         return None
-    text = str(value).lower()
-    for host in COMAPS_MAP_HOSTS:
-        if host.lower() in text:
-            return host
+    text = str(value)
+    host = url_hostname(text)
+    if host:
+        return _host_matches_denied(host)
+    for match in _HTTP_URL_RE.finditer(text):
+        found = _host_matches_denied(url_hostname(match.group(0)))
+        if found:
+            return found
+    lowered = text.lower()
+    for denied in COMAPS_MAP_HOSTS:
+        if denied.lower() in lowered:
+            return denied
     return None
 
 
 def organic_maps_subway_in(value):
     if not value:
         return None
-    if ORGANIC_MAPS_SUBWAY_HOST in str(value).lower():
+    host = url_hostname(value)
+    if host:
+        if _host_has_suffix(host, ORGANIC_MAPS_SUBWAY_HOST):
+            return ORGANIC_MAPS_SUBWAY_HOST
+        return None
+    text = str(value)
+    for match in _HTTP_URL_RE.finditer(text):
+        found = url_hostname(match.group(0))
+        if found and _host_has_suffix(found, ORGANIC_MAPS_SUBWAY_HOST):
+            return ORGANIC_MAPS_SUBWAY_HOST
+    if ORGANIC_MAPS_SUBWAY_HOST in text.lower():
         return ORGANIC_MAPS_SUBWAY_HOST
     return None
+
+
+def assert_pbf_url_allowed(pbf_url, allow_comaps_origin):
+    parsed = urlparse(pbf_url)
+    if parsed.scheme in ("", "file"):
+        return
+    if parsed.scheme not in ("http", "https"):
+        raise MapPipelineError(
+            "unsupported --pbf scheme {!r}".format(parsed.scheme)
+        )
+    host = (parsed.hostname or "").lower()
+    if not host:
+        raise MapPipelineError("--pbf URL has no host")
+    if any(_host_has_suffix(host, suffix) for suffix in ALLOWED_PBF_HOST_SUFFIXES):
+        return
+    if allow_comaps_origin:
+        return
+    raise MapPipelineError(
+        "HTTPS --pbf host {!r} is not Geofabrik or planet.openstreetmap.org; "
+        "use file:// or pass --allow-comaps-origin".format(host)
+    )
 
 
 def pipeline_stage_names(from_stage=None, rsync_dest=None):
@@ -455,7 +538,11 @@ def write_md5_for_file(path):
 
 def ensure_planet_md5_url(pbf_url, planet_md5_url, dry_run):
     if planet_md5_url:
-        return planet_md5_url
+        md5_local = file_url_to_path(planet_md5_url)
+        if md5_local is None:
+            return planet_md5_url
+        if os.path.isfile(md5_local) or dry_run:
+            return planet_md5_url
     local = file_url_to_path(pbf_url)
     if local:
         sibling = local + ".md5"
@@ -600,6 +687,16 @@ def build_plan(
         allow_comaps_origin,
         cdn_base=cdn_base,
     )
+    assert_pbf_url_allowed(pbf_url, allow_comaps_origin)
+
+    try:
+        threads = int(threads)
+    except (TypeError, ValueError):
+        raise MapPipelineError("THREADS_COUNT must be an integer")
+    if threads < 1:
+        raise MapPipelineError(
+            "THREADS_COUNT must be >= 1 (maps_generator treats 0 as all cores)"
+        )
 
     if not os.path.isdir(borders):
         raise MapPipelineError("borders directory not found: {}".format(borders))
@@ -625,8 +722,16 @@ def build_plan(
         extra_warnings.append(
             "skip-coast: StageCoastline skipped; WorldCoasts omitted; ocean fill may be missing"
         )
+    unknown_skip = [name for name in skip_stages if name not in MAPGEN_SKIP_STAGE_NAMES]
+    if unknown_skip:
+        raise MapPipelineError(
+            "internal skip token is not a maps_generator --skip name: {}".format(
+                ", ".join(unknown_skip)
+            )
+        )
 
-    md5_url = ensure_planet_md5_url(pbf_url, planet_md5_url, dry_run=True)
+    operator_md5_url = planet_md5_url
+    md5_url = ensure_planet_md5_url(pbf_url, operator_md5_url, dry_run=True)
     if mapgen_config:
         with open(mapgen_config, "r", encoding="utf-8") as f:
             ini_text = f.read()
@@ -709,6 +814,7 @@ def build_plan(
         "rsync_dest": rsync_dest,
         "extract_rings_script": EXTRACT_RINGS_SCRIPT,
         "planet_md5_url": md5_url,
+        "planet_md5_explicit": operator_md5_url,
         "mapgen_config": mapgen_config,
         "dry_run": bool(dry_run),
         "node_storage": "map",
@@ -818,15 +924,7 @@ def resolve_runtime_paths(plan):
     }
 
 
-def run_mapgen(plan):
-    os.makedirs(plan["mapgen_out"], exist_ok=True)
-    ini_text = plan["ini_text"]
-    if not plan.get("mapgen_config"):
-        md5_url = ensure_planet_md5_url(
-            plan["pbf_url"], plan.get("planet_md5_url"), dry_run=False
-        )
-        ini_text = set_ini_option(ini_text, "PLANET_MD5_URL", md5_url)
-    write_text(plan["ini_path"], ini_text)
+def build_mapgen_argv(plan):
     argv = [
         sys.executable,
         "-m",
@@ -842,7 +940,60 @@ def run_mapgen(plan):
         argv.append("--production")
     if plan["mapgen_skip"]:
         argv.extend(["--skip", ",".join(plan["mapgen_skip"])])
-    run_command(argv, cwd=_TOOLS_PYTHON, env=tools_python_env())
+    return argv
+
+
+def build_pix_derive_argv(plan, runtime):
+    argv = [
+        plan["pix_derive_bin"],
+        "--mwm_dir",
+        runtime["mwm_dir"],
+        "--out_dir",
+        plan["pix_dir"],
+    ]
+    if runtime.get("data_version") is not None:
+        argv.extend(["--map_data_version", str(int(runtime["data_version"]))])
+    return argv
+
+
+def build_rings_argv(plan, pbf_path):
+    return [
+        sys.executable,
+        plan["extract_rings_script"],
+        "--pbf",
+        pbf_path,
+        "--out-jsonl",
+        plan["rings"],
+    ]
+
+
+def build_spa_emit_argv(plan, runtime):
+    argv = [
+        plan["spa_emit_bin"],
+        "--mode=production",
+        "--rings={}".format(plan["rings"]),
+        "--policy={}".format(plan["policy"]),
+        "--iso={}".format(plan["iso"]),
+        "--out_dir={}".format(plan["spa_dir"]),
+        "--borders_dir={}".format(plan["borders_dir"]),
+        "--pix_dir={}".format(plan["pix_dir"]),
+        "--map_data_version={}".format(int(runtime["data_version"])),
+    ]
+    if plan["border_prefix"]:
+        argv.append("--border_prefix={}".format(plan["border_prefix"]))
+    return argv
+
+
+def run_mapgen(plan):
+    os.makedirs(plan["mapgen_out"], exist_ok=True)
+    ini_text = plan["ini_text"]
+    if not plan.get("mapgen_config"):
+        md5_url = ensure_planet_md5_url(
+            plan["pbf_url"], plan.get("planet_md5_explicit"), dry_run=False
+        )
+        ini_text = set_ini_option(ini_text, "PLANET_MD5_URL", md5_url)
+    write_text(plan["ini_path"], ini_text)
+    run_command(build_mapgen_argv(plan), cwd=_TOOLS_PYTHON, env=tools_python_env())
     mwm_dir = discover_mwm_dir(plan["mapgen_out"])
     if not mwm_dir:
         raise MapPipelineError(
@@ -875,16 +1026,7 @@ def run_pix_derive(plan, runtime):
             "pix_derive requires an MWM directory (run mapgen or pass --mwm-dir)"
         )
     os.makedirs(plan["pix_dir"], exist_ok=True)
-    argv = [
-        plan["pix_derive_bin"],
-        "--mwm_dir",
-        mwm_dir,
-        "--out_dir",
-        plan["pix_dir"],
-    ]
-    if runtime["data_version"] is not None:
-        argv.extend(["--map_data_version", str(int(runtime["data_version"]))])
-    run_command(argv)
+    run_command(build_pix_derive_argv(plan, runtime))
 
 
 def run_rings(plan, runtime):
@@ -896,15 +1038,9 @@ def run_rings(plan, runtime):
     parent = os.path.dirname(plan["rings"])
     if parent:
         os.makedirs(parent, exist_ok=True)
-    argv = [
-        sys.executable,
-        plan["extract_rings_script"],
-        "--pbf",
-        pbf_path,
-        "--out-jsonl",
-        plan["rings"],
-    ]
-    run_command(argv, cwd=_TOOLS_PYTHON, env=tools_python_env())
+    run_command(
+        build_rings_argv(plan, pbf_path), cwd=_TOOLS_PYTHON, env=tools_python_env()
+    )
 
 
 def run_spa_emit(plan, runtime):
@@ -916,20 +1052,7 @@ def run_spa_emit(plan, runtime):
     data_version = runtime["data_version"]
     if data_version is None:
         raise MapPipelineError("--data-version is required for spa_emit when countries.txt is absent")
-    argv = [
-        plan["spa_emit_bin"],
-        "--mode=production",
-        "--rings={}".format(plan["rings"]),
-        "--policy={}".format(plan["policy"]),
-        "--iso={}".format(plan["iso"]),
-        "--out_dir={}".format(plan["spa_dir"]),
-        "--borders_dir={}".format(plan["borders_dir"]),
-        "--pix_dir={}".format(plan["pix_dir"]),
-        "--map_data_version={}".format(int(data_version)),
-    ]
-    if plan["border_prefix"]:
-        argv.append("--border_prefix={}".format(plan["border_prefix"]))
-    run_command(argv)
+    run_command(build_spa_emit_argv(plan, runtime))
 
 
 def run_assemble(plan, runtime):
@@ -966,14 +1089,20 @@ def run_rsync(plan):
     run_command(argv)
 
 
-STAGE_RUNNERS = {
-    STAGE_MAPGEN: lambda plan, runtime: run_mapgen(plan),
-    STAGE_PIX_DERIVE: run_pix_derive,
-    STAGE_RINGS: run_rings,
-    STAGE_SPA_EMIT: run_spa_emit,
-    STAGE_ASSEMBLE: run_assemble,
-    STAGE_RSYNC: lambda plan, runtime: run_rsync(plan),
-}
+def run_stage(stage, plan, runtime):
+    if stage == STAGE_MAPGEN:
+        return run_mapgen(plan)
+    if stage == STAGE_PIX_DERIVE:
+        return run_pix_derive(plan, runtime)
+    if stage == STAGE_RINGS:
+        return run_rings(plan, runtime)
+    if stage == STAGE_SPA_EMIT:
+        return run_spa_emit(plan, runtime)
+    if stage == STAGE_ASSEMBLE:
+        return run_assemble(plan, runtime)
+    if stage == STAGE_RSYNC:
+        return run_rsync(plan)
+    raise MapPipelineError("unknown pipeline stage {!r}".format(stage))
 
 
 def run_map_pipeline(**kwargs):
@@ -986,9 +1115,8 @@ def run_map_pipeline(**kwargs):
     write_text(plan["ini_path"], plan["ini_text"])
     runtime = resolve_runtime_paths(plan)
     for stage in plan["stages"]:
-        runner = STAGE_RUNNERS[stage]
         logger.info("stage %s: start", stage)
-        runner(plan, runtime)
+        run_stage(stage, plan, runtime)
         runtime = resolve_runtime_paths(plan)
         logger.info("stage %s: done", stage)
     print("OK: {}".format(plan["out"]))
