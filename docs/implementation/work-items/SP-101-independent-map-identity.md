@@ -1,7 +1,7 @@
 # SP-101 — Independent map identity
 
 **Phase:** 11 — Independent map build and serve
-**Status:** Planned
+**Status:** In review
 **Depends on:** SP-098 lock (**SPD-087**, **SPD-091**, **SPD-092**, **SPD-093**)
 **Unblocks:** SP-103 (Channel A); stock APK origin
 
@@ -62,9 +62,12 @@ D12 still forbids a baked **Custom Maps** LAN URL. The stock list is
 | Path | Role |
 | --- | --- |
 | `private.h` (gitignored) | Hosts, series, signature hex |
-| `configure.sh` | World.mwm fetch |
+| `private.h.street-pixels.example` | Non-secret template |
+| `configure.sh` | World.mwm bootstrap via `map_identity configure-world` |
+| `tools/python/street_pixels/map_identity.py` | Fail-closed resolver, Ed25519 helpers |
 | `libs/storage/storage.cpp` | `MAP_SERIES`, signature verify |
 | `libs/platform/downloader_utils.cpp` | `GetFileDownloadUrl` |
+| `docs/implementation/notes/sp-101-map-identity.md` | Keygen + env recipe |
 | `docs/implementation/work-items/SP-004-network-egress-and-api-configuration.md` | Egress inventory |
 
 ## Acceptance criteria
@@ -96,9 +99,17 @@ D12 still forbids a baked **Custom Maps** LAN URL. The stock list is
 
 | Field | Value |
 | --- | --- |
-| Branch | — |
-| Implemented by | — |
+| Branch | `cursor/sp-101-independent-map-identity-b3d3` |
+| Commits | `6d3c4d337` `[platform] Add Street Pixels private.h example template`; `d0db1f9c1` `[tools] Fail closed World bootstrap without CoMaps`; this `[docs]` commit |
+| Template | `private.h.street-pixels.example` — `DEFAULT_URLS_JSON` `https://maps.example.invalid/`; `METASERVER_URL` `""`; `COUNTRIES_TXT_SIGNATURE_HEX` 64 zero hex chars; `MAP_SERIES` `2026.06.28` |
+| Keygen | [notes/sp-101-map-identity.md](../notes/sp-101-map-identity.md) — `openssl genpkey -algorithm Ed25519`; `pkeyutl -sign -rawin` matching `sign_file` / SP-050 `--secret-key`; `public-hex` for `COUNTRIES_TXT_SIGNATURE_HEX` |
+| configure.sh | `python3 -m street_pixels.map_identity configure-world`. Env: `SKIP_MAP_DOWNLOAD`, `STREET_PIXELS_LOCAL_WORLD`, `STREET_PIXELS_WORLD_DIR`, `STREET_PIXELS_MAPS_BASE_URL` (HTTPS, non-CoMaps; SP-102 fills the public host). Legacy `MAPS_BASE_URL` refused when CoMaps. No mapgen-fi-1 fallback. WorldCoasts 404/missing omitted (**SPD-094**). |
+| Tests | `cd tools/python && PYTHONPATH=. python3 -m unittest street_pixels.tests.test_map_identity` — **19/19** OK. Combined `street_pixels.tests` (`test_map_identity` + `test_map_pipeline` + `test_prepare_spa_debug_root` + `test_serve_spa_publish_tree`) — **79/79** OK. CLI: `SKIP_MAP_DOWNLOAD=1` skip exit 0; no origin exit 1; CoMaps `MAPS_BASE_URL` refused. Full mapgen **not** run. |
+| Implemented by | Cursor Agent (`cursoragent@cursor.com`) |
+| Reviewed by | — |
 | Accepted by | — |
+
+Phase 11 exit is **not** met.
 
 ## Discovered follow-up
 
@@ -106,3 +117,4 @@ D12 still forbids a baked **Custom Maps** LAN URL. The stock list is
 | --- | --- |
 | Public origin URL / TLS | SP-102 |
 | First signed FI countries | SP-103 |
+| Live gitignored `private.h` on this machine still lists CoMaps CDNs | Maintainer replaces from the template on the build host; not committed |

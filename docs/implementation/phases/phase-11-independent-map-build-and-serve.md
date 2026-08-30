@@ -1,7 +1,7 @@
 # Phase 11 — Independent map build and serve
 
 **Status:** In progress (SP-098 **Accepted** 2026-08-29 — **SPD-087–096**;
-SP-099 and SP-100 **In review**; coding SP-101+ may proceed; exit **not met**)
+SP-099, SP-100, and SP-101 **In review**; coding SP-102+ may proceed; exit **not met**)
 **Depends on:** Phase 4 residual client/layout track (SP-042–051 tools;
 **SPD-027–039**). Does **not** depend on Phase 5–10 exit.
 **Blocks:** public S4 stock map URLs (**SPD-093** / **SPD-087**). Does
@@ -50,7 +50,7 @@ Verified 2026-08-29. Detail:
 | Rings extract | `street_pixels_spike/extract_admin_place_polygons.py` | Spike, FI-proven; called by `map_pipeline` (ring semantics unchanged). |
 | Assemble / serve | `assemble_spa_publish_tree`, `serve_spa_publish_tree` | SP-050/051 In review. **Reuse.** |
 | Debug CDN fetch | `prepare_spa_debug_root` | Hits public CoMaps `meta/maps.json`. Not production origin. |
-| Stock map URLs | gitignored `private.h` | CoMaps `DEFAULT_URLS_JSON` / `METASERVER_URL`. `configure.sh` downloads World from `mapgen-fi-1.comaps.app`. |
+| Stock map URLs | gitignored `private.h` + `private.h.street-pixels.example` | Template placeholder `https://maps.example.invalid/`; `METASERVER_URL` empty; `MAP_SERIES` `2026.06.28`. `configure.sh` calls `street_pixels.map_identity configure-world` and refuses CoMaps map hosts. Public origin is SP-102. |
 | Policy | `data/street_pixels/country_policies.json` | FI only. |
 | Layout / ads / sig | **SPD-035–039**, **SPD-028**, **SPD-036** | Locked. Phase 11 must not invent a second protocol. |
 
@@ -99,7 +99,7 @@ Coding SP-099+ may proceed (SP-098 **Accepted**).
 | 1 | [SP-098](../work-items/SP-098-map-pipeline-architecture-decisions.md) | Architecture decisions (**Accepted** 2026-08-29; **SPD-087–096**) |
 | 2 | [SP-099](../work-items/SP-099-offline-mwm-pix-derive.md) | Offline leaf MWM → `.pix` derive matching the client (**In review**; not Accepted) |
 | 3 | [SP-100](../work-items/SP-100-operator-map-pipeline.md) | Operator CLI: extract → mapgen → pix → rings → spa → assemble (**In review**; not Accepted) |
-| 4 | [SP-101](../work-items/SP-101-independent-map-identity.md) | Own map keys, stock host list, `configure.sh` without CoMaps |
+| 4 | [SP-101](../work-items/SP-101-independent-map-identity.md) | Own map keys, stock host list, `configure.sh` without CoMaps (**In review**; not Accepted) |
 | 5 | [SP-102](../work-items/SP-102-publish-and-serve-origin.md) | VPS static origin, rsync, TLS, Range |
 | 6 | [SP-103](../work-items/SP-103-finland-first-country-run.md) | Recorded Finland generate+publish with no CoMaps map fetch |
 | 7 | [SP-104](../work-items/SP-104-phase11-end-to-end-validation.md) | Phase 11 exit validation |

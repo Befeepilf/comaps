@@ -102,8 +102,9 @@ PYTHONPATH=. python3 -m street_pixels serve_spa_publish_tree \
 | Log / debug | `HasRemoteSpa` true for FI leaves after countries apply |
 
 Signing key: same Ed25519 PEM family used by mapgen `sign_file` /
-`COUNTRIES_TXT_SIGNATURE_HEX` public half. Without the secret key, use Channel B
-for walks — do **not** disable verification.
+`COUNTRIES_TXT_SIGNATURE_HEX` public half. Keygen and hex extract:
+[sp-101-map-identity.md](sp-101-map-identity.md). Without the secret key, use
+Channel B for walks — do **not** disable verification.
 
 ---
 

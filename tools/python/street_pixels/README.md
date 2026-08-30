@@ -52,6 +52,19 @@ Default ini fragment: `var/etc/map_pipeline.ini` (`NODE_STORAGE: map`,
 
 Finland full-data evidence is SP-103. Do not run full FI mapgen as a unit test.
 
+## World bootstrap (SP-101)
+
+`configure.sh` does not fetch CoMaps World. It calls
+`python3 -m street_pixels.map_identity configure-world`.
+
+- `SKIP_MAP_DOWNLOAD=1` — skip (already used by `build_omim.sh` for targeted builds)
+- `STREET_PIXELS_LOCAL_WORLD` / `STREET_PIXELS_WORLD_DIR` — copy operator World.mwm
+- `STREET_PIXELS_MAPS_BASE_URL` — HTTPS Street Pixels origin (not CoMaps; public host is SP-102)
+
+Keygen, `COUNTRIES_TXT_SIGNATURE_HEX`, and the `private.h` template:
+[docs/implementation/notes/sp-101-map-identity.md](../../../docs/implementation/notes/sp-101-map-identity.md).
+Template: [private.h.street-pixels.example](../../../private.h.street-pixels.example).
+
 ## Debug prepare — not production (SPD-087)
 
 `prepare_spa_debug_root` fetches CoMaps CDN `countries.txt`. It is a LAN
