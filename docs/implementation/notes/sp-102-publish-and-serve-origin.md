@@ -3,6 +3,7 @@
 **Status:** Recipe for maintainers. Live hostname is ops, not in git.
 **Decisions:** SPD-035, SPD-087, SPD-088, SPD-096.
 **Work item:** [SP-102-publish-and-serve-origin.md](../work-items/SP-102-publish-and-serve-origin.md).
+**Tutorial:** [STREET_PIXELS_MAP_PIPELINE.md](../../STREET_PIXELS_MAP_PIPELINE.md).
 
 Generate on a ≥32 GiB builder (`map_pipeline`, **SPD-088**). The 8 GiB VPS
 **serves only**. `maps_generator` on that VPS is unsupported. Community

@@ -1,5 +1,9 @@
 # Street Pixels operator tools
 
+**Tutorial (start here):**
+[docs/STREET_PIXELS_MAP_PIPELINE.md](../../../docs/STREET_PIXELS_MAP_PIPELINE.md)
+— numbered clone → keys → build → Finland PBF → generate → LAN → VPS.
+
 Build-host generate, assemble, and LAN serve for Street Pixels map data.
 **VPS generate is unsupported** (SPD-088): run this CLI on a ≥32 GiB builder
 (`NODE_STORAGE: map`, capped threads). The 8 GiB VPS only serves an SP-050
