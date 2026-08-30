@@ -1,7 +1,7 @@
 # SP-103 — Finland first-country pipeline run
 
 **Phase:** 11 — Independent map build and serve
-**Status:** Planned
+**Status:** In review
 **Depends on:** SP-098 lock (**SPD-090**, **SPD-094**, **SPD-095**); SP-099–102
 **Unblocks:** SP-104
 
@@ -73,15 +73,30 @@ Phase 5/10 Helsinki walks need real `.spa` beside MWM.
 
 | Field | Value |
 | --- | --- |
-| Branch | — |
-| PBF | — |
-| Leaf table | — |
-| Implemented by | — |
+| Branch | `cursor/sp-103-finland-first-run-b3d3` |
+| Evidence SHA | `56980a8ce2a07899556080100c1a8eee8f91f463` (dry-run / tests / host facts). This `[docs]` commit records them |
+| Plan / log | [SP-103-validation-plan.md](../validation/SP-103-validation-plan.md); [SP-103-evidence-log.md](../validation/SP-103-evidence-log.md) |
+| Host | Cloud Agent VM: **15 GiB RAM**, 4 CPUs, **no swap** (`MemTotal` 16398384 kB). Disk overlay 252 G, 227 G avail. **SPD-088** ≥32 GiB **not** met |
+| Binaries | `pix_derive_tool` present (`/workspace/omim-build-debug/pix_derive_tool`, sha256 `fd919692d7a4417ce4dc8be34037ee6483f54ad9ecf76fb7f664aa385d7c8dc2`). `generator_tool` **missing**. `spa_emit_tool` **missing** |
+| Tests | `cd tools/python && PYTHONPATH=. python3 -m unittest street_pixels.tests.test_map_pipeline` — **40/40** OK. No code change |
+| Dry-run | `map_pipeline --dry-run --pbf https://download.geofabrik.de/europe/finland-latest.osm.pbf --out /tmp/sp103 --countries 'World,Finland_*'` — exit 0; **no PBF download**; `/tmp/sp103` not created; eight `Finland_*` + `World`; `WorldCoasts` omitted; `NODE_STORAGE: map`; no CoMaps hosts in printed plan / rendered ini |
+| PBF | URL recorded. Checksum sidecar fetched only: `ab51ec4bf46b4b3c87941e6bdce385ff  finland-latest.osm.pbf` (`https://download.geofabrik.de/europe/finland-latest.osm.pbf.md5`, `X-Derived-From: europe/finland-260828.osm.pbf.md5`, 2026-08-30T01:17:16Z). **PBF not downloaded.** Not committed |
+| Leaf table | **Not produced.** Eight-leaf generate **did not run** (RAM below 32 GiB, **SPD-088**). Do not invent sizes |
+| Channel A | No production keys in git. Example `COUNTRIES_TXT_SIGNATURE_HEX` is zeros. `private.h` and secret PEM absent on disk. Signing **not executed**. Channel B **not** used and **not** the public path |
+| Publish / curl | **Not executed** (no VPS). Residual SP-102/103 maintainer |
+| Generate | **Not executed.** Residual: maintainer ≥32 GiB MacBook. No CoMaps MWM fallback. No highway-proxy U |
+| Implemented by | Cursor Agent (`cursoragent@cursor.com`) |
 | Accepted by | — |
+
+Phase 11 exit is **not** met.
 
 ## Discovered follow-up
 
 | Finding | Disposition |
 | --- | --- |
+| Eight-leaf FI generate + dense `.spa` on ≥32 GiB builder (`generator_tool` + `spa_emit_tool` same revision as APK) | Residual — maintainer MacBook (**SPD-088**). This Cloud Agent host must not try mapgen |
+| Channel A sign if P5 keys exist on the builder | Residual — no production keys in git |
+| Publish + `curl` `meta/maps.json` and Helsinki objects | Residual SP-102/103 maintainer (no VPS here) |
+| Helsinki `VerifyDenseAssignments` + leaf size table | After generate; do not invent |
 | Exit checklist | SP-104 |
 | Next ISO policy | After Phase 11 |

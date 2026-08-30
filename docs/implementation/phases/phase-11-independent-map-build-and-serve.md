@@ -1,7 +1,8 @@
 # Phase 11 — Independent map build and serve
 
 **Status:** In progress (SP-098 **Accepted** 2026-08-29 — **SPD-087–096**;
-SP-099, SP-100, SP-101, and SP-102 **In review**; coding SP-103+ may proceed; exit **not met**)
+SP-099, SP-100, SP-101, SP-102, and SP-103 **In review**; SP-103 dry-run
+only — eight-leaf generate residual; exit **not met**)
 **Depends on:** Phase 4 residual client/layout track (SP-042–051 tools;
 **SPD-027–039**). Does **not** depend on Phase 5–10 exit.
 **Blocks:** public S4 stock map URLs (**SPD-093** / **SPD-087**). Does
@@ -56,7 +57,9 @@ Verified 2026-08-29. Detail:
 
 **Difference from the technical audit (2026-07-20):** client `.spa` download
 and LAN assemble/serve exist. VPS origin recipe exists (SP-102 **In review**);
-live Finland origin is SP-103. Option A still unwired.
+live Finland origin is SP-103 (**In review**, 2026-08-30: Cloud Agent dry-run
+only; eight-leaf generate residual to a ≥32 GiB builder). Option A still
+unwired.
 
 ## Intended outcome
 
@@ -83,7 +86,7 @@ to SP-053 / Phase 10 may consume this origin instead of CoMaps.
 | Residual | Disposition |
 | --- | --- |
 | SP-044 offline MWM→`.pix` | **SP-099** |
-| Eight-leaf FI dense `.spa` with real \|U\| | **SP-103** after SP-099/100 |
+| Eight-leaf FI dense `.spa` with real \|U\| | **SP-103** **In review** — dry-run recorded 2026-08-30; generate **not executed** (Cloud Agent ~15 GiB; residual maintainer ≥32 GiB MacBook, **SPD-088**) |
 | Option A `StageMwm` collectors | **Out** — **SPD-089** |
 | SP-050–053 LAN tools | **Reuse**; do not rewrite the layout |
 | `prepare_spa_debug_root` CoMaps fetch | Production path **must not** use it (**SPD-087**) |
@@ -92,7 +95,8 @@ to SP-053 / Phase 10 may consume this origin instead of CoMaps.
 
 ## Work-item breakdown
 
-Coding SP-103+ may proceed (SP-098 **Accepted**; SP-099–102 **In review**).
+Coding SP-104 remains the exit gate (SP-098 **Accepted**; SP-099–103 **In
+review**; Finland generate still residual).
 
 | Order | ID | Title |
 | --- | --- | --- |
@@ -101,7 +105,7 @@ Coding SP-103+ may proceed (SP-098 **Accepted**; SP-099–102 **In review**).
 | 3 | [SP-100](../work-items/SP-100-operator-map-pipeline.md) | Operator CLI: extract → mapgen → pix → rings → spa → assemble (**In review**; not Accepted) |
 | 4 | [SP-101](../work-items/SP-101-independent-map-identity.md) | Own map keys, stock host list, `configure.sh` without CoMaps (**In review**; not Accepted) |
 | 5 | [SP-102](../work-items/SP-102-publish-and-serve-origin.md) | VPS static origin, rsync, TLS, Range (**In review**; not Accepted) |
-| 6 | [SP-103](../work-items/SP-103-finland-first-country-run.md) | Recorded Finland generate+publish with no CoMaps map fetch |
+| 6 | [SP-103](../work-items/SP-103-finland-first-country-run.md) | Recorded Finland generate+publish with no CoMaps map fetch (**In review**; dry-run only; generate not executed; not Accepted) |
 | 7 | [SP-104](../work-items/SP-104-phase11-end-to-end-validation.md) | Phase 11 exit validation |
 
 ## Pipeline (locked layout, recommended glue)
