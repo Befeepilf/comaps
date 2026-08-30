@@ -98,6 +98,7 @@ source ./tools/unix/activate_venv.sh
 
 REPO_ROOT="$(pwd)"
 export PYTHONPATH="$REPO_ROOT/tools/python${PYTHONPATH:+:$PYTHONPATH}"
+python3 -m street_pixels.map_identity ensure-private-h --repo-root "$REPO_ROOT"
 python3 -m street_pixels.map_identity configure-world \
   --data-dir "$REPO_ROOT/data" \
   --countries "$REPO_ROOT/data/countries.txt" \
