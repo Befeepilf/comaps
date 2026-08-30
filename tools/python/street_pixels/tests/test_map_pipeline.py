@@ -16,6 +16,8 @@ if _TOOLS_PYTHON not in sys.path:
 from street_pixels.map_pipeline import COMAPS_MAP_HOSTS  # noqa: E402
 from street_pixels.map_pipeline import CORE_STAGES  # noqa: E402
 from street_pixels.map_pipeline import DEFAULT_COUNTRIES  # noqa: E402
+from street_pixels.map_pipeline import EXTRACT_RINGS_SCRIPT  # noqa: E402
+from street_pixels.map_pipeline import MAPGEN_SKIP_STAGE_NAMES  # noqa: E402
 from street_pixels.map_pipeline import MapPipelineError  # noqa: E402
 from street_pixels.map_pipeline import STAGE_ASSEMBLE  # noqa: E402
 from street_pixels.map_pipeline import STAGE_MAPGEN  # noqa: E402
@@ -23,11 +25,17 @@ from street_pixels.map_pipeline import STAGE_PIX_DERIVE  # noqa: E402
 from street_pixels.map_pipeline import STAGE_RINGS  # noqa: E402
 from street_pixels.map_pipeline import STAGE_RSYNC  # noqa: E402
 from street_pixels.map_pipeline import STAGE_SPA_EMIT  # noqa: E402
+from street_pixels.map_pipeline import build_mapgen_argv  # noqa: E402
+from street_pixels.map_pipeline import build_pix_derive_argv  # noqa: E402
 from street_pixels.map_pipeline import build_plan  # noqa: E402
+from street_pixels.map_pipeline import build_rings_argv  # noqa: E402
+from street_pixels.map_pipeline import build_spa_emit_argv  # noqa: E402
+from street_pixels.map_pipeline import ensure_planet_md5_url  # noqa: E402
 from street_pixels.map_pipeline import expand_countries  # noqa: E402
 from street_pixels.map_pipeline import load_default_ini_text  # noqa: E402
 from street_pixels.map_pipeline import pipeline_stage_names  # noqa: E402
 from street_pixels.map_pipeline import run_map_pipeline  # noqa: E402
+from street_pixels.map_pipeline import run_mapgen  # noqa: E402
 
 
 def _touch_poly(directory, leaf_id):
@@ -112,6 +120,11 @@ class DryRunNoNetworkTest(unittest.TestCase):
             run_command.assert_not_called()
             self.assertTrue(plan["dry_run"])
             self.assertEqual(list(CORE_STAGES), plan["stages"])
+            self.assertFalse(os.path.exists(out))
+            self.assertFalse(os.path.exists(plan["work_dir"]))
+            self.assertFalse(os.path.exists(plan["out"]))
+            self.assertNotIn("osmium", sys.modules)
+            self.assertNotIn("extract_admin_place_polygons", sys.modules)
 
 
 class DefaultConfigDenylistTest(unittest.TestCase):
@@ -280,6 +293,321 @@ class ExpandCountriesTest(unittest.TestCase):
             self.assertIn("World", expanded)
             self.assertNotIn("WorldCoasts", expanded)
             self.assertEqual(9, len(expanded))
+            self.assertNotIn("W", expanded)
+            self.assertNotIn("o", expanded)
+            self.assertNotIn("r", expanded)
+            self.assertNotIn("l", expanded)
+            self.assertNotIn("d", expanded)
+            self.assertNotIn("F", expanded)
+
+
+class WorldCoastsExplicitTest(unittest.TestCase):
+    def test_worldcoasts_only_when_named(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            omitted = expand_countries("World*", borders)
+            self.assertIn("World", omitted)
+            self.assertNotIn("WorldCoasts", omitted)
+            explicit = expand_countries("WorldCoasts,Finland_*", borders)
+            self.assertIn("WorldCoasts", explicit)
+
+
+class MapgenSkipTokenTest(unittest.TestCase):
+    def test_skip_tokens_match_stage_declaration_classes(self):
+        decl = os.path.join(
+            _TOOLS_PYTHON, "maps_generator", "generator", "stages_declaration.py"
+        )
+        with open(decl, "r", encoding="utf-8") as f:
+            text = f.read()
+        for token in MAPGEN_SKIP_STAGE_NAMES:
+            self.assertIn("class Stage{}(".format(token), text)
+
+
+class OriginDenylistExtraUrlTest(unittest.TestCase):
+    def test_each_denylisted_host_refused_in_hotels_url(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            out = os.path.join(tmp, "out")
+            for host in COMAPS_MAP_HOSTS:
+                with self.subTest(host=host):
+                    with self.assertRaises(MapPipelineError) as ctx:
+                        build_plan(
+                            pbf="file:///tmp/finland.osm.pbf",
+                            out=out,
+                            borders_dir=borders,
+                            hotels_url="https://{}/hotels.csv".format(host),
+                            dry_run=True,
+                        )
+                    self.assertIn(host, str(ctx.exception))
+
+    def test_unlisted_comaps_app_subdomain_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            with self.assertRaises(MapPipelineError) as ctx:
+                build_plan(
+                    pbf="https://cdn-eu-1.comaps.app/maps/World.mwm",
+                    out=os.path.join(tmp, "out"),
+                    borders_dir=borders,
+                    dry_run=True,
+                )
+            self.assertIn("comaps.app", str(ctx.exception))
+
+    def test_path_substring_cdn_comaps_app_is_not_a_host_match(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            with self.assertRaises(MapPipelineError) as ctx:
+                build_plan(
+                    pbf="https://example.test/cdn.comaps.app/extract.osm.pbf",
+                    out=os.path.join(tmp, "out"),
+                    borders_dir=borders,
+                    dry_run=True,
+                )
+            self.assertIn("example.test", str(ctx.exception))
+            self.assertNotIn("CoMaps map host", str(ctx.exception))
+
+    def test_geofabrik_https_pbf_allowed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            plan = build_plan(
+                pbf="https://download.geofabrik.de/europe/finland-latest.osm.pbf",
+                out=os.path.join(tmp, "out"),
+                borders_dir=borders,
+                dry_run=True,
+            )
+            self.assertIn("geofabrik.de", plan["pbf_url"])
+
+    def test_planet_osm_https_pbf_allowed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            plan = build_plan(
+                pbf="https://planet.openstreetmap.org/pbf/planet-latest.osm.pbf",
+                out=os.path.join(tmp, "out"),
+                borders_dir=borders,
+                dry_run=True,
+            )
+            self.assertIn("planet.openstreetmap.org", plan["pbf_url"])
+
+    def test_random_https_pbf_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            with self.assertRaises(MapPipelineError) as ctx:
+                build_plan(
+                    pbf="https://maps.example.test/finland.osm.pbf",
+                    out=os.path.join(tmp, "out"),
+                    borders_dir=borders,
+                    dry_run=True,
+                )
+            self.assertIn("maps.example.test", str(ctx.exception))
+
+
+class ProductionFlagTest(unittest.TestCase):
+    def test_srtm_path_does_not_set_production(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            srtm = os.path.join(tmp, "srtm")
+            os.makedirs(srtm)
+            plan = build_plan(
+                pbf="file:///tmp/finland.osm.pbf",
+                out=os.path.join(tmp, "out"),
+                borders_dir=borders,
+                srtm_path=srtm,
+                dry_run=True,
+            )
+            self.assertFalse(plan["mapgen_production"])
+            self.assertNotIn("Srtm", plan["mapgen_skip"])
+            self.assertNotIn("--production", build_mapgen_argv(plan))
+
+    def test_hotels_url_sets_production(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            plan = build_plan(
+                pbf="file:///tmp/finland.osm.pbf",
+                out=os.path.join(tmp, "out"),
+                borders_dir=borders,
+                hotels_url="https://download.geofabrik.de/hotels.csv",
+                dry_run=True,
+            )
+            self.assertTrue(plan["mapgen_production"])
+            self.assertIn("--production", build_mapgen_argv(plan))
+
+
+class FromStageRuntimeTest(unittest.TestCase):
+    def test_from_stage_does_not_run_earlier_runners(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            out = os.path.join(tmp, "out")
+            with mock.patch(
+                "street_pixels.map_pipeline.run_mapgen"
+            ) as mapgen, mock.patch(
+                "street_pixels.map_pipeline.run_pix_derive"
+            ) as pix, mock.patch(
+                "street_pixels.map_pipeline.run_rings"
+            ) as rings, mock.patch(
+                "street_pixels.map_pipeline.run_spa_emit"
+            ) as spa, mock.patch(
+                "street_pixels.map_pipeline.run_assemble"
+            ) as assemble:
+                run_map_pipeline(
+                    pbf="file:///tmp/finland.osm.pbf",
+                    out=out,
+                    borders_dir=borders,
+                    from_stage=STAGE_SPA_EMIT,
+                    spa_emit_bin="/usr/bin/true",
+                    dry_run=False,
+                )
+            mapgen.assert_not_called()
+            pix.assert_not_called()
+            rings.assert_not_called()
+            spa.assert_called_once()
+            assemble.assert_called_once()
+            self.assertFalse(os.path.isdir(out))
+
+
+class CommandConstructionTest(unittest.TestCase):
+    def test_pix_derive_argv_uses_mwm_dir_not_world_leaf(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            plan = build_plan(
+                pbf="file:///tmp/finland.osm.pbf",
+                out=os.path.join(tmp, "out"),
+                borders_dir=borders,
+                dry_run=True,
+            )
+            runtime = {
+                "mwm_dir": os.path.join(tmp, "mwm"),
+                "data_version": 260728,
+            }
+            argv = build_pix_derive_argv(plan, runtime)
+            self.assertIn("--mwm_dir", argv)
+            self.assertNotIn("World.mwm", argv)
+            self.assertNotIn(os.path.join(runtime["mwm_dir"], "World.mwm"), argv)
+
+    def test_spa_emit_argv_has_pix_borders_iso(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            plan = build_plan(
+                pbf="file:///tmp/finland.osm.pbf",
+                out=os.path.join(tmp, "out"),
+                borders_dir=borders,
+                dry_run=True,
+            )
+            runtime = {"data_version": 260728}
+            argv = build_spa_emit_argv(plan, runtime)
+            joined = " ".join(argv)
+            self.assertIn("--pix_dir=", joined)
+            self.assertIn("--borders_dir=", joined)
+            self.assertIn("--iso=", joined)
+            self.assertIn("--mode=production", joined)
+
+    def test_rings_argv_uses_extract_script_and_script_exists(self):
+        self.assertTrue(os.path.isfile(EXTRACT_RINGS_SCRIPT))
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            plan = build_plan(
+                pbf="file:///tmp/finland.osm.pbf",
+                out=os.path.join(tmp, "out"),
+                borders_dir=borders,
+                dry_run=True,
+            )
+            argv = build_rings_argv(plan, "/tmp/finland.osm.pbf")
+            self.assertEqual(EXTRACT_RINGS_SCRIPT, argv[1])
+            self.assertIn("--pbf", argv)
+            self.assertIn("--out-jsonl", argv)
+
+    def test_mapgen_skip_joined_as_skip_flag(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            plan = build_plan(
+                pbf="file:///tmp/finland.osm.pbf",
+                out=os.path.join(tmp, "out"),
+                borders_dir=borders,
+                dry_run=True,
+            )
+            argv = build_mapgen_argv(plan)
+            self.assertIn("--skip", argv)
+            skip_value = argv[argv.index("--skip") + 1]
+            for token in plan["mapgen_skip"]:
+                self.assertIn(token, skip_value.split(","))
+
+
+class PlanetMd5Test(unittest.TestCase):
+    def test_dry_run_does_not_write_md5_sidecar(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            pbf = os.path.join(tmp, "extract.osm.pbf")
+            with open(pbf, "wb") as f:
+                f.write(b"pbf-bytes")
+            borders = _finland_borders(tmp)
+            with mock.patch(
+                "street_pixels.map_pipeline.write_md5_for_file"
+            ) as write_md5:
+                run_map_pipeline(
+                    pbf="file://{}".format(pbf),
+                    out=os.path.join(tmp, "out"),
+                    borders_dir=borders,
+                    dry_run=True,
+                )
+            write_md5.assert_not_called()
+            self.assertFalse(os.path.isfile(pbf + ".md5"))
+
+    def test_predicted_missing_file_url_still_writes_on_real_ensure(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            pbf = os.path.join(tmp, "extract.osm.pbf")
+            with open(pbf, "wb") as f:
+                f.write(b"abc")
+            predicted = "file://{}".format(pbf + ".md5")
+            url = ensure_planet_md5_url(
+                "file://{}".format(pbf), predicted, dry_run=False
+            )
+            self.assertTrue(os.path.isfile(pbf + ".md5"))
+            self.assertTrue(url.endswith(".md5"))
+            with open(pbf + ".md5", "r", encoding="utf-8") as f:
+                body = f.read()
+            self.assertTrue(body.split()[0])
+
+    def test_run_mapgen_writes_sidecar_when_plan_predicted_missing_md5(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            pbf = os.path.join(tmp, "extract.osm.pbf")
+            with open(pbf, "wb") as f:
+                f.write(b"abc")
+            borders = _finland_borders(tmp)
+            plan = build_plan(
+                pbf="file://{}".format(pbf),
+                out=os.path.join(tmp, "out"),
+                borders_dir=borders,
+                work_dir=os.path.join(tmp, "work"),
+                dry_run=True,
+            )
+            self.assertIsNone(plan["planet_md5_explicit"])
+            self.assertFalse(os.path.isfile(pbf + ".md5"))
+            mwm_dir = os.path.join(tmp, "mwm")
+            os.makedirs(mwm_dir)
+            with open(os.path.join(mwm_dir, "countries.txt"), "w", encoding="utf-8") as f:
+                f.write('{"v": 260728}\n')
+            with mock.patch(
+                "street_pixels.map_pipeline.run_command"
+            ) as run_command, mock.patch(
+                "street_pixels.map_pipeline.discover_mwm_dir", return_value=mwm_dir
+            ), mock.patch(
+                "street_pixels.map_pipeline.discover_planet_pbf", return_value=pbf
+            ):
+                run_mapgen(plan)
+            run_command.assert_called_once()
+            self.assertTrue(os.path.isfile(pbf + ".md5"))
+
+
+class ThreadsCapTest(unittest.TestCase):
+    def test_threads_zero_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            with self.assertRaises(MapPipelineError) as ctx:
+                build_plan(
+                    pbf="file:///tmp/finland.osm.pbf",
+                    out=os.path.join(tmp, "out"),
+                    borders_dir=borders,
+                    threads=0,
+                    dry_run=True,
+                )
+            self.assertIn("THREADS_COUNT", str(ctx.exception))
 
 
 class ExtrasSkipTest(unittest.TestCase):
@@ -293,8 +621,20 @@ class ExtrasSkipTest(unittest.TestCase):
                 dry_run=True,
             )
             self.assertFalse(plan["mapgen_production"])
-            for stage in ("Srtm", "IsolinesInfo", "Ugc", "DownloadDescriptions"):
-                self.assertIn(stage, plan["mapgen_skip"])
+            expected_skip = [
+                "Ugc",
+                "RoutingTransit",
+                "Srtm",
+                "IsolinesInfo",
+                "DownloadDescriptions",
+                "Descriptions",
+                "Popularity",
+                "PopularityWorld",
+                "Reviews",
+            ]
+            self.assertEqual(expected_skip, plan["mapgen_skip"])
+            for stage in expected_skip:
+                self.assertIn(stage, MAPGEN_SKIP_STAGE_NAMES)
             joined = " ".join(plan["extra_warnings"]).lower()
             self.assertIn("hotels", joined)
             self.assertIn("subway", joined)
