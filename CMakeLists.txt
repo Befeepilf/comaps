@@ -25,6 +25,22 @@ endif()
 set(OMIM_ROOT ${CMAKE_SOURCE_DIR})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${OMIM_ROOT}/cmake")
 
+if(NOT EXISTS "${OMIM_ROOT}/private.h")
+  if(NOT EXISTS "${OMIM_ROOT}/private.h.street-pixels.example")
+    message(FATAL_ERROR
+      "private.h is missing and private.h.street-pixels.example was not found. "
+      "Copy the Street Pixels example to private.h before configuring.")
+  endif()
+  configure_file(
+    "${OMIM_ROOT}/private.h.street-pixels.example"
+    "${OMIM_ROOT}/private.h"
+    COPYONLY
+  )
+  message(STATUS
+    "Copied private.h.street-pixels.example to private.h "
+    "(placeholder map origin; replace before a stock build)")
+endif()
+
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
