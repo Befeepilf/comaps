@@ -96,48 +96,16 @@ fi
 # Provision and activate a local Python virtual environment with protobuf
 source ./tools/unix/activate_venv.sh
 
-if [ -z "$SKIP_MAP_DOWNLOAD" ]; then
-  pushd data
-
-  MWM_VERSION=$(awk -F'[:,]' '/"v":/{ $2 = substr($2, 2); print $2 }' countries.txt)
-  # Maps are found under this location
-  # https://mapgen-fi-1.comaps.app/maps/<map_series>/<version>/World.mwm
-  MAP_SERIES=$(awk -F'"' '/"map_series":/{ print $4; exit }' countries.txt)
-  MAPS_BASE_URL="https://mapgen-fi-1.comaps.app/maps/$MAP_SERIES/$MWM_VERSION"
-  MWM_PATH="world_mwm/$MWM_VERSION"
-  WORLD_PATH="$MWM_PATH/World.mwm"
-  WORLD_PATH2="$MWM_PATH/WorldCoasts.mwm"
-
-  mkdir -p "$MWM_PATH"
-
-  # TODO: compare World* checksums with countries.txt and resume download / redownload if needed
-  if [ ! -f "$WORLD_PATH" ]; then
-    echo "Downloading World map to $WORLD_PATH"
-    # mapgen-fi-1 is supposed to have all historic prod map versions as well as recent test maps
-    if ! curl -fL -o "$WORLD_PATH" "$MAPS_BASE_URL/World.mwm"; then
-      echo "ERROR: could not download World.mwm from $MAPS_BASE_URL" >&2
-      exit 1
-    fi
-  fi
-  if [ ! -f "$WORLD_PATH2" ]; then
-    echo "Downloading WorldCoasts map to $WORLD_PATH2"
-    if ! curl -fL -o "$WORLD_PATH2" "$MAPS_BASE_URL/WorldCoasts.mwm"; then
-      echo "ERROR: could not download WorldCoasts.mwm from $MAPS_BASE_URL" >&2
-      exit 1
-    fi
-  fi
-
-  # Re-create symlinks to point to the right version as per countries.txt
-  rm -f World.mwm; ln -s "$WORLD_PATH" World.mwm
-  rm -f WorldCoasts.mwm; ln -s "$WORLD_PATH2" WorldCoasts.mwm
-
-  echo "World maps in use:"
-  ls -l World*.mwm
-
-  popd
-else
-  echo "Skipping world map download..."
-fi
+REPO_ROOT="$(pwd)"
+export PYTHONPATH="$REPO_ROOT/tools/python${PYTHONPATH:+:$PYTHONPATH}"
+python3 -m street_pixels.map_identity configure-world \
+  --data-dir "$REPO_ROOT/data" \
+  --countries "$REPO_ROOT/data/countries.txt" \
+  --skip-map-download "${SKIP_MAP_DOWNLOAD:-}" \
+  --maps-base-url "${STREET_PIXELS_MAPS_BASE_URL:-}" \
+  --legacy-maps-base-url "${MAPS_BASE_URL:-}" \
+  --local-world "${STREET_PIXELS_LOCAL_WORLD:-}" \
+  --world-dir "${STREET_PIXELS_WORLD_DIR:-}"
 
 # This step must be before all the other strings steps, since they expect strings in data/
 if [ -z "$SKIP_GENERATE_JSON_STRINGS" ]; then
