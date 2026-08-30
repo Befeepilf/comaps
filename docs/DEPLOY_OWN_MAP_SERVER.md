@@ -72,9 +72,13 @@ sidecars (`.spa`) must sit beside matching `.mwm` under the CDN layout the
 app already requests (`meta/maps.json` + `maps/{MAP_SERIES}/{version}/`).
 **SPD-035** — no `/spa/` scheme.
 
-Operator generate (build host, **SPD-087** / **SPD-096**) is documented in
-[`tools/python/street_pixels/README.md`](../tools/python/street_pixels/README.md)
-and [`docs/implementation/notes/sp-102-publish-and-serve-origin.md`](implementation/notes/sp-102-publish-and-serve-origin.md).
+**Start here:** numbered operator walkthrough
+[`docs/STREET_PIXELS_MAP_PIPELINE.md`](STREET_PIXELS_MAP_PIPELINE.md)
+(clone → keys → build tools → Finland PBF → dry-run → generate → LAN →
+VPS). Flag notes:
+[`tools/python/street_pixels/README.md`](../tools/python/street_pixels/README.md).
+VPS rsync/nginx:
+[`docs/implementation/notes/sp-102-publish-and-serve-origin.md`](implementation/notes/sp-102-publish-and-serve-origin.md).
 **VPS generate is unsupported** (**SPD-088**): generate on the builder, **serve
 here**.
 

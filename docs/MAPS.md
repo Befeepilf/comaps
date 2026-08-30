@@ -1,6 +1,10 @@
 # Map generation process
 
-Please refer to maps_generator tool [instructions](../tools/python/maps_generator/README.md). 
+Please refer to maps_generator tool [instructions](../tools/python/maps_generator/README.md).
+
+Street Pixels production maps (MWM + `.spa` on our origin, not CoMaps CDNs)
+are a separate operator path:
+[STREET_PIXELS_MAP_PIPELINE.md](STREET_PIXELS_MAP_PIPELINE.md). 
 
 
 

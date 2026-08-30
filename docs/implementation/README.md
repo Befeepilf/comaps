@@ -90,7 +90,9 @@ V1 scope. Explorer Pro **purchasing** is not.
 
 Phase order 1–10 is unchanged from the originally proposed sequence. **Phase 11**
 was added 2026-08-29 as operator infrastructure (own MWM+`.spa` origin). It
-does not reorder Phases 1–10. Repository
+does not reorder Phases 1–10. Operator walkthrough:
+[`../STREET_PIXELS_MAP_PIPELINE.md`](../STREET_PIXELS_MAP_PIPELINE.md).
+Repository
 inspection did not reveal a dependency requiring phases to be moved or split.
 Two adjustments were made **inside** phase boundaries and are recorded in the
 relevant phase files:

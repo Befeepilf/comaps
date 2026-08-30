@@ -3,6 +3,7 @@
 **Status:** Recipe for maintainers. Secrets stay gitignored.
 **Decisions:** SPD-036, SPD-037, SPD-087, SPD-091, SPD-092, SPD-093.
 **Work item:** [SP-101-independent-map-identity.md](../work-items/SP-101-independent-map-identity.md).
+**Tutorial:** [STREET_PIXELS_MAP_PIPELINE.md](../../STREET_PIXELS_MAP_PIPELINE.md).
 
 Street Pixels stock builds must not use CoMaps map CDNs or the CoMaps
 `COUNTRIES_TXT_SIGNATURE_HEX`. Channel A still verifies Ed25519

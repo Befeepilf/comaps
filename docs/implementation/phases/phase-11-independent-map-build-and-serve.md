@@ -43,6 +43,9 @@ It does not implement in-pipeline mapgen `.spa` collectors (Option A).
 Verified 2026-08-29. Detail:
 [`notes/SP-098-map-pipeline-architecture.md`](../notes/SP-098-map-pipeline-architecture.md).
 
+Operator tutorial (numbered walkthrough, not a work-item note):
+[`../../STREET_PIXELS_MAP_PIPELINE.md`](../../STREET_PIXELS_MAP_PIPELINE.md).
+
 | Concern | Location | Observed state |
 | --- | --- | --- |
 | MWM generation | `tools/python/maps_generator/`, `generator_tool` | Country extracts supported. Planet `mem` mode is optional and out of this phase’s hardware. `PUBLISH_PATH` is `maps/{series}/{v}/` only — no `meta/maps.json`, no `.spa`. |
