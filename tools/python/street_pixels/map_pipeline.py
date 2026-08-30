@@ -315,7 +315,13 @@ def plan_extra_skips(
     if enable_wikipedia:
         pass
     else:
-        _missing("wikipedia/descriptions", "DownloadDescriptions")
+        warnings.append(
+            "wikipedia/descriptions: no local dump; skipping "
+            "(pass --enable-wikipedia to download from Wikipedia; "
+            "do not fetch CoMaps map hosts)"
+        )
+        if "DownloadDescriptions" not in skip:
+            skip.append("DownloadDescriptions")
         if "Descriptions" not in skip:
             skip.append("Descriptions")
         if "Popularity" not in skip:
@@ -742,7 +748,6 @@ def print_plan(plan):
         print("  dry-run: no subprocess, no network")
     for warning in plan["extra_warnings"]:
         print("warning: {}".format(warning))
-        logger.warning("%s", warning)
 
 
 def run_command(argv, cwd=None, env=None):
