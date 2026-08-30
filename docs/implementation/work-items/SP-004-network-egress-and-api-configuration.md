@@ -178,3 +178,4 @@ These belong in the SP-002 test target.
 | `/stats/upload` endpoint missing on backend | Phase 8 |
 | Friends feature vs V1 non-goal | OQ-6; not resolved in SP-004 |
 | `network_security_config.xml` still permits cleartext globally (`base-config cleartextTrafficPermitted="true"`) | Audit separately; SP-004 removed developer LAN domain only |
+| 2026-07-26 inventory lists CoMaps map CDNs as app egress | SP-101: stock path uses Street Pixels origin (`private.h` template); Geofabrik is build-host only. Note in [baseline.md §8](../baseline.md#8-network-egress-inventory-sp-004). Public URL is SP-102. Do not bake LAN Custom Maps (D12). |

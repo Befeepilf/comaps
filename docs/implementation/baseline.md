@@ -270,6 +270,15 @@ flavors (`google`, `web`, `fdroid`, `huawei`) share the SDK build type; the
 `Explore.ApiBaseUrl` is unset. `IsApiConfigured()` is false. Explore stats and
 friends callers return before `HttpClient`. No LAN or private-range default.
 
+**SP-101 note (2026-08-30):** Stock map hosts become the Street Pixels HTTPS
+origin in gitignored `private.h` (`DEFAULT_URLS_JSON` / `METASERVER_URL`;
+committed template `private.h.street-pixels.example` uses
+`https://maps.example.invalid/`). CoMaps map CDNs are not the Street Pixels
+default. Geofabrik and planet.openstreetmap.org remain **build-host** extract
+sources for mapgen (SP-100), not APK egress. The public origin URL is SP-102.
+See [SP-101](work-items/SP-101-independent-map-identity.md) and
+[sp-101-map-identity.md](notes/sp-101-map-identity.md).
+
 **Android `EXPLORE_API_BASE_URL` (SDK module, all flavors):**
 
 | Build type | Injected value |
