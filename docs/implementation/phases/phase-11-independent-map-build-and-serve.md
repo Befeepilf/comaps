@@ -1,7 +1,7 @@
 # Phase 11 — Independent map build and serve
 
 **Status:** In progress (SP-098 **Accepted** 2026-08-29 — **SPD-087–096**;
-coding SP-099+ may proceed; exit **not met**)
+SP-099 and SP-100 **In review**; coding SP-101+ may proceed; exit **not met**)
 **Depends on:** Phase 4 residual client/layout track (SP-042–051 tools;
 **SPD-027–039**). Does **not** depend on Phase 5–10 exit.
 **Blocks:** public S4 stock map URLs (**SPD-093** / **SPD-087**). Does
@@ -44,9 +44,10 @@ Verified 2026-08-29. Detail:
 | Concern | Location | Observed state |
 | --- | --- | --- |
 | MWM generation | `tools/python/maps_generator/`, `generator_tool` | Country extracts supported. Planet `mem` mode is optional and out of this phase’s hardware. `PUBLISH_PATH` is `maps/{series}/{v}/` only — no `meta/maps.json`, no `.spa`. |
+| Operator generate CLI | `python3 -m street_pixels map_pipeline` | SP-100 **In review**. Glue Option B: mapgen → pix_derive → rings → spa_emit → assemble (+ optional rsync). VPS generate unsupported. |
 | Dense `.spa` | `tools/spa_emit_tool` | Needs leaf `.pix` + rings JSONL + FI policy. |
 | MWM→`.pix` | `tools/pix_derive_tool` (`DeriveStreetPixelsUniverse`) | Packaging CLI (SP-099 **In review**). Same 15 m / `IsExplorable` as the client. Empty explored/ever-live. |
-| Rings extract | `street_pixels_spike/extract_admin_place_polygons.py` | Spike, FI-proven. |
+| Rings extract | `street_pixels_spike/extract_admin_place_polygons.py` | Spike, FI-proven; called by `map_pipeline` (ring semantics unchanged). |
 | Assemble / serve | `assemble_spa_publish_tree`, `serve_spa_publish_tree` | SP-050/051 In review. **Reuse.** |
 | Debug CDN fetch | `prepare_spa_debug_root` | Hits public CoMaps `meta/maps.json`. Not production origin. |
 | Stock map URLs | gitignored `private.h` | CoMaps `DEFAULT_URLS_JSON` / `METASERVER_URL`. `configure.sh` downloads World from `mapgen-fi-1.comaps.app`. |
@@ -97,7 +98,7 @@ Coding SP-099+ may proceed (SP-098 **Accepted**).
 | --- | --- | --- |
 | 1 | [SP-098](../work-items/SP-098-map-pipeline-architecture-decisions.md) | Architecture decisions (**Accepted** 2026-08-29; **SPD-087–096**) |
 | 2 | [SP-099](../work-items/SP-099-offline-mwm-pix-derive.md) | Offline leaf MWM → `.pix` derive matching the client (**In review**; not Accepted) |
-| 3 | [SP-100](../work-items/SP-100-operator-map-pipeline.md) | Operator CLI: extract → mapgen → pix → rings → spa → assemble |
+| 3 | [SP-100](../work-items/SP-100-operator-map-pipeline.md) | Operator CLI: extract → mapgen → pix → rings → spa → assemble (**In review**; not Accepted) |
 | 4 | [SP-101](../work-items/SP-101-independent-map-identity.md) | Own map keys, stock host list, `configure.sh` without CoMaps |
 | 5 | [SP-102](../work-items/SP-102-publish-and-serve-origin.md) | VPS static origin, rsync, TLS, Range |
 | 6 | [SP-103](../work-items/SP-103-finland-first-country-run.md) | Recorded Finland generate+publish with no CoMaps map fetch |

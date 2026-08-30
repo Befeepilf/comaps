@@ -1,7 +1,7 @@
 # SP-100 — Operator map pipeline CLI
 
 **Phase:** 11 — Independent map build and serve
-**Status:** Planned
+**Status:** In review
 **Depends on:** SP-098 lock (**SPD-088**, **SPD-089**, **SPD-090**, **SPD-094**, **SPD-095**, **SPD-096**); SP-099
 **Unblocks:** SP-103
 
@@ -69,11 +69,14 @@ failure. “Seamless” is this command, not a VPS daemon.
 
 | Path | Role |
 | --- | --- |
-| `tools/python/maps_generator/` | Stage driver |
+| `tools/python/maps_generator/` | Stage driver (invoked as `python3 -m maps_generator`) |
 | `tools/python/street_pixels/__main__.py` | Subcommands |
+| `tools/python/street_pixels/map_pipeline.py` | Operator CLI |
+| `tools/python/street_pixels/var/etc/map_pipeline.ini` | Default ini (`NODE_STORAGE: map`, `THREADS_COUNT: 4`) |
 | `tools/python/post_generation/assemble_spa_publish_tree.py` | Assemble |
-| `tools/python/street_pixels_spike/extract_admin_place_polygons.py` | Rings |
+| `tools/python/street_pixels_spike/extract_admin_place_polygons.py` | Rings (called unchanged) |
 | `tools/spa_emit_tool/` | Dense emit |
+| `tools/pix_derive_tool/` | MWM → `.pix` |
 
 ## Acceptance criteria
 
@@ -102,13 +105,21 @@ failure. “Seamless” is this command, not a VPS daemon.
 
 | Field | Value |
 | --- | --- |
-| Branch | — |
-| Implemented by | — |
+| Branch | `cursor/sp-100-operator-map-pipeline-b3d3` |
+| Commits | `888f2c80e` `[tools] Add street_pixels map_pipeline operator CLI`; `edde5d4b2` `[tools] Clarify map_pipeline wikipedia skip warning`; this `[docs]` commit |
+| CLI | `python3 -m street_pixels map_pipeline` — stages mapgen → pix_derive → rings → spa_emit → assemble (optional rsync last) |
+| Default grain | `--countries World,Finland_*`; `WorldCoasts` omitted; Coastline **not** skipped unless `--skip-coast` and World is absent from the **expanded** set |
+| Origin | Default ini has no CoMaps map hosts; `--cdn-base` / CoMaps hosts refused unless `--allow-comaps-origin` (default off) |
+| Tests | `cd tools/python && PYTHONPATH=. python3 -m unittest street_pixels.tests.test_map_pipeline` — **17/17** OK. Existing `test_prepare_spa_debug_root` + `test_serve_spa_publish_tree` — **24/24** OK. `--help` documents stages. Dry-run with `file:///tmp/finland.osm.pbf` does not invoke urllib / `maps_generator`. Full FI mapgen **not** run (SP-103). |
+| Implemented by | Cloud agent (`befeepilf@protonmail.com`) |
 | Accepted by | — |
+
+Phase 11 exit is **not** met.
 
 ## Discovered follow-up
 
 | Finding | Disposition |
 | --- | --- |
-| Rsync / nginx | SP-102 |
-| Real FI run | SP-103 |
+| Rsync / nginx / TLS | SP-102 (`--rsync-dest` is thin glue only) |
+| Real FI extract run | SP-103 |
+| `maps_generator/__main__.py` skip-coast iterates `options.countries` as characters | Left unfixed; operator CLI preflights the **expanded** country set |
