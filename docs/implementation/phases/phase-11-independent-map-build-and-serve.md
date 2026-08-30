@@ -1,7 +1,7 @@
 # Phase 11 — Independent map build and serve
 
 **Status:** In progress (SP-098 **Accepted** 2026-08-29 — **SPD-087–096**;
-SP-099, SP-100, and SP-101 **In review**; coding SP-102+ may proceed; exit **not met**)
+SP-099, SP-100, SP-101, and SP-102 **In review**; coding SP-103+ may proceed; exit **not met**)
 **Depends on:** Phase 4 residual client/layout track (SP-042–051 tools;
 **SPD-027–039**). Does **not** depend on Phase 5–10 exit.
 **Blocks:** public S4 stock map URLs (**SPD-093** / **SPD-087**). Does
@@ -48,15 +48,15 @@ Verified 2026-08-29. Detail:
 | Dense `.spa` | `tools/spa_emit_tool` | Needs leaf `.pix` + rings JSONL + FI policy. |
 | MWM→`.pix` | `tools/pix_derive_tool` (`DeriveStreetPixelsUniverse`) | Packaging CLI (SP-099 **In review**). Same 15 m / `IsExplorable` as the client. Empty explored/ever-live. |
 | Rings extract | `street_pixels_spike/extract_admin_place_polygons.py` | Spike, FI-proven; called by `map_pipeline` (ring semantics unchanged). |
-| Assemble / serve | `assemble_spa_publish_tree`, `serve_spa_publish_tree` | SP-050/051 In review. **Reuse.** |
+| Assemble / serve | `assemble_spa_publish_tree`, `serve_spa_publish_tree` | SP-050/051 In review. **Reuse.** LAN: SP-051. Public origin: nginx/Caddy in front of the same root (SP-102 **In review**). |
 | Debug CDN fetch | `prepare_spa_debug_root` | Hits public CoMaps `meta/maps.json`. Not production origin. |
-| Stock map URLs | untracked gitignored `private.h` + `private.h.street-pixels.example` | Template placeholder `https://maps.example.invalid/`; `METASERVER_URL` empty; `MAP_SERIES` `2026.06.28`. Clones copy the example via `ensure-private-h` / CMake when `private.h` is missing. `configure.sh` calls `configure-world` and refuses CoMaps map hosts. Public origin is SP-102. |
+| Stock map URLs | untracked gitignored `private.h` + `private.h.street-pixels.example` | Template placeholder `https://maps.example.invalid/`; `METASERVER_URL` empty; `MAP_SERIES` `2026.06.28`. Clones copy the example via `ensure-private-h` / CMake when `private.h` is missing. `configure.sh` calls `configure-world` and refuses CoMaps map hosts. Public origin recipe: SP-102 (`origin.nginx.conf` / `origin.Caddyfile`; live hostname is ops). |
 | Policy | `data/street_pixels/country_policies.json` | FI only. |
 | Layout / ads / sig | **SPD-035–039**, **SPD-028**, **SPD-036** | Locked. Phase 11 must not invent a second protocol. |
 
 **Difference from the technical audit (2026-07-20):** client `.spa` download
-and LAN assemble/serve exist. Production origin does not. Option A still
-unwired.
+and LAN assemble/serve exist. VPS origin recipe exists (SP-102 **In review**);
+live Finland origin is SP-103. Option A still unwired.
 
 ## Intended outcome
 
@@ -92,7 +92,7 @@ to SP-053 / Phase 10 may consume this origin instead of CoMaps.
 
 ## Work-item breakdown
 
-Coding SP-099+ may proceed (SP-098 **Accepted**).
+Coding SP-103+ may proceed (SP-098 **Accepted**; SP-099–102 **In review**).
 
 | Order | ID | Title |
 | --- | --- | --- |
@@ -100,7 +100,7 @@ Coding SP-099+ may proceed (SP-098 **Accepted**).
 | 2 | [SP-099](../work-items/SP-099-offline-mwm-pix-derive.md) | Offline leaf MWM → `.pix` derive matching the client (**In review**; not Accepted) |
 | 3 | [SP-100](../work-items/SP-100-operator-map-pipeline.md) | Operator CLI: extract → mapgen → pix → rings → spa → assemble (**In review**; not Accepted) |
 | 4 | [SP-101](../work-items/SP-101-independent-map-identity.md) | Own map keys, stock host list, `configure.sh` without CoMaps (**In review**; not Accepted) |
-| 5 | [SP-102](../work-items/SP-102-publish-and-serve-origin.md) | VPS static origin, rsync, TLS, Range |
+| 5 | [SP-102](../work-items/SP-102-publish-and-serve-origin.md) | VPS static origin, rsync, TLS, Range (**In review**; not Accepted) |
 | 6 | [SP-103](../work-items/SP-103-finland-first-country-run.md) | Recorded Finland generate+publish with no CoMaps map fetch |
 | 7 | [SP-104](../work-items/SP-104-phase11-end-to-end-validation.md) | Phase 11 exit validation |
 
@@ -140,7 +140,8 @@ See the investigation note §3. HTTP contract is already **SPD-035**:
   an explicit override that tests assert is off by default.
 - SP-101: no production test can require the gitignored `private.h`; document
   a template. Signature round-trip with a **test** key, not production keys.
-- SP-102: reuse SP-051 Range / health tests against a local root.
+- SP-102: reuse SP-051 Range / health tests against a local root; snippet
+  tests for committed nginx/Caddy (`gzip off`, no debug routes).
 - SP-104: evidence log of a real Finland run (not CI).
 
 ## Manual validation strategy

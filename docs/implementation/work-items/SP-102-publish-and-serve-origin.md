@@ -1,7 +1,7 @@
 # SP-102 — Publish and serve origin
 
 **Phase:** 11 — Independent map build and serve
-**Status:** Planned
+**Status:** In review
 **Depends on:** SP-098 lock (**SPD-088**, **SPD-096**); SP-050/051 tools
 **Unblocks:** SP-103
 
@@ -60,7 +60,11 @@ SP-051 is the LAN server. A public origin needs TLS, a stable hostname for
 | --- | --- |
 | `tools/python/street_pixels/serve_spa_publish_tree.py` | LAN reference |
 | `tools/python/post_generation/assemble_spa_publish_tree.py` | Tree to upload |
-| `docs/DEPLOY_OWN_MAP_SERVER.md` | Existing serve docs |
+| `tools/python/street_pixels/map_pipeline.py` | `--rsync-dest` (`rsync -a --delete-delay`) |
+| `tools/python/street_pixels/var/etc/origin.nginx.conf` | nginx example (placeholder host) |
+| `tools/python/street_pixels/var/etc/origin.Caddyfile` | Caddy example (placeholder host) |
+| `docs/DEPLOY_OWN_MAP_SERVER.md` | Generate on builder; serve here |
+| `docs/implementation/notes/sp-102-publish-and-serve-origin.md` | VPS recipe |
 
 ## Acceptance criteria
 
@@ -86,12 +90,22 @@ SP-051 is the LAN server. A public origin needs TLS, a stable hostname for
 
 | Field | Value |
 | --- | --- |
-| Branch | — |
-| Implemented by | — |
+| Branch | `cursor/sp-102-publish-serve-origin-b3d3` |
+| Commits | `c1046ee3e` `[tools] Align map_pipeline rsync with delete-delay`; `a75a7b0d2` `[tools] Add nginx and Caddy origin example configs`; `f060e4513` `[docs] Document VPS publish and static origin serve`; this `[docs]` commit |
+| Recipe | [notes/sp-102-publish-and-serve-origin.md](../notes/sp-102-publish-and-serve-origin.md) — document root parent of `maps/` and `meta/`; TLS Let’s Encrypt / Caddy auto-HTTPS; `gzip off`; Range on; no `--enable-debug-routes`; health `GET /meta/maps.json` 200 + `status: active`; keep N=2 old version dirs **manual**; 8 GiB serves, mapgen on VPS unsupported |
+| rsync | `rsync -a --delete-delay {out}/ user@vps:/var/www/street-pixels/` — same argv as `map_pipeline --rsync-dest`. Trailing slash on source. Hostname in git is `maps.example.invalid` / `user@vps` only |
+| nginx / Caddy | `tools/python/street_pixels/var/etc/origin.nginx.conf`; `tools/python/street_pixels/var/etc/origin.Caddyfile` |
+| LAN | SP-051 `serve_spa_publish_tree` unchanged |
+| Tests | `cd tools/python && PYTHONPATH=. python3 -m unittest street_pixels.tests.test_serve_spa_publish_tree street_pixels.tests.test_map_pipeline street_pixels.tests.test_origin_configs` — **60/60** OK (`test_serve_spa_publish_tree` 18; `test_map_pipeline` 39; `test_origin_configs` 3). No live VPS curl. Full FI mapgen **not** run (SP-103). |
+| Implemented by | Cursor Agent (`cursoragent@cursor.com`) |
+| Reviewed by | — |
 | Accepted by | — |
+
+Phase 11 exit is **not** met.
 
 ## Discovered follow-up
 
 | Finding | Disposition |
 | --- | --- |
 | Finland publish | SP-103 |
+| `curl` maps.json and a Helsinki object from the VPS | SP-103 (this environment has no VPS) |
