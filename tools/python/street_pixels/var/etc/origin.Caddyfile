@@ -1,0 +1,15 @@
+# Street Pixels public origin (SP-102). Placeholder only.
+# Site address is the SP-101 template (maps.example.invalid). The live
+# hostname is ops — do not commit it.
+# Document root = parent of maps/ and meta/ (SP-050 --out).
+# Caddy auto-HTTPS (Let's Encrypt). file_server Range is on.
+# Do not add `encode gzip` (SHA of .mwm / .spa / .sig / .txt must be raw).
+# Do not enable serve_spa_publish_tree --enable-debug-routes here.
+
+maps.example.invalid {
+	root * /var/www/street-pixels
+	file_server
+
+	@inventory path /inventory.json
+	respond @inventory 404
+}
