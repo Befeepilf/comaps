@@ -5,4 +5,4 @@
 • Tilføjet værktøjsudlejningssteder og værktøjsbiblioteker, vejskilte tilføjet i Rumænien og Marokko og rettet for Augsburg og A-veje i Cypern
 • Erstattet knapper Forhåndsvisning og Gem med ikoner på ruteplanlægningsskærmen
 
-Flere detaljer på comaps.app/latest
+Flere detaljer på streifzug.app/latest

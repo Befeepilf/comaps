@@ -29,7 +29,7 @@ Sartu komunitatean eta lagundu mapa aplikaziorik onena egiten
 • Hobetu mapako datuak oinarrizko editore integratua erabiliz
 • Android Auto laguntza
 
-Mesedez, jakinarazi aplikazioaren gorabeherak, ideiak proposatu eta sartu gure komunitatean <b> <i> comaps.app </ i> </ b> webgunean.
+Mesedez, jakinarazi aplikazioaren gorabeherak, ideiak proposatu eta sartu gure komunitatean <b> <i> streifzug.app </ i> </ b> webgunean.
 
 <b> Askatasuna hemen </ b> da
 Ezagutu zure bidaia, nabigatu munduan pribatutasunarekin eta komunitatearen abangoardian!

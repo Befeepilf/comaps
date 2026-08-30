@@ -1,6 +1,6 @@
 # maps_generator
 
-`maps_generator` is the Python CLI for generating `.mwm` maps for the CoMaps. This tool functions as the driver for the `generator_tool` C++ executable.
+`maps_generator` is the Python CLI for generating `.mwm` maps for the Streifzug. This tool functions as the driver for the `generator_tool` C++ executable.
 
 **Use the `generator_tool` and application from the same release. The application does not support
 maps built by a generator_tool newer than the app.**
@@ -27,7 +27,7 @@ You must have Python version >= 3.7 and complete the following steps:
 git checkout 2023.06.04-13-android
 ```
 
-The app version can be found in the "About" section of CoMaps.
+The app version can be found in the "About" section of Streifzug.
 
 2. Build the `generator_tool` binary  ( From the root of the repo):
 

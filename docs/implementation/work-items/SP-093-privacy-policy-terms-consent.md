@@ -9,7 +9,7 @@
 **Notes:** Brand residual. Product-owner lock 2026-08-29 accepted the
   *intended* H4 position (product-owned Street Pixels policy) but
   **landing the actual policy/terms/URLs is residual**. Phase 10
-  slice close-out 2026-08-29 records current CoMaps URLs and consent
+  slice close-out 2026-08-29 records current Streifzug URLs and consent
   copy; it does **not** land H4 text. Do not implement landing in
   SP-089–097.
 
@@ -24,15 +24,15 @@ deletion, nickname uniqueness (SPD-059), and that friends / live
 location / nearby discovery are absent.
 
 **This work is residual.** Do not produce, host, or retarget policy
-or terms in this Phase 10 coding slice. `https://comaps.app/privacy/`
+or terms in this Phase 10 coding slice. `https://streifzug.app/privacy/`
 and `terms/` may stay for now (**SPD-080**).
 
 ---
 
 ## Motivation
 
-Help currently opens `https://comaps.app/privacy/` and `terms/`.
-Those pages describe CoMaps, not Street Pixels competition aggregates
+Help currently opens `https://streifzug.app/privacy/` and `terms/`.
+Those pages describe Streifzug, not Street Pixels competition aggregates
 or session GPS. Spec §34 requires the policy to describe local vs
 uploaded data, consent text to match behaviour, and terms to cover
 public nicknames and rankings.
@@ -103,8 +103,8 @@ work item lands SPD-080 text.
 When that later item runs:
 
 1. Checklist: every consent bullet is true of the binary + backend.
-2. In-app URLs resolve to H4 text, not unmodified CoMaps pages
-   (unless a later SPD explicitly keeps CoMaps pages after they are
+2. In-app URLs resolve to H4 text, not unmodified Streifzug pages
+   (unless a later SPD explicitly keeps Streifzug pages after they are
    updated).
 3. Policy version bump recorded if meaning changed.
 4. Agent does not mark Accepted.
@@ -120,14 +120,14 @@ When that later item runs:
 
 ## Failure and rollback considerations
 
-- Do not ship a rewritten CoMaps privacy URL as a stand-in while
-  this item is residual; leaving `comaps.app` is the recorded
+- Do not ship a rewritten Streifzug privacy URL as a stand-in while
+  this item is residual; leaving `streifzug.app` is the recorded
   residual posture (**SPD-080**).
 
 ## Completion evidence
 
 Phase 10 **residual slice close-out** only. No binary change. No hosted
-policy invented. Help URLs and CoMaps product name unchanged (**SPD-080**).
+policy invented. Help URLs and Streifzug product name unchanged (**SPD-080**).
 Landing H4 text/URLs remains open. **This item is not Accepted.**
 
 Independent review 2026-08-29 checked `HelpFragment`,
@@ -139,7 +139,7 @@ Help row ids, nearby-discovery evidence, empty Accepted fields).
 | Field | Value |
 | --- | --- |
 | Branch | `cursor/sp-093-privacy-residual-6383` |
-| Policy / terms URLs | Residual — English Help still opens `https://comaps.app/privacy/` and `terms/`. Snapshot below. |
+| Policy / terms URLs | Residual — English Help still opens `https://streifzug.app/privacy/` and `terms/`. Snapshot below. |
 | Consent checklist | Residual for landing. Current `explore_consent_title` / `explore_consent_message` snapshot below; copy not rewritten (does not over-claim). |
 | Policy version | `"1"` (`IdentityStore::kCompetitionPrivacyPolicyVersion`). Not bumped: consent meaning unchanged. |
 | Binary / strings | Unchanged in this slice (`git diff street-pixels...HEAD` is docs only) |
@@ -147,30 +147,30 @@ Help row ids, nearby-discovery evidence, empty Accepted fields).
 | Accepted by | |
 | Accepted date | |
 
-### Surfaces that still open CoMaps pages
+### Surfaces that still open Streifzug pages
 
 Android Help is the public-V1 URL surface. Construction is
 `R.string.app_site_url` + `"privacy/"` or `"terms/"` in
 `HelpFragment` (`privacy_policy`, `term_of_use_link`). English
-`app_site_url` (`values/` and `values-en/`) is `https://comaps.app/`,
-so those locales resolve to `https://comaps.app/privacy/` and
-`https://comaps.app/terms/`. Most other `values-*/` `app_site_url`
-strings stay on the `comaps.app` host with an optional language
-prefix (for example `https://comaps.app/de/` + `privacy/` →
-`https://comaps.app/de/privacy/`). Recorded exceptions, not
+`app_site_url` (`values/` and `values-en/`) is `https://streifzug.app/`,
+so those locales resolve to `https://streifzug.app/privacy/` and
+`https://streifzug.app/terms/`. Most other `values-*/` `app_site_url`
+strings stay on the `streifzug.app` host with an optional language
+prefix (for example `https://streifzug.app/de/` + `privacy/` →
+`https://streifzug.app/de/privacy/`). Recorded exceptions, not
 retargeted here:
 
-- `values-fr-rCA`: `https://www.comaps.app/fr/`
-- `values-ar`: `https://comaps.app/ar` (no trailing slash)
-- `values-eo`: `https://comaps.app/eo` (no trailing slash)
-- `values-fa`: `https://comaps.app` (no trailing slash)
+- `values-fr-rCA`: `https://www.streifzug.app/fr/`
+- `values-ar`: `https://streifzug.app/ar` (no trailing slash)
+- `values-eo`: `https://streifzug.app/eo` (no trailing slash)
+- `values-fa`: `https://streifzug.app` (no trailing slash)
 
-Those pages describe CoMaps, not Street Pixels session GPS, local
+Those pages describe Streifzug, not Street Pixels session GPS, local
 `.pix`, or competition aggregates.
 
-Related Help rows that also stay on CoMaps (not retargeted): site
+Related Help rows that also stay on Streifzug (not retargeted): site
 home (`R.id.web` → `app_site_url`), news (`R.id.news` →
-`https://www.comaps.app/news/`), Support us (`R.id.support_us` →
+`https://www.streifzug.app/news/`), Support us (`R.id.support_us` →
 `app_site_url` + `community/`).
 
 Settings Privacy information and Terms / competition rules (SP-090)
@@ -180,11 +180,11 @@ are **in-app dialogs**. They reuse `location_privacy_info` +
 
 iOS is not Android V1. `iphone/Maps/UI/Help/About/AboutView.swift`
 still concatenates `translated_om_site_url` + `privacy/` / `terms/`
-(often `https://www.comaps.app/…`). Out of this slice.
+(often `https://www.streifzug.app/…`). Out of this slice.
 
 Play Data safety still needs a policy URL before Publish
 (`docs/implementation/play-data-safety.md`). That URL is not invented
-here. Listing brand copy remains CoMaps (**SPD-079** / **SPD-084**).
+here. Listing brand copy remains Streifzug (**SPD-079** / **SPD-084**).
 
 ### `explore_consent_message` current state (not rewritten)
 
@@ -259,8 +259,8 @@ when landed text meaning changes.
 | --- | --- |
 | Landing Street Pixels policy/terms/URLs (H4 / SPD-080) | Residual (this item); not SP-089–097 coding. Later WI produces/hosts text, retargets Help, snapshots canonical copy under `docs/implementation/` if hosted outside git. |
 | Play Data safety form still needs a privacy-policy URL | Residual with landing. Do not invent a URL. |
-| Play listing still CoMaps (“does not track / does not collect personal information”) | Residual **SPD-079** / **SPD-084**. Not this slice. |
+| Play listing still Streifzug (“does not track / does not collect personal information”) | Residual **SPD-079** / **SPD-084**. Not this slice. |
 | iOS About privacy/terms still `translated_om_site_url` + `privacy/` / `terms/` | Out of Android V1; retarget with iOS work. |
 | Consent under-claims weekly-city aggregates, delay/jitter, uniqueness (SPD-059), deletion vs local `.pix` | Optional copy pass in the landing WI; must stay inside the upload allow-list. Not rewritten here. |
 | Explorer checkout has no competition schema | Later WI checks the competition backend, not this friends-only tree. |
-| A few `app_site_url` locales omit a trailing slash (`values-ar`, `values-eo`, `values-fa`); `values-fr-rCA` uses `www.comaps.app` | Pre-existing CoMaps concatenation. Do not rewrite Help URLs in this residual slice. Landing WI should emit well-formed Street Pixels URLs. |
+| A few `app_site_url` locales omit a trailing slash (`values-ar`, `values-eo`, `values-fa`); `values-fr-rCA` uses `www.streifzug.app` | Pre-existing Streifzug concatenation. Do not rewrite Help URLs in this residual slice. Landing WI should emit well-formed Street Pixels URLs. |

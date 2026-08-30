@@ -1,4 +1,4 @@
-Drape is the custom rendering engine for CoMaps.
+Drape is the custom rendering engine for Streifzug.
 
 The main difference from most rendering engines is that it
 supports dynamically hiding items based on priorities and space.

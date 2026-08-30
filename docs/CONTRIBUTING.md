@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for your interest in contributing to CoMaps!
+Thank you for your interest in contributing to Streifzug!
 
 ## How Can I Contribute?
 
@@ -15,14 +15,14 @@ There are things to do for everyone:
 
 If you'd like to help in any other way or if there are any related questions - please [contact us](https://codeberg.org/comaps#keep-connected).
 
-If none of those ways of contributing seem to be a good fit, and you'd like to help out in another way, you could also [donate](https://www.comaps.app/donate/)
+If none of those ways of contributing seem to be a good fit, and you'd like to help out in another way, you could also [donate](https://www.streifzug.app/donate/)
 
 ### General guidelines
 
-CoMaps is made by a growing group of volunteers, and to ensure that we all can work well together, we have a couple of guidelines we ask you to follow when contributing: 
+Streifzug is made by a growing group of volunteers, and to ensure that we all can work well together, we have a couple of guidelines we ask you to follow when contributing: 
 
 * [Code of Conduct](https://codeberg.org/comaps/Governance/src/branch/main/CODE_OF_CONDUCT.md), for how we want to interact with each other
-* [AI usage guidelines](https://codeberg.org/comaps/Governance/src/branch/main/AI_USAGE.md), for when/how the use of AI is appropriate when contributing to CoMaps
+* [AI usage guidelines](https://codeberg.org/comaps/Governance/src/branch/main/AI_USAGE.md), for when/how the use of AI is appropriate when contributing to Streifzug
 
 ### Bug Reports and Feature Requests
 
@@ -32,21 +32,21 @@ Please check if there are no similar issues already submitted by someone else.
 When reporting a bug please provide as much information as possible: OS and application versions,
 list of actions leading to a bug, a log file produced by the app.
 
-When using CoMaps app on a device, use the built-in "Report a bug" option:
-on Android it creates a new e-mail with a log file attached. Enabling logs in CoMaps settings on Android
+When using Streifzug app on a device, use the built-in "Report a bug" option:
+on Android it creates a new e-mail with a log file attached. Enabling logs in Streifzug settings on Android
 before sending the bug report also helps us a lot with debugging.
 
 ### Translations
 
-CoMaps is available in 35 languages already, but some of them are incomplete and existing translations need regular updates as the app evolves.
+Streifzug is available in 35 languages already, but some of them are incomplete and existing translations need regular updates as the app evolves.
 See [translations instructions](TRANSLATIONS.md) for details.
 
 ### UI/UX, map styling and icons
 
-CoMaps has a strong focus on easy to use UI and smooth user experience. Feel free to join UI/UX discussions in relevant issues. Mockups are very welcome!
+Streifzug has a strong focus on easy to use UI and smooth user experience. Feel free to join UI/UX discussions in relevant issues. Mockups are very welcome!
 
-If you're into graphic design then CoMaps needs good, clear and free-to-use icons for hundreds of map features / POIs.
-Check CoMaps' [design principles](https://codeberg.org/comaps/comaps/wiki/Design-Principles) and [color scheme](https://codeberg.org/comaps/Governance/src/branch/main/assets/comaps-color-scheme.png). Post your icons onto relevant issues or take a next step and [integrate them](STYLES.md) yourself.
+If you're into graphic design then Streifzug needs good, clear and free-to-use icons for hundreds of map features / POIs.
+Check Streifzug' [design principles](https://codeberg.org/comaps/comaps/wiki/Design-Principles) and [color scheme](https://codeberg.org/comaps/Governance/src/branch/main/assets/comaps-color-scheme.png). Post your icons onto relevant issues or take a next step and [integrate them](STYLES.md) yourself.
 
 Check the [map styling instructions](STYLES.md) and work on adding new map features and other open map styles issues.
 
@@ -83,11 +83,11 @@ You can also contribute in [other ways](https://codeberg.org/comaps/Governance/s
 
 ## Submitting your changes
 
-All contributions to CoMaps repositories should be submitted via
+All contributions to Streifzug repositories should be submitted via
 [pull requests](https://forgejo.org/docs/latest/user/pull-requests-and-git-flow/)
 and signed-off with the [Developers Certificate of Origin](#legal-requirements).
 
-Each pull request is reviewed by CoMaps maintainers to ensure its quality.
+Each pull request is reviewed by Streifzug maintainers to ensure its quality.
 Sometimes the review process even for smallest commits can be very thorough.
 
 ### Legal Requirements
@@ -117,13 +117,13 @@ You can sign-off using your pseudonym or real name, and using
 
 ## Team Messaging
 
-If you have contributed and interested in contributing more through collaboration with the project team, you are welcome to join Zulip. Zulip is for contributors who regularly collaborate on work with the team, and it is different from Telegram, Matrix or Mastodon which are for broader discussion. If you are interested in further contributing, use this link to join the CoMaps org on Zulip chat:
+If you have contributed and interested in contributing more through collaboration with the project team, you are welcome to join Zulip. Zulip is for contributors who regularly collaborate on work with the team, and it is different from Telegram, Matrix or Mastodon which are for broader discussion. If you are interested in further contributing, use this link to join the Streifzug org on Zulip chat:
 
 https://comaps.zulipchat.com/join/e5e3c4zurmfxykrtbiiq6qrw/
 
 When you join Zulip, in Watercooler > Signups do an intro with the team:
 - Short background, professional and personal
-- Why are you contributing to CoMaps
+- Why are you contributing to Streifzug
 - What you think about projects' principles and direction https://codeberg.org/comaps/Governance#core-principles
 - Contribution so far (link Issue, PR, etc)
 - What you would like to contribute

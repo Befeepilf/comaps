@@ -2,7 +2,7 @@
 
 ### Preparing
 
-You need a Linux or a MacOS machine to build a desktop version of CoMaps. [Windows](#windows) users can use the [WSL](https://learn.microsoft.com/en-us/windows/wsl/) (Windows Subsystem for Linux) and follow ["Linux or Mac"](#linux-or-mac) steps described below.
+You need a Linux or a MacOS machine to build a desktop version of Streifzug. [Windows](#windows) users can use the [WSL](https://learn.microsoft.com/en-us/windows/wsl/) (Windows Subsystem for Linux) and follow ["Linux or Mac"](#linux-or-mac) steps described below.
 
 <details>
   <summary><span style="font-size: 1.5em; font-weight: bold;" id="linux-or-mac">Linux or MacOS</span></summary>
@@ -145,7 +145,7 @@ brew install cmake ninja qt@6
   <summary><span style="font-size: 1.5em; font-weight: bold;">Windows</span></summary>
 
 
-We haven't compiled CoMaps on Windows *natively* in a long time, somes adaptations is required to support Windows.
+We haven't compiled Streifzug on Windows *natively* in a long time, somes adaptations is required to support Windows.
 You'll need to have python3, cmake, ninja, and QT6 in the PATH, and Visual Studio 2022 or Visual Studio 2022 Build Tools installed. Use [Visual Studio Developer Command Prompt](https://learn.microsoft.com/en-us/visualstudio/ide/reference/command-prompt-powershell?view=vs-2022) or generate Visual Studio project files with CMake to build the project.
 
 However, it is possible to use the WSL (Windows Subsystem for Linux) to run GUI applications.
@@ -222,13 +222,13 @@ tools/unix/build_omim.sh -d help
 
 The generated binaries appear in `../omim-build-<buildtype>`.
 
-A desktop app binary is `CoMaps`. To run e.g. a release version:
+A desktop app binary is `Streifzug`. To run e.g. a release version:
 
 <details>
   <summary><span style="font-size: 1em; font-weight: bold;">Linux</span></summary>
 
 ```bash
-../omim-build-release/CoMaps
+../omim-build-release/Streifzug
 ```
 </details>
 
@@ -241,11 +241,11 @@ the application will ask for it by opening a file dialog on startup.
 
 
 ```bash
-../omim-build-release/CoMaps.Designer optional/path/to/style.mapcss
+../omim-build-release/Streifzug.Designer optional/path/to/style.mapcss
 ```
 
 ```bash
-../omim-build-release/CoMaps.app/Contents/MacOS/CoMaps
+../omim-build-release/Streifzug.app/Contents/MacOS/Streifzug
 ```
 </details>
 
@@ -340,7 +340,7 @@ brew install llvm
 
 ### Debug commands
 
-CoMaps has some "hidden" debug commands that you can trigger by entering them into the search box.
+Streifzug has some "hidden" debug commands that you can trigger by entering them into the search box.
 
 For example you can switch theme which is very useful for checking [styles](STYLES.md) changes.
 
@@ -348,19 +348,19 @@ There are also other commands for turning on/off isolines, anti-aliasing, etc. C
 
 ### Debugging in an IDE
 
-To harness the power of an IDE for debugging, you can set up [Qt Creator](QT_CREATOR.md) to work with CoMaps code. This gives you options such as setting breakpoints, examining variables while the code is running, examining call stacks and using debugging tools such as Valgrind.
+To harness the power of an IDE for debugging, you can set up [Qt Creator](QT_CREATOR.md) to work with Streifzug code. This gives you options such as setting breakpoints, examining variables while the code is running, examining call stacks and using debugging tools such as Valgrind.
 
 ### More options
 
 To make the desktop app display maps in a different language add a `-lang` option, e.g. for the Russian language:
 
 ```bash
-../omim-build-release/CoMaps -lang ru
+../omim-build-release/Streifzug -lang ru
 ```
 
-By default `CoMaps` expects a repository's `data` folder to be present in the current working directory, add a `-data_path` option to override it.
+By default `Streifzug` expects a repository's `data` folder to be present in the current working directory, add a `-data_path` option to override it.
 
-Check `CoMaps -help` for a list of all run-time options.
+Check `Streifzug -help` for a list of all run-time options.
 
 When running the desktop app with lots of maps, increase the open files limit. In MacOS the default value is only 256.
 Use `ulimit -n 2000`, put it into `~/.bash_profile` to apply it to all new sessions.

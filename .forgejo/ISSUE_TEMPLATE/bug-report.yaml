@@ -55,7 +55,7 @@ body:
       description: Provide information about the system where the issue occurred.
       placeholder: |
         - OS: e.g. Ubuntu 22, iOS 12
-        - CoMaps version: e.g. 1.2.3
+        - Streifzug version: e.g. 1.2.3
         - Device model: e.g. iPhone 6, Samsung S22
     validations:
       required: true

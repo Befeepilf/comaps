@@ -12,7 +12,7 @@
 
 namespace style
 {
-// Fixes icons which are not supported by CoMaps.
+// Fixes icons which are not supported by Streifzug.
 std::string GetSupportedStyle(std::string const & style);
 }  // namespace style
 

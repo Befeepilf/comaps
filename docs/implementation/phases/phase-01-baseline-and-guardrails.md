@@ -52,14 +52,14 @@ Verified 2026-07-25 against the working tree.
 | CI (Forgejo) | `.forgejo/workflows/linux-check.yaml` | Runs `run_tests.sh`, but `CTEST_EXCLUDE_REGEX` excludes `map_tests`, `routing_tests`, `indexer_tests`, and most other suites |
 | Telemetry | `android/app/src/main/AndroidManifest.xml` | `io.sentry.send-default-pii=true`, `attach-screenshot=true`, `attach-view-hierarchy=true`, `traces.sample-rate=1.0`, profiling session sample rate 1.0, `logs.enabled=true` |
 | API base URL | `libs/map/backend_config.cpp` | `kDefaultApiBaseUrl = "http://192.168.178.89:8999/api"`, overridable via the `Explore.ApiBaseUrl` setting |
-| API base URL (Android) | `android/sdk/build.gradle`, `OrganicMaps.java` | `EXPLORE_API_BASE_URL` BuildConfig field; debug points at the LAN address, release and beta at `https://api.comaps.app/api` |
+| API base URL (Android) | `android/sdk/build.gradle`, `OrganicMaps.java` | `EXPLORE_API_BASE_URL` BuildConfig field; debug points at the LAN address, release and beta at `https://api.streifzug.app/api` |
 | Existing flag mechanisms | `android/app/build.gradle`, `android/sdk/build.gradle`, `gradle.properties` | Product flavors `google`/`web`/`fdroid`/`huawei`; build types `debug`/`release`/`beta`; BuildConfig fields; `-P` gradle properties |
 | Entitlement | — | Not found anywhere in the tree |
 
 **Difference from the technical audit:** the audit describes the LAN URL as the
 effective production default. On Android that is no longer strictly true — the
 SDK Gradle build injects `EXPLORE_API_BASE_URL` per build type, so release and
-beta builds point at `https://api.comaps.app/api`. The compiled-in C++ default
+beta builds point at `https://api.streifzug.app/api`. The compiled-in C++ default
 is still the LAN address, so any non-Android consumer, and any path that reads
 the default before the Android override is applied, still resolves to a
 developer machine.
@@ -194,6 +194,6 @@ permanently compromised.
 - Whether CI runners are available to the maintainer at all, and whether the
   Forgejo or the GitHub workflow set is the live one. The `CTEST_EXCLUDE_REGEX`
   exclusions suggest the C++ suites are currently red.
-- Which Sentry settings are required by the upstream CoMaps project versus
+- Which Sentry settings are required by the upstream Streifzug project versus
   which were added for this fork.
 - Whether release builds already suppress verbose GPS logging.

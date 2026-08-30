@@ -32,7 +32,7 @@ Do **not** copy Pixel 3a SP-014 results as Phase 10 **D2** close.
 | --- | --- |
 | This slice | Mapping + H10 automated gate. No handset. No brand rewrite. No ABL. No analytics sink. |
 | Device | Residual SP-094 / SP-095. Empty FPS / battery / OEM cells. |
-| Brand | Residual SP-093 / **SPD-080** / **SPD-084**. Help stays `https://comaps.app/privacy/` and `terms/`. |
+| Brand | Residual SP-093 / **SPD-080** / **SPD-084**. Help stays `https://streifzug.app/privacy/` and `terms/`. |
 | Backend | Explorer checkout here is friends-only. Do not fake a competition schema. §26 #5 residual Ops (SP-096). |
 | Tests | Never weaken, skip, delete, or narrow. Eligibility runs if `data/classificator.txt` exists; do not `--suppress=Eligibility` to fake a pass. |
 | Lint | Record errors/warnings. Do not fix in this WI. |
@@ -201,7 +201,7 @@ Inspect, do not install:
 
 | ID | Spec bullet | How to evidence |
 | --- | --- | --- |
-| L1 | Privacy policy describes local vs uploaded | Residual SP-093 / **SPD-080**. Help still CoMaps URLs. |
+| L1 | Privacy policy describes local vs uploaded | Residual SP-093 / **SPD-080**. Help still Streifzug URLs. |
 | L2 | Competition consent text matches behaviour | Residual SP-093 landing. In-app `explore_consent_message` snapshot in SP-093. |
 | L3 | Terms cover public nicknames and rankings | Residual SP-093 / **SPD-080**. |
 | L4 | Competition-profile deletion operational | Client Pass; server Residual Ops. |

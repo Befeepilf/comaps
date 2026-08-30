@@ -30,7 +30,7 @@ Csatlakozz a közösséghez, és segíts a legjobb térképalkalmazás létrehoz
 • A beépített alapszerkesztővel mindenki javíthatja a térképadatokat
 • Android Auto támogatás
 
-Kérjük, jelentsd az alkalmazással kapcsolatos problémákat, javasolj ötleteket, és csatlakozz közösségünkhöz a <b><i>comaps.app</i></b> weboldalon.
+Kérjük, jelentsd az alkalmazással kapcsolatos problémákat, javasolj ötleteket, és csatlakozz közösségünkhöz a <b><i>streifzug.app</i></b> weboldalon.
 
 <b>Itt van a szabadság</b>
 Fedezd fel utadat, navigálj a világban úgy, hogy az adatvédelem és a közösség kerüljön előtérbe!

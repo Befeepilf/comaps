@@ -32,7 +32,7 @@ java {
     }
 }
 
-val appName = "CoMaps"
+val appName = "Streifzug"
 val appId = "app.comaps"
 // These are properly set in the 'secure.properties.*' files but must be declared here for build sync to succeed.
 project.ext["secretTestStoreFile"] = "comaps-test.keystore"
@@ -94,7 +94,7 @@ android {
         base.archivesName = "${appName.replace(" ", "")}-${defaultConfig.versionCode!!}"
         ndk.debugSymbolLevel = "full"
         buildConfigField("String", "REVIEW_URL", "\"\"")
-        buildConfigField("String", "SUPPORT_MAIL", "\"android@comaps.app\"") // Customized in flavors.
+        buildConfigField("String", "SUPPORT_MAIL", "\"android@streifzug.app\"") // Customized in flavors.
         println("Version: ${versionName!!}")
         println("VersionCode: ${versionCode!!}")
     }
@@ -106,7 +106,7 @@ android {
             dimension = "default"
             applicationIdSuffix = ".google"
             versionName = "${android.defaultConfig.versionName!!}-Google"
-            buildConfigField("String", "SUPPORT_MAIL", "\"gplay@comaps.app\"")
+            buildConfigField("String", "SUPPORT_MAIL", "\"gplay@streifzug.app\"")
             buildConfigField("String", "REVIEW_URL", "\"market://details?id=app.comaps.google\"")
         }
 
@@ -114,14 +114,14 @@ android {
         create("web") {
             dimension = "default"
             versionName = android.defaultConfig.versionName!!
-            buildConfigField("String", "SUPPORT_MAIL", "\"apk@comaps.app\"")
+            buildConfigField("String", "SUPPORT_MAIL", "\"apk@streifzug.app\"")
         }
 
         create("fdroid") {
             dimension = "default"
             applicationIdSuffix = ".fdroid"
             versionName = "${android.defaultConfig.versionName!!}-FDroid"
-            buildConfigField("String", "SUPPORT_MAIL", "\"fdroid@comaps.app\"")
+            buildConfigField("String", "SUPPORT_MAIL", "\"fdroid@streifzug.app\"")
         }
 
         create("huawei") {
@@ -130,7 +130,7 @@ android {
             applicationIdSuffix = ".huawei"
             versionName = "${android.defaultConfig.versionName!!}-Huawei"
             versionCode = huaweiVersionCodeBase + android.defaultConfig.versionCode!!
-            buildConfigField("String", "SUPPORT_MAIL", "\"huawei@comaps.app\"")
+            buildConfigField("String", "SUPPORT_MAIL", "\"huawei@streifzug.app\"")
             buildConfigField("String", "REVIEW_URL", "\"appmarket://details?id=app.comaps\"")
         }
     }

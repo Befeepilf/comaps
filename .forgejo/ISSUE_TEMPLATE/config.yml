@@ -2,7 +2,7 @@ blank_issues_enabled: true
 contact_links:
   - name: Translations
     url: https://codeberg.org/comaps/comaps/src/branch/main/docs/TRANSLATIONS.md
-    about: Translate CoMaps into your language
+    about: Translate Streifzug into your language
   - name: News
-    url: https://comaps.app/news/
+    url: https://streifzug.app/news/
     about: Check the latest project news

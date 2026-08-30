@@ -7,7 +7,7 @@
 
 Generate on a ≥32 GiB builder (`map_pipeline`, **SPD-088**). The 8 GiB VPS
 **serves only**. `maps_generator` on that VPS is unsupported. Community
-CoMaps distributors remain MWM-only and are **not** the production path
+Streifzug distributors remain MWM-only and are **not** the production path
 (**SPD-087**). URL layout stays **SPD-035** — no `/spa/` scheme.
 
 LAN serve remains SP-051 (`serve_spa_publish_tree`). The public origin is

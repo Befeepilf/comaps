@@ -34,8 +34,8 @@ only).
 | A2 | Binaries | Record which of `pix_derive_tool`, `generator_tool`, `spa_emit_tool` exist |
 | A3 | Unit tests | `PYTHONPATH=. python3 -m unittest street_pixels.tests.test_map_pipeline` — existing suite, no weakening |
 | A4 | Dry-run | `map_pipeline --dry-run` with Geofabrik Finland PBF URL and `--countries 'World,Finland_*'` |
-| A5 | Dry-run invariants | Does **not** download the PBF; expanded set is eight `Finland_*` leaves + `World`; omits `WorldCoasts`; no CoMaps map hosts in printed plan / rendered ini |
-| A6 | Optional checksum | Fetch only `finland-latest.osm.pbf.md5` (small). Do **not** fetch the ~700 MiB PBF. Do **not** fetch any `*.comaps.app` URL |
+| A5 | Dry-run invariants | Does **not** download the PBF; expanded set is eight `Finland_*` leaves + `World`; omits `WorldCoasts`; no Streifzug map hosts in printed plan / rendered ini |
+| A6 | Optional checksum | Fetch only `finland-latest.osm.pbf.md5` (small). Do **not** fetch the ~700 MiB PBF. Do **not** fetch any `*.streifzug.app` URL |
 | A7 | Keys | Confirm no production Ed25519 secret / live `private.h` in git. Do **not** invent Channel B as the public path |
 | A8 | Publish | Do **not** rsync or `curl` a VPS that is not here |
 
@@ -48,7 +48,7 @@ only).
 - Channel A signing (no production keys in this environment)
 - Channel B inject (not the public path — **SPD-037**)
 - Publish / `curl` of `meta/maps.json` or Helsinki objects
-- Fallback to CoMaps MWMs
+- Fallback to Streifzug MWMs
 - Highway-proxy U
 
 Leaf size tables are **not** invented. They appear only after a real
@@ -71,7 +71,7 @@ file bytes, Helsinki known-id spot-check, `VerifyDenseAssignments`.
 If Channel A keys are missing, stop short of stock-APK advertisement.
 Channel B remains debug-only.
 
-Do **not** fall back to CoMaps MWMs. Do **not** use highway-proxy U.
+Do **not** fall back to Streifzug MWMs. Do **not** use highway-proxy U.
 
 Device download may be SP-104 or residual if no handset.
 

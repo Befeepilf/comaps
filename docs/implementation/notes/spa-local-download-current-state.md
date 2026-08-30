@@ -38,7 +38,7 @@ not a one-off debug copy hack.
 | Client Map→Spa download | **SP-046** Accepted | `MapFileType::Spa`; fail-soft MWM |
 | Update full-refetch + delete-with-map | **SP-047** Accepted | **SPD-029**, **SPD-030** |
 | Incomplete / retry | **SP-048** Accepted | **SPD-031**; settings-backed set |
-| Custom map server URL | Upstream CoMaps | `pref_custom_map_download_url` → `SetCustomMapServerUrl`; skips metaserver; cleartext permitted |
+| Custom map server URL | Upstream Streifzug | `pref_custom_map_download_url` → `SetCustomMapServerUrl`; skips metaserver; cleartext permitted |
 | Download URL shape | Existing | `{server}/maps/{MAP_SERIES}/{dataVersion}/{UrlEncode(file)}` |
 | Meta update shape | Existing | `{server}/meta/maps.json` then countries + `.sig` |
 

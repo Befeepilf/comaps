@@ -195,7 +195,7 @@ v = w * (x + z);
 - Cover your code with unit tests. See examples for existing libraries
 - Check Base and Coding libraries for most of the basic functions
 - Ask your team if you have any questions
-- Use dev@comaps.app mailing list to ask all developers and bugs@comaps.app mailing list to post bugs
+- Use dev@streifzug.app mailing list to ask all developers and bugs@streifzug.app mailing list to post bugs
 - Release builds contain debugging information (for profiling), production builds do not
 - If you don't have enough time to make it right, leave a `// TODO(DeveloperName): need to fix it` comment
 

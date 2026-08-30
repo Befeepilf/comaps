@@ -92,7 +92,7 @@ android {
               externalNativeBuild.cmake.arguments += "-DENABLE_ASAN=ON"
         }
         release {
-            buildConfigField("String", "EXPLORE_API_BASE_URL", exploreApiBaseUrlField("\"https://api.comaps.app/api\""))
+            buildConfigField("String", "EXPLORE_API_BASE_URL", exploreApiBaseUrlField("\"https://api.streifzug.app/api\""))
             buildConfigField("boolean", "EXPLORER_PRO_GPX_IMPORT", explorerProCapabilitiesEnabled("false"))
             buildConfigField("boolean", "EXPLORER_PRO_GPX_EXPORT", explorerProCapabilitiesEnabled("false"))
             buildConfigField("boolean", "EXPLORER_PRO_ADVANCED_TRACK_MANAGEMENT", explorerProCapabilitiesEnabled("false"))
@@ -100,7 +100,7 @@ android {
         }
         register("beta") {
             matchingFallbacks += "release"
-            buildConfigField("String", "EXPLORE_API_BASE_URL", exploreApiBaseUrlField("\"https://api.comaps.app/api\""))
+            buildConfigField("String", "EXPLORE_API_BASE_URL", exploreApiBaseUrlField("\"https://api.streifzug.app/api\""))
             buildConfigField("boolean", "EXPLORER_PRO_GPX_IMPORT", explorerProCapabilitiesEnabled("false"))
             buildConfigField("boolean", "EXPLORER_PRO_GPX_EXPORT", explorerProCapabilitiesEnabled("false"))
             buildConfigField("boolean", "EXPLORER_PRO_ADVANCED_TRACK_MANAGEMENT", explorerProCapabilitiesEnabled("false"))

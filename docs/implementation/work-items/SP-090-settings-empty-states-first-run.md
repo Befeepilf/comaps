@@ -63,7 +63,7 @@ against the spec sentences.
   tutorial required. Record gaps; fix copy/flow holes that are not
   owned by another Phase 10 item.
 - English strings in this item; translations follow existing
-  CoMaps process, not a launch blocker unless a user-visible English
+  Streifzug process, not a launch blocker unless a user-visible English
   string is missing.
 
 ## Out-of-scope behavior
@@ -72,9 +72,9 @@ against the spec sentences.
 - Drawing the check glyph, share-card defects, weekly JNI (SP-089).
 - Privacy *policy text*, hosting, and in-app URLs (SP-093
   **residual**; SPD-080 landing). Do not retarget Help to a new
-  Street Pixels policy URL in this item. `https://comaps.app/privacy/`
+  Street Pixels policy URL in this item. `https://streifzug.app/privacy/`
   may stay for now.
-- App-name / CoMaps product branding in user-visible strings
+- App-name / Streifzug product branding in user-visible strings
   (residual, SPD-084).
 - Device execution of the §31 matrix (SP-095 / SP-097 **residual**).
 - New achievement screens (spec §18.5).
@@ -155,8 +155,8 @@ against the spec sentences.
 | Map-data management | `prefs_data_management.xml` storage / autodownload / incomplete SPA | Present |
 | Local recording management | `pref_local_recordings` → `BookmarkCategoriesActivity` | Present |
 | Privacy information | In-app dialog reuses `location_privacy_info` + `explore_consent_message` (no paraphrase, no URL) | Present |
-| Terms and competition rules | In-app rules dialog from existing consent / leave / delete strings. Help still uses `comaps.app` `privacy/` and `terms/` | Copy present; **URL rows residual** (SPD-080 / SP-093) |
-| App name in Help / listing | Unchanged CoMaps product name | **Residual** SPD-084 / SP-093 |
+| Terms and competition rules | In-app rules dialog from existing consent / leave / delete strings. Help still uses `streifzug.app` `privacy/` and `terms/` | Copy present; **URL rows residual** (SPD-080 / SP-093) |
+| App name in Help / listing | Unchanged Streifzug product name | **Residual** SPD-084 / SP-093 |
 | GPX import/export | `GpxSettingsVisibility` capability+entitlement only (SP-084) | Present; public build adds nothing |
 | Purchase / restore / pricing | None added | Out of scope SPD-010 |
 | Friend settings | `prefs_privacy.xml` friend-visibility row is inflated then removed when `FriendSettingsVisibility.friendsCapabilityEnabled()` is false. Nickname copy is rankings-only | Hidden SPD-085. Manifest add-friend filters are SP-092 |
@@ -191,9 +191,9 @@ Device click-through remains SP-095 / SP-097.
 
 | Finding | Proposed disposition |
 | --- | --- |
-| Help privacy/terms still `comaps.app` `privacy/` and `terms/`; app-name CoMaps in Help | SP-093 / SPD-080 / SPD-084 residual. Do not retarget in this item |
+| Help privacy/terms still `streifzug.app` `privacy/` and `terms/`; app-name Streifzug in Help | SP-093 / SPD-080 / SPD-084 residual. Do not retarget in this item |
 | Manifest add-friend filters still present | SP-092 |
 | Device execution of the §31 matrix and §10 click-through | SP-095 / SP-097 residual |
-| First-run / empty-state English strings only | Translations follow CoMaps process |
+| First-run / empty-state English strings only | Translations follow Streifzug process |
 | `applyCompetitionChrome` weekly board used out-of-scope `osmId`/`manager` locals (pre-existing compile hole) | Fixed in this item so weekly empty-hide compiles |
 | Spec §10 first-run body says routes/history stay on device *unless* the user joins rankings. Spec §3.2 / §25 say tracks never upload; competition is aggregates only | Not rewritten in this item (copy matches spec §10). Residual for SP-093 / privacy copy |

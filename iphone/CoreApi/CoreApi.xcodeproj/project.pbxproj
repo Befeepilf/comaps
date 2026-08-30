@@ -568,7 +568,7 @@
 				BuildIndependentTargetsInParallel = YES;
 				DefaultBuildSystemTypeForWorkspace = Latest;
 				LastUpgradeCheck = 2700;
-				ORGANIZATIONNAME = CoMaps;
+				ORGANIZATIONNAME = Streifzug;
 				TargetAttributes = {
 					470015EE2342509C00EBF03D = {
 						CreatedOnToolsVersion = 10.2;

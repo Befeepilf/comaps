@@ -141,7 +141,7 @@ Fill in before requesting review.
 | Toolchain versions | macOS 26.5 arm64; Apple clang 21.0.0; CMake 4.4.0; Ninja 1.13.2; JDK 21.0.11; Python 3.14.6; Gradle 8.14.4; NDK 28.2/29.0; SDK CMake 3.22.1 — full table in `baseline.md` |
 | Desktop build result | Smoke targets: **pass** (94.73 s). Full `-d`: not fully green |
 | Smoke suite result per target | **9 / 9 pass** (~211 s) — see `baseline.md` §4 |
-| Android build command and flavor | `assembleWebDebug` — **pass**; APK `CoMaps-26072405-web-debug.apk` (190 MB) |
+| Android build command and flavor | `assembleWebDebug` — **pass**; APK `Streifzug-26072405-web-debug.apk` (190 MB) |
 | Test device model and OS version | Google Pixel 3a, LineageOS 22.2 |
 | Documented-command corrections | Map CDN 260603; `SKIP_MAP_DOWNLOAD`; protobuf reset; `CMAKE=/opt/homebrew/bin/cmake`; §8.1 ctest path |
 | Implemented by | Cursor agent |

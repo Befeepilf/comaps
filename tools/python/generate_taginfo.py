@@ -16,13 +16,13 @@ TAGINFO_FILE: Path = SCRIPT_DIR / "../../data/taginfo.json"
 BASE_ICON_URL: str = "https://codeberg.org/comaps/comaps/raw/branch/main/data/styles/default/light/symbols/"
 
 PROJECT_INFO: dict[str, str] = {
-    "name": "CoMaps",
-    "description": "CoMaps is a community-focused privacy navigation iOS & Android app for travelers - drivers, hikers, and cyclists.",
-    "project_url": "https://comaps.app",
+    "name": "Streifzug",
+    "description": "Streifzug is a community-focused privacy navigation iOS & Android app for travelers - drivers, hikers, and cyclists.",
+    "project_url": "https://streifzug.app",
     "doc_url": "https://codeberg.org/comaps/comaps/",
     "icon_url": "https://codeberg.org/comaps/comaps/media/branch/main/docs/badges/logo.svg",
-    "contact_name": "CoMaps",
-    "contact_email": "hello@comaps.app"
+    "contact_name": "Streifzug",
+    "contact_email": "hello@streifzug.app"
 }
 
 def parse_colors(text: str) -> dict[str, str]:
@@ -127,7 +127,7 @@ def parse_mapcss(text: str, colors: dict[str, dict] = {}) -> list[dict[str, any]
 def main() -> None:
     '''
     Extract information from css files to create
-    taginfo.json to list CoMaps as a project
+    taginfo.json to list Streifzug as a project
     '''
 
     # extract color definitons to put into taginfo descriptions

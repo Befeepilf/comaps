@@ -124,7 +124,7 @@ ParsedMapApi::UrlType ParsedMapApi::SetUrlAndParse(std::string const & raw)
 
   if (auto const [prefix, checkForGe0Link] = FindUrlPrefix(raw); prefix != std::string::npos)
   {
-    url::Url const url{"comaps://" + raw.substr(prefix)};
+    url::Url const url{"streifzug://" + raw.substr(prefix)};
     if (!url.IsValid())
       return m_requestType = UrlType::Incorrect;
 

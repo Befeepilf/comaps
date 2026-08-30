@@ -33,20 +33,20 @@ DEFAULT_HELSINKI_LEAF = "Finland_Southern Finland_Helsinki"
 
 # Matches private.h DEFAULT_URLS_JSON (+ meta-friendly hosts). Order = try order.
 DEFAULT_CDN_BASES = (
-    "https://mapgen-fi-1.comaps.app/",
-    "https://cdn-fi-1.comaps.app/",
+    "https://mapgen-fi-1.streifzug.app/",
+    "https://cdn-fi-1.streifzug.app/",
     "https://comaps.firewall-gateway.de/",
     "https://cdn-us-2.comaps.tech/",
     "https://comaps.openstreetmap.fr/",
     "https://comaps-it1.unfoxo.it/",
     "https://comaps-cdn.s3-website.cloud.ru/",
-    "https://cdn.comaps.app/",
-    "https://cdn-us-1.comaps.app/",
+    "https://cdn.streifzug.app/",
+    "https://cdn-us-1.streifzug.app/",
 )
 
 META_PREFERRED_BASES = (
-    "https://cdn.comaps.app/",
-    "https://cdn-us-1.comaps.app/",
+    "https://cdn.streifzug.app/",
+    "https://cdn-us-1.streifzug.app/",
 ) + DEFAULT_CDN_BASES
 
 

@@ -1,5 +1,5 @@
 import XCTest
-@testable import CoMaps__Debug_
+@testable import Streifzug__Debug_
 
 typealias UbiquityIdentityToken = NSCoding & NSCopying & NSObjectProtocol
 

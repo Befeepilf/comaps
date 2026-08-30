@@ -491,9 +491,9 @@ public class Utils
   public static String getDonateUrl(@NonNull Context context)
   {
     final String url = Config.getDonateUrl();
-    // Enable donations by default if not Google or Huawei. Replace comaps.app/donate/ with localized page.
+    // Enable donations by default if not Google or Huawei. Replace streifzug.app/donate/ with localized page.
     if ((url.isEmpty() && !BuildConfig.FLAVOR.equals("google") && !BuildConfig.FLAVOR.equals("huawei"))
-        || url.endsWith("comaps.app/donate/"))
+        || url.endsWith("streifzug.app/donate/"))
       return context.getString(R.string.app_site_url) + "donate/";
     return url;
   }

@@ -95,10 +95,10 @@
   }
 
   private func deepLinkURL(from universalLink: URL) -> URL? {
-    // Convert http(s)://comaps.at/ENCODEDCOORDS/NAME to cm://ENCODEDCOORDS/NAME
+    // Convert http(s)://streifzug.app/ENCODEDCOORDS/NAME to cm://ENCODEDCOORDS/NAME
     URL(string: universalLink.absoluteString
-      .replacingOccurrences(of: "http://comaps.at", with: "cm:/")
-      .replacingOccurrences(of: "https://comaps.at", with: "cm:/"))
+      .replacingOccurrences(of: "http://streifzug.app", with: "cm:/")
+      .replacingOccurrences(of: "https://streifzug.app", with: "cm:/"))
   }
 
   private func handleDeepLink(url: URL) -> Bool {

@@ -5,4 +5,4 @@
 • Werkzeugverleihe & Werkzeugbibliotheken hinzugefügt, Straßenschilder für Rumänien/Marokko hinzugefügt und für Augsburg und A-Straßen auf Zypern korrigiert
 •  Icons für Vorschau & Speichern im Routenplanungsbildschirm
 
-Weitere Details unter comaps.app/latest
+Weitere Details unter streifzug.app/latest

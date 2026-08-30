@@ -30,7 +30,7 @@ Liitu kogukonnaga ja aita luua parimat kaardirakendust:
 • Kasutades lihtsat muutmisliidest saad kaarti kõikide huvides täiendada
 • Android Auto liidestus
 
-Palun teata rakenduse vigadest, soovita uusi ideid ja liitu kogukonnaga <b><i>comaps.app</i></b> veebisaidis.
+Palun teata rakenduse vigadest, soovita uusi ideid ja liitu kogukonnaga <b><i>streifzug.app</i></b> veebisaidis.
 
 <b>Vabadus on siin</b>
 Uuri maailma ja avasta uusi teid - tee seda privaatselt ja kogukonnaga arvestades!

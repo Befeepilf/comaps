@@ -61,16 +61,16 @@ CORE_STAGES = (
 )
 ALL_STAGES = CORE_STAGES + (STAGE_RSYNC,)
 
-COMAPS_MAP_HOSTS = (
-    "cdn-us-1.comaps.app",
+STREIFZUG_MAP_HOSTS = (
+    "cdn-us-1.streifzug.app",
     "cdn-us-2.comaps.tech",
-    "cdn-fi-1.comaps.app",
-    "mapgen-fi-1.comaps.app",
+    "cdn-fi-1.streifzug.app",
+    "mapgen-fi-1.streifzug.app",
     "comaps.firewall-gateway.de",
     "comaps.openstreetmap.fr",
     "comaps-it1.unfoxo.it",
     "comaps-cdn.s3-website.cloud.ru",
-    "cdn.comaps.app",
+    "cdn.streifzug.app",
 )
 
 ORGANIC_MAPS_SUBWAY_HOST = "cdn.organicmaps.app"
@@ -121,9 +121,9 @@ def _host_has_suffix(host, suffix):
 def _host_matches_denied(host):
     if not host:
         return None
-    if _host_has_suffix(host, "comaps.app") or _host_has_suffix(host, "comaps.tech"):
+    if _host_has_suffix(host, "streifzug.app") or _host_has_suffix(host, "comaps.tech"):
         return host
-    for denied in COMAPS_MAP_HOSTS:
+    for denied in STREIFZUG_MAP_HOSTS:
         if _host_has_suffix(host, denied.lower()):
             return denied
     return None
@@ -141,7 +141,7 @@ def denied_host_in(value):
         if found:
             return found
     lowered = text.lower()
-    for denied in COMAPS_MAP_HOSTS:
+    for denied in STREIFZUG_MAP_HOSTS:
         if denied.lower() in lowered:
             return denied
     return None
@@ -317,7 +317,7 @@ def refuse_denied_origins(values, allow_comaps_origin, cdn_base=None):
         host = denied_host_in(value)
         if host and not allow_comaps_origin:
             raise MapPipelineError(
-                "CoMaps map host {!r} is refused unless --allow-comaps-origin".format(
+                "Streifzug map host {!r} is refused unless --allow-comaps-origin".format(
                     host
                 )
             )
@@ -364,7 +364,7 @@ def plan_extra_skips(
     def _missing(label, skip_stage=None):
         msg = (
             "{}: no independent source; skipping with warning "
-            "(do not fetch CoMaps map hosts to complete extras)".format(label)
+            "(do not fetch Streifzug map hosts to complete extras)".format(label)
         )
         warnings.append(msg)
         if skip_stage and skip_stage not in skip:
@@ -401,7 +401,7 @@ def plan_extra_skips(
         warnings.append(
             "wikipedia/descriptions: no local dump; skipping "
             "(pass --enable-wikipedia to download from Wikipedia; "
-            "do not fetch CoMaps map hosts)"
+            "do not fetch Streifzug map hosts)"
         )
         if "DownloadDescriptions" not in skip:
             skip.append("DownloadDescriptions")
@@ -1179,7 +1179,7 @@ def build_arg_parser():
     parser.add_argument(
         "--allow-comaps-origin",
         action="store_true",
-        help="Allow CoMaps map hosts / --cdn-base (default off)",
+        help="Allow Streifzug map hosts / --cdn-base (default off)",
     )
     parser.add_argument(
         "--cdn-base",

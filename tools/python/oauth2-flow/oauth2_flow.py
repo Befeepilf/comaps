@@ -23,7 +23,7 @@ OAuthClientId = "Tj8yyx3FWy_N5wz6sUTAXTM6YBAiwVgM7sRLrLix2u8"
 OAuthRedirectUri = "cm://oauth2/osm/callback"
 OAuthResponseType = "code"
 OAuthScope = "read_prefs write_api write_notes"
-test_login = "CoMapsTestUser"
+test_login = "StreifzugTestUser"
 test_password = "12345678"
 
 def FetchSessionId():

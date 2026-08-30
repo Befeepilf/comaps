@@ -45,7 +45,7 @@ globs: libs/**/*.cpp,libs/**/*.hpp,libs/**/CMakeLists.txt
 
 ## Divergence from upstream
 
-This is a CoMaps fork. Every change to `libs/` widens the divergence and raises
+This is a Streifzug fork. Every change to `libs/` widens the divergence and raises
 future merge cost. Prefer additive modules beside existing code over
 restructuring shared engines. If a change to a shared engine seems necessary,
 say so and explain why an additive approach will not work.

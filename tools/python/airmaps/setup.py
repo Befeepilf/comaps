@@ -16,8 +16,8 @@ with chdir(os.path.abspath(os.path.dirname(__file__))):
     setuptools.setup(
         name="omim-airmaps",
         version=str(get_version()),
-        author="CoMaps",
-        author_email="info@comaps.app",
+        author="Streifzug",
+        author_email="info@streifzug.app",
         description="This package contains tools for generating maps with Apache Airflow.",
         url="https://codeberg.org/comaps",
         package_dir={"airmaps": ""},

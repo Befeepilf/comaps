@@ -55,7 +55,7 @@
 
     CSSearchableItem * item =
         [[CSSearchableItem alloc] initWithUniqueIdentifier:categoryKeyString
-                                          domainIdentifier:@"comaps.app.categories"
+                                          domainIdentifier:@"streifzug.app.categories"
                                               attributeSet:attrSet];
     [items addObject:item];
   }

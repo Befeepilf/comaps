@@ -13,7 +13,7 @@ _TOOLS_PYTHON = os.path.dirname(os.path.dirname(_THIS_DIR))
 if _TOOLS_PYTHON not in sys.path:
     sys.path.insert(0, _TOOLS_PYTHON)
 
-from street_pixels.map_pipeline import COMAPS_MAP_HOSTS  # noqa: E402
+from street_pixels.map_pipeline import STREIFZUG_MAP_HOSTS  # noqa: E402
 from street_pixels.map_pipeline import CORE_STAGES  # noqa: E402
 from street_pixels.map_pipeline import DEFAULT_COUNTRIES  # noqa: E402
 from street_pixels.map_pipeline import EXTRACT_RINGS_SCRIPT  # noqa: E402
@@ -205,7 +205,7 @@ class DryRunNoNetworkTest(unittest.TestCase):
 class DefaultConfigDenylistTest(unittest.TestCase):
     def test_default_ini_has_no_comaps_map_hosts(self):
         text = load_default_ini_text()
-        for host in COMAPS_MAP_HOSTS:
+        for host in STREIFZUG_MAP_HOSTS:
             self.assertNotIn(host, text)
         self.assertNotIn("cdn.organicmaps.app", text)
         self.assertIn("NODE_STORAGE: map", text)
@@ -220,7 +220,7 @@ class DefaultConfigDenylistTest(unittest.TestCase):
                 borders_dir=borders,
                 dry_run=True,
             )
-            for host in COMAPS_MAP_HOSTS:
+            for host in STREIFZUG_MAP_HOSTS:
                 self.assertNotIn(host, plan["ini_text"])
             self.assertNotIn("cdn.organicmaps.app", plan["ini_text"])
             self.assertIn("NODE_STORAGE: map", plan["ini_text"])
@@ -232,12 +232,12 @@ class OriginDenylistTest(unittest.TestCase):
             borders = _finland_borders(tmp)
             with self.assertRaises(MapPipelineError) as ctx:
                 build_plan(
-                    pbf="https://cdn-us-1.comaps.app/maps/World.mwm",
+                    pbf="https://cdn-us-1.streifzug.app/maps/World.mwm",
                     out=os.path.join(tmp, "out"),
                     borders_dir=borders,
                     dry_run=True,
                 )
-            self.assertIn("cdn-us-1.comaps.app", str(ctx.exception))
+            self.assertIn("cdn-us-1.streifzug.app", str(ctx.exception))
 
     def test_cdn_base_refused_without_allow(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -260,7 +260,7 @@ class OriginDenylistTest(unittest.TestCase):
                     pbf="file:///tmp/finland.osm.pbf",
                     out=os.path.join(tmp, "out"),
                     borders_dir=borders,
-                    cdn_base=["https://cdn.comaps.app/"],
+                    cdn_base=["https://cdn.streifzug.app/"],
                     dry_run=True,
                 )
 
@@ -271,7 +271,7 @@ class OriginDenylistTest(unittest.TestCase):
                 pbf="file:///tmp/finland.osm.pbf",
                 out=os.path.join(tmp, "out"),
                 borders_dir=borders,
-                cdn_base=["https://cdn.comaps.app/"],
+                cdn_base=["https://cdn.streifzug.app/"],
                 allow_comaps_origin=True,
                 dry_run=True,
             )
@@ -403,7 +403,7 @@ class OriginDenylistExtraUrlTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             borders = _finland_borders(tmp)
             out = os.path.join(tmp, "out")
-            for host in COMAPS_MAP_HOSTS:
+            for host in STREIFZUG_MAP_HOSTS:
                 with self.subTest(host=host):
                     with self.assertRaises(MapPipelineError) as ctx:
                         build_plan(
@@ -420,25 +420,25 @@ class OriginDenylistExtraUrlTest(unittest.TestCase):
             borders = _finland_borders(tmp)
             with self.assertRaises(MapPipelineError) as ctx:
                 build_plan(
-                    pbf="https://cdn-eu-1.comaps.app/maps/World.mwm",
+                    pbf="https://cdn-eu-1.streifzug.app/maps/World.mwm",
                     out=os.path.join(tmp, "out"),
                     borders_dir=borders,
                     dry_run=True,
                 )
-            self.assertIn("comaps.app", str(ctx.exception))
+            self.assertIn("streifzug.app", str(ctx.exception))
 
     def test_path_substring_cdn_comaps_app_is_not_a_host_match(self):
         with tempfile.TemporaryDirectory() as tmp:
             borders = _finland_borders(tmp)
             with self.assertRaises(MapPipelineError) as ctx:
                 build_plan(
-                    pbf="https://example.test/cdn.comaps.app/extract.osm.pbf",
+                    pbf="https://example.test/cdn.streifzug.app/extract.osm.pbf",
                     out=os.path.join(tmp, "out"),
                     borders_dir=borders,
                     dry_run=True,
                 )
             self.assertIn("example.test", str(ctx.exception))
-            self.assertNotIn("CoMaps map host", str(ctx.exception))
+            self.assertNotIn("Streifzug map host", str(ctx.exception))
 
     def test_geofabrik_https_pbf_allowed(self):
         with tempfile.TemporaryDirectory() as tmp:

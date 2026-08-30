@@ -175,7 +175,7 @@
   } else {
     if (errorPtr) {
       if (pointsCount == 0) {
-        *errorPtr = [NSError errorWithDomain:@"comaps.app.routing"
+        *errorPtr = [NSError errorWithDomain:@"streifzug.app.routing"
                                         code:MWMRouterResultCodeStartPointNotFound
                                     userInfo:nil];
       } else {
@@ -186,7 +186,7 @@
         } else {
           code = MWMRouterResultCodeStartPointNotFound;
         }
-        *errorPtr = [NSError errorWithDomain:@"comaps.app.routing"
+        *errorPtr = [NSError errorWithDomain:@"streifzug.app.routing"
                                         code:code
                                     userInfo:nil];
       }

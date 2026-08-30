@@ -1,10 +1,10 @@
 # Deploy your maps files server
 
-This doc explains how to deploy your own instance of a CoMaps server with files from official CDNs (We are working to be able to download maps files without hardcoded countries.txt file embedded in the app)
+This doc explains how to deploy your own instance of a Streifzug server with files from official CDNs (We are working to be able to download maps files without hardcoded countries.txt file embedded in the app)
 We explain how to deploy with minimal config, but each tool has different options to change server port or choose maps files that you want to download.
 
 ## Deploy a server
-Our community has developed different tools to deploy easily an instance of a CoMaps server:
+Our community has developed different tools to deploy easily an instance of a Streifzug server:
 - [comaps-map-distributor](https://codeberg.org/gedankenstuecke/comaps-map-distributor)
 - [comaps-server](https://github.com/myanesp/comaps-server)
 
@@ -19,7 +19,7 @@ Prerequisites
 - Launch the tool with this command `comaps-map-distributor download-maps`
 - Choose map files you want to download from official CDNs
 - Run `comaps-map-distributor serve-maps`
-- Go to your mobile device -> CoMaps -> settings -> Advanced -> Custom Maps server
+- Go to your mobile device -> Streifzug -> settings -> Advanced -> Custom Maps server
 - Edit URL with your URL server and enjoy
 
 ### Deploy comaps-server
@@ -38,7 +38,7 @@ Prerequisites
   -e OUTPUT_DIR=/maps \
   -p "80:80" \
   ghcr.io/myanesp/comaps-server:latest```
-- Go to your mobile device -> CoMaps -> settings -> Advanced -> Custom Maps server
+- Go to your mobile device -> Streifzug -> settings -> Advanced -> Custom Maps server
 - Edit URL with your URL server and enjoy   
 
 #### Docker compose
@@ -59,10 +59,10 @@ Prerequisites
       - TZ=Europe/Madrid```
 
 - Execute `docker compose up`	  
-- Go to your mobile device -> CoMaps -> settings -> Advanced -> Custom Maps server
+- Go to your mobile device -> Streifzug -> settings -> Advanced -> Custom Maps server
 - Edit URL with your URL server and enjoy   
 
-You can find more details in the [FAQ article](https://www.comaps.app/support/how-can-i-host-a-custom-map-server-for-downloads/) to deploy your own HTTP maps server and find more details [here](https://www.comaps.app/support/how-can-i-set-a-custom-map-server-for-downloads/) about restrictions.
+You can find more details in the [FAQ article](https://www.streifzug.app/support/how-can-i-host-a-custom-map-server-for-downloads/) to deploy your own HTTP maps server and find more details [here](https://www.streifzug.app/support/how-can-i-set-a-custom-map-server-for-downloads/) about restrictions.
 
 ## Street Pixels (`.spa` publish tree)
 
@@ -87,7 +87,7 @@ here**.
 On a ≥32 GiB builder, one CLI runs `maps_generator` → `pix_derive_tool` →
 rings extract → `spa_emit_tool --mode=production` → `assemble_spa_publish_tree`
 and writes an SP-050 `--out` tree. OSM input is `file://` or Geofabrik /
-planet OSM — not CoMaps map CDNs.
+planet OSM — not Streifzug map CDNs.
 
 ```bash
 cd tools/python
@@ -104,9 +104,9 @@ Optional `--rsync-dest` copies the tree with `rsync -a --delete-delay`
 `user@vps:/var/www/street-pixels/`. Do **not** use `prepare_spa_debug_root`
 as the production countries source (**SPD-087**).
 
-### 2. Debug prepare (CoMaps CDN countries + spa) — not production
+### 2. Debug prepare (Streifzug CDN countries + spa) — not production
 
-Fetches **public CoMaps CDN** `meta/maps.json` latest for `MAP_SERIES`, downloads
+Fetches **public Streifzug CDN** `meta/maps.json` latest for `MAP_SERIES`, downloads
 that `countries.txt`, injects spa meta from your emit dir, and builds the
 publish root (spa-only by default — phone already has MWMs from CDN).
 **This is not the production path.**
@@ -131,7 +131,7 @@ Do not invent placeholder spa meta. Full Channel A/B recipes:
 
 Build the CDN-identical tree from a local `countries.txt`, `{leaf}.spa` (from
 `spa_emit_tool`), and matching MWMs. Prefer §1 (`map_pipeline`) for an
-independent origin. Prefer §2 only for CoMaps-CDN debug. See
+independent origin. Prefer §2 only for Streifzug-CDN debug. See
 `docs/implementation/work-items/SP-050-spa-publish-tree-assemble.md`.
 
 ```bash
@@ -203,7 +203,7 @@ Finland-scale artifacts are about 1 GiB. 8 GiB RAM is enough to serve.
 Do not run `maps_generator` on the 8 GiB VPS.
 
 Stock APK `DEFAULT_URLS_JSON` is gitignored `private.h`, not this doc.
-Community CoMaps distributors (sections above this Street Pixels heading)
+Community Streifzug distributors (sections above this Street Pixels heading)
 stay MWM-only and are not production.
 
 Full recipe: [`docs/implementation/notes/sp-102-publish-and-serve-origin.md`](implementation/notes/sp-102-publish-and-serve-origin.md).

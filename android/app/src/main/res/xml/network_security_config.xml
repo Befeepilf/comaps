@@ -15,7 +15,7 @@
     </trust-anchors>
   </base-config>
   <domain-config cleartextTrafficPermitted="true">
-    <domain includeSubdomains="true">comaps.app</domain>
+    <domain includeSubdomains="true">streifzug.app</domain>
   </domain-config>
   <domain-config cleartextTrafficPermitted="true">
     <domain includeSubdomains="false">localhost</domain>

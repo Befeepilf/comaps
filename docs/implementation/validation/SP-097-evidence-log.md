@@ -275,7 +275,7 @@ Friends pytest is not a substitute (audit §26 #5 / SP-096).
 
 | ID | Bullet | Status | Pointer |
 | --- | --- | --- | --- |
-| L1 | Privacy policy describes local vs uploaded | **Residual** | SP-093 / **SPD-080**. Help: `app_site_url` + `privacy/` → `https://comaps.app/privacy/`. |
+| L1 | Privacy policy describes local vs uploaded | **Residual** | SP-093 / **SPD-080**. Help: `app_site_url` + `privacy/` → `https://streifzug.app/privacy/`. |
 | L2 | Competition consent text matches behaviour | **Residual** | SP-093 landing. In-app `explore_consent_message` snapshot in SP-093 WI. |
 | L3 | Terms cover nicknames and rankings | **Residual** | SP-093 / **SPD-080**. Help `terms/`. |
 | L4 | Competition-profile deletion operational | **Residual** | Client Pass (K10 tests). Server Ops residual SP-096 §26 #5. |

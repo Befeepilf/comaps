@@ -5,4 +5,4 @@
 • Añadidas tiendas de alquiler de herramientas, bibliotecas de herramientas, señales de carretera de Rumanía y Marruecos, y corregidas las de carreteras A de Augsburgo y Chipre
 • Cambiados botones de vista previa y guardar por iconos en planificación de ruta
 
-Más detalles en comaps.app/latest
+Más detalles en streifzug.app/latest

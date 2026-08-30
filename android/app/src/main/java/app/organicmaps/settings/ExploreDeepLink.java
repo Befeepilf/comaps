@@ -20,7 +20,7 @@ public final class ExploreDeepLink
 
   /**
    * Public V1 must not present add-friend onboarding even when a generic
-   * {@code comaps://} or {@code https://comaps.at} VIEW filter delivered the URI.
+   * {@code streifzug://} or {@code https://streifzug.app} VIEW filter delivered the URI.
    */
   public static boolean shouldPresentAddFriendOnboarding(@Nullable Uri uri)
   {
@@ -35,10 +35,17 @@ public final class ExploreDeepLink
       return true;
     if (host == null || path == null)
       return false;
-    if (!("comaps.app".equalsIgnoreCase(host) || "comaps.at".equalsIgnoreCase(host)))
+    if (!isAppLinkHost(host))
       return false;
     String lowerPath = path.toLowerCase(Locale.ROOT);
     return "/add-friend".equals(lowerPath) || lowerPath.startsWith("/add-friend/");
+  }
+
+  private static boolean isAppLinkHost(@NonNull String host)
+  {
+    return "streifzug.app".equalsIgnoreCase(host)
+        || "comaps.app".equalsIgnoreCase(host)
+        || "comaps.at".equalsIgnoreCase(host);
   }
 
   @Nullable

@@ -13,7 +13,7 @@ extern NSString * httpGe0Url(NSString * shortUrl);
 @implementation MWMShareActivityItemTests
 
 - (void)testHttpGe0UrlReplacesPrefix {
-    XCTAssertEqualObjects(httpGe0Url(@"comaps://o4CoCoCoCo/Test_Location"), @"https://comaps.at/o4CoCoCoCo/Test_Location");
+    XCTAssertEqualObjects(httpGe0Url(@"streifzug://o4CoCoCoCo/Test_Location"), @"https://streifzug.app/o4CoCoCoCo/Test_Location");
 }
 
 @end
@@ -25,12 +25,12 @@ extern NSString * httpGe0Url(NSString * shortUrl);
 
 @implementation ShareUrlIntegrationTests
 
-- (void)testGenerateShortShowMapUrlUsesCoMapsPrefix {
+- (void)testGenerateShortShowMapUrlUsesStreifzugPrefix {
     std::string const url = ge0::GenerateShortShowMapUrl(50.0, 0.0, 14.0, "Test Location");
     
     NSString * const shortUrl = @(url.c_str());
     
-    XCTAssertTrue([shortUrl hasPrefix:@"comaps://"], @"Expected 'comaps://' prefix, got: %@", shortUrl);
+    XCTAssertTrue([shortUrl hasPrefix:@"streifzug://"], @"Expected 'streifzug://' prefix, got: %@", shortUrl);
 }
 
 - (void)testStringIsFormattedCorrectly {
@@ -38,7 +38,7 @@ extern NSString * httpGe0Url(NSString * shortUrl);
     
     NSString * const httpUrl = httpGe0Url(@(url.c_str()));
     
-    XCTAssertEqualObjects(httpUrl, @"https://comaps.at/o4CoCoCoCo/Test_Location");
+    XCTAssertEqualObjects(httpUrl, @"https://streifzug.app/o4CoCoCoCo/Test_Location");
 }
 
 @end

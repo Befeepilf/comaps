@@ -97,12 +97,12 @@ target_link_libraries(${PROJECT_NAME}
 
 if (BUILD_DESIGNER)
   target_link_libraries(${PROJECT_NAME} PRIVATE generator)
-  set(BUNDLE_NAME "CoMaps-Designer")
-  set(BUNDLE_DISPLAY_NAME "CoMaps Designer")
+  set(BUNDLE_NAME "Streifzug-Designer")
+  set(BUNDLE_DISPLAY_NAME "Streifzug Designer")
   set(BUNDLE_ICON designer.icns)
 else()
-  set(BUNDLE_NAME "CoMaps")
-  set(BUNDLE_DISPLAY_NAME "CoMaps Desktop")
+  set(BUNDLE_NAME "Streifzug")
+  set(BUNDLE_DISPLAY_NAME "Streifzug Desktop")
   set(BUNDLE_ICON mac.icns)
 endif()
 

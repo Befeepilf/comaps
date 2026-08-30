@@ -38,7 +38,7 @@ from street_pixels.map_identity import main as map_identity_main  # noqa: E402
 from street_pixels.map_identity import resolve_world_bootstrap  # noqa: E402
 from street_pixels.map_identity import sign_rawin  # noqa: E402
 from street_pixels.map_identity import verify_rawin  # noqa: E402
-from street_pixels.map_pipeline import COMAPS_MAP_HOSTS  # noqa: E402
+from street_pixels.map_pipeline import STREIFZUG_MAP_HOSTS  # noqa: E402
 
 
 SERIES = "2026.06.28"
@@ -46,7 +46,7 @@ VERSION = "260714"
 CONFIGURE_SH = os.path.join(_REPO_ROOT, "configure.sh")
 CMAKE_LISTS = os.path.join(_REPO_ROOT, "CMakeLists.txt")
 FILE_PY = os.path.join(_TOOLS_PYTHON, "maps_generator", "utils", "file.py")
-COMAPS_PUBLIC_HEX = "91c0a9f6aa182371f047e256ab46489211acc2b51b13197fbe8c94eaa9749c7b"
+STREIFZUG_PUBLIC_HEX = "91c0a9f6aa182371f047e256ab46489211acc2b51b13197fbe8c94eaa9749c7b"
 
 
 def _write_countries(path, series=SERIES, version=int(VERSION)):
@@ -67,10 +67,10 @@ class TemplateAuditTest(unittest.TestCase):
         self.assertTrue(os.path.isfile(EXAMPLE_PRIVATE_H))
         with open(EXAMPLE_PRIVATE_H, encoding="utf-8") as f:
             text = f.read()
-        for host in COMAPS_MAP_HOSTS:
+        for host in STREIFZUG_MAP_HOSTS:
             self.assertNotIn(host, text)
         self.assertNotIn("192.168.", text)
-        self.assertNotIn("comaps.app", text)
+        self.assertNotIn("streifzug.app", text)
         self.assertNotIn("comaps.tech", text)
         self.assertIn(PLACEHOLDER_MAP_ORIGIN, text)
         self.assertIn('#define METASERVER_URL ""', text)
@@ -81,7 +81,7 @@ class TemplateAuditTest(unittest.TestCase):
         self.assertIsNotNone(hex_match)
         self.assertEqual(64, len(hex_match.group(1)))
         self.assertNotEqual(
-            COMAPS_PUBLIC_HEX,
+            STREIFZUG_PUBLIC_HEX,
             hex_match.group(1).lower(),
         )
         self.assertNotRegex(text, r'https?://10\.')
@@ -111,9 +111,9 @@ class TemplateAuditTest(unittest.TestCase):
             with open(dest, encoding="utf-8") as f:
                 copied_text = f.read()
             self.assertEqual(body, copied_text)
-            for host in COMAPS_MAP_HOSTS:
+            for host in STREIFZUG_MAP_HOSTS:
                 self.assertNotIn(host, copied_text)
-            self.assertNotIn(COMAPS_PUBLIC_HEX, copied_text.lower())
+            self.assertNotIn(STREIFZUG_PUBLIC_HEX, copied_text.lower())
             dest2, copied2 = ensure_private_h(tmp)
             self.assertFalse(copied2)
             self.assertEqual(dest, dest2)
@@ -128,12 +128,12 @@ class TemplateAuditTest(unittest.TestCase):
                 f.write('#define DEFAULT_URLS_JSON R"([ "https://maps.example.invalid/" ])"\n')
             existing = os.path.join(tmp, "private.h")
             with open(existing, "w", encoding="utf-8") as f:
-                f.write('#define DEFAULT_URLS_JSON R"([ "https://mapgen-fi-1.comaps.app/" ])"\n')
+                f.write('#define DEFAULT_URLS_JSON R"([ "https://mapgen-fi-1.streifzug.app/" ])"\n')
             dest, copied = ensure_private_h(tmp)
             self.assertFalse(copied)
             self.assertEqual(existing, dest)
             with open(existing, encoding="utf-8") as f:
-                self.assertIn("mapgen-fi-1.comaps.app", f.read())
+                self.assertIn("mapgen-fi-1.streifzug.app", f.read())
 
     def test_ensure_private_h_errors_when_example_missing(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -146,9 +146,9 @@ class ConfigureScriptTest(unittest.TestCase):
     def test_configure_sh_does_not_fetch_comaps_world(self):
         with open(CONFIGURE_SH, encoding="utf-8") as f:
             text = f.read()
-        self.assertNotIn("https://mapgen-fi-1.comaps.app", text)
-        self.assertNotIn("mapgen-fi-1.comaps.app/maps", text)
-        for host in COMAPS_MAP_HOSTS:
+        self.assertNotIn("https://mapgen-fi-1.streifzug.app", text)
+        self.assertNotIn("mapgen-fi-1.streifzug.app/maps", text)
+        for host in STREIFZUG_MAP_HOSTS:
             self.assertNotIn(host, text)
         self.assertIn("street_pixels.map_identity", text)
         self.assertIn("configure-world", text)
@@ -169,7 +169,7 @@ class ConfigureScriptTest(unittest.TestCase):
         self.assertIn("private.h.street-pixels.example", text)
         self.assertIn('NOT EXISTS "${OMIM_ROOT}/private.h"', text)
         self.assertIn("COPYONLY", text)
-        for host in COMAPS_MAP_HOSTS:
+        for host in STREIFZUG_MAP_HOSTS:
             self.assertNotIn(host, text)
 
     def test_map_identity_module_runs_with_configure_sh_pythonpath(self):
@@ -213,7 +213,7 @@ class ConfigureScriptTest(unittest.TestCase):
                     "--data-dir",
                     tmp,
                     "--legacy-maps-base-url",
-                    "https://mapgen-fi-1.comaps.app/maps/{}/{}".format(SERIES, VERSION),
+                    "https://mapgen-fi-1.streifzug.app/maps/{}/{}".format(SERIES, VERSION),
                 ]
             )
         self.assertEqual(1, code)
@@ -230,14 +230,14 @@ class ConfigureScriptTest(unittest.TestCase):
             self.assertIn("SPD-087", message)
             self.assertIn("SKIP_MAP_DOWNLOAD", message)
             self.assertIn("STREET_PIXELS_MAPS_BASE_URL", message)
-            self.assertNotIn("https://mapgen-fi-1.comaps.app", message)
+            self.assertNotIn("https://mapgen-fi-1.streifzug.app", message)
 
 
 class WorldBootstrapTest(unittest.TestCase):
     def test_skip_map_download(self):
         plan = resolve_world_bootstrap(
             skip_map_download="1",
-            maps_base_url="https://mapgen-fi-1.comaps.app/",
+            maps_base_url="https://mapgen-fi-1.streifzug.app/",
             map_series=SERIES,
             mwm_version=VERSION,
         )
@@ -251,7 +251,7 @@ class WorldBootstrapTest(unittest.TestCase):
                 data_dir=tmp,
                 map_series=SERIES,
                 mwm_version=VERSION,
-                maps_base_url="https://mapgen-fi-1.comaps.app/",
+                maps_base_url="https://mapgen-fi-1.streifzug.app/",
             )
             self.assertEqual(ACTION_KEEP, plan["action"])
             self.assertIsNone(plan["world_url"])
@@ -332,11 +332,11 @@ class WorldBootstrapTest(unittest.TestCase):
             )
         self.assertEqual(2, len(recorded))
         for url in recorded:
-            for host in COMAPS_MAP_HOSTS:
+            for host in STREIFZUG_MAP_HOSTS:
                 self.assertNotIn(host, url)
 
     def test_every_comaps_host_refused_as_maps_base_url(self):
-        for host in COMAPS_MAP_HOSTS:
+        for host in STREIFZUG_MAP_HOSTS:
             with self.subTest(host=host):
                 with self.assertRaises(MapIdentityError) as ctx:
                     resolve_world_bootstrap(
@@ -344,19 +344,19 @@ class WorldBootstrapTest(unittest.TestCase):
                         map_series=SERIES,
                         mwm_version=VERSION,
                     )
-                self.assertIn("CoMaps", str(ctx.exception))
+                self.assertIn("Streifzug", str(ctx.exception))
                 self.assertIsNotNone(comaps_map_host_in("https://{}/x".format(host)))
 
     def test_legacy_mapgen_fi_1_maps_base_url_refused(self):
         with self.assertRaises(MapIdentityError) as ctx:
             resolve_world_bootstrap(
-                legacy_maps_base_url="https://mapgen-fi-1.comaps.app/maps/{}/{}".format(
+                legacy_maps_base_url="https://mapgen-fi-1.streifzug.app/maps/{}/{}".format(
                     SERIES, VERSION
                 ),
                 map_series=SERIES,
                 mwm_version=VERSION,
             )
-        self.assertIn("mapgen-fi-1.comaps.app", str(ctx.exception))
+        self.assertIn("mapgen-fi-1.streifzug.app", str(ctx.exception))
 
     def test_lan_maps_base_url_refused(self):
         with self.assertRaises(MapIdentityError) as ctx:
@@ -398,7 +398,7 @@ class WorldBootstrapTest(unittest.TestCase):
                 configure_world(
                     data_dir=tmp,
                     countries_path=countries,
-                    maps_base_url="https://cdn-us-1.comaps.app/",
+                    maps_base_url="https://cdn-us-1.streifzug.app/",
                     downloader=boom,
                 )
 
@@ -452,13 +452,13 @@ class DownloadGuardTest(unittest.TestCase):
         with mock.patch("urllib.request.urlretrieve") as retrieve:
             with self.assertRaises(MapIdentityError) as ctx:
                 download_to_file(
-                    "https://mapgen-fi-1.comaps.app/maps/{}/{}/World.mwm".format(
+                    "https://mapgen-fi-1.streifzug.app/maps/{}/{}/World.mwm".format(
                         SERIES, VERSION
                     ),
                     os.path.join("unused", "World.mwm"),
                 )
             retrieve.assert_not_called()
-            self.assertIn("CoMaps", str(ctx.exception))
+            self.assertIn("Streifzug", str(ctx.exception))
 
     def test_download_404_returns_false(self):
         err = urllib.error.HTTPError(

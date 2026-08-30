@@ -5,4 +5,4 @@
 • Gereedschapsverhuurlocaties en gereedschapsbibliotheken toegevoegd, weglabels toegevoegd voor Roemenië en Marokko en gecorrigeerd voor Augsburg en A-wegen in Cyprus
 • In routeplanningsscherm de knoppen voor Voorbeeld en Opslaan vervangen door pictogrammen
 
-Meer details op comaps.app/latest
+Meer details op streifzug.app/latest

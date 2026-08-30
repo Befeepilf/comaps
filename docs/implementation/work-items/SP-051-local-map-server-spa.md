@@ -53,7 +53,7 @@ and `https://`. LAN testing can use `http://{lan-ip}:{port}/`.
   `application/octet-stream`; `countries.txt` / `maps.json` as
   `application/json` or `text/plain`.
 - Optional gzip **off** by default (client downloader expects raw bytes for SHA).
-- Range / resume: CoMaps downloaders often use ranged GETs for large MWMs —
+- Range / resume: Streifzug downloaders often use ranged GETs for large MWMs —
   **verify during implementation** against `HttpMapFilesDownloader` / Android
   HTTP stack. If ranges are required, use a server that supports them (or
   implement Range); spa files are small enough that full GET is fine, but MWM

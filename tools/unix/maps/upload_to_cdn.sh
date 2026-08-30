@@ -88,7 +88,7 @@ echo "Uploading to it1"
 rclone copy --include "*.{mwm,txt,sig}" $DIR $IT1/$MAPS &
 
 # us1 is not used for maps atm
-# rclone lsd us1:/home/dh_zzxxrk/cdn-us-1.comaps.app/maps
+# rclone lsd us1:/home/dh_zzxxrk/cdn-us-1.streifzug.app/maps
 
 wait
 

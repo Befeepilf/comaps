@@ -30,7 +30,7 @@ Werde Teil der Community und hilf mit, die beste Karten-App zu entwickeln
 • Kartenbearbeitung direkt in der App mit einem einfachen Editor
 • Unterstützung für Android Auto
 
-Bitte melde Probleme, schlage neue Funktionen vor und werde Teil der Community auf unserer Website: <b><i>comaps.app/de/</i></b>
+Bitte melde Probleme, schlage neue Funktionen vor und werde Teil der Community auf unserer Website: <b><i>streifzug.app/de/</i></b>
 
 <b>Freiheit beginnt hier</b>
 Entdecke deine Reise, wobei Datenschutz und Gemeinschaft im Vordergrund stehen!

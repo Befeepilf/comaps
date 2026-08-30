@@ -3,5 +3,5 @@
 namespace storage
 {
 std::string const kMapTestDir = "map-tests";
-std::string const kTestWebServer = "https://cdn.comaps.app";
+std::string const kTestWebServer = "https://cdn.streifzug.app";
 }  // namespace storage

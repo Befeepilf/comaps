@@ -111,7 +111,7 @@ namespace ge0
 {
 std::string GenerateShortShowMapUrl(double lat, double lon, double zoom, std::string const & name)
 {
-  std::string schema = "comaps://";
+  std::string schema = "streifzug://";
   std::string urlSample = schema + "ZCoordba64";
   size_t schemaLength = schema.size();
 

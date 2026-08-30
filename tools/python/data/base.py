@@ -52,8 +52,8 @@ def setup(
         setuptools.setup(
             name="omim-data-{}".format(suffix),
             version=str(get_version()),
-            author="CoMaps",
-            author_email="info@comaps.app",
+            author="Streifzug",
+            author_email="info@streifzug.app",
             description="This package contains {} data files.".format(suffix),
             url="https://codeberg.org/comaps",
             packages=[] if packages is None else packages,

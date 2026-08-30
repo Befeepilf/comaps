@@ -1,4 +1,4 @@
-CoMaps és una aplicació de mapes lliure i de codi obert a càrrec de la comunitat que es basa en les dades OpenStreetMap i es fonamenta en el compromís amb la transparència i la privadesa sense ànim de lucre.
+Streifzug és una aplicació de mapes lliure i de codi obert a càrrec de la comunitat que es basa en les dades OpenStreetMap i es fonamenta en el compromís amb la transparència i la privadesa sense ànim de lucre.
 
 Uneix-te a la comunitat i ajuda a crear la millor aplicació de mapes.
 • Fes servir l'aplicació i recomana-la.
@@ -30,7 +30,7 @@ Uneix-te a la comunitat i ajuda a crear la millor aplicació de mapes.
 • Millora de les dades de mapes per a tothom amb un editor integrat bàsic
 • Compatibilitat amb Android Auto
 
-Pots informar de problemes a l'aplicació, suggerir idees i unir-te a la comunitat al web <b><i>comaps.app</i></b>.
+Pots informar de problemes a l'aplicació, suggerir idees i unir-te a la comunitat al web <b><i>streifzug.app</i></b>.
 
 <b>La llibertat ha arribat</b>
 Descobreix el teu camí i explora el món amb la privadesa i la comunitat com a eix central!

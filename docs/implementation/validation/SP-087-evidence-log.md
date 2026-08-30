@@ -26,7 +26,7 @@ corrected against transcripts. Suite SHA unchanged (`5ed5e6df2`).
 | `--filter='ExplorerProAnalytics'` | **13/13** All tests passed |
 | `--filter='EverLive'` | **18/18** All tests passed (substring also matches HistoricalImport/file/weekly/ownership ever-live names) |
 | Phase 8 isolation regressions (B9) | **5/5** All tests passed |
-| `kml_tests --filter='Gpx' --suppress='Gpx_ImportExport'` | **24/25** — fail `Gpx_ColorMapExport_Test` (`creator="CoMaps"` vs golden `Organic Maps`) |
+| `kml_tests --filter='Gpx' --suppress='Gpx_ImportExport'` | **24/25** — fail `Gpx_ColorMapExport_Test` (`creator="Streifzug"` vs golden `Organic Maps`) |
 | `kml_tests --filter='Gpx' --suppress='Gpx_ImportExport\|Gpx_ColorMapExport'` | **24/24** All tests passed. Substring also matches `serdes_tests.cpp::Fix_Invisible_Color_Bug_In_Gpx_Tracks` (1 of 24). |
 | `kml_tests --filter='Gpx_ImportExport'` | **0/2** — `Gpx_ImportExport_Test`, `Gpx_ImportExportEmpty_Test` (same creator mismatch) |
 | G4 unprefixed `gpx_tests.cpp` names | **16/18** — fail `ImportExportWptColor`, `PointWithPredefinedColor` (same creator family). Extra match `ColorParser_Smoke` OK |
@@ -98,7 +98,7 @@ All tests passed.
 $ "$BIN/kml_tests" $DATA_ARGS --filter='Gpx' --suppress='Gpx_ImportExport'
 # grep -a -c '^OK$' → 24; grep -a -c '^Running ' → 25
 # 1 test failed: gpx_tests.cpp::Gpx_ColorMapExport_Test
-# creator="CoMaps" vs golden creator="Organic Maps" (color_map_dst.gpx)
+# creator="Streifzug" vs golden creator="Organic Maps" (color_map_dst.gpx)
 Some tests FAILED.
 
 $ "$BIN/kml_tests" $DATA_ARGS --filter='Gpx' --suppress='Gpx_ImportExport|Gpx_ColorMapExport'
@@ -219,7 +219,7 @@ Internal Pro walk: `-PenableExplorerProCapabilities=true`
 | F6 Historical skip invalid; no paint | agent | **Pass** | HistoricalImport_InvalidCoordinatesAreSkipped / EmptyOrInvalidGeometryDoesNotPaint |
 | F7 Isolation malformed GPX no competition | agent | **Pass** | IsolationHistoricalImport_MalformedGpxDoesNotTouchCompetition |
 | G1 Gpx family minus ImportExport / ColorMapExport | agent | **Pass** | **24/24** after suppress of creator goldens. Includes extra substring `Fix_Invisible_Color_Bug_In_Gpx_Tracks`. This Pass is parse/malformed/10k/non-roundtrip — **not** a Pass of `Gpx_ImportExport_*` |
-| G2 `Gpx_ImportExport_*` creator mismatch | — | **Residual** | **Not a Pass.** `Gpx_ImportExport_Test` and `Gpx_ImportExportEmpty_Test` fail `creator="CoMaps"` vs golden `Organic Maps`. Do not change writer |
+| G2 `Gpx_ImportExport_*` creator mismatch | — | **Residual** | **Not a Pass.** `Gpx_ImportExport_Test` and `Gpx_ImportExportEmpty_Test` fail `creator="Streifzug"` vs golden `Organic Maps`. Do not change writer |
 | G3 `Gpx_ColorMapExport_Test` | — | **Residual** | **Not a Pass.** Same `creator=` byte vs `color_map_dst.gpx`. Named in N8 24/25 fail |
 | G4 Unprefixed names | agent | **Pass** (parse/color) + **Residual** (roundtrip creator) | GoMap, GpxStudio, OsmTrack, … OK. `ImportExportWptColor` / `PointWithPredefinedColor` same creator family |
 | H1–H5 Analytics C++ | agent | **Pass** | ExplorerProAnalytics **13/13** |
@@ -245,7 +245,7 @@ Internal Pro walk: `-PenableExplorerProCapabilities=true`
 | 4 | Public-configured builds expose no GPX tooling and no purchase action | **Pass (automated + code review) + Residual (public APK dump, share-sheet, debug-entitle `nm` Phase 10)** | D1–D7 code + automated; D8 symbols remain (SP-083); D9/M4 → Phase 10. Do not Fail. Do not call the device half done |
 | 5 | Large imports complete without memory exhaustion | **Pass (automated RSS) + Residual (device multi-hour Phase 10)** | E1–E4; RSS lines under 256 MiB; chunking not required; M1 → Phase 10 |
 | 6 | Malformed input rejected cleanly | **Pass (automated)** | F1–F7; XmlParser_ **5/5**; HistoricalImport skip/empty; Isolation malformed |
-| 7 | Existing GPX tests still pass | **Pass (parse / malformed / 10k / non-roundtrip) + Residual (creator-golden roundtrips — not a Pass of ImportExport)** | G1 **24/24** after suppress. Residual goldens (do not change writer): `Gpx_ImportExport_Test`, `Gpx_ImportExportEmpty_Test`, `Gpx_ColorMapExport_Test`, `ImportExportWptColor`, `PointWithPredefinedColor` (`creator="CoMaps"` vs golden `Organic Maps`). Do not Fail exit 7 solely on those goldens. SP-085 new parse/malformed/10k/50k pass |
+| 7 | Existing GPX tests still pass | **Pass (parse / malformed / 10k / non-roundtrip) + Residual (creator-golden roundtrips — not a Pass of ImportExport)** | G1 **24/24** after suppress. Residual goldens (do not change writer): `Gpx_ImportExport_Test`, `Gpx_ImportExportEmpty_Test`, `Gpx_ColorMapExport_Test`, `ImportExportWptColor`, `PointWithPredefinedColor` (`creator="Streifzug"` vs golden `Organic Maps`). Do not Fail exit 7 solely on those goldens. SP-085 new parse/malformed/10k/50k pass |
 | 8 | Monetisation analytics only when Pro enabled in the build | **Pass (automated) + Residual (upload + device readout Phase 10)** | H1–H6; ExplorerProAnalytics **13/13**; JVM **2/2**; H7–H8 → Phase 10 |
 
 Do not mark any exit Met at the phase level. **Superseded 2026-08-28:**
@@ -258,7 +258,7 @@ product owner locked Phase 9 **Met with residuals**.
 | R1 | No handset: M1–M7 | Phase 10. Map screenshots remain forbidden. |
 | R2 | `adb` / public APK inflated settings dump / share-sheet VIEW | Phase 10 |
 | R3 | Debug-entitle grant symbols in native / public APK `nm` | **Closed in compile-out** 2026-08-28 (`#ifdef DEBUG`). Public APK `nm` still Phase 10 |
-| R4 | `Gpx_ImportExport_Test` / `Gpx_ImportExportEmpty_Test` CoMaps vs Organic Maps | **Closed** 2026-08-28: goldens `creator="CoMaps"`; writer unchanged |
+| R4 | `Gpx_ImportExport_Test` / `Gpx_ImportExportEmpty_Test` Streifzug vs Organic Maps | **Closed** 2026-08-28: goldens `creator="Streifzug"`; writer unchanged |
 | R5 | `Gpx_ColorMapExport_Test` same creator byte | **Closed** with R4 |
 | R5b | `ImportExportWptColor` / `PointWithPredefinedColor` same creator byte | **Closed** with R4 |
 | R6 | `BookmarkManagerGpxGateTest` UnsatisfiedLinkError | **Closed** 2026-08-28: lazy `getBookmarksExtensions()` |

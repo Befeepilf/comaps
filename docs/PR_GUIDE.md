@@ -40,11 +40,11 @@ This document gives some guidelines to write and review PR with essential elemen
 
 ### Reviewing pull requests of first-time contributors
 
-First-time contributors are likely to be less familiar with both the project code but also the way CoMaps as a community operates.
+First-time contributors are likely to be less familiar with both the project code but also the way Streifzug as a community operates.
 Some of them might also not be too familiar with using git (e.g. for rebasing branches or signing DCOs).
 
 For those reasons they might require more effort from reviewers. 
-At the same time, new contributors are the lifeblood that keeps CoMaps sustainable by ensuring that enough people are contributing code. For that reason, it's important to help those newcomers in their on-boarding.
+At the same time, new contributors are the lifeblood that keeps Streifzug sustainable by ensuring that enough people are contributing code. For that reason, it's important to help those newcomers in their on-boarding.
 
 To help newcomers in feeling welcome and getting onboarded, some suggestions for what to include:
 
@@ -56,9 +56,9 @@ To help newcomers in feeling welcome and getting onboarded, some suggestions for
 
 Here's a small template that can help writing feedback to first-time contributors:
 
-> Thank you so much for this contribution - and welcome to CoMaps!
+> Thank you so much for this contribution - and welcome to Streifzug!
 > 
-> For CoMaps, we use the [_Developers Certficate of Origin_](https://codeberg.org/comaps/Governance/src/branch/main/DCO.md) for contributors to certify that they wrote/have the right to submit their code to our project. This helps ensure that CoMaps can remain open source as it gives us some legal protection. You can sign it by signing your commit. The easiest way is to amend your existing commit with `git commit -s -m 'your commit message'`. If you are using the Codeberg interface you can also sign your commit by selection _"Add a Signed-off-by trailer by the committer at the end of the commit log message."_. 
+> For Streifzug, we use the [_Developers Certficate of Origin_](https://codeberg.org/comaps/Governance/src/branch/main/DCO.md) for contributors to certify that they wrote/have the right to submit their code to our project. This helps ensure that Streifzug can remain open source as it gives us some legal protection. You can sign it by signing your commit. The easiest way is to amend your existing commit with `git commit -s -m 'your commit message'`. If you are using the Codeberg interface you can also sign your commit by selection _"Add a Signed-off-by trailer by the committer at the end of the commit log message."_. 
 > 
 > If you haven't yet, you could also add yourself to our [CONTRIBUTOR](https://codeberg.org/comaps/comaps/src/branch/main/CONTRIBUTORS) file with your name or pseudonym if you want (that would also give you a chance to sign the commit if needed).
 

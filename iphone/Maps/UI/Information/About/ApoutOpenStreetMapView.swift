@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// View for the about information for CoMaps (split up in its own view because of differences between OS versions)
+/// View for the about information for Streifzug (split up in its own view because of differences between OS versions)
 struct ApoutOpenStreetMapView: View {
     // MARK: Properties
     

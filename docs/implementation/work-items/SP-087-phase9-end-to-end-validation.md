@@ -105,7 +105,7 @@ monetisation counters only when Pro is on.
 | Finding | Proposed disposition |
 | --- | --- |
 | No handset: M1–M7; public APK inflated settings dump; share-sheet VIEW; internal Pro walk; analytics upload | Phase 10. Map screenshots forbidden |
-| `Gpx_ImportExport_*` / `Gpx_ColorMapExport_Test` / `ImportExportWptColor` / `PointWithPredefinedColor` goldens | **Closed** 2026-08-28: goldens `creator="CoMaps"`; writer unchanged |
+| `Gpx_ImportExport_*` / `Gpx_ColorMapExport_Test` / `ImportExportWptColor` / `PointWithPredefinedColor` goldens | **Closed** 2026-08-28: goldens `creator="Streifzug"`; writer unchanged |
 | `BookmarkManagerGpxGateTest` UnsatisfiedLinkError | **Closed** 2026-08-28: lazy bookmark extensions |
 | `data/classificator.txt` missing; Eligibility not run | Environment residual. Do not weaken Eligibility. Do not invent the file |
 | `--suppress=Eligibility` 464/465: `PauseResume_TrackBoundary_SaveProducesSeparateLines` missing `sp010_gpstrack_test.bin` | Environment residual; not a Phase 9 exit. Do not invent the bin |

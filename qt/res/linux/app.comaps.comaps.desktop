@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Version=1.0
-Name=CoMaps
+Name=Streifzug
 Comment=Detailed Offline Maps of the World
 Comment[ast]=Mapes detallaos del mundu ensin conexón
 Comment[bg]=Детайлни офлайн карти на света
@@ -16,8 +16,8 @@ Comment[ru]=Подробная оффлайновая карта мира
 Comment[sr]=Детаљна офлајн мапа света
 Comment[uk]=Детальні офлайн-карти світу
 Icon=comaps
-TryExec=CoMaps
-Exec=CoMaps
+TryExec=Streifzug
+Exec=Streifzug
 Categories=Maps;Education;Geography;Geoscience;Qt;
-Keywords=Map;Maps;Offline Maps;CoMaps;OSM;OpenStreetMap;
+Keywords=Map;Maps;Offline Maps;Streifzug;OSM;OpenStreetMap;
 X-KDE-FormFactor=desktop;tablet;handset;

@@ -39,7 +39,7 @@ Principais recursos:
 • Aprimore os dados do mapa para todos usando um editor básico integrado
 • Suporte para Android Auto
 
-Por favor, reporte problemas com o aplicativo, sugira ideias e junte-se à nossa comunidade no site <b><i>comaps.app</i></b>.
+Por favor, reporte problemas com o aplicativo, sugira ideias e junte-se à nossa comunidade no site <b><i>streifzug.app</i></b>.
 
 <b>A Liberdade Chegou</b>
 Descubra sua jornada, navegue pelo mundo com privacidade e comunidade em primeiro lugar!

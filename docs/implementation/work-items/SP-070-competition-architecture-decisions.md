@@ -66,7 +66,7 @@ nicknames, which **are unique**):
 | OQ-4 | Public nicknames **unique** (spec §20.4 divergence) | **SPD-059** |
 | OQ-3 | Monday 00:00 city IANA TZ, else UTC | **SPD-060** |
 | OQ-6 | Hide friends in public Android V1 | **SPD-061** |
-| OQ-7 | `https://api.comaps.app/api/v1/competition/`; EU; retain until delete or 24 months idle | **SPD-062** |
+| OQ-7 | `https://api.streifzug.app/api/v1/competition/`; EU; retain until delete or 24 months idle | **SPD-062** |
 | C1 / C2 | Sparse HEALPix recency; seed at first opt-in | **SPD-063** |
 | C3 / C4 | Re-prompt consent; discard `explore_stats.json` | **SPD-064** |
 | C5–C8 | Django app `competition/`; clamp; OSM ids; score version 1 | **SPD-065** |

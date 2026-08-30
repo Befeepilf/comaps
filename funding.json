@@ -4,21 +4,21 @@
     "entity": {
         "type": "group",
         "role": "owner",
-        "name": "CoMaps",
-        "email": "hello@comaps.app",
-        "description": "CoMaps is a community-led, not-for-profit project that builds a free, open source, privacy-respecting maps and navigation app based on OpenStreetMap data. It is a community fork of Organic Maps, created out of a desire for open, transparent, and community-driven governance. The project has no investors and is funded entirely by donations from people who use and value the app. Funds are held transparently through Open Collective via our fiscal host, Platform 6 Development Co-operative Limited.",
+        "name": "Streifzug",
+        "email": "hello@streifzug.app",
+        "description": "Streifzug is a community-led, not-for-profit project that builds a free, open source, privacy-respecting maps and navigation app based on OpenStreetMap data. It is a community fork of Organic Maps, created out of a desire for open, transparent, and community-driven governance. The project has no investors and is funded entirely by donations from people who use and value the app. Funds are held transparently through Open Collective via our fiscal host, Platform 6 Development Co-operative Limited.",
         "webpageUrl": {
-            "url": "https://www.comaps.app/",
-            "wellKnown": "https://www.comaps.app/.well-known/funding-manifest-urls"
+            "url": "https://www.streifzug.app/",
+            "wellKnown": "https://www.streifzug.app/.well-known/funding-manifest-urls"
         }
     },
     "projects": [{
         "guid": "comaps",
-        "name": "CoMaps",
-        "description": "A free and open source, privacy-first maps and navigation app for Android, iOS, macOS, and Linux. CoMaps provides worldwide offline maps and turn-by-turn walking, cycling, and driving navigation built on OpenStreetMap data, with no tracking, no data collection, and no ads. It is a community-led fork of Organic Maps (originally based on MAPS.ME), operated for the public good rather than shareholder profit. Donations fund map data updates, infrastructure and server costs, and contributor time across software development, design, and community work.",
+        "name": "Streifzug",
+        "description": "A free and open source, privacy-first maps and navigation app for Android, iOS, macOS, and Linux. Streifzug provides worldwide offline maps and turn-by-turn walking, cycling, and driving navigation built on OpenStreetMap data, with no tracking, no data collection, and no ads. It is a community-led fork of Organic Maps (originally based on MAPS.ME), operated for the public good rather than shareholder profit. Donations fund map data updates, infrastructure and server costs, and contributor time across software development, design, and community work.",
         "webpageUrl": {
-            "url": "https://www.comaps.app/",
-            "wellKnown": "https://www.comaps.app/.well-known/funding-manifest-urls"
+            "url": "https://www.streifzug.app/",
+            "wellKnown": "https://www.streifzug.app/.well-known/funding-manifest-urls"
         },
         "repositoryUrl": {
             "url": "https://codeberg.org/comaps/comaps",
@@ -38,7 +38,7 @@
             {
                 "guid": "liberapay",
                 "type": "payment-provider",
-                "address": "https://liberapay.com/CoMaps",
+                "address": "https://liberapay.com/Streifzug",
                 "description": "Recurring donations via Liberapay, paid by credit/debit card (Stripe) or PayPal."
             }
         ],

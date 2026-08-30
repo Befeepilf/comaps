@@ -29,7 +29,7 @@ Aplicación de mapas gratuíta, de código aberto e xestionada pola comunidade, 
 • Modo escuro para a noite
 • Contribúe a mellorar o mapa para todas as persoas usando o editor básico incluído
 
-Por favor informa de calquera incidencia que xurda así como suxire novas funcións na nosa comunidade en <b><i>comaps.app</i></b>
+Por favor informa de calquera incidencia que xurda así como suxire novas funcións na nosa comunidade en <b><i>streifzug.app</i></b>
 
 <b>Aquí es Libre</b>
 Atopa o teu camiño, navega polo mundo con privacidade e coa comunidade como prioridade!

@@ -184,7 +184,7 @@ build()
       [ "$ARCH_OUTPUT" == "aarch64" ] && [ ARCH_OUTPUT = "arm64" ]
 
       VERSION=$($OMIM_PATH/tools/unix/version.sh qt_version);
-      export OUTPUT="CoMaps-$ARCH_OUTPUT-$VERSION.appimage"
+      export OUTPUT="Streifzug-$ARCH_OUTPUT-$VERSION.appimage"
       if [ -n "${TAG:-}" ]; then
         export UPDATE_INFORMATION="zsync|https://codeberg.org/comaps/comaps/releases/download/$TAG/$OUTPUT"
       fi

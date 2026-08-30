@@ -30,7 +30,7 @@ Topluluğa katılın ve en iyi harita uygulamasını oluşturmamıza yardım edi
 • Uygulama içi düzenleyiciyi kullanarak harita verilerini herkes için daha iyi hale getirin
 • Android Auto desteği
 
-Lütfen <b><i>comaps.app</i></b> adresinden uygulama sorunlarını bildirin, önerilerinizi paylaşın ve topluluğumuza katılın.
+Lütfen <b><i>streifzug.app</i></b> adresinden uygulama sorunlarını bildirin, önerilerinizi paylaşın ve topluluğumuza katılın.
 
 <b>Özgürlük Buradan Başlıyor</b>
 Yolculuğunuzun ötesine geçin, gizlilik ve topluluğu ön planda tutarak dünyada gezinin!

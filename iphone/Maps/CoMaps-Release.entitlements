@@ -6,6 +6,7 @@
 	<string>development</string>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
+		<string>applinks:streifzug.app</string>
 		<string>applinks:comaps.at</string>
 	</array>
 	<key>com.apple.developer.carplay-maps</key>

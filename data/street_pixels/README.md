@@ -23,7 +23,7 @@ Top-level fields:
 
 Per-country fields:
 
-- `mwm_root_ids` (string array) — CoMaps MWM root ids that map to this country
+- `mwm_root_ids` (string array) — Streifzug MWM root ids that map to this country
   (exact match, or any leaf whose id starts with `<root>_`). When multiple
   roots match, the longest root wins (regional roots beat shorter country
   roots).

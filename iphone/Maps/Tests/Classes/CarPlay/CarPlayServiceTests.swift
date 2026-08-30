@@ -1,7 +1,7 @@
 import CarPlay
 import XCTest
 import UIKit
-@testable import CoMaps__Debug_
+@testable import Streifzug__Debug_
 
 final class CarPlayServiceTests: XCTestCase {
 

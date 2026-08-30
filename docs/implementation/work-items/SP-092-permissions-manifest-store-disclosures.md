@@ -26,7 +26,7 @@ marketing/brand is residual.
 
 ## Motivation
 
-The google Play `en-US` full description is still generic CoMaps and
+The google Play `en-US` full description is still generic Streifzug and
 lists GPX import/export. Help and listing still imply a tracker-free
 OSM app. `add-friend` intent-filters are registered. Data-safety
 questionnaires are not in this repository as Street Pixels answers.
@@ -51,7 +51,7 @@ launch blocker even if the binary is correct.
   behaviour: Google Play `google` is the V1 gate; no purchase; no
   ungated GPX claim in *factual* data-safety answers. Do **not**
   rewrite Play listing brand copy, application name, Help title, or
-  location rationale that says “CoMaps” (residual).
+  location rationale that says “Streifzug” (residual).
 - Data-safety answers as a checked-in document under
   `docs/implementation/` (or Play metadata path if one exists) that
   a human can paste into Play Console: location (not shared except
@@ -59,7 +59,7 @@ launch blocker even if the binary is correct.
   Factual questionnaire only; marketing listing identity residual.
 - Permission rationale strings: session recording; not bundled with
   competition (already `track_recording_location_rationale`). Do **not**
-  drop leftover “CoMaps” product name in this item (brand residual).
+  drop leftover “Streifzug” product name in this item (brand residual).
 - Confirm public builds present no purchase/restore (SPD-010).
 - Confirm `FOREGROUND_SERVICE_LOCATION` matches `TrackRecordingService`
   / `NavigationService` types.
@@ -162,7 +162,7 @@ Permission → code path → store disclosure line. Source manifests:
 | `androidx.car.app.ACCESS_SURFACE` | `CarAppService` | Android Auto surface. |
 | `${applicationId}.permission.READ_NAVIGATION_DATA` (defined) | `NavigationContentProvider` | Custom permission other apps must hold. Not Play collection. |
 
-Friends: dedicated `comaps://add-friend` and HTTPS `comaps.app/add-friend` intent-filters **removed** from the main manifest (**SPD-085**). Flavor overlays `debug` / `beta` do not add them. `FriendSettingsVisibility.showAddFriendOnboarding` is false in public V1. `MyAccountDialogFragment.showWithAddFriend` no-ops. `MwmActivity.processIntent` and Android Auto navigation swallow leftover `add-friend` URIs (case-insensitive) that generic `comaps://` or `https://comaps.at` VIEW filters can still deliver; `ExploreDeepLink.shouldPresentAddFriendOnboarding` is false. `PublicManifestAssertionsTest` asserts the **merged** `googleDebug` manifest, not only source XML.
+Friends: dedicated `streifzug://add-friend` and HTTPS `streifzug.app/add-friend` intent-filters **removed** from the main manifest (**SPD-085**). Flavor overlays `debug` / `beta` do not add them. `FriendSettingsVisibility.showAddFriendOnboarding` is false in public V1. `MyAccountDialogFragment.showWithAddFriend` no-ops. `MwmActivity.processIntent` and Android Auto navigation swallow leftover `add-friend` URIs (case-insensitive) that generic `streifzug://` or `https://streifzug.app` VIEW filters can still deliver; `ExploreDeepLink.shouldPresentAddFriendOnboarding` is false. `PublicManifestAssertionsTest` asserts the **merged** `googleDebug` manifest, not only source XML.
 
 Purchase: no `BillingClient` / Play Billing in `android/app` or `android/sdk` Java (**SPD-010**). Re-run `ExplorerProGateTest` (capabilities closed when native is not ready / public flags off).
 
@@ -174,7 +174,7 @@ Purchase: no `BillingClient` / Play Billing in `android/app` or `android/sdk` Ja
 | Permission inventory | See table above. |
 | Listing brand copy | Residual (not rewritten). `android/app/src/google/play/listings/**` and F-Droid listing paths untouched. |
 | Data-safety doc | `docs/implementation/play-data-safety.md` |
-| Test output | Independent review re-run: `./gradlew :app:testGoogleDebugUnitTest --tests 'app.organicmaps.settings.PublicManifestAssertionsTest' --tests 'app.organicmaps.settings.FriendSettingsVisibilityTest' --tests 'app.organicmaps.settings.PublicSettingsVisibilityTest' --tests 'app.organicmaps.settings.ExploreDeepLinkTest'` → **BUILD SUCCESSFUL**. JUnit XML: PublicManifestAssertionsTest **6/6**, FriendSettingsVisibilityTest **7/7**, PublicSettingsVisibilityTest **1/1**, ExploreDeepLinkTest **3/3** (0 failures). `:sdk:testDebugUnitTest --tests 'app.organicmaps.sdk.ExplorerProGateTest' --tests 'app.organicmaps.sdk.ExplorerProAnalyticsTest' --rerun-tasks` → **BUILD SUCCESSFUL**. ExplorerProGateTest **11/11**, ExplorerProAnalyticsTest **2/2**. Merged `googleDebug` `processGoogleDebugMainManifest` and Sentry merged manifests: no `ACCESS_BACKGROUND_LOCATION`, no `add-friend`; `TrackRecordingService` / `NavigationService` `foregroundServiceType="location"`. Listing paths and CoMaps strings not rewritten. |
+| Test output | Independent review re-run: `./gradlew :app:testGoogleDebugUnitTest --tests 'app.organicmaps.settings.PublicManifestAssertionsTest' --tests 'app.organicmaps.settings.FriendSettingsVisibilityTest' --tests 'app.organicmaps.settings.PublicSettingsVisibilityTest' --tests 'app.organicmaps.settings.ExploreDeepLinkTest'` → **BUILD SUCCESSFUL**. JUnit XML: PublicManifestAssertionsTest **6/6**, FriendSettingsVisibilityTest **7/7**, PublicSettingsVisibilityTest **1/1**, ExploreDeepLinkTest **3/3** (0 failures). `:sdk:testDebugUnitTest --tests 'app.organicmaps.sdk.ExplorerProGateTest' --tests 'app.organicmaps.sdk.ExplorerProAnalyticsTest' --rerun-tasks` → **BUILD SUCCESSFUL**. ExplorerProGateTest **11/11**, ExplorerProAnalyticsTest **2/2**. Merged `googleDebug` `processGoogleDebugMainManifest` and Sentry merged manifests: no `ACCESS_BACKGROUND_LOCATION`, no `add-friend`; `TrackRecordingService` / `NavigationService` `foregroundServiceType="location"`. Listing paths and Streifzug strings not rewritten. |
 | Accepted by | product owner (implement → review lock 2026-08-29) |
 | Accepted date | 2026-08-29 |
 
@@ -182,11 +182,11 @@ Purchase: no `BillingClient` / Play Billing in `android/app` or `android/sdk` Ja
 
 | Finding | Proposed disposition |
 | --- | --- |
-| Generic `comaps://` scheme and host-wide `https://comaps.at` filters can still deliver `…/add-friend` URIs to SplashActivity | Record. Dedicated filters removed. Splitting ge0-style `comaps://` hosts would break map links. Code now swallows case-insensitively and `shouldPresentAddFriendOnboarding` is false in public V1. |
-| Help / listing still CoMaps; location rationale still allowed to say CoMaps | Residual **SPD-079 / SPD-084 / SPD-080**. Not rewritten. |
+| Generic `streifzug://` scheme and host-wide `https://streifzug.app` filters can still deliver `…/add-friend` URIs to SplashActivity | Record. Dedicated filters removed. Splitting ge0-style `streifzug://` hosts would break map links. Code now swallows case-insensitively and `shouldPresentAddFriendOnboarding` is false in public V1. |
+| Help / listing still Streifzug; location rationale still allowed to say Streifzug | Residual **SPD-079 / SPD-084 / SPD-080**. Not rewritten. |
 | Play Data safety form still needs a privacy-policy URL | SP-093 residual. Questionnaire checked in without inventing the URL. |
 | Sentry installation IDs / interaction breadcrumbs | Declared as service-provider collection in the questionnaire. Device capture that a Play build’s Sentry project has no screenshots remains SP-095 / SP-097. |
-| `https://comaps.app/add-friend` App Link `autoVerify` filter removed; `comaps.at` autoVerify map links remain | Expected. Do not re-add add-friend App Links. |
+| `https://streifzug.app/add-friend` App Link `autoVerify` filter removed; `streifzug.app` autoVerify map links remain | Expected. Do not re-add add-friend App Links. |
 | Phase 10 / SP-088 architecture snapshots still say add-friend filters are registered | Dated planning notes. Code is source of truth after this item. |
 | ABL Play background-location declaration | Out of scope unless a later SPD adds ABL after D2 (**SPD-082**). Source uses `tools:node="remove"` so libraries cannot merge it. Merger warns that no other ABL declaration is present; expected until a library actually ships ABL. |
 | OSM editor user-generated content was missing from the first questionnaire draft | Added to `play-data-safety.md` in independent review. |

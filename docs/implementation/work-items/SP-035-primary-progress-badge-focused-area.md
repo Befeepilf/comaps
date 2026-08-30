@@ -86,7 +86,7 @@ Phase 4 `DisplayName` exists but is not wired to the badge.
 | --- | --- |
 | Branch | `cursor/sp-035-focused-area-badge-191e` |
 | Test output | `street_pixels_tests` 196/196 (6 FocusedAreaBadge_* / LookupExplorationAreaAtPoint_*); `street_pixels_areas_tests` 50/50 |
-| Manual validation | Desktop interactive harness `focused_area_badge_desktop_demo` on DISPLAY=:1 — all 8 UI steps + scripted pass PASS (2026-08-07). Recording: `/opt/cursor/artifacts/sp035-focused-area-badge-desktop-demo.mp4`. Note: CoMaps Qt has no Street Pixels badge UI; harness exercises the same manager APIs Android binds. Helsinki device badge residual → SP-041 / Phase 10 |
+| Manual validation | Desktop interactive harness `focused_area_badge_desktop_demo` on DISPLAY=:1 — all 8 UI steps + scripted pass PASS (2026-08-07). Recording: `/opt/cursor/artifacts/sp035-focused-area-badge-desktop-demo.mp4`. Note: Streifzug Qt has no Street Pixels badge UI; harness exercises the same manager APIs Android binds. Helsinki device badge residual → SP-041 / Phase 10 |
 | Accepted by | Maintainer (accept 2026-08-07) |
 | Accepted date | 2026-08-07 |
 
@@ -99,5 +99,5 @@ Phase 4 `DisplayName` exists but is not wired to the badge.
 | R8 stripped JNI-only `FocusedAreaProgress` ctor → `mid == null` SIGABRT on test/release | Fixed with `@Keep` |
 | Badge did not update on pan or GPS-fixed-inside-area | Android only rebound the badge on `StreetPixelsState` READY. Location updates still call `RefreshStreetPixelsFocusFromViewport`. Pan/zoom focus is **not** every `OnViewportChanged` (that stalled pan at ~10 FPS with the overlay on). Drape `OnMapIdle` (finger-up, kinetic end, scale-end) runs `RefreshStreetPixelsFocusFromPanEnd`. Pixel 10a Helsinki pan + badge confirmed 2026-08-17; remaining walks → SP-041 / Phase 10 |
 | Badge hides when no focus / blank name (no-area stub) | SP-040 empty-state polish |
-| CoMaps Qt desktop has no Street Pixels badge chrome | Validated via `tools/focused_area_badge_desktop_demo`; product UI remains Android |
+| Streifzug Qt desktop has no Street Pixels badge chrome | Validated via `tools/focused_area_badge_desktop_demo`; product UI remains Android |
 | Helsinki on-device badge spot-check | SP-041 / Phase 10 |
