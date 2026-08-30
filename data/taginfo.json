@@ -3,13 +3,13 @@
     "data_url": "https://codeberg.org/comaps/comaps/raw/branch/main/data/taginfo.json",
     "data_updated": "20260720T232721Z",
     "project": {
-        "name": "CoMaps",
-        "description": "CoMaps is a community-focused privacy navigation iOS & Android app for travelers - drivers, hikers, and cyclists.",
-        "project_url": "https://comaps.app",
+        "name": "Streifzug",
+        "description": "Streifzug is a community-focused privacy navigation iOS & Android app for travelers - drivers, hikers, and cyclists.",
+        "project_url": "https://streifzug.app",
         "doc_url": "https://codeberg.org/comaps/comaps/",
         "icon_url": "https://codeberg.org/comaps/comaps/media/branch/main/docs/badges/logo.svg",
-        "contact_name": "CoMaps",
-        "contact_email": "hello@comaps.app"
+        "contact_name": "Streifzug",
+        "contact_email": "hello@streifzug.app"
     },
     "tags": [
         {

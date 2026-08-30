@@ -116,7 +116,7 @@ UNIT_TEST(IdentityStore_RejectsInvalidNicknames)
   ExpectInvalidAndUnpersisted(zwsp);
   ExpectInvalidAndUnpersisted("comaps admin");
   ExpectInvalidAndUnpersisted("street pixels staff");
-  ExpectInvalidAndUnpersisted("COMAPS-ADMIN");
+  ExpectInvalidAndUnpersisted("STREIFZUG-ADMIN");
   ExpectInvalidAndUnpersisted("Buy Followers");
 }
 

@@ -2,7 +2,7 @@ import WidgetKit
 import SwiftUI
 
 @main
-struct CoMapsWidgetExtensionBundle: WidgetBundle {
+struct StreifzugWidgetExtensionBundle: WidgetBundle {
   var body: some Widget {
     TrackRecordingLiveActivityConfiguration()
   }

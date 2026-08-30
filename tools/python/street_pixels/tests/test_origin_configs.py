@@ -41,7 +41,7 @@ class OriginConfigTest(unittest.TestCase):
             self.assertIn(ext.lstrip("."), active)
         self.assertNotIn("enable-debug-routes", active)
         self.assertNotIn("/debug/inventory", active)
-        self.assertNotIn("comaps.app", active)
+        self.assertNotIn("streifzug.app", active)
         self.assertNotIn("comaps.tech", active)
         self.assertNotIn("/spa/", active)
 
@@ -55,7 +55,7 @@ class OriginConfigTest(unittest.TestCase):
         self.assertIn(_DOCROOT, active)
         self.assertNotIn("enable-debug-routes", active)
         self.assertNotIn("/debug/inventory", active)
-        self.assertNotIn("comaps.app", active)
+        self.assertNotIn("streifzug.app", active)
         self.assertNotIn("comaps.tech", active)
         self.assertNotIn("/spa/", active)
         self.assertNotIn("browse", active)

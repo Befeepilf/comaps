@@ -57,7 +57,7 @@ std::string_view constexpr kKmlFooter =
     "</Document>\n"
     "</kml>\n";
 
-std::string_view constexpr kExtendedDataHeader = "<ExtendedData xmlns:mwm=\"https://comaps.app\">\n";
+std::string_view constexpr kExtendedDataHeader = "<ExtendedData xmlns:mwm=\"https://streifzug.app\">\n";
 
 std::string_view constexpr kExtendedDataFooter = "</ExtendedData>\n";
 
@@ -147,7 +147,7 @@ void SaveStyle(Writer & writer, std::string const & style, std::string_view cons
   writer << indent << kIndent2 << "<Style id=\"" << style << "\">\n"
          << indent << kIndent4 << "<IconStyle>\n"
          << indent << kIndent6 << "<Icon>\n"
-         << indent << kIndent8 << "<href>https://comaps.at/placemarks/" << style << ".png</href>\n"
+         << indent << kIndent8 << "<href>https://streifzug.app/placemarks/" << style << ".png</href>\n"
          << indent << kIndent6 << "</Icon>\n"
          << indent << kIndent4 << "</IconStyle>\n"
          << indent << kIndent2 << "</Style>\n";
@@ -1009,7 +1009,7 @@ void KmlParser::Pop(std::string_view tag)
   {
     // This code assumes that <Style> is stored inside <Placemark>.
     // It is a violation of KML format, but it must be here to support
-    // loading of KML files which were stored by older versions of CoMaps.
+    // loading of KML files which were stored by older versions of Streifzug.
     TrackLayer layer;
     layer.m_lineWidth = m_trackWidth;
     // Fix wrongly parsed transparent color, see https://github.com/organicmaps/organicmaps/issues/5800

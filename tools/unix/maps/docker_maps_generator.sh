@@ -7,7 +7,7 @@ echo "<$(date +%T)> Starting..."
 # Prepare paths
 # Most other paths in /mnt/4tbexternal or /home/planet are already created by Dockerfile or CI/CD.
 #
-mkdir -p /root/.config/CoMaps # Odd mkdir permission errors in generator_tool in Docker without these
+mkdir -p /root/.config/Streifzug # Odd mkdir permission errors in generator_tool in Docker without these
 chmod -R 777 /root/.config
 mkdir -p /home/planet/postcodes/gb-postcode-data/
 mkdir -p /home/planet/postcodes/us-postcodes/

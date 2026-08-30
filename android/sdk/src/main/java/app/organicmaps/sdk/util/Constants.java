@@ -17,8 +17,8 @@ public final class Constants
      */
     @Deprecated
     public static final String SHORT_SHARE_PREFIX_OLD = "cm://";
-    public static final String SHORT_SHARE_PREFIX = "comaps://";
-    public static final String HTTP_SHARE_PREFIX = "https://comaps.at/";
+    public static final String SHORT_SHARE_PREFIX = "streifzug://";
+    public static final String HTTP_SHARE_PREFIX = "https://streifzug.app/";
 
     public static final String MAILTO_SCHEME = "mailto:";
     public static final String MAIL_SUBJECT = "?subject=";
@@ -26,8 +26,8 @@ public final class Constants
 
     public static final String MATRIX = "https://matrix.to/#/%23comaps:matrix.org";
     public static final String MASTODON = "https://floss.social/@comaps";
-    public static final String LEMMY = "https://sopuli.xyz/c/CoMaps";
-    public static final String BLUESKY = "https://bsky.app/profile/comaps.app";
+    public static final String LEMMY = "https://sopuli.xyz/c/Streifzug";
+    public static final String BLUESKY = "https://bsky.app/profile/streifzug.app";
     public static final String PIXELFED = "https://pixelfed.social/comaps";
     public static final String CODE_REPO = "https://codeberg.org/comaps/comaps";
 

@@ -19,7 +19,7 @@ base explicit per build configuration.
 address on someone's home network, over plain HTTP. It is overridable through
 the `Explore.ApiBaseUrl` setting, and `android/sdk/build.gradle` does inject an
 `EXPLORE_API_BASE_URL` BuildConfig value that release and beta builds set to
-`https://api.comaps.app/api`, applied in `OrganicMaps.java` during platform
+`https://api.streifzug.app/api`, applied in `OrganicMaps.java` during platform
 initialisation. But the C++ default remains the LAN address for any path that
 resolves before the override is applied, and for any consumer that is not the
 Android app.
@@ -159,10 +159,10 @@ These belong in the SP-002 test target.
 | Commits | `7219de4be2`–`9258adec24` on `street-pixels` (map fail-closed, Android BuildConfig, `street_pixels_tests`, egress docs) |
 | Egress inventory | [baseline.md §8](../baseline.md#8-network-egress-inventory-sp-004) |
 | Unconfigured-state behaviour chosen | Empty `GetApiBaseUrl()`; `IsApiConfigured()`; callers no-op before HTTP |
-| Build type and flavor to API base mapping | debug `""`; release/beta `https://api.comaps.app/api`; all flavors inherit SDK build type; optional `-PexploreApiBaseUrl` |
+| Build type and flavor to API base mapping | debug `""`; release/beta `https://api.streifzug.app/api`; all flavors inherit SDK build type; optional `-PexploreApiBaseUrl` |
 | Desktop build and tests | `build_omim.sh -d street_pixels_tests` exit 0; `ctest -R '^street_pixels_tests$'` **11/11 passed** (2026-07-26) |
 | Android build | `assembleWebDebug` and `assembleWebBeta -Parm64` exit 0 (maintainer, 2026-07-26) |
-| BuildConfig verification | `generateDebugBuildConfig` → `""`; release/beta → `https://api.comaps.app/api` |
+| BuildConfig verification | `generateDebugBuildConfig` → `""`; release/beta → `https://api.streifzug.app/api` |
 | LAN string audit | No `192.168.178.89` in compiled sources (removed from `backend_config`, `build.gradle`, `network_security_config.xml`) |
 | Implemented by | Cursor agent, 2026-07-26 |
 | Independent reviewer | Maintainer |
@@ -178,4 +178,4 @@ These belong in the SP-002 test target.
 | `/stats/upload` endpoint missing on backend | Phase 8 |
 | Friends feature vs V1 non-goal | OQ-6; not resolved in SP-004 |
 | `network_security_config.xml` still permits cleartext globally (`base-config cleartextTrafficPermitted="true"`) | Audit separately; SP-004 removed developer LAN domain only |
-| 2026-07-26 inventory lists CoMaps map CDNs as app egress | SP-101: stock path uses Street Pixels origin (`private.h` template); Geofabrik is build-host only. Note in [baseline.md §8](../baseline.md#8-network-egress-inventory-sp-004). Public URL is SP-102. Do not bake LAN Custom Maps (D12). |
+| 2026-07-26 inventory lists Streifzug map CDNs as app egress | SP-101: stock path uses Street Pixels origin (`private.h` template); Geofabrik is build-host only. Note in [baseline.md §8](../baseline.md#8-network-egress-inventory-sp-004). Public URL is SP-102. Do not bake LAN Custom Maps (D12). |

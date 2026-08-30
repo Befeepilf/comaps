@@ -18,9 +18,9 @@ rm -rf "$ARCHIVE_PATH"
 
 # Build release archive.
 xcodebuild archive \
-    -workspace "$SCRIPT_DIR/../xcode/CoMaps.xcworkspace" \
+    -workspace "$SCRIPT_DIR/../xcode/Streifzug.xcworkspace" \
     -configuration Release \
-    -scheme CoMaps \
+    -scheme Streifzug \
     -destination generic/platform=iOS \
     -archivePath "$ARCHIVE_PATH" \
     MARKETING_VERSION="$IOS_VERSION" \

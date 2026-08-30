@@ -18,12 +18,12 @@
       [activityType isEqualToString:@"com.facebook.Facebook.ShareExtension"] ||
       [activityType.lowercaseString rangeOfString:@"facebook"].length)
   {
-    NSString * url = [NSString stringWithFormat:@"https://comaps.app/fb-editor-v1?lang=%@",
+    NSString * url = [NSString stringWithFormat:@"https://streifzug.app/fb-editor-v1?lang=%@",
                       @(languages::GetCurrentNorm().c_str())];
     return [NSURL URLWithString:url];
   }
 
-  NSString * comapsURL = @"https://comaps.app/get";
+  NSString * comapsURL = @"https://streifzug.app/get";
   if ([activityType isEqualToString:UIActivityTypePostToTwitter] || [activityType isEqualToString:UIActivityTypeMail])
     return [NSString stringWithFormat:@"%@ %@", L(@"whatsnew_editor_message_1"), comapsURL];
 

@@ -6,4 +6,4 @@
 • Aggiunti simboli stradali ai segnali di direzione e migliori descrizioni delle manovre
 • Ricerca in tutte le liste dei preferiti
 
-Maggiori dettagli su comaps.app/latest
+Maggiori dettagli su streifzug.app/latest

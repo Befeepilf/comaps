@@ -4,7 +4,7 @@
 **Decisions:** SPD-036, SPD-037, SPD-087, SPD-091, SPD-092, SPD-093.
 **Work item:** [SP-101-independent-map-identity.md](../work-items/SP-101-independent-map-identity.md).
 
-Street Pixels stock builds must not use CoMaps map CDNs or the CoMaps
+Street Pixels stock builds must not use Streifzug map CDNs or the Streifzug
 `COUNTRIES_TXT_SIGNATURE_HEX`. Channel A still verifies Ed25519
 (`openssl pkeyutl -sign -rawin`, same as `maps_generator.utils.file.sign_file`).
 Do **not** skip verification when the origin is ours (**SPD-091**).
@@ -14,8 +14,8 @@ Do **not** skip verification when the origin is ours (**SPD-091**).
 ## `private.h` fields (gitignored and untracked)
 
 `private.h` is listed in `.gitignore` **and is not tracked**. A tracked
-header previously shipped CoMaps `METASERVER_URL` / `DEFAULT_URLS_JSON`
-(including `mapgen-fi-1.comaps.app`) and CoMaps `COUNTRIES_TXT_SIGNATURE_HEX`;
+header previously shipped Streifzug `METASERVER_URL` / `DEFAULT_URLS_JSON`
+(including `mapgen-fi-1.streifzug.app`) and Streifzug `COUNTRIES_TXT_SIGNATURE_HEX`;
 gitignore does not apply to tracked files. Clones do not receive `private.h`.
 
 When `private.h` is missing:
@@ -39,7 +39,7 @@ and replace placeholders.
 | `COUNTRIES_TXT_SIGNATURE_HEX` | 64 hex chars = 32-byte Ed25519 **public** key. Template zeros are not a production key. |
 | `MAP_SERIES` | Stay `2026.06.28` (**SPD-092**) unless compatibility requires a bump. |
 
-OSM OAuth client IDs in the template are the existing in-tree CoMaps/OSM
+OSM OAuth client IDs in the template are the existing in-tree Streifzug/OSM
 values. Do not put production Ed25519 secret PEMs or a live `private.h` in git.
 
 Placeholder origin `https://maps.example.invalid/` is RFC 2606 `.invalid`.
@@ -131,9 +131,9 @@ override (D12); do not bake a LAN Custom Maps URL into `DEFAULT_URLS_JSON`.
 `python3 -m street_pixels.map_identity ensure-private-h` and
 `configure-world`. Without that `PYTHONPATH`, `python3 -m street_pixels.map_identity`
 from the repo root fails (`No module named 'street_pixels'`). It does **not**
-default to `mapgen-fi-1.comaps.app`. CoMaps map hosts are refused. WorldCoasts
+default to `mapgen-fi-1.streifzug.app`. Streifzug map hosts are refused. WorldCoasts
 is optional (**SPD-094**): a 404 or missing local coasts file omits coasts;
-configure does not fall back to CoMaps.
+configure does not fall back to Streifzug.
 
 | Input | Effect |
 | --- | --- |
@@ -141,8 +141,8 @@ configure does not fall back to CoMaps.
 | Existing `data/world_mwm/<v>/World.mwm` or `data/World.mwm` | Keep; no download. |
 | `STREET_PIXELS_LOCAL_WORLD=/path/to/World.mwm` | Copy into `data/world_mwm/<v>/` and symlink `data/World.mwm`. Sibling `WorldCoasts.mwm` copied if present. |
 | `STREET_PIXELS_WORLD_DIR=/dir` | Copy `World.mwm` from that directory (or `world_mwm/<v>/` under it). |
-| `STREET_PIXELS_MAPS_BASE_URL=https://<our-origin>/` | Fetch `{base}/maps/{MAP_SERIES}/{v}/World.mwm` (SPD-035 layout). Must be HTTPS, not a CoMaps host, not a private-range IP. Public origin recipe: [sp-102-publish-and-serve-origin.md](sp-102-publish-and-serve-origin.md). Git template remains `https://maps.example.invalid/`. |
-| `MAPS_BASE_URL` | Legacy alias used only when `STREET_PIXELS_MAPS_BASE_URL` is empty. CoMaps values are refused; there is no mapgen-fi-1 fallback. |
+| `STREET_PIXELS_MAPS_BASE_URL=https://<our-origin>/` | Fetch `{base}/maps/{MAP_SERIES}/{v}/World.mwm` (SPD-035 layout). Must be HTTPS, not a Streifzug host, not a private-range IP. Public origin recipe: [sp-102-publish-and-serve-origin.md](sp-102-publish-and-serve-origin.md). Git template remains `https://maps.example.invalid/`. |
+| `MAPS_BASE_URL` | Legacy alias used only when `STREET_PIXELS_MAPS_BASE_URL` is empty. Streifzug values are refused; there is no mapgen-fi-1 fallback. |
 | None of the above, and no local World | **Error** with SPD-087 instructions. |
 
 Example (developers without an origin yet):
@@ -161,7 +161,7 @@ STREET_PIXELS_WORLD_DIR=/path/to/mwm_dir ./configure.sh
 
 ## Egress note
 
-App map downloads use the Street Pixels origin in `private.h`, not CoMaps
+App map downloads use the Street Pixels origin in `private.h`, not Streifzug
 CDNs. Geofabrik / planet.openstreetmap.org remain **build-host** extract
 sources for SP-100 mapgen, not APK egress. See
 [baseline.md §8](../baseline.md#8-network-egress-inventory-sp-004).

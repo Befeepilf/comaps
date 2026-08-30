@@ -31,7 +31,7 @@ Phase 10 exit #10 and #11 are the risk register and store signing.
 The audit date is 2026-07-20; many “confirmed now” risks (ungated
 collection, wipe-on-update, empty formulas, Sentry PII, friends)
 have since been worked. The register is not self-updating. Signing
-and Forgejo workflows are still CoMaps-shaped (H8 / **SPD-084**:
+and Forgejo workflows are still Streifzug-shaped (H8 / **SPD-084**:
 reuse machinery; brand listing residual).
 
 Ops items from Phase 8 (Postgres, EU region string, production
@@ -149,7 +149,7 @@ Django settings) sit here as **Ops**, not as client features.
 | --- | --- |
 | Signed `google` release/beta APK not produced (secrets absent) | Residual Ops. Restore Forgejo `RELEASE_KEYSTORE` / `SECURE_PROPERTIES` / `GOOGLE_PLAY_JSON` and materialise the file Gradle actually reads (`secure.properties.release`). Do not substitute an unsigned APK as Phase 10 exit #11. |
 | Forgejo writes `android/app/secure.properties`; Gradle applies `secure.properties.release` | Residual Ops / workflow. Align restore path with Gradle or document the ops copy step. Not a listing-brand rewrite. |
-| Application name / Play/F-Droid listing still CoMaps (GPX advertised) | Residual **SPD-084**. Do not rewrite in SP-097 coding. |
+| Application name / Play/F-Droid listing still Streifzug (GPX advertised) | Residual **SPD-084**. Do not rewrite in SP-097 coding. |
 | Explorer `main` (`e13a124`) has no `competition/` app; SQLite default; no `prod.py` | Residual Ops. Friends API is not a substitute. Blocks §26 condition 5 / SP-097 until a production competition backend is inspectable. |
 | Sparse-area N&lt;3 not verified against a direct API call | Residual Ops (same missing backend). Boss-line chrome hide is not protection; ranking rows are not nickname-stripped. |
 | Exact EU region string | Residual Ops (**SPD-062**). |

@@ -1,4 +1,4 @@
-@testable import CoMaps__Debug_
+@testable import Streifzug__Debug_
 
 extension LocalMetadataItem {
   static func stub(fileName: String, 

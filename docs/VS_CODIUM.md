@@ -35,7 +35,7 @@ varies from your specific use case, by the following configuration would work fo
             "name": "Debug",
             "type": "gdb",
             "request": "launch",
-            "program": "${workspaceFolder}/../omim-build-debug/CoMaps",
+            "program": "${workspaceFolder}/../omim-build-debug/Streifzug",
             "arguments": "data/styles/default/light/style.mapcss",
             "cwd": "${workspaceFolder}"
         }

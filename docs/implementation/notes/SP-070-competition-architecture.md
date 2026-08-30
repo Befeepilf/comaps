@@ -15,7 +15,7 @@ It is not a decision.
 | --- | --- | --- |
 | Identity | `libs/map/identity_store.{hpp,cpp}` | Device id in `SecureStorage` (`Explore.DeviceId`, 24 random bytes base64url). Nickname in settings (`Explore.Username`) with ASCII `[a-z0-9_]{3,20}` after lowercasing. Consent boolean only (`Explore.ConsentGiven`). No policy version, no timestamp. |
 | Stats upload | `libs/map/explore_stats_service.cpp` | Weekly `{regionId, weekStartSec, exploredPixels, version}` plus device id and optional username. Poll every **1 minute**. Gated by `m_syncEnabled`. File `explore_stats.json`. |
-| Upload URL | `libs/map/backend_config.cpp` `GetStatsUploadUrl` | `{apiBase}/stats/upload`. Release/beta inject `https://api.comaps.app/api` (SP-004). Debug empty, fail-closed. |
+| Upload URL | `libs/map/backend_config.cpp` `GetStatsUploadUrl` | `{apiBase}/stats/upload`. Release/beta inject `https://api.streifzug.app/api` (SP-004). Debug empty, fail-closed. |
 | Friends | `libs/map/friends_manager.cpp`; Android `MyAccountDialogFragment`, `Friends.java` | Full friends client. Account UI is friends-first. Consent dialog is a boolean gate into that UI. |
 | Recency / ownership | — | Not found. Ever-live bit exists in `.pix` (`IsEverLive()`, SPD-015). |
 | Area / city ids | `street_pixels::ExplorationArea::m_osmId`, `StableOsmId` | OSM ids exist in the sidecar. Compact index is not the wire identity. |

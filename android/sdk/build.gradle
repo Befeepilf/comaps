@@ -113,7 +113,7 @@ android {
 //      minifyEnabled true
 //      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
       buildConfigField 'String', 'EXPLORE_API_BASE_URL',
-          exploreApiBaseUrlField('"https://api.comaps.app/api"')
+          exploreApiBaseUrlField('"https://api.streifzug.app/api"')
       buildConfigField 'boolean', 'EXPLORER_PRO_GPX_IMPORT', explorerProCapabilitiesEnabled('false')
       buildConfigField 'boolean', 'EXPLORER_PRO_GPX_EXPORT', explorerProCapabilitiesEnabled('false')
       buildConfigField 'boolean', 'EXPLORER_PRO_ADVANCED_TRACK_MANAGEMENT', explorerProCapabilitiesEnabled('false')
@@ -124,7 +124,7 @@ android {
 //      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
       matchingFallbacks = ['release']
       buildConfigField 'String', 'EXPLORE_API_BASE_URL',
-          exploreApiBaseUrlField('"https://api.comaps.app/api"')
+          exploreApiBaseUrlField('"https://api.streifzug.app/api"')
       buildConfigField 'boolean', 'EXPLORER_PRO_GPX_IMPORT', explorerProCapabilitiesEnabled('false')
       buildConfigField 'boolean', 'EXPLORER_PRO_GPX_EXPORT', explorerProCapabilitiesEnabled('false')
       buildConfigField 'boolean', 'EXPLORER_PRO_ADVANCED_TRACK_MANAGEMENT', explorerProCapabilitiesEnabled('false')

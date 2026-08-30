@@ -43,9 +43,9 @@ curl -L -o /tmp/sp023/finland-latest.osm.pbf \
 # a446647ff15a2fc334cc83be283cc637fd66ff560b166d589525793e5ffc2724).
 # cp /tmp/sp023/finland-latest.osm.pbf /tmp/sp023/finland-260802.osm.pbf
 curl -L -o /tmp/sp023/Finland_Southern_Finland_Helsinki.mwm \
-  'https://mapgen-fi-1.comaps.app/maps/260728/Finland_Southern%20Finland_Helsinki.mwm'
+  'https://mapgen-fi-1.streifzug.app/maps/260728/Finland_Southern%20Finland_Helsinki.mwm'
 curl -L -o /tmp/sp023/World.mwm \
-  https://mapgen-fi-1.comaps.app/maps/260728/World.mwm
+  https://mapgen-fi-1.streifzug.app/maps/260728/World.mwm
 ```
 
 Borders: `data/borders/Finland_*.poly` in the repo.

@@ -37,7 +37,7 @@ fake a competition schema.
 | Renderer performance at city scale | Medium / High; circle-per-cell | `StreetPixelRenderer` still circle packs; LOD buckets at zoom 15, hidden below zoom 9 (`libs/drape_frontend/street_pixel_renderer.cpp` `kBucketZoomLevel` / `kMinVisibleZoomLevel`). Spike 1 bar locked (**SPD-078**). **No FPS/memory numbers in this slice.** Protocol: [`validation/SP-094-validation-plan.md`](../validation/SP-094-validation-plan.md). Evidence log empty. | **residual** (SP-094 Measure; **not realised**) | Device-verify / Measure (SP-094) |
 | Battery during recording | High / High; continuous GPS + FGS | Session-gated collection (`StreetPixelsManager::OnLocationUpdate`). Location FGS: `TrackRecordingService` / `NavigationService`. Protocol documented; **no %/hour or mAh**. No ceiling invented (**SPD-078**). | **residual** (SP-094; **not realised**) | Device-verify / Measure (SP-094) |
 | Android OEM background kills | High / High; industry-wide; FGS present | FGS present. `ACCESS_BACKGROUND_LOCATION` absent (`tools:node="remove"` in `android/app/src/main/AndroidManifest.xml`; **SPD-082**). SP-095 roster exists; **no D1/D2 handset run**. Pixel 3a SP-014 is prior D1-class citation only; it does not close Phase 10 D2. | **residual** (SP-095; **not realised**) | Device-verify (SP-095) |
-| iOS Always permission / review | High / High | iOS is post-V1 (**SPD-002**). `NSLocationAlwaysUsageDescription` and `UIBackgroundModes` still exist in `iphone/` (CoMaps track-recording copy). Not a V1 launch risk. | **n/a Android V1** | Product (SPD-002) |
+| iOS Always permission / review | High / High | iOS is post-V1 (**SPD-002**). `NSLocationAlwaysUsageDescription` and `UIBackgroundModes` still exist in `iphone/` (Streifzug track-recording copy). Not a V1 launch risk. | **n/a Android V1** | Product (SPD-002) |
 | False GPS exploration | High / Critical; no live filter; 20 m radius | 25 m radius (`kExploreRadiusMeters` in `libs/map/street_pixels_manager.cpp`). Live filter wired: `LiveSampleAcceptanceFilter` (accuracy 25 m, age 120 s, implied speed 50 km/h, jump 200 m) in `libs/map/live_sample_acceptance_filter.hpp`; `OnLocationUpdate` rejects then marks interpolation barrier. SP-009. | **mitigated** | Client (SP-009) |
 | Ungated collection without recording | Confirmed now / Critical; `Framework::OnLocationUpdate` | `Framework::OnLocationUpdate` still forwards GPS to the manager. Gate is inside `StreetPixelsManager::OnLocationUpdate`: returns unless `m_recordingSession != nullptr && m_recordingSession->IsRecording()` (`libs/map/street_pixels_manager.cpp`). Tests: `libs/map/street_pixels_tests/collection_gate_tests.cpp`. SP-007. | **mitigated** | Client (SP-007) |
 | Map update wipes progress | Confirmed now / Critical; `CleanupStreetPixels` | **Symbol still present**, not a wipe-on-update path. Download/update calls `RematchStreetPixelsOnMapUpdate` (`libs/map/framework.cpp`). Delete/deregister calls `CleanupStreetPixels`, which archives explored/ever-live into `.pixr` then removes `.pix` (SP-017 / SP-018). Rematch abort leaves previous pixels intact. | **mitigated** | Client (SP-017) |
@@ -48,8 +48,8 @@ fake a competition schema.
 | Sparse-area privacy leaks | Medium / High; spec N&lt;3 | Boss-line chrome withholds other nicknames when `participantCount < 3` (`ComposeSparseBossLine` in `libs/street_pixels_areas/competition_presentation.cpp`). Ranking rows are **not** nickname-stripped (`DedupeRankingRows`). Spec requires **server-side** enforcement (SP-076). Explorer `main` here: `Explorer` + `Friendship` only; no `competition/` app; no live N&lt;3 API to call. Client hide is not protection. | **residual** (Ops; unverified server) | Ops (SP-076 deploy) |
 | Sentry PII / screenshots | Confirmed / High; Manifest meta-data | `io.sentry.send-default-pii=false`, `attach-screenshot=false`, `attach-view-hierarchy=false` in `android/app/src/main/AndroidManifest.xml`. Guard: `tools/unix/check_sentry_privacy.sh` (`.github/workflows/android-check.yaml` `sentry-privacy` job). SP-003. | **mitigated** | Client (SP-003) |
 | Friends vs V1 non-goals | Confirmed / Medium; backend friends API | Public UI hidden (`FriendSettingsVisibility.friendsCapabilityEnabled()` returns false). Dedicated `add-friend` intent-filters removed; leftover URIs swallowed (`ExploreDeepLink.shouldPresentAddFriendOnboarding`). Code may stay in-tree (**SPD-085** / SP-092). Explorer still has friends endpoints. Device eyeball residual (SP-095). | **mitigated** (public APK surface) | Client (SP-092) |
-| Upstream CoMaps divergence | High / High; deep forks | Street Pixels modules sit beside map/routing/UI. Release machinery still CoMaps-shaped (**SPD-084**). Maintenance cost remains. Not a coding close in this item. | **accepted** | Maintainers |
-| Licensing / attribution | Low / Medium; Apache-2.0 | `LICENSE` Apache-2.0. `NOTICE` lists CoMaps / Organic Maps / My.com and `3party`. Fork OK. | **mitigated** | Maintainers |
+| Upstream Streifzug divergence | High / High; deep forks | Street Pixels modules sit beside map/routing/UI. Release machinery still Streifzug-shaped (**SPD-084**). Maintenance cost remains. Not a coding close in this item. | **accepted** | Maintainers |
+| Licensing / attribution | Low / Medium; Apache-2.0 | `LICENSE` Apache-2.0. `NOTICE` lists Streifzug / Organic Maps / My.com and `3party`. Fork OK. | **mitigated** | Maintainers |
 | Cross-platform parity | High / Critical; iOS UI missing | Android V1 only (**SPD-001** / **SPD-002**). Shared C++ remains in `libs/`. iOS Street Pixels UI is not a V1 gate. | **n/a Android V1** | Product (SPD-002) |
 | Map pipeline maintenance | Medium / High; eligibility may need generator | Client eligibility (SP-020). On-device derive from MWM plus `.spa` sidecar. Generator precompute optional; Option A mapgen residual (**SPD-033**). | **mitigated** (client-first) | Client (SP-020); Ops (mapgen) |
 | Spec formula gaps | Confirmed / Medium; empty LaTeX §7/22 | Spec file **not edited**. V1 implements **SPD-026** (personal completion), **SPD-057** (ownership score), **SPD-058** (contested 80%) in `libs/street_pixels_areas/ownership_scoring.hpp`. | **mitigated** (V1 via SPDs) | Product (SPD-026/057/058) |
@@ -60,7 +60,7 @@ fake a competition schema.
 | --- | --- | --- | --- |
 | Product-analytics upload | Local uint64 only (`libs/map/product_analytics.cpp`, routing / card / Pro helpers). No new sink (**SPD-081** / SP-091). `ExploreStatsService::ShouldAttemptStatsUpload()` returns `false`. Competition POST is spec §25.2 aggregates, not analytics. | **mitigated** (stay local) | Client (SPD-081) |
 | `ACCESS_BACKGROUND_LOCATION` | Absent; `tools:node="remove"` (**SPD-082** / SP-092). D2 exception path cannot fire until device execution exists. | **mitigated** (keep absent) | Client (SPD-082) |
-| Application name / Play listing brand | `project.ext.appId = 'app.comaps'`; `project.ext.appName = 'CoMaps'`. Listing title `CoMaps - Navigate with Privacy`. GPX advertised in `android/app/src/google/play/listings/en-US/full-description.txt`. **Not rewritten** (**SPD-084**). | **residual** (brand) | Product (SPD-084) |
+| Application name / Play listing brand | `project.ext.appId = 'app.comaps'`; `project.ext.appName = 'Streifzug'`. Listing title `Streifzug - Navigate with Privacy`. GPX advertised in `android/app/src/google/play/listings/en-US/full-description.txt`. **Not rewritten** (**SPD-084**). | **residual** (brand) | Product (SPD-084) |
 
 No §22 row is **realised**.
 
@@ -90,7 +90,7 @@ residual below.
 
 ## Release pipeline (H3 / **SPD-079**, H8 / **SPD-084**)
 
-Reuse CoMaps machinery. Do not rewrite application name or Play/F-Droid
+Reuse Streifzug machinery. Do not rewrite application name or Play/F-Droid
 listing brand copy.
 
 ### Identities as configured (this tree)
@@ -98,17 +98,17 @@ listing brand copy.
 | Item | Value | Source |
 | --- | --- | --- |
 | Base `applicationId` | `app.comaps` | `android/app/build.gradle` `project.ext.appId` |
-| Application name | `CoMaps` | `project.ext.appName`; release `resValue app_name` |
+| Application name | `Streifzug` | `project.ext.appName`; release `resValue app_name` |
 | V1 store gate flavor | `google` | **SPD-079** |
 | `google` applicationId | `app.comaps.google` (`applicationIdSuffix '.google'`) | same file |
 | Other flavors | `web` (no suffix), `fdroid` → `.fdroid`, `huawei` → `.huawei` | same; Huawei/web **not** V1 gates |
 | Build types | `debug` (`.debug` + debug keystore), `release`, `beta` (`.test`) | same |
-| Debug signing | `android/app/comaps-debug.keystore`, alias `CoMaps Debug` | `signingConfigs.debug` |
+| Debug signing | `android/app/comaps-debug.keystore`, alias `Streifzug Debug` | `signingConfigs.debug` |
 | Release signing | `secure.properties.release` → `signingConfigs.release` | Gradle |
 | Beta/test signing | `secure.properties.test` → `signingConfigs.test` | Gradle |
 | Play publish task | `./gradlew bundleGoogleRelease publishGoogleReleaseBundle` | `.forgejo/workflows/android-release.yaml` |
 | Secret names | `PRIVATE_H`, `RELEASE_KEYSTORE`, `SECURE_PROPERTIES`, `GOOGLE_PLAY_JSON`, … | `docs/CREDENTIALS.md` |
-| Release API base (Android release/beta) | `https://api.comaps.app/api` via `BuildConfig.EXPLORE_API_BASE_URL` | `android/sdk/build.gradle`; applied in `OrganicMaps.java` |
+| Release API base (Android release/beta) | `https://api.streifzug.app/api` via `BuildConfig.EXPLORE_API_BASE_URL` | `android/sdk/build.gradle`; applied in `OrganicMaps.java` |
 | Unconfigured C++ default | empty; fail-closed (`backend::GetApiBaseUrl()`) | SP-004; **SPD-062** |
 
 Forgejo `android-release.yaml` matrix includes `google` and `web`
@@ -155,7 +155,7 @@ Root `.gitignore` lists the old `android/release.keystore` /
 filename `release.keystore` (only `comaps-release.keystore`). Do not
 add secret files to git.
 
-Listing title and full description remain upstream CoMaps (advertises
+Listing title and full description remain upstream Streifzug (advertises
 GPX import/export; no Street Pixels session/competition copy). **SPD-084**
 residual. Factual data-safety answers: `docs/implementation/play-data-safety.md`
 (SP-092); not listing brand.
@@ -168,7 +168,7 @@ residual. Factual data-safety answers: `docs/implementation/play-data-safety.md`
 | --- | --- | --- |
 | Production settings not SQLite | Explorer `comaps/settings/base.py` `DATABASES` default `sqlite:///{BASE_DIR}/db.sqlite3`. `.env.example` comments Postgres. **No `comaps/settings/prod.py`.** `db.sqlite3` present in the checkout. | **residual Ops** |
 | EU region string (**SPD-062**) | Decision: hosting region **EU**; exact provider/region string is ops, not a code constant. Not verifiable from client or this explorer tree. | **residual Ops** |
-| Competition endpoints reachable from the signed app’s API base | Client fail-closed until `EXPLORE_API_BASE_URL` inject (`https://api.comaps.app/api` on Android release/beta). Competition paths `{apiBase}/v1/competition/…`. **No competition app in explorer `main` to reach.** Signed APK not produced, so the installed artefact’s base is not hashed. Debug C++ default is empty (not a developer LAN host) — SP-004 still holds in code. | **residual Ops** (backend missing here); client fail-closed **mitigated** |
+| Competition endpoints reachable from the signed app’s API base | Client fail-closed until `EXPLORE_API_BASE_URL` inject (`https://api.streifzug.app/api` on Android release/beta). Competition paths `{apiBase}/v1/competition/…`. **No competition app in explorer `main` to reach.** Signed APK not produced, so the installed artefact’s base is not hashed. Debug C++ default is empty (not a developer LAN host) — SP-004 still holds in code. | **residual Ops** (backend missing here); client fail-closed **mitigated** |
 | Sparse-area N&lt;3 against a direct API call | Cannot call a competition read API that does not exist in this explorer tree. | **residual Ops** |
 
 Friends API on explorer `main` is **not** the competition backend

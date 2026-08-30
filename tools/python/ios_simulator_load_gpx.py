@@ -4,7 +4,7 @@ GPX to iOS Simulator simctl location command
 
 Converts a GPX file to simctl location start command for realistic iOS location simulation.
 
-Tested with CoMaps exported tracks
+Tested with Streifzug exported tracks
 
 Usage:
     python gpx_to_simctl.py test_route.gpx

@@ -25,7 +25,7 @@ UNIT_TEST(MapApiSmoke)
 {
   string urlString =
       "mapswithme://"
-      "map?ll=38.970559,-9.419289&ignoreThisParam=Yes&z=17&n=Point%20Name&s=black&backurl=https%3A%2F%2Fcomaps.app";
+      "map?ll=38.970559,-9.419289&ignoreThisParam=Yes&z=17&n=Point%20Name&s=black&backurl=https%3A%2F%2Fstreifzug.app";
   TEST(url::Url(urlString).IsValid(), ());
 
   ParsedMapApi test(urlString);
@@ -38,7 +38,7 @@ UNIT_TEST(MapApiSmoke)
   TEST_EQUAL(p0.m_id, "", ());
   TEST_EQUAL(p0.m_style, "black", ());
   TEST_ALMOST_EQUAL_ABS(test.GetZoomLevel(), 17.0, kEps, ());
-  TEST_EQUAL(test.GetGlobalBackUrl(), "https://comaps.app", ());
+  TEST_EQUAL(test.GetGlobalBackUrl(), "https://streifzug.app", ());
 }
 
 UNIT_TEST(RouteApiSmoke)
@@ -61,7 +61,7 @@ UNIT_TEST(RouteApiSmoke)
 UNIT_TEST(SearchApiSmoke)
 {
   string const urlString =
-      "mapsme://search?query=Saint%20Hilarion&cll=35.3166654,33.2833322&locale=ru&map&appname=CoMaps";
+      "mapsme://search?query=Saint%20Hilarion&cll=35.3166654,33.2833322&locale=ru&map&appname=Streifzug";
   TEST(url::Url(urlString).IsValid(), ());
 
   ParsedMapApi test(urlString);
@@ -72,7 +72,7 @@ UNIT_TEST(SearchApiSmoke)
   TEST_ALMOST_EQUAL_ABS(latlon.m_lat, 35.3166654, kEps, ());
   TEST_ALMOST_EQUAL_ABS(latlon.m_lon, 33.2833322, kEps, ());
   TEST_EQUAL(request.m_locale, "ru", ());
-  TEST_EQUAL(test.GetAppName(), "CoMaps", ());
+  TEST_EQUAL(test.GetAppName(), "Streifzug", ());
   TEST(request.m_isSearchOnMap, ());
 }
 
@@ -80,7 +80,7 @@ UNIT_TEST(SearchApiAdvanced)
 {
   {
     // Ignore wrong cll=.
-    ParsedMapApi test("comaps://search?query=aaa&cll=1,1,1");
+    ParsedMapApi test("streifzug://search?query=aaa&cll=1,1,1");
     TEST_EQUAL(test.GetRequestType(), UrlType::Search, ());
     auto const & request = test.GetSearchRequest();
     ms::LatLon latlon = test.GetCenterLatLon();
@@ -93,7 +93,7 @@ UNIT_TEST(SearchApiAdvanced)
 
   {
     // Don't fail on unsupported parameters.
-    ParsedMapApi test("comaps://search?query=aaa&ignoreThisParam=sure");
+    ParsedMapApi test("streifzug://search?query=aaa&ignoreThisParam=sure");
     TEST_EQUAL(test.GetRequestType(), UrlType::Search, ());
     auto const & request = test.GetSearchRequest();
     ms::LatLon latlon = test.GetCenterLatLon();
@@ -106,7 +106,7 @@ UNIT_TEST(SearchApiAdvanced)
 
   {
     // Query parameter position doesn't matter
-    ParsedMapApi test("comaps://search?cll=1,1&locale=ru&query=aaa");
+    ParsedMapApi test("streifzug://search?cll=1,1&locale=ru&query=aaa");
     TEST_EQUAL(test.GetRequestType(), UrlType::Search, ());
     auto const & request = test.GetSearchRequest();
     ms::LatLon latlon = test.GetCenterLatLon();
@@ -305,7 +305,7 @@ UNIT_TEST(MapApiUrl)
 UNIT_TEST(MapApiGe0)
 {
   {
-    ParsedMapApi api("comaps://o4B4pYZsRs");
+    ParsedMapApi api("streifzug://o4B4pYZsRs");
     TEST_EQUAL(api.GetRequestType(), UrlType::Map, ());
     TEST_EQUAL(api.GetMapPoints().size(), 1, ());
     MapPoint const & p0 = api.GetMapPoints()[0];
@@ -314,7 +314,7 @@ UNIT_TEST(MapApiGe0)
   }
 
   {
-    ParsedMapApi api("comaps://o4B4pYZsRs/Zoo_Zürich");
+    ParsedMapApi api("streifzug://o4B4pYZsRs/Zoo_Zürich");
     TEST_EQUAL(api.GetRequestType(), UrlType::Map, ());
     TEST_EQUAL(api.GetMapPoints().size(), 1, ());
     MapPoint const & p0 = api.GetMapPoints()[0];
@@ -342,11 +342,11 @@ UNIT_TEST(MapApiGe0)
     TEST_EQUAL(p0.m_name, "Zoo Zürich", ());
   }
   {
-    ParsedMapApi api("http://comaps.at/o4B4pYZsRs/Zoo_Zürich");
+    ParsedMapApi api("http://streifzug.app/o4B4pYZsRs/Zoo_Zürich");
     TEST_EQUAL(api.GetRequestType(), UrlType::Map, ());
   }
   {
-    ParsedMapApi api("https://comaps.at/o4B4pYZsRs/Zoo_Zürich");
+    ParsedMapApi api("https://streifzug.app/o4B4pYZsRs/Zoo_Zürich");
     TEST_EQUAL(api.GetRequestType(), UrlType::Map, ());
   }
   {
@@ -444,7 +444,7 @@ UNIT_TEST(SearchApiGeoScheme)
 UNIT_TEST(CrosshairApi)
 {
   {
-    ParsedMapApi api("comaps://crosshair?cll=47.3813,8.5889&appname=Google%20Maps");
+    ParsedMapApi api("streifzug://crosshair?cll=47.3813,8.5889&appname=Google%20Maps");
     TEST_EQUAL(api.GetRequestType(), UrlType::Crosshair, ());
     ms::LatLon latlon = api.GetCenterLatLon();
     TEST_ALMOST_EQUAL_ABS(latlon.m_lat, 47.3813, kEps, ());
@@ -452,7 +452,7 @@ UNIT_TEST(CrosshairApi)
     TEST_EQUAL(api.GetAppName(), "Google Maps", ());
   }
   {
-    ParsedMapApi api("https://comaps.at/crosshair?cll=47.3813,8.5889&appname=Google%20Maps");
+    ParsedMapApi api("https://streifzug.app/crosshair?cll=47.3813,8.5889&appname=Google%20Maps");
     TEST_EQUAL(api.GetRequestType(), UrlType::Crosshair, ());
     ms::LatLon latlon = api.GetCenterLatLon();
     TEST_ALMOST_EQUAL_ABS(latlon.m_lat, 47.3813, kEps, ());
@@ -484,8 +484,8 @@ UNIT_TEST(GlobalBackUrl)
     TEST_EQUAL(api.GetGlobalBackUrl(), "ge0://", ());
   }
   {
-    ParsedMapApi api("comaps://map?ll=1,2&n=PointName&backurl=comaps://");
-    TEST_EQUAL(api.GetGlobalBackUrl(), "comaps://", ());
+    ParsedMapApi api("streifzug://map?ll=1,2&n=PointName&backurl=streifzug://");
+    TEST_EQUAL(api.GetGlobalBackUrl(), "streifzug://", ());
   }
   {
     ParsedMapApi api("mwm://map?ll=1,2&n=PointName&backurl=ge0%3A%2F%2F");

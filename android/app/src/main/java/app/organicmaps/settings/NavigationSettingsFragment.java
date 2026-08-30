@@ -60,7 +60,7 @@ public class NavigationSettingsFragment extends BaseXmlSettingsFragment
     else if (key.equals(getString(R.string.pref_android_auto_support)))
     {
       if (!Utils.isAndroidAutoSupported(requireContext()))
-        Utils.openUrl(requireContext(), "https://www.comaps.app/support/how-to-use-android-auto/");
+        Utils.openUrl(requireContext(), "https://www.streifzug.app/support/how-to-use-android-auto/");
     }
     return super.onPreferenceTreeClick(preference);
   }

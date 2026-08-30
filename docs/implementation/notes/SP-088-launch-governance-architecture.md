@@ -38,17 +38,17 @@ phase-10 table is stale in several rows.
 
 | Concern | Location | Observed state |
 | --- | --- | --- |
-| Android manifest | `android/app/src/main/AndroidManifest.xml` | `ACCESS_COARSE/FINE_LOCATION`, `ACCESS_LOCATION_EXTRA_COMMANDS`, `FOREGROUND_SERVICE` + `LOCATION` + `DATA_SYNC`, `POST_NOTIFICATIONS`, `VIBRATE`. **`ACCESS_BACKGROUND_LOCATION` still absent.** FGS types `location` (`NavigationService`, `TrackRecordingService`), `dataSync` (`DownloaderService`). **`comaps://add-friend` and HTTPS `/add-friend` still registered** (SPD-061 hide not applied to intent-filters). |
-| Store credentials | `docs/CREDENTIALS.md` | CI secrets for signed store builds (upstream CoMaps). |
-| Release workflows | `.forgejo/workflows/android-release.yaml`, `android-beta.yaml`, `android-check-metadata.yaml`, `android-release-metadata.yaml` | Present; upstream CoMaps application identity. |
+| Android manifest | `android/app/src/main/AndroidManifest.xml` | `ACCESS_COARSE/FINE_LOCATION`, `ACCESS_LOCATION_EXTRA_COMMANDS`, `FOREGROUND_SERVICE` + `LOCATION` + `DATA_SYNC`, `POST_NOTIFICATIONS`, `VIBRATE`. **`ACCESS_BACKGROUND_LOCATION` still absent.** FGS types `location` (`NavigationService`, `TrackRecordingService`), `dataSync` (`DownloaderService`). **`streifzug://add-friend` and HTTPS `/add-friend` still registered** (SPD-061 hide not applied to intent-filters). |
+| Store credentials | `docs/CREDENTIALS.md` | CI secrets for signed store builds (upstream Streifzug). |
+| Release workflows | `.forgejo/workflows/android-release.yaml`, `android-beta.yaml`, `android-check-metadata.yaml`, `android-release-metadata.yaml` | Present; upstream Streifzug application identity. |
 | Android lint | `.github/workflows/android-check.yaml` | `./gradlew -Pandroidauto=true lint`. |
 | Flavors | `android/app/build.gradle` | `google`, `web`, `fdroid`, `huawei`; `debug`, `release`, `beta`. |
 | Android tests | `android/app/src/test/`, `android/sdk/src/test/` | JVM tests now include Street Pixels gates (Explorer Pro, GPX, recording UI model, routing options). **Still no `androidTest` instrumented tests.** |
-| Play listing | `android/app/src/google/play/listings/en-US/full-description.txt` | Upstream CoMaps copy. Advertises GPX import/export. Does not describe Street Pixels recording, competition, or session-only location. |
-| Privacy / terms URLs | `HelpFragment` → `R.string.app_site_url` + `privacy/` / `terms/` | `app_site_url` is `https://comaps.app/`. No Street Pixels policy text in this repository. |
+| Play listing | `android/app/src/google/play/listings/en-US/full-description.txt` | Upstream Streifzug copy. Advertises GPX import/export. Does not describe Street Pixels recording, competition, or session-only location. |
+| Privacy / terms URLs | `HelpFragment` → `R.string.app_site_url` + `privacy/` / `terms/` | `app_site_url` is `https://streifzug.app/`. No Street Pixels policy text in this repository. |
 | Privacy settings | `PrivacySettingsFragment` / `prefs_privacy.xml` | Search history + Google Play services location provider. **No** Street Pixels privacy information, terms, or competition-rules rows (spec §30). |
 | Competition settings | `MyAccountDialogFragment`, `ExploreConsentDialogFragment`, `UsernameDialogFragment` | Opt-in, nickname, delete exist as dialogs. Friend-visibility / “username so friends can add you” strings still in `values/strings.xml`. |
-| Location rationale | `track_recording_location_rationale` | Session-only; not bundled with competition (spec §10 step 3). Still branded “CoMaps”. |
+| Location rationale | `track_recording_location_rationale` | Session-only; not bundled with competition (spec §10 step 3). Still branded “Streifzug”. |
 | Product analytics | `StreetExplorationRoutingAnalytics`, `CompletionCardAnalytics`, `ExplorerProAnalytics` | Count-only local uint64. **No** spec §32.1 activation counters. **No** §32.2 core (except routing + milestones-as-UI). **No** §32.3 competition counters. **No upload sink** — Phase 10 upload residual from SPD-044 / SPD-055 / SPD-075 is **closed by SPD-081** (stay local; do not build a sink). |
 | Sentry | AndroidManifest `io.sentry.*` | SP-003 private-by-default defaults (PII/screenshots off). Re-verify in SP-091 / SP-097. |
 | Completed check | `area_overlay.cpp` `m_showCheck` | Style flag set for completed areas; **glyph not drawn** (SP-040 / SP-041 R3). |
@@ -60,7 +60,7 @@ phase-10 table is stale in several rows.
 phase-10 snapshot:** Phases 1–9 have landed session gating, rematch, areas,
 routing, milestones, competition, and GPX gates. Android JVM tests are more
 than three files. Instrumented tests are still absent. Friends deep links
-and CoMaps store/privacy URLs are unchanged. ABL is still absent (SP-012
+and Streifzug store/privacy URLs are unchanged. ABL is still absent (SP-012
 measured Pixel 3a without it). H1–H10 are **Accepted** 2026-08-29 as
 SPD-077–086; brand writing and on-device testing remain residual.
 
@@ -113,7 +113,7 @@ residualised. Full text and reject lists live in SP-088.
 | H1 / SPD-077 | D1 Pixel-class + D2 one aggressive OEM. Optional D3 second API level. | Matrix *execution* residual. |
 | H2 / SPD-078 | Rendering: Spike 1 bar unchanged. Battery: protocol lock now; numeric ceiling after SP-094 or explicit waiver. | Measurement *execution* residual. Docs may record the protocol. |
 | H3 / SPD-079 | Google Play is the public V1 store gate. F-Droid may ship the same artefact. Huawei/web not a V1 gate. | Listing brand copy residual. |
-| H4 / SPD-080 | Product-owned Street Pixels privacy policy + terms (intended). | Landing text/URLs residual. SP-093 residual. `comaps.app` may stay for now. |
+| H4 / SPD-080 | Product-owned Street Pixels privacy policy + terms (intended). | Landing text/URLs residual. SP-093 residual. `streifzug.app` may stay for now. |
 | H5 / SPD-081 | No new public analytics upload sink in V1. Local uint64 only. §33 hypotheses via closed-beta observation. Closes SPD-044/055/075 Phase 10 upload residual. | SP-091 implements local counters + payload-shape tests; no sink. |
 | H6 / SPD-082 | Keep ABL absent unless a later D2 measurement proves FGS is insufficient. | D2 execution residual; Phase 10 coding keeps ABL absent. |
 | H7 / SPD-083 | Disposition table above. | Device-verify *execution* residual. Fix list remains SP-089 (not brand). |

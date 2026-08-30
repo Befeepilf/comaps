@@ -30,7 +30,7 @@ Pridružite se skupnosti in pomagajte ustvariti najboljše orodje za zemljevide.
 • Izboljšajte podatke zemlkevida za vse z uporabo vgrajenega osnovnega urejevalnika.
 • Podpora za Android Auto.
 
-Prijavite težave z orodjem, delite zamisli in se pridružite naši skupnosti na spletni strani <b><i>comaps.app</i></b>.
+Prijavite težave z orodjem, delite zamisli in se pridružite naši skupnosti na spletni strani <b><i>streifzug.app</i></b>.
 
 <b>Svoboda je tu</b>
 Odkrijte svojo pot, raziskujte svet z zasebnostjo in skupnostjo v ospredju!
