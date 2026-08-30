@@ -11,10 +11,26 @@ Do **not** skip verification when the origin is ours (**SPD-091**).
 
 ---
 
-## `private.h` fields (gitignored)
+## `private.h` fields (gitignored and untracked)
+
+`private.h` is listed in `.gitignore` **and is not tracked**. A tracked
+header previously shipped CoMaps `METASERVER_URL` / `DEFAULT_URLS_JSON`
+(including `mapgen-fi-1.comaps.app`) and CoMaps `COUNTRIES_TXT_SIGNATURE_HEX`;
+gitignore does not apply to tracked files. Clones do not receive `private.h`.
+
+When `private.h` is missing:
+
+- `configure.sh` runs `python3 -m street_pixels.map_identity ensure-private-h`
+  (after `export PYTHONPATH="$REPO_ROOT/tools/python"`).
+- Root `CMakeLists.txt` copies the example at configure time. Android Gradle
+  uses that CMakeLists and does not run `configure.sh`.
+
+Neither path overwrites an existing `private.h`. Do not commit `private.h` or
+production Ed25519 secret PEMs.
 
 Copy [private.h.street-pixels.example](../../../private.h.street-pixels.example)
-to gitignored `private.h` on the build host and replace placeholders.
+to gitignored `private.h` on the build host (or let configure/CMake copy it)
+and replace placeholders.
 
 | Macro | Street Pixels stock meaning |
 | --- | --- |
@@ -111,10 +127,13 @@ override (D12); do not bake a LAN Custom Maps URL into `DEFAULT_URLS_JSON`.
 
 ## `configure.sh` World bootstrap
 
-`configure.sh` calls `python3 -m street_pixels.map_identity configure-world`.
-It does **not** default to `mapgen-fi-1.comaps.app`. CoMaps map hosts are
-refused. WorldCoasts is optional (**SPD-094**): a 404 or missing local coasts
-file omits coasts; configure does not fall back to CoMaps.
+`configure.sh` exports `PYTHONPATH="$REPO_ROOT/tools/python"` then calls
+`python3 -m street_pixels.map_identity ensure-private-h` and
+`configure-world`. Without that `PYTHONPATH`, `python3 -m street_pixels.map_identity`
+from the repo root fails (`No module named 'street_pixels'`). It does **not**
+default to `mapgen-fi-1.comaps.app`. CoMaps map hosts are refused. WorldCoasts
+is optional (**SPD-094**): a 404 or missing local coasts file omits coasts;
+configure does not fall back to CoMaps.
 
 | Input | Effect |
 | --- | --- |
