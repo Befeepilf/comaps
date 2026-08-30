@@ -3,7 +3,7 @@
 Build-host generate, assemble, and LAN serve for Street Pixels map data.
 **VPS generate is unsupported** (SPD-088): run this CLI on a ≥32 GiB builder
 (`NODE_STORAGE: map`, capped threads). The 8 GiB VPS only serves an SP-050
-tree (rsync + nginx/TLS is SP-102).
+tree: rsync + nginx or Caddy (SP-102).
 
 Full-planet `NODE_STORAGE: mem` is out of this phase.
 
@@ -17,7 +17,8 @@ One entrypoint, given an OSM extract and a country/leaf selector:
 4. `spa_emit_tool --mode=production`
 5. `assemble_spa_publish_tree` (SP-050)
 
-Optional last step: `--rsync-dest` (thin rsync of the `--out` tree).
+Optional last step: `--rsync-dest` (`rsync -a --delete-delay`, source
+trailing slash). Placeholder: `user@vps:/var/www/street-pixels/`.
 
 ```bash
 cd tools/python
@@ -45,7 +46,7 @@ to complete them. Pass `--hotels-url`, `--srtm-path`, `--subway-url`,
 `--enable-wikipedia`, … when you have sources.
 
 `--from-stage` skips earlier pipeline stages so a failed spa emit does not
-rebuild MWMs.
+rebuild MWMs. `--from-stage rsync` publishes an already-assembled `--out`.
 
 Default ini fragment: `var/etc/map_pipeline.ini` (`NODE_STORAGE: map`,
 `THREADS_COUNT: 4`).
@@ -60,7 +61,7 @@ when missing) and `configure-world`.
 
 - `SKIP_MAP_DOWNLOAD=1` — skip (already used by `build_omim.sh` for targeted builds)
 - `STREET_PIXELS_LOCAL_WORLD` / `STREET_PIXELS_WORLD_DIR` — copy operator World.mwm
-- `STREET_PIXELS_MAPS_BASE_URL` — HTTPS Street Pixels origin (not CoMaps; public host is SP-102)
+- `STREET_PIXELS_MAPS_BASE_URL` — HTTPS Street Pixels origin (not CoMaps; public host is ops, documented as `maps.example.invalid` in git)
 
 `private.h` is gitignored and untracked. Clones get the header by copying
 [private.h.street-pixels.example](../../../private.h.street-pixels.example).
@@ -72,9 +73,32 @@ Keygen, `COUNTRIES_TXT_SIGNATURE_HEX`, and the template:
 `prepare_spa_debug_root` fetches CoMaps CDN `countries.txt`. It is a LAN
 debug helper only. Stock / production origin must not use it.
 
-## Serve (SP-051)
+## Serve LAN (SP-051)
 
 ```bash
 PYTHONPATH=. python3 -m street_pixels serve_spa_publish_tree \
   --root /tmp/sp100 --host 0.0.0.0 --port 8080
 ```
+
+Range GETs; `/health`; `--enable-debug-routes` off by default. Do not enable
+debug routes on a public VPS.
+
+## Serve public origin (SP-102)
+
+Rsync the SP-050 `--out` tree to the VPS. nginx or Caddy in front of
+`/var/www/street-pixels` (parent of `maps/` and `meta/`). TLS via Let’s
+Encrypt / Caddy auto-HTTPS. `gzip off` for `.mwm` / `.spa` / `.sig` /
+`.txt`. Range on. Health: `GET /meta/maps.json` 200 + `status: active`.
+
+```bash
+rsync -a --delete-delay /tmp/sp100/ user@vps:/var/www/street-pixels/
+```
+
+Example configs (placeholder `maps.example.invalid`, not the ops hostname):
+
+- `var/etc/origin.nginx.conf`
+- `var/etc/origin.Caddyfile`
+
+Recipe: [docs/implementation/notes/sp-102-publish-and-serve-origin.md](../../../docs/implementation/notes/sp-102-publish-and-serve-origin.md).
+Do not run `maps_generator` on the 8 GiB VPS.
+

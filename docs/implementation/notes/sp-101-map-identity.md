@@ -141,7 +141,7 @@ configure does not fall back to CoMaps.
 | Existing `data/world_mwm/<v>/World.mwm` or `data/World.mwm` | Keep; no download. |
 | `STREET_PIXELS_LOCAL_WORLD=/path/to/World.mwm` | Copy into `data/world_mwm/<v>/` and symlink `data/World.mwm`. Sibling `WorldCoasts.mwm` copied if present. |
 | `STREET_PIXELS_WORLD_DIR=/dir` | Copy `World.mwm` from that directory (or `world_mwm/<v>/` under it). |
-| `STREET_PIXELS_MAPS_BASE_URL=https://<our-origin>/` | Fetch `{base}/maps/{MAP_SERIES}/{v}/World.mwm` (SPD-035 layout). Must be HTTPS, not a CoMaps host, not a private-range IP. Public origin is **SP-102**. |
+| `STREET_PIXELS_MAPS_BASE_URL=https://<our-origin>/` | Fetch `{base}/maps/{MAP_SERIES}/{v}/World.mwm` (SPD-035 layout). Must be HTTPS, not a CoMaps host, not a private-range IP. Public origin recipe: [sp-102-publish-and-serve-origin.md](sp-102-publish-and-serve-origin.md). Git template remains `https://maps.example.invalid/`. |
 | `MAPS_BASE_URL` | Legacy alias used only when `STREET_PIXELS_MAPS_BASE_URL` is empty. CoMaps values are refused; there is no mapgen-fi-1 fallback. |
 | None of the above, and no local World | **Error** with SPD-087 instructions. |
 
