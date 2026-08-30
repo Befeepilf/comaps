@@ -29,6 +29,7 @@ from street_pixels.map_pipeline import build_mapgen_argv  # noqa: E402
 from street_pixels.map_pipeline import build_pix_derive_argv  # noqa: E402
 from street_pixels.map_pipeline import build_plan  # noqa: E402
 from street_pixels.map_pipeline import build_rings_argv  # noqa: E402
+from street_pixels.map_pipeline import build_rsync_argv  # noqa: E402
 from street_pixels.map_pipeline import build_spa_emit_argv  # noqa: E402
 from street_pixels.map_pipeline import ensure_planet_md5_url  # noqa: E402
 from street_pixels.map_pipeline import expand_countries  # noqa: E402
@@ -79,7 +80,7 @@ class StageGraphTest(unittest.TestCase):
         self.assertNotIn(STAGE_RSYNC, stages)
 
     def test_rsync_is_last_when_dest_set(self):
-        stages = pipeline_stage_names(rsync_dest="user@host:/var/www/maps")
+        stages = pipeline_stage_names(rsync_dest="user@vps:/var/www/street-pixels/")
         self.assertEqual(
             (
                 STAGE_MAPGEN,
@@ -92,6 +93,39 @@ class StageGraphTest(unittest.TestCase):
             stages,
         )
         self.assertEqual(STAGE_RSYNC, stages[-1])
+
+
+class RsyncArgvTest(unittest.TestCase):
+    def test_delete_delay_and_source_trailing_slash(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            out = os.path.join(tmp, "out")
+            dest = "user@vps:/var/www/street-pixels/"
+            plan = build_plan(
+                pbf="file:///tmp/finland.osm.pbf",
+                out=out,
+                borders_dir=borders,
+                rsync_dest=dest,
+                dry_run=True,
+            )
+            argv = build_rsync_argv(plan)
+            self.assertEqual(["rsync", "-a", "--delete-delay", out.rstrip("/") + "/", dest], argv)
+            self.assertTrue(argv[3].endswith("/"))
+            self.assertIn(STAGE_RSYNC, plan["stages"])
+            self.assertEqual(STAGE_RSYNC, plan["stages"][-1])
+
+    def test_missing_dest_errors(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            plan = build_plan(
+                pbf="file:///tmp/finland.osm.pbf",
+                out=os.path.join(tmp, "out"),
+                borders_dir=borders,
+                dry_run=True,
+            )
+            with self.assertRaises(MapPipelineError) as ctx:
+                build_rsync_argv(plan)
+            self.assertIn("--rsync-dest", str(ctx.exception))
 
 
 class DryRunNoNetworkTest(unittest.TestCase):
@@ -125,6 +159,27 @@ class DryRunNoNetworkTest(unittest.TestCase):
             self.assertFalse(os.path.exists(plan["out"]))
             self.assertNotIn("osmium", sys.modules)
             self.assertNotIn("extract_admin_place_polygons", sys.modules)
+
+    def test_dry_run_with_rsync_dest_does_not_run_rsync(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            out = os.path.join(tmp, "out")
+            dest = "user@vps:/var/www/street-pixels/"
+            with mock.patch("street_pixels.map_pipeline.run_command") as run_command:
+                plan = run_map_pipeline(
+                    pbf="file:///tmp/finland.osm.pbf",
+                    out=out,
+                    countries=DEFAULT_COUNTRIES,
+                    borders_dir=borders,
+                    rsync_dest=dest,
+                    dry_run=True,
+                )
+            run_command.assert_not_called()
+            self.assertEqual(STAGE_RSYNC, plan["stages"][-1])
+            self.assertEqual(
+                ["rsync", "-a", "--delete-delay", out.rstrip("/") + "/", dest],
+                build_rsync_argv(plan),
+            )
 
 
 class DefaultConfigDenylistTest(unittest.TestCase):
