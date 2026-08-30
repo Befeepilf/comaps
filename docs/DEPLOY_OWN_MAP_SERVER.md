@@ -66,13 +66,17 @@ You can find more details in the [FAQ article](https://www.comaps.app/support/ho
 
 ## Street Pixels (`.spa` publish tree)
 
-Community tools above mirror **MWMs only**. Street Pixels exploration sidecars
-(`.spa`) must sit beside matching `.mwm` under the CDN layout the app already
-requests (`meta/maps.json` + `maps/{MAP_SERIES}/{version}/`).
+Community tools above mirror **MWMs only**. They are **not** the Street
+Pixels production path (**SPD-087** / P1). Street Pixels exploration
+sidecars (`.spa`) must sit beside matching `.mwm` under the CDN layout the
+app already requests (`meta/maps.json` + `maps/{MAP_SERIES}/{version}/`).
+**SPD-035** — no `/spa/` scheme.
 
 Operator generate (build host, **SPD-087** / **SPD-096**) is documented in
-[`tools/python/street_pixels/README.md`](../tools/python/street_pixels/README.md).
-**VPS generate is unsupported.**
+[`tools/python/street_pixels/README.md`](../tools/python/street_pixels/README.md)
+and [`docs/implementation/notes/sp-102-publish-and-serve-origin.md`](implementation/notes/sp-102-publish-and-serve-origin.md).
+**VPS generate is unsupported** (**SPD-088**): generate on the builder, **serve
+here**.
 
 ### 1. Generate (production path) — `map_pipeline`
 
@@ -91,8 +95,10 @@ PYTHONPATH=. python3 -m street_pixels map_pipeline --dry-run \
 ```
 
 `--dry-run` prints the stage graph and paths and does not hit the network.
-Optional `--rsync-dest` copies the tree (nginx/TLS is SP-102). Do **not** use
-`prepare_spa_debug_root` as the production countries source (**SPD-087**).
+Optional `--rsync-dest` copies the tree with `rsync -a --delete-delay`
+(source trailing slash). Placeholder dest:
+`user@vps:/var/www/street-pixels/`. Do **not** use `prepare_spa_debug_root`
+as the production countries source (**SPD-087**).
 
 ### 2. Debug prepare (CoMaps CDN countries + spa) — not production
 
@@ -138,7 +144,8 @@ PYTHONPATH=. python3 post_generation/assemble_spa_publish_tree.py \
 ### 4. Serve on the LAN (SP-051)
 
 Serve the `map_pipeline` / assemble `--out` root with the in-repo server (Range GETs for large
-MWMs; `/health`; debug inventory opt-in only):
+MWMs; `/health`; debug inventory opt-in only). This remains the supported
+Street Pixels **LAN** path.
 
 ```bash
 cd tools/python
@@ -159,6 +166,39 @@ adb reverse tcp:8080 tcp:8080
 ```
 
 Optional: `--enable-debug-routes` exposes `GET /debug/inventory` (off by
-default). Any static HTTP host serving the same tree is CDN-compatible; this
-server is the supported Street Pixels LAN path until community distributors
-ship `.spa`.
+default). **Do not** pass `--enable-debug-routes` on a public VPS.
+
+### 5. Serve on the VPS (SP-102)
+
+Generate on the builder (§1), then rsync the SP-050 `--out` tree to the
+VPS document root (parent of `maps/` and `meta/`). Production HTTP is
+nginx or Caddy in front of that root — **not** `serve_spa_publish_tree`.
+
+```bash
+rsync -a --delete-delay /tmp/sp100/ user@vps:/var/www/street-pixels/
+```
+
+Same argv as `map_pipeline --rsync-dest user@vps:/var/www/street-pixels/`.
+`--delete-delay` makes dest match `--out` (old version dirs not in `--out`
+are removed after the transfer). Keep N=2 old `maps/{MAP_SERIES}/{v}/`
+dirs by copying them aside before rsync if clients still need them. V1
+has no automatic cleanup.
+
+TLS: Let’s Encrypt (`certbot --nginx`) or Caddy auto-HTTPS. Example
+configs (placeholder host `maps.example.invalid`, not the ops hostname):
+
+- `tools/python/street_pixels/var/etc/origin.nginx.conf`
+- `tools/python/street_pixels/var/etc/origin.Caddyfile`
+
+`gzip off` (Caddy: do not `encode gzip`) for `.mwm` / `.spa` / `.sig` /
+`.txt`. Range GETs stay enabled. External health:
+`GET /meta/maps.json` → 200 and `"status": "active"`.
+
+Finland-scale artifacts are about 1 GiB. 8 GiB RAM is enough to serve.
+Do not run `maps_generator` on the 8 GiB VPS.
+
+Stock APK `DEFAULT_URLS_JSON` is gitignored `private.h`, not this doc.
+Community CoMaps distributors (sections above this Street Pixels heading)
+stay MWM-only and are not production.
+
+Full recipe: [`docs/implementation/notes/sp-102-publish-and-serve-origin.md`](implementation/notes/sp-102-publish-and-serve-origin.md).
