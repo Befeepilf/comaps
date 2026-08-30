@@ -48,9 +48,11 @@ rsync -a --delete-delay {out}/ user@vps:/var/www/street-pixels/
 ```
 
 Trailing slash on the source copies **contents** of `--out` into dest.
-`--delete-delay` waits until the transfer finishes, then removes dest
-files that are not in the source. Equivalent manual command (SSH keys
-already trusted):
+`map_pipeline` also appends a trailing slash on dest if `--rsync-dest`
+omits it, so dest is a directory (`--delete-delay` follows a dest symlink
+instead of replacing it). `--delete-delay` waits until the transfer
+finishes, then removes dest files that are not in the source. Equivalent
+manual command (SSH keys already trusted):
 
 ```bash
 rsync -a --delete-delay /path/to/sp100/ user@vps:/var/www/street-pixels/

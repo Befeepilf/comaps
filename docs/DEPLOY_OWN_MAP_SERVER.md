@@ -96,7 +96,7 @@ PYTHONPATH=. python3 -m street_pixels map_pipeline --dry-run \
 
 `--dry-run` prints the stage graph and paths and does not hit the network.
 Optional `--rsync-dest` copies the tree with `rsync -a --delete-delay`
-(source trailing slash). Placeholder dest:
+(trailing slash on source and dest). Placeholder dest:
 `user@vps:/var/www/street-pixels/`. Do **not** use `prepare_spa_debug_root`
 as the production countries source (**SPD-087**).
 
@@ -179,8 +179,9 @@ rsync -a --delete-delay /tmp/sp100/ user@vps:/var/www/street-pixels/
 ```
 
 Same argv as `map_pipeline --rsync-dest user@vps:/var/www/street-pixels/`.
-`--delete-delay` makes dest match `--out` (old version dirs not in `--out`
-are removed after the transfer). Keep N=2 old `maps/{MAP_SERIES}/{v}/`
+`--rsync-dest` without a dest slash is normalized to one. `--delete-delay`
+makes dest match `--out` (old version dirs not in `--out` are removed after
+the transfer). Keep N=2 old `maps/{MAP_SERIES}/{v}/`
 dirs by copying them aside before rsync if clients still need them. V1
 has no automatic cleanup.
 
