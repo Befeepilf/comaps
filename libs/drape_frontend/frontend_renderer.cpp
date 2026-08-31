@@ -812,7 +812,14 @@ void FrontendRenderer::AcceptMessage(ref_ptr<Message> message)
     CHECK(m_context != nullptr, ());
     m_explorationAreaOverlayRenderer->Clear();
     m_explorationAreaOverlayRenderer->SetProperties(m_context, make_ref(m_gpuProgramManager), msg->AcceptOutlines(),
-                                                    msg->AcceptFills());
+                                                    msg->AcceptFills(), msg->AcceptChrome());
+    break;
+  }
+
+  case Message::Type::SetExplorationAreaOverlayZoom:
+  {
+    ref_ptr<SetExplorationAreaOverlayZoomMessage> msg = message;
+    m_explorationAreaOverlayRenderer->SetZoomRange(msg->GetRange());
     break;
   }
 

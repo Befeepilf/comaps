@@ -1046,19 +1046,35 @@ class FlushExplorationAreaOverlayMessage : public Message
 {
 public:
   FlushExplorationAreaOverlayMessage(std::vector<drape_ptr<DrapeApiRenderProperty>> && outlines,
-                                     std::vector<drape_ptr<DrapeApiRenderProperty>> && fills)
+                                     std::vector<drape_ptr<DrapeApiRenderProperty>> && fills,
+                                     std::vector<drape_ptr<DrapeApiRenderProperty>> && chrome)
     : m_outlines(std::move(outlines))
     , m_fills(std::move(fills))
+    , m_chrome(std::move(chrome))
   {}
 
   Type GetType() const override { return Type::FlushExplorationAreaOverlay; }
 
   std::vector<drape_ptr<DrapeApiRenderProperty>> && AcceptOutlines() { return std::move(m_outlines); }
   std::vector<drape_ptr<DrapeApiRenderProperty>> && AcceptFills() { return std::move(m_fills); }
+  std::vector<drape_ptr<DrapeApiRenderProperty>> && AcceptChrome() { return std::move(m_chrome); }
 
 private:
   std::vector<drape_ptr<DrapeApiRenderProperty>> m_outlines;
   std::vector<drape_ptr<DrapeApiRenderProperty>> m_fills;
+  std::vector<drape_ptr<DrapeApiRenderProperty>> m_chrome;
+};
+
+class SetExplorationAreaOverlayZoomMessage : public Message
+{
+public:
+  explicit SetExplorationAreaOverlayZoomMessage(ExplorationAreaOverlayZoomRange const & range) : m_range(range) {}
+
+  Type GetType() const override { return Type::SetExplorationAreaOverlayZoom; }
+  ExplorationAreaOverlayZoomRange const & GetRange() const { return m_range; }
+
+private:
+  ExplorationAreaOverlayZoomRange m_range;
 };
 
 class OnEnterForegroundMessage : public Message

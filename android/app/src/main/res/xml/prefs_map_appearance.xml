@@ -35,4 +35,65 @@
     app:icon="@drawable/ic_translate_indic"
     app:singleLineTitle="false" />
 
+  <PreferenceCategory
+    android:title="@string/pref_exploration_areas_category"
+    app:iconSpaceReserved="false">
+    <CheckBoxPreference
+      android:defaultValue="true"
+      android:key="@string/pref_exploration_areas_show_name"
+      android:persistent="false"
+      android:title="@string/pref_exploration_areas_show_name_title"
+      app:iconSpaceReserved="false"
+      app:singleLineTitle="false" />
+    <CheckBoxPreference
+      android:defaultValue="false"
+      android:key="@string/pref_exploration_areas_show_pct"
+      android:persistent="false"
+      android:title="@string/pref_exploration_areas_show_pct_title"
+      app:iconSpaceReserved="false"
+      app:singleLineTitle="false" />
+    <SeekBarPreference
+      android:key="@string/pref_exploration_areas_font_size"
+      android:persistent="false"
+      android:title="@string/pref_exploration_areas_font_size_title"
+      app:iconSpaceReserved="false"
+      app:showSeekBarValue="true"
+      app:singleLineTitle="false" />
+    <SeekBarPreference
+      android:key="@string/pref_exploration_areas_label_min_zoom"
+      android:persistent="false"
+      android:title="@string/pref_exploration_areas_label_min_zoom_title"
+      app:iconSpaceReserved="false"
+      app:showSeekBarValue="true"
+      app:singleLineTitle="false" />
+    <SeekBarPreference
+      android:key="@string/pref_exploration_areas_label_max_zoom"
+      android:persistent="false"
+      android:title="@string/pref_exploration_areas_label_max_zoom_title"
+      app:iconSpaceReserved="false"
+      app:showSeekBarValue="true"
+      app:singleLineTitle="false" />
+    <SeekBarPreference
+      android:key="@string/pref_exploration_areas_fill_opacity"
+      android:persistent="false"
+      android:title="@string/pref_exploration_areas_fill_opacity_title"
+      app:iconSpaceReserved="false"
+      app:showSeekBarValue="true"
+      app:singleLineTitle="false" />
+    <SeekBarPreference
+      android:key="@string/pref_exploration_areas_fill_min_zoom"
+      android:persistent="false"
+      android:title="@string/pref_exploration_areas_fill_min_zoom_title"
+      app:iconSpaceReserved="false"
+      app:showSeekBarValue="true"
+      app:singleLineTitle="false" />
+    <SeekBarPreference
+      android:key="@string/pref_exploration_areas_fill_max_zoom"
+      android:persistent="false"
+      android:title="@string/pref_exploration_areas_fill_max_zoom_title"
+      app:iconSpaceReserved="false"
+      app:showSeekBarValue="true"
+      app:singleLineTitle="false" />
+  </PreferenceCategory>
+
 </androidx.preference.PreferenceScreen>

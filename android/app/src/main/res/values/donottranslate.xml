@@ -32,6 +32,14 @@
   <string name="pref_osm_profile" translatable="false">Osm profile</string>
   <string name="pref_auto_zoom" translatable="false">AutoZoom</string>
   <string name="pref_large_fonts_size" translatable="false">LargeFontSize</string>
+  <string name="pref_exploration_areas_show_name" translatable="false">ExplorationAreasShowName</string>
+  <string name="pref_exploration_areas_show_pct" translatable="false">ExplorationAreasShowPct</string>
+  <string name="pref_exploration_areas_font_size" translatable="false">ExplorationAreasFontSize</string>
+  <string name="pref_exploration_areas_fill_opacity" translatable="false">ExplorationAreasFillOpacity</string>
+  <string name="pref_exploration_areas_label_min_zoom" translatable="false">ExplorationAreasLabelMinZoom</string>
+  <string name="pref_exploration_areas_label_max_zoom" translatable="false">ExplorationAreasLabelMaxZoom</string>
+  <string name="pref_exploration_areas_fill_min_zoom" translatable="false">ExplorationAreasFillMinZoom</string>
+  <string name="pref_exploration_areas_fill_max_zoom" translatable="false">ExplorationAreasFillMaxZoom</string>
   <string name="pref_use_mobile_data" translatable="false">UseMobileData</string>
   <string name="pref_settings_general" translatable="false">GeneralSettings</string>
   <string name="pref_navigation" translatable="false">Navigation</string>

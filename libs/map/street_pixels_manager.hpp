@@ -14,6 +14,7 @@
 #include "platform/location.hpp"
 
 #include "drape_frontend/drape_engine_safe_ptr.hpp"
+#include "drape_frontend/exploration_area_overlay.hpp"
 #include "drape_frontend/street_pixel.hpp"
 
 #include "drape/color.hpp"
@@ -35,6 +36,7 @@
 
 #include "street_pixels_areas/area_completion_cache.hpp"
 #include "street_pixels_areas/area_milestone_store.hpp"
+#include "street_pixels_areas/area_overlay.hpp"
 #include "street_pixels_areas/areas_types.hpp"
 #include "street_pixels_areas/city_completion_cache.hpp"
 #include "street_pixels_areas/completion_card.hpp"
@@ -46,6 +48,7 @@
 
 #include <healpix_base.h>
 
+#include <atomic>
 #include <cstdint>
 #include <functional>
 #include <list>
@@ -107,6 +110,23 @@ public:
 
   void SetEnabled(bool enabled);
   bool IsEnabled() const;
+
+  void SetExplorationAreasEnabled(bool enabled);
+  bool IsExplorationAreasEnabled() const;
+
+  struct ExplorationAreaOverlayPrefs
+  {
+    bool m_showName = true;
+    bool m_showPct = false;
+    int m_fontSize = 28;
+    int m_fillOpacityPct = 22;
+    int m_labelMinZoom = street_pixels::kDefaultAreaOverlayLabelMinZoom;
+    int m_labelMaxZoom = street_pixels::kDefaultAreaOverlayLabelMaxZoom;
+    int m_fillMinZoom = street_pixels::kDefaultAreaOverlayFillMinZoom;
+    int m_fillMaxZoom = street_pixels::kDefaultAreaOverlayFillMaxZoom;
+  };
+  void SetExplorationAreaOverlayPrefs(ExplorationAreaOverlayPrefs const & prefs);
+  ExplorationAreaOverlayPrefs GetExplorationAreaOverlayPrefs() const;
 
   void SetDrapeEngine(ref_ptr<df::DrapeEngine> engine);
 
@@ -214,7 +234,7 @@ public:
   // Polygon hit-test at point → ExplicitSelect (not MapPan). Outside → clear focus.
   bool SelectFocusedAreaAtPoint(m2::PointD const & mercator, std::string const & spaPath, int64_t mapDataVersion);
   bool HasExplorationAreaAtPoint(m2::PointD const & mercator, std::string const & spaPath, int64_t mapDataVersion);
-  std::optional<uint32_t> HitOverlayLabel(m2::PointD const & mercator, ScreenBase const & screen) const;
+  std::optional<uint32_t> HitOverlayLabel(m2::PointD const & mercator, ScreenBase const & screen, int zoomLevel) const;
   // Resolve §12.5 inputs from viewport/session and apply the engine.
   bool RefreshFocusFromViewport(m2::PointD const & mapCentre, std::optional<m2::PointD> const & userPos,
                                 bool recordingActive, bool followingMyPosition, int drawScale,
@@ -398,6 +418,8 @@ private:
       std::optional<street_pixels::AreaMilestonePresentation> const & before);
   void EmitAreaMilestoneHapticIfNeeded(std::optional<street_pixels::AreaMilestonePresentation> const & head);
   void PushExplorationAreaOverlayUnlocked(street_pixels::SpaFile const & file);
+  void StyleOverlayItem(df::ExplorationAreaOverlayItem & item) const;
+  void RebuildOverlayLabelsUnlocked();
   void RefreshFocusedAreaFractionUnlocked();
   void ClearFocusedAreaUnlocked();
   std::string ComposeCompetitionLineForOsm(uint64_t osmId, std::string const & displayName = {}) const;
@@ -409,6 +431,9 @@ private:
     m2::PointD m_halfSizePx;
   };
   std::vector<OverlayLabel> m_overlayLabels;
+  std::vector<df::ExplorationAreaOverlayItem> m_overlayItems;
+  ExplorationAreaOverlayPrefs m_overlayPrefs;
+  std::atomic<bool> m_explorationAreasEnabled{false};
 
   // Updates heuristic stats for each street in the explore radius. Needed for routing to prefer streets with more
   // unexplored pixels.

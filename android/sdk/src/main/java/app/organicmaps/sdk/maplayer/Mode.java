@@ -84,6 +84,20 @@ public enum Mode
     {
       return StreetPixelsManager.isLoading();
     }
+  },
+
+  EXPLORATION_AREAS {
+    @Override
+    public boolean isEnabled(@NonNull Context context)
+    {
+      return StreetPixelsManager.areExplorationAreasEnabled();
+    }
+
+    @Override
+    public void setEnabled(@NonNull Context context, boolean isEnabled)
+    {
+      StreetPixelsManager.setExplorationAreasEnabled(isEnabled);
+    }
   };
 
   public abstract boolean isEnabled(@NonNull Context context);

@@ -323,6 +323,10 @@ public class Framework
   public static native void nativeSetStreetPixelsLayerEnabled(boolean enabled);
   public static native boolean nativeIsStreetPixelsLayerEnabled();
 
+  public static native void nativeSetExplorationAreasLayerEnabled(boolean enabled);
+  public static native boolean nativeIsExplorationAreasLayerEnabled();
+  public static native void nativeApplyExplorationAreaOverlayPrefs();
+
   @NonNull
   public static native MapObject nativeDeleteBookmarkFromMapObject();
 

@@ -14,6 +14,33 @@
 
 namespace street_pixels
 {
+inline constexpr int kDefaultAreaOverlayFontSize = 28;
+inline constexpr int kMinAreaOverlayFontSize = 16;
+inline constexpr int kMaxAreaOverlayFontSize = 48;
+inline constexpr int kDefaultAreaOverlayFillOpacityPct = 22;
+inline constexpr int kMinAreaOverlayZoomSetting = 1;
+inline constexpr int kMaxAreaOverlayZoomSetting = 20;
+inline constexpr int kDefaultAreaOverlayLabelMinZoom = 13;
+inline constexpr int kDefaultAreaOverlayLabelMaxZoom = 20;
+inline constexpr int kDefaultAreaOverlayFillMinZoom = 9;
+inline constexpr int kDefaultAreaOverlayFillMaxZoom = 15;
+inline constexpr float kAreaOverlayRingRadiusPx = 16.0f;
+inline constexpr float kAreaOverlayChromeGapPx = 6.0f;
+
+uint8_t FillAlphaFromOpacityPct(int opacityPct);
+std::string FormatAreaOverlayPercent(double fraction);
+
+struct AreaOverlayChrome
+{
+  bool m_showName = false;
+  bool m_showPct = false;
+  float m_fontSize = kDefaultAreaOverlayFontSize;
+  m2::PointD m_halfSizePx{};
+  m2::PointF m_ringOffsetPx{};
+};
+
+AreaOverlayChrome MakeAreaOverlayChrome(bool showName, bool showPct, float fontSize, std::string const & name);
+
 // Zoom bands for §12.1–§12.3. City band matches SP-036 kCityScaleMaxDrawScale.
 inline constexpr int kAreaOverlayMinZoom = 9;
 inline constexpr int kAreaOverlayCityMaxZoom = 12;

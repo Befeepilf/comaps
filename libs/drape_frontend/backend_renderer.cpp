@@ -583,9 +583,11 @@ void BackendRenderer::AcceptMessage(ref_ptr<Message> message)
     CHECK(m_context != nullptr, ());
     std::vector<drape_ptr<DrapeApiRenderProperty>> outlines;
     std::vector<drape_ptr<DrapeApiRenderProperty>> fills;
-    m_explorationAreaOverlayBuilder->Build(m_context, msg->AcceptItems(), m_texMng, outlines, fills);
+    std::vector<drape_ptr<DrapeApiRenderProperty>> chrome;
+    m_explorationAreaOverlayBuilder->Build(m_context, msg->AcceptItems(), m_texMng, outlines, fills, chrome);
     m_commutator->PostMessage(ThreadsCommutator::RenderThread,
-                              make_unique_dp<FlushExplorationAreaOverlayMessage>(std::move(outlines), std::move(fills)),
+                              make_unique_dp<FlushExplorationAreaOverlayMessage>(std::move(outlines), std::move(fills),
+                                                                               std::move(chrome)),
                               MessagePriority::Normal);
     break;
   }

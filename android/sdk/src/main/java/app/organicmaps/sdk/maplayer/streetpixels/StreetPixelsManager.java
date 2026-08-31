@@ -197,6 +197,18 @@ public class StreetPixelsManager
     Framework.nativeSetStreetPixelsLayerEnabled(isEnabled);
   }
 
+  static public boolean areExplorationAreasEnabled()
+  {
+    return Framework.nativeIsExplorationAreasLayerEnabled();
+  }
+
+  static public void setExplorationAreasEnabled(boolean isEnabled)
+  {
+    if (isEnabled == areExplorationAreasEnabled())
+      return;
+    Framework.nativeSetExplorationAreasLayerEnabled(isEnabled);
+  }
+
   public void initialize()
   {
     registerListener();

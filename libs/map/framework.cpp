@@ -140,6 +140,15 @@ std::string_view constexpr kTrafficEnabledKey = "TrafficEnabled";
 std::string_view constexpr kTransitSchemeEnabledKey = "TransitSchemeEnabled";
 std::string_view constexpr kIsolinesEnabledKey = "IsolinesEnabled";
 std::string_view constexpr kStreetPixelsEnabledKey = "StreetPixelsEnabled";
+std::string_view constexpr kExplorationAreasEnabledKey = "ExplorationAreasEnabled";
+std::string_view constexpr kExplorationAreasShowNameKey = "ExplorationAreasShowName";
+std::string_view constexpr kExplorationAreasShowPctKey = "ExplorationAreasShowPct";
+std::string_view constexpr kExplorationAreasFontSizeKey = "ExplorationAreasFontSize";
+std::string_view constexpr kExplorationAreasFillOpacityKey = "ExplorationAreasFillOpacity";
+std::string_view constexpr kExplorationAreasLabelMinZoomKey = "ExplorationAreasLabelMinZoom";
+std::string_view constexpr kExplorationAreasLabelMaxZoomKey = "ExplorationAreasLabelMaxZoom";
+std::string_view constexpr kExplorationAreasFillMinZoomKey = "ExplorationAreasFillMinZoom";
+std::string_view constexpr kExplorationAreasFillMaxZoomKey = "ExplorationAreasFillMaxZoom";
 std::string_view constexpr kOutdoorsEnabledKey = "OutdoorsEnabled";
 std::string_view constexpr kTrafficSimplifiedColorsKey = "TrafficSimplifiedColors";
 std::string_view constexpr kLargeFontsSize = "LargeFontsSize";
@@ -1798,6 +1807,8 @@ void Framework::CreateDrapeEngine(ref_ptr<dp::GraphicsContextFactory> contextFac
   GetBookmarkManager().SetDrapeEngine(make_ref(m_drapeEngine));
   GetStreetPixelsManager().SetDrapeEngine(make_ref(m_drapeEngine));
   GetStreetPixelsManager().SetEnabled(LoadStreetPixelsEnabled());
+  GetStreetPixelsManager().SetExplorationAreasEnabled(LoadExplorationAreasEnabled());
+  GetStreetPixelsManager().SetExplorationAreaOverlayPrefs(LoadExplorationAreaOverlayPrefs());
   m_drapeApi.SetDrapeEngine(make_ref(m_drapeEngine));
   m_routingManager.SetDrapeEngine(make_ref(m_drapeEngine), allow3d);
   m_trafficManager.SetDrapeEngine(make_ref(m_drapeEngine));
@@ -2286,7 +2297,7 @@ bool Framework::TryHandleExplorationAreaTap(place_page::Info const & info)
     return false;
 
   auto & manager = GetStreetPixelsManager();
-  if (!manager.IsEnabled())
+  if (!manager.IsExplorationAreasEnabled())
     return false;
 
   street_pixels::MapTapClassification tap;
@@ -2297,8 +2308,8 @@ bool Framework::TryHandleExplorationAreaTap(place_page::Info const & info)
   tap.m_isPointFeature =
       info.IsFeature() && info.IsPointType() && !ftypes::IsPlaceChecker::Instance()(info.GetTypes());
   std::optional<uint32_t> labelIndex;
-  if (GetDrawScale() >= street_pixels::kAreaOverlayMinZoom)
-    labelIndex = manager.HitOverlayLabel(info.GetMercator(), m_currentModelView);
+  int const zoom = GetDrawScale();
+  labelIndex = manager.HitOverlayLabel(info.GetMercator(), m_currentModelView, zoom);
   tap.m_isAreaLabel = labelIndex.has_value();
   auto const kind = street_pixels::ClassifyMapTap(tap);
   if (!street_pixels::ShouldOpenExplorationDetail(kind, tap.m_isAreaLabel))
@@ -3004,6 +3015,61 @@ bool Framework::LoadStreetPixelsEnabled()
 
 void Framework::SaveStreetPixelsEnabled(bool enabled) {
   settings::Set(kStreetPixelsEnabledKey, enabled);
+}
+
+bool Framework::LoadExplorationAreasEnabled()
+{
+  bool enabled;
+  if (settings::Get(kExplorationAreasEnabledKey, enabled))
+    return enabled;
+  enabled = LoadStreetPixelsEnabled();
+  SaveExplorationAreasEnabled(enabled);
+  return enabled;
+}
+
+void Framework::SaveExplorationAreasEnabled(bool enabled)
+{
+  settings::Set(kExplorationAreasEnabledKey, enabled);
+}
+
+StreetPixelsManager::ExplorationAreaOverlayPrefs Framework::LoadExplorationAreaOverlayPrefs()
+{
+  StreetPixelsManager::ExplorationAreaOverlayPrefs prefs;
+  if (!settings::Get(kExplorationAreasShowNameKey, prefs.m_showName))
+    prefs.m_showName = true;
+  if (!settings::Get(kExplorationAreasShowPctKey, prefs.m_showPct))
+    prefs.m_showPct = false;
+  int32_t fontSize = street_pixels::kDefaultAreaOverlayFontSize;
+  if (settings::Get(kExplorationAreasFontSizeKey, fontSize))
+    prefs.m_fontSize = static_cast<int>(fontSize);
+  int32_t opacity = street_pixels::kDefaultAreaOverlayFillOpacityPct;
+  if (settings::Get(kExplorationAreasFillOpacityKey, opacity))
+    prefs.m_fillOpacityPct = static_cast<int>(opacity);
+  int32_t labelMin = street_pixels::kDefaultAreaOverlayLabelMinZoom;
+  if (settings::Get(kExplorationAreasLabelMinZoomKey, labelMin))
+    prefs.m_labelMinZoom = static_cast<int>(labelMin);
+  int32_t labelMax = street_pixels::kDefaultAreaOverlayLabelMaxZoom;
+  if (settings::Get(kExplorationAreasLabelMaxZoomKey, labelMax))
+    prefs.m_labelMaxZoom = static_cast<int>(labelMax);
+  int32_t fillMin = street_pixels::kDefaultAreaOverlayFillMinZoom;
+  if (settings::Get(kExplorationAreasFillMinZoomKey, fillMin))
+    prefs.m_fillMinZoom = static_cast<int>(fillMin);
+  int32_t fillMax = street_pixels::kDefaultAreaOverlayFillMaxZoom;
+  if (settings::Get(kExplorationAreasFillMaxZoomKey, fillMax))
+    prefs.m_fillMaxZoom = static_cast<int>(fillMax);
+  return prefs;
+}
+
+void Framework::SaveExplorationAreaOverlayPrefs(StreetPixelsManager::ExplorationAreaOverlayPrefs const & prefs)
+{
+  settings::Set(kExplorationAreasShowNameKey, prefs.m_showName);
+  settings::Set(kExplorationAreasShowPctKey, prefs.m_showPct);
+  settings::Set(kExplorationAreasFontSizeKey, static_cast<int32_t>(prefs.m_fontSize));
+  settings::Set(kExplorationAreasFillOpacityKey, static_cast<int32_t>(prefs.m_fillOpacityPct));
+  settings::Set(kExplorationAreasLabelMinZoomKey, static_cast<int32_t>(prefs.m_labelMinZoom));
+  settings::Set(kExplorationAreasLabelMaxZoomKey, static_cast<int32_t>(prefs.m_labelMaxZoom));
+  settings::Set(kExplorationAreasFillMinZoomKey, static_cast<int32_t>(prefs.m_fillMinZoom));
+  settings::Set(kExplorationAreasFillMaxZoomKey, static_cast<int32_t>(prefs.m_fillMaxZoom));
 }
 
 void Framework::EnableChoosePositionMode(bool enable, bool enableBounds, m2::PointD const * optionalPosition)

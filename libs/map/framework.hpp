@@ -790,6 +790,11 @@ public:
   bool LoadStreetPixelsEnabled();
   void SaveStreetPixelsEnabled(bool enabled);
 
+  bool LoadExplorationAreasEnabled();
+  void SaveExplorationAreasEnabled(bool enabled);
+  StreetPixelsManager::ExplorationAreaOverlayPrefs LoadExplorationAreaOverlayPrefs();
+  void SaveExplorationAreaOverlayPrefs(StreetPixelsManager::ExplorationAreaOverlayPrefs const & prefs);
+
   dp::ApiVersion LoadPreferredGraphicsAPI();
   void SavePreferredGraphicsAPI(dp::ApiVersion apiVersion);
 

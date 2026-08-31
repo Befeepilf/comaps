@@ -220,6 +220,7 @@ public:
 
   void EnableExplorationAreaOverlay(bool enable);
   void UpdateExplorationAreaOverlay(std::vector<df::ExplorationAreaOverlayItem> && items);
+  void SetExplorationAreaOverlayZoom(ExplorationAreaOverlayZoomRange const & range);
   void ClearExplorationAreaOverlay();
 
   void EnableChoosePositionMode(bool enable, std::vector<m2::TriangleD> && boundAreaTriangles,

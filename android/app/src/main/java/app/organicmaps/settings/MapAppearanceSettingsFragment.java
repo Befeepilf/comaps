@@ -5,8 +5,10 @@ import android.os.Bundle;
 import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.preference.CheckBoxPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
+import androidx.preference.SeekBarPreference;
 import androidx.preference.TwoStatePreference;
 import app.organicmaps.R;
 import app.organicmaps.editor.MapLanguagesFragment;
@@ -16,6 +18,7 @@ import app.organicmaps.sdk.settings.MapLanguageCode;
 import app.organicmaps.sdk.util.Config;
 import app.organicmaps.sdk.util.PowerManagment;
 import java.util.Locale;
+import java.util.function.IntConsumer;
 
 @Keep
 public class MapAppearanceSettingsFragment extends BaseXmlSettingsFragment implements MapLanguagesFragment.Listener
@@ -35,6 +38,7 @@ public class MapAppearanceSettingsFragment extends BaseXmlSettingsFragment imple
     initLargeFontSizePrefsCallbacks();
     initTransliterationPrefsCallbacks();
     initAlternativeMapLanguageHandlingCallbacks();
+    initExplorationAreasPrefs();
   }
 
   @Override
@@ -145,6 +149,93 @@ public class MapAppearanceSettingsFragment extends BaseXmlSettingsFragment imple
       Framework.Params3dMode current = new Framework.Params3dMode();
       Framework.nativeGet3dMode(current);
       Framework.nativeSet3dMode(current.enabled, (Boolean) newValue);
+      return true;
+    });
+  }
+
+  private void initExplorationAreasPrefs()
+  {
+    CheckBoxPreference showName = getPreference(getString(R.string.pref_exploration_areas_show_name));
+    showName.setChecked(Config.showExplorationAreaName());
+    showName.setOnPreferenceChangeListener((preference, newValue) -> {
+      Config.setShowExplorationAreaName((Boolean) newValue);
+      Framework.nativeApplyExplorationAreaOverlayPrefs();
+      return true;
+    });
+
+    CheckBoxPreference showPct = getPreference(getString(R.string.pref_exploration_areas_show_pct));
+    showPct.setChecked(Config.showExplorationAreaPercent());
+    showPct.setOnPreferenceChangeListener((preference, newValue) -> {
+      Config.setShowExplorationAreaPercent((Boolean) newValue);
+      Framework.nativeApplyExplorationAreaOverlayPrefs();
+      return true;
+    });
+
+    SeekBarPreference fontSize = getPreference(getString(R.string.pref_exploration_areas_font_size));
+    fontSize.setMin(Config.EXPLORATION_AREAS_FONT_SIZE_MIN);
+    fontSize.setMax(Config.EXPLORATION_AREAS_FONT_SIZE_MAX);
+    fontSize.setValue(Config.explorationAreaFontSize());
+    fontSize.setOnPreferenceChangeListener((preference, newValue) -> {
+      Config.setExplorationAreaFontSize((Integer) newValue);
+      Framework.nativeApplyExplorationAreaOverlayPrefs();
+      return true;
+    });
+
+    SeekBarPreference fillOpacity = getPreference(getString(R.string.pref_exploration_areas_fill_opacity));
+    fillOpacity.setMin(0);
+    fillOpacity.setMax(100);
+    fillOpacity.setValue(Config.explorationAreaFillOpacity());
+    fillOpacity.setOnPreferenceChangeListener((preference, newValue) -> {
+      Config.setExplorationAreaFillOpacity((Integer) newValue);
+      Framework.nativeApplyExplorationAreaOverlayPrefs();
+      return true;
+    });
+
+    bindZoomRange(getString(R.string.pref_exploration_areas_label_min_zoom),
+                  getString(R.string.pref_exploration_areas_label_max_zoom), Config.explorationAreaLabelMinZoom(),
+                  Config.explorationAreaLabelMaxZoom(), Config::setExplorationAreaLabelMinZoom,
+                  Config::setExplorationAreaLabelMaxZoom);
+    bindZoomRange(getString(R.string.pref_exploration_areas_fill_min_zoom),
+                  getString(R.string.pref_exploration_areas_fill_max_zoom), Config.explorationAreaFillMinZoom(),
+                  Config.explorationAreaFillMaxZoom(), Config::setExplorationAreaFillMinZoom,
+                  Config::setExplorationAreaFillMaxZoom);
+  }
+
+  private void bindZoomRange(String minKey, String maxKey, int minVal, int maxVal, IntConsumer setMin,
+                             IntConsumer setMax)
+  {
+    SeekBarPreference minPref = getPreference(minKey);
+    SeekBarPreference maxPref = getPreference(maxKey);
+    minPref.setMin(Config.EXPLORATION_AREAS_ZOOM_MIN);
+    minPref.setMax(Config.EXPLORATION_AREAS_ZOOM_MAX);
+    maxPref.setMin(Config.EXPLORATION_AREAS_ZOOM_MIN);
+    maxPref.setMax(Config.EXPLORATION_AREAS_ZOOM_MAX);
+    minPref.setValue(minVal);
+    maxPref.setValue(maxVal);
+    minPref.setOnPreferenceChangeListener((preference, newValue) -> {
+      int min = (Integer) newValue;
+      int max = maxPref.getValue();
+      if (min > max)
+      {
+        max = min;
+        maxPref.setValue(max);
+        setMax.accept(max);
+      }
+      setMin.accept(min);
+      Framework.nativeApplyExplorationAreaOverlayPrefs();
+      return true;
+    });
+    maxPref.setOnPreferenceChangeListener((preference, newValue) -> {
+      int max = (Integer) newValue;
+      int min = minPref.getValue();
+      if (max < min)
+      {
+        min = max;
+        minPref.setValue(min);
+        setMin.accept(min);
+      }
+      setMax.accept(max);
+      Framework.nativeApplyExplorationAreaOverlayPrefs();
       return true;
     });
   }

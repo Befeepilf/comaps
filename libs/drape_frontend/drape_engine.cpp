@@ -760,6 +760,12 @@ void DrapeEngine::UpdateExplorationAreaOverlay(std::vector<df::ExplorationAreaOv
                                   MessagePriority::Normal);
 }
 
+void DrapeEngine::SetExplorationAreaOverlayZoom(ExplorationAreaOverlayZoomRange const & range)
+{
+  m_threadCommutator->PostMessage(ThreadsCommutator::RenderThread,
+                                  make_unique_dp<SetExplorationAreaOverlayZoomMessage>(range), MessagePriority::Normal);
+}
+
 void DrapeEngine::ClearExplorationAreaOverlay()
 {
   m_threadCommutator->PostMessage(ThreadsCommutator::RenderThread, make_unique_dp<ClearExplorationAreaOverlayMessage>(),

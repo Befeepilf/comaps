@@ -2010,6 +2010,25 @@ JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_Framework_nativeIsStreetPixe
   return static_cast<jboolean>(frm()->LoadStreetPixelsEnabled());
 }
 
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeSetExplorationAreasLayerEnabled(JNIEnv * env, jclass,
+                                                                                                 jboolean enabled)
+{
+  auto const areasEnabled = static_cast<bool>(enabled);
+  frm()->GetStreetPixelsManager().SetExplorationAreasEnabled(areasEnabled);
+  frm()->SaveExplorationAreasEnabled(areasEnabled);
+}
+
+JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_Framework_nativeIsExplorationAreasLayerEnabled(JNIEnv * env, jclass)
+{
+  return static_cast<jboolean>(frm()->GetStreetPixelsManager().IsExplorationAreasEnabled());
+}
+
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeApplyExplorationAreaOverlayPrefs(JNIEnv *, jclass)
+{
+  auto const prefs = frm()->LoadExplorationAreaOverlayPrefs();
+  frm()->GetStreetPixelsManager().SetExplorationAreaOverlayPrefs(prefs);
+}
+
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeSaveSettingSchemeEnabled(JNIEnv * env, jclass, jboolean enabled)
 {
   frm()->SaveTransitSchemeEnabled(static_cast<bool>(enabled));
