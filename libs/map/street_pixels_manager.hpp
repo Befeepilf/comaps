@@ -127,6 +127,8 @@ public:
   };
   void SetExplorationAreaOverlayPrefs(ExplorationAreaOverlayPrefs const & prefs);
   ExplorationAreaOverlayPrefs GetExplorationAreaOverlayPrefs() const;
+  void SetOverlayViewport(m2::RectD const & rect);
+  void MaybeRefreshOverlayForViewport();
 
   void SetDrapeEngine(ref_ptr<df::DrapeEngine> engine);
 
@@ -409,7 +411,8 @@ private:
   void AddExploredPixelsToAreaCompletion(std::set<std::int64_t> const & pixelIds, bool liveAnalytics = false);
   bool RebuildAreaCompletionCacheUnlocked(storage::CountryId const & countryId, std::string const & spaPath,
                                           int64_t mapDataVersion);
-  bool RebuildAreaCompletionCacheFromLoadedUnlocked(std::vector<std::int64_t> const & universeAscending,
+  bool RebuildAreaCompletionCacheFromLoadedUnlocked(storage::CountryId const & countryId,
+                                                    std::vector<std::int64_t> const & universeAscending,
                                                     std::vector<std::int64_t> const & exploredAscending,
                                                     street_pixels::ExplorationAreaResolver && resolver);
   std::vector<street_pixels::AreaMilestoneCrossing> EvaluateAreaMilestonesUnlocked(int64_t nowSec);
@@ -434,6 +437,10 @@ private:
   std::vector<df::ExplorationAreaOverlayItem> m_overlayItems;
   ExplorationAreaOverlayPrefs m_overlayPrefs;
   std::atomic<bool> m_explorationAreasEnabled{false};
+  m2::RectD m_overlayViewport;
+  m2::RectD m_overlayBuiltViewport;
+  bool m_overlayViewportValid = false;
+  bool m_overlayBuiltViewportValid = false;
 
   // Updates heuristic stats for each street in the explore radius. Needed for routing to prefer streets with more
   // unexplored pixels.

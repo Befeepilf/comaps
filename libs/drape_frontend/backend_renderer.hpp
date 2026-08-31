@@ -3,6 +3,7 @@
 #include "drape_frontend/arrow3d.hpp"
 #include "drape_frontend/base_renderer.hpp"
 #include "drape_frontend/drape_engine_params.hpp"
+#include "drape_frontend/exploration_area_overlay.hpp"
 #include "drape_frontend/gui/layer_render.hpp"
 #include "drape_frontend/gui/skin.hpp"
 #include "drape_frontend/map_data_provider.hpp"
@@ -124,6 +125,7 @@ private:
   void FlushUserMarksRenderData(TUserMarksRenderData && renderData);
 
   void CleanupOverlays(TileKey const & tileKey);
+  void BuildAndFlushExplorationOverlay(std::vector<ExplorationAreaOverlayItem> items);
 
   MapDataProvider m_model;
   drape_ptr<BatchersPool<TileKey, TileKeyStrictComparator>> m_batchersPool;
@@ -134,6 +136,8 @@ private:
   drape_ptr<UserMarkGenerator> m_userMarkGenerator;
   drape_ptr<DrapeApiBuilder> m_drapeApiBuilder;
   drape_ptr<ExplorationAreaOverlayBuilder> m_explorationAreaOverlayBuilder;
+  bool m_firstTileCoverageFlushed = false;
+  std::vector<ExplorationAreaOverlayItem> m_pendingExplorationOverlay;
   gui::LayerCacher m_guiCacher;
 
   ref_ptr<RequestedTiles> m_requestedTiles;

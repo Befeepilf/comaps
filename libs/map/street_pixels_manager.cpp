@@ -127,6 +127,17 @@ void ClampOverlayZoomRange(int & minZoom, int & maxZoom)
     maxZoom = minZoom;
 }
 
+bool OverlayViewportValid(m2::RectD const & rect)
+{
+  return rect.IsValid() && rect.SizeX() > 0.0 && rect.SizeY() > 0.0;
+}
+
+m2::RectD InflateOverlayViewport(m2::RectD rect)
+{
+  rect.Inflate(rect.SizeX(), rect.SizeY());
+  return rect;
+}
+
 df::ExplorationAreaOverlayZoomRange ZoomRangeFromPrefs(StreetPixelsManager::ExplorationAreaOverlayPrefs const & prefs)
 {
   return {prefs.m_labelMinZoom, prefs.m_labelMaxZoom, prefs.m_fillMinZoom, prefs.m_fillMaxZoom};
@@ -412,13 +423,42 @@ void StreetPixelsManager::SetExplorationAreasEnabled(bool enabled)
     m_drapeEngine.SafeCall(&df::DrapeEngine::ClearExplorationAreaOverlay);
     return;
   }
+  std::shared_ptr<street_pixels::ExplorationAreaResolver> resolver;
   std::vector<df::ExplorationAreaOverlayItem> items;
   {
     std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+    resolver = m_completionResolver;
     items = m_overlayItems;
   }
-  if (!items.empty())
+  if (resolver)
+    PushExplorationAreaOverlayUnlocked(resolver->GetFile());
+  else if (!items.empty())
     m_drapeEngine.SafeCall(&df::DrapeEngine::UpdateExplorationAreaOverlay, std::move(items));
+}
+
+void StreetPixelsManager::SetOverlayViewport(m2::RectD const & rect)
+{
+  std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+  m_overlayViewport = rect;
+  m_overlayViewportValid = OverlayViewportValid(rect);
+}
+
+void StreetPixelsManager::MaybeRefreshOverlayForViewport()
+{
+  if (!m_explorationAreasEnabled.load())
+    return;
+  std::shared_ptr<street_pixels::ExplorationAreaResolver> resolver;
+  {
+    std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+    if (!m_overlayViewportValid)
+      return;
+    if (m_overlayBuiltViewportValid && m_overlayBuiltViewport.IsRectInside(m_overlayViewport))
+      return;
+    resolver = m_completionResolver;
+  }
+  if (!resolver)
+    return;
+  PushExplorationAreaOverlayUnlocked(resolver->GetFile());
 }
 
 bool StreetPixelsManager::IsExplorationAreasEnabled() const
@@ -1456,6 +1496,7 @@ void StreetPixelsManager::CleanupStreetPixelsUnlocked(storage::CountryId const &
   Platform::RemoveFileIfExists(accountedPath);
   Platform::RemoveFileIfExists(pixfPath);
   Platform::RemoveFileIfExists(street_pixels::SparseAssignmentPath(GetPlatform().WritableDir(), countryId));
+  Platform::RemoveFileIfExists(street_pixels::AreaCompletionCachePath(GetPlatform().WritableDir(), countryId));
 }
 
 void StreetPixelsManager::RematchStreetPixelsOnMapUpdate(storage::CountryId const & countryId,
@@ -1748,19 +1789,9 @@ void StreetPixelsManager::RefreshSparseAssignmentsBestEffortUnlocked(storage::Co
   std::string const pixPath = GetPlatform().WritablePathForFile(countryId + ".pix");
   std::string const spxPath = street_pixels::SparseAssignmentPath(GetPlatform().WritableDir(), countryId);
 
-  base::Timer refreshTimer;
-  auto const universe = street_pixels_file::ScanUniverseAscending(pixPath);
-  auto const exploredMap = street_pixels_file::ScanExploredEverLive(pixPath);
-  LOG(LINFO, ("StreetPixels refresh pix scan ms", refreshTimer.ElapsedMilliseconds(), countryId));
-  if (!universe || !exploredMap)
-  {
-    LOG(LWARNING, ("Sparse assignment refresh skipped; .pix unreadable", countryId));
-    InvalidateAreaCompletionCache();
-    return;
-  }
-
   base::Timer spaTimer;
   auto sidecar = street_pixels::TryLoadExplorationSidecar(spaPath);
+  LOG(LINFO, ("StreetPixels sidecar load ms", spaTimer.ElapsedMilliseconds(), countryId));
   if (sidecar.m_status != street_pixels::SpaLoadStatus::Ok)
   {
     LOG(LINFO, ("Sparse assignment refresh skipped; no sidecar", countryId,
@@ -1776,6 +1807,36 @@ void StreetPixelsManager::RefreshSparseAssignmentsBestEffortUnlocked(storage::Co
     return;
   }
 
+  {
+    std::string const accPath =
+        street_pixels::AreaCompletionCachePath(GetPlatform().WritableDir(), countryId);
+    auto loaded = street_pixels::TryLoadAreaCompletionCache(accPath);
+    if (loaded.m_status == street_pixels::AccLoadStatus::Ok &&
+        loaded.m_cache.MapDataVersion() == sidecar.m_file.m_header.m_mapDataVersion &&
+        loaded.m_cache.PolicyVersion() == sidecar.m_file.m_header.m_policyVersion)
+    {
+      LOG(LINFO, ("StreetPixels AreaCompletionCache persist load", countryId, "rows",
+                  loaded.m_cache.Rows().size(), "explored", loaded.m_cache.ExploredCount()));
+      std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+      m_areaCompletionCache = std::move(loaded.m_cache);
+    }
+  }
+
+  base::Timer earlyOverlayTimer;
+  PushExplorationAreaOverlayUnlocked(sidecar.m_file);
+  LOG(LINFO, ("StreetPixels overlay early push ms", earlyOverlayTimer.ElapsedMilliseconds(), countryId));
+
+  base::Timer refreshTimer;
+  auto const universe = street_pixels_file::ScanUniverseAscending(pixPath);
+  auto const exploredMap = street_pixels_file::ScanExploredEverLive(pixPath);
+  LOG(LINFO, ("StreetPixels refresh pix scan ms", refreshTimer.ElapsedMilliseconds(), countryId));
+  if (!universe || !exploredMap)
+  {
+    LOG(LWARNING, ("Sparse assignment refresh skipped; .pix unreadable", countryId));
+    InvalidateAreaCompletionCache();
+    return;
+  }
+
   auto prior = street_pixels::TryLoadSparseAssignmentStore(spxPath);
   // TryLoad never returns VersionMismatch; treat Ok with wrong versions as stale.
   bool const hadDurablePrior = prior.m_status == street_pixels::SpxLoadStatus::Ok ||
@@ -1785,9 +1846,10 @@ void StreetPixelsManager::RefreshSparseAssignmentsBestEffortUnlocked(storage::Co
       prior.m_store.MatchesVersions(sidecar.m_file.m_header.m_mapDataVersion,
                                     sidecar.m_file.m_header.m_policyVersion);
 
+  base::Timer resolverTimer;
   auto resolver = street_pixels::ExplorationAreaResolver::TryLoad(
       spaPath, *universe, sidecar.m_file.m_header.m_mapDataVersion, sidecar.m_file.m_header.m_policyVersion);
-  LOG(LINFO, ("StreetPixels refresh spa+resolver ms", spaTimer.ElapsedMilliseconds(), countryId));
+  LOG(LINFO, ("StreetPixels refresh spa+resolver ms", resolverTimer.ElapsedMilliseconds(), countryId));
   if (!resolver)
   {
     LOG(LWARNING, ("Sparse assignment refresh skipped; resolver load failed", countryId));
@@ -1810,7 +1872,7 @@ void StreetPixelsManager::RefreshSparseAssignmentsBestEffortUnlocked(storage::Co
     return;
   }
 
-  RebuildAreaCompletionCacheFromLoadedUnlocked(*universe, exploredAscending, std::move(*resolver));
+  RebuildAreaCompletionCacheFromLoadedUnlocked(countryId, *universe, exploredAscending, std::move(*resolver));
   RefreshFocusedAreaFractionUnlocked();
   NotifyFocusedAreaProgressIfChanged();
 
@@ -3561,21 +3623,81 @@ bool StreetPixelsManager::RebuildAreaCompletionCacheUnlocked(storage::CountryId 
   std::vector<m2::PointD> ignoredCentres;
   CollectExploredAscendingWithCentres(*exploredMap, exploredAscending, ignoredCentres);
 
-  return RebuildAreaCompletionCacheFromLoadedUnlocked(*universe, exploredAscending, std::move(*resolver));
+  return RebuildAreaCompletionCacheFromLoadedUnlocked(countryId, *universe, exploredAscending,
+                                                      std::move(*resolver));
 }
 
 bool StreetPixelsManager::RebuildAreaCompletionCacheFromLoadedUnlocked(
-    std::vector<std::int64_t> const & universeAscending, std::vector<std::int64_t> const & exploredAscending,
-    street_pixels::ExplorationAreaResolver && resolver)
+    storage::CountryId const & countryId, std::vector<std::int64_t> const & universeAscending,
+    std::vector<std::int64_t> const & exploredAscending, street_pixels::ExplorationAreaResolver && resolver)
 {
+  std::string const accPath =
+      street_pixels::AreaCompletionCachePath(GetPlatform().WritableDir(), countryId);
+  auto stored = std::make_shared<street_pixels::ExplorationAreaResolver>(std::move(resolver));
+  auto const & file = stored->GetFile();
+
+  auto install = [&](street_pixels::AreaCompletionCache && built, bool pushOverlay)
+  {
+    base::Timer cityTimer;
+    auto cityBuilt = street_pixels::CityCompletionCache::Build(file, built);
+    LOG(LINFO, ("StreetPixels CityCompletionCache::Build ms", cityTimer.ElapsedMilliseconds()));
+    {
+      std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+      m_areaCompletionCache = std::move(built);
+      m_cityCompletionCache = std::move(cityBuilt);
+      m_completionResolver = stored;
+    }
+    EvaluateAreaMilestonesUnlocked(static_cast<int64_t>(base::Timer::LocalTime()));
+    IngestPendingAreaMilestonePresentations(file);
+    if (pushOverlay)
+    {
+      base::Timer overlayTimer;
+      PushExplorationAreaOverlayUnlocked(file);
+      LOG(LINFO, ("StreetPixels overlay push ms", overlayTimer.ElapsedMilliseconds()));
+    }
+  };
+
+  street_pixels::AreaCompletionCache existing;
+  {
+    std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+    existing = m_areaCompletionCache;
+  }
+  if (existing.MatchesFingerprint(file.m_header.m_mapDataVersion, file.m_header.m_policyVersion,
+                                  universeAscending.size(), exploredAscending.size()) &&
+      existing.Rows().size() == file.m_areas.size())
+  {
+    LOG(LINFO, ("StreetPixels AreaCompletionCache persist hit", countryId, "rows", existing.Rows().size()));
+    install(std::move(existing), false);
+    return true;
+  }
+  if (existing.IsValid() && existing.MapDataVersion() == file.m_header.m_mapDataVersion &&
+      existing.PolicyVersion() == file.m_header.m_policyVersion &&
+      existing.UniverseSize() == universeAscending.size() && existing.Rows().size() == file.m_areas.size())
+  {
+    base::Timer recountTimer;
+    if (existing.RecountExplored(*stored, universeAscending, {}, exploredAscending, true))
+    {
+      LOG(LINFO, ("StreetPixels AreaCompletionCache recount ms", recountTimer.ElapsedMilliseconds(), countryId));
+      existing.Save(accPath);
+      install(std::move(existing), true);
+      return true;
+    }
+  }
+
+  base::Timer assignedTimer;
+  auto assigned = street_pixels::AreaCompletionCache::Build(*stored, universeAscending, {}, exploredAscending,
+                                                            false);
+  LOG(LINFO, ("StreetPixels AreaCompletionCache::Build assigned ms", assignedTimer.ElapsedMilliseconds(),
+              "universe", universeAscending.size(), "explored", exploredAscending.size()));
+  install(std::move(assigned), true);
+
   base::Timer buildTimer;
-  // Empty centres: Build computes Mercator centres only for sentinel slots.
-  auto built = street_pixels::AreaCompletionCache::Build(resolver, universeAscending, {}, exploredAscending);
+  auto built =
+      street_pixels::AreaCompletionCache::Build(*stored, universeAscending, {}, exploredAscending, true);
   size_t sentinelSlots = 0;
   {
-    uint32_t const sentinel =
-        street_pixels::NoSubdivisionSentinel(resolver.GetFile().m_header.m_indexWidth);
-    for (uint32_t assign : resolver.GetFile().m_assignments)
+    uint32_t const sentinel = street_pixels::NoSubdivisionSentinel(file.m_header.m_indexWidth);
+    for (uint32_t assign : file.m_assignments)
     {
       if (assign == sentinel)
         ++sentinelSlots;
@@ -3583,25 +3705,9 @@ bool StreetPixelsManager::RebuildAreaCompletionCacheFromLoadedUnlocked(
   }
   LOG(LINFO, ("StreetPixels AreaCompletionCache::Build ms", buildTimer.ElapsedMilliseconds(), "universe",
               universeAscending.size(), "explored", exploredAscending.size(), "sentinelSlots", sentinelSlots,
-              "settlements", resolver.Settlements().Size()));
-
-  base::Timer cityTimer;
-  auto cityBuilt = street_pixels::CityCompletionCache::Build(resolver.GetFile(), built);
-  LOG(LINFO, ("StreetPixels CityCompletionCache::Build ms", cityTimer.ElapsedMilliseconds()));
-  auto stored = std::make_shared<street_pixels::ExplorationAreaResolver>(std::move(resolver));
-  {
-    std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
-    m_areaCompletionCache = std::move(built);
-    m_cityCompletionCache = std::move(cityBuilt);
-    m_completionResolver = stored;
-  }
-
-  EvaluateAreaMilestonesUnlocked(static_cast<int64_t>(base::Timer::LocalTime()));
-  IngestPendingAreaMilestonePresentations(stored->GetFile());
-
-  base::Timer overlayTimer;
-  PushExplorationAreaOverlayUnlocked(stored->GetFile());
-  LOG(LINFO, ("StreetPixels overlay push ms", overlayTimer.ElapsedMilliseconds()));
+              "settlements", stored->Settlements().Size()));
+  built.Save(accPath);
+  install(std::move(built), true);
   return true;
 }
 
@@ -3612,6 +3718,8 @@ void StreetPixelsManager::PushExplorationAreaOverlayUnlocked(street_pixels::SpaF
     maxIndex = std::max(maxIndex, area.m_compactIndex);
 
   std::vector<std::optional<double>> fractions(static_cast<size_t>(maxIndex) + 1);
+  m2::RectD viewport;
+  bool hasViewport = false;
   {
     std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
     for (auto const & area : file.m_areas)
@@ -3620,6 +3728,8 @@ void StreetPixelsManager::PushExplorationAreaOverlayUnlocked(street_pixels::SpaF
       if (counts)
         fractions[area.m_compactIndex] = street_pixels::AreaCompletionFraction(*counts);
     }
+    hasViewport = m_overlayViewportValid;
+    viewport = m_overlayViewport;
   }
 
   street_pixels::CountryPolicy policy;
@@ -3631,7 +3741,19 @@ void StreetPixelsManager::PushExplorationAreaOverlayUnlocked(street_pixels::SpaF
   {
   }
 
-  auto geometries = street_pixels::BuildAreaOverlayGeometry(file, policy, fractions, nullptr);
+  m2::RectD inflated;
+  m2::RectD const * viewportOrNull = nullptr;
+  if (hasViewport)
+  {
+    inflated = InflateOverlayViewport(viewport);
+    viewportOrNull = &inflated;
+  }
+
+  base::Timer geomTimer;
+  auto geometries = street_pixels::BuildAreaOverlayGeometry(file, policy, fractions, viewportOrNull);
+  LOG(LINFO, ("StreetPixels overlay geometry ms", geomTimer.ElapsedMilliseconds(), "areas", file.m_areas.size(),
+              "emitted", geometries.size(), "viewport", hasViewport));
+
   std::vector<df::ExplorationAreaOverlayItem> items;
   items.reserve(geometries.size());
   for (auto & geom : geometries)
@@ -3655,6 +3777,11 @@ void StreetPixelsManager::PushExplorationAreaOverlayUnlocked(street_pixels::SpaF
       StyleOverlayItem(item);
     m_overlayItems = std::move(items);
     RebuildOverlayLabelsUnlocked();
+    if (hasViewport)
+    {
+      m_overlayBuiltViewport = inflated;
+      m_overlayBuiltViewportValid = true;
+    }
     enabled = m_explorationAreasEnabled.load();
     if (enabled)
       gpuItems = m_overlayItems;
@@ -3674,6 +3801,7 @@ void StreetPixelsManager::ClearPixels()
     std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
     m_overlayLabels.clear();
     m_overlayItems.clear();
+    m_overlayBuiltViewportValid = false;
   }
   {
     std::lock_guard<std::shared_mutex> lock(m_streetPixelsMutex);

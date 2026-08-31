@@ -362,6 +362,43 @@ UNIT_TEST(AreaOverlay_SettlementFallbackForSentinel)
   RemoveIfExists(path);
 }
 
+UNIT_TEST(AreaOverlay_ViewportCullsNonIntersecting)
+{
+  auto const config = FinlandConfig();
+  auto const policy = config.GetByIso("FI");
+  std::string const path = ExplorationSidecarPath(GetPlatform().WritableDir(), "sp037_overlay_cull");
+  RemoveIfExists(path);
+
+  auto areas = AdmitAll(
+      {
+          MakeAdminCandidate(10, 10, "Near", LonLatBox(24.0, 60.0, 25.0, 61.0)),
+          MakeAdminCandidate(10, 11, "Far", LonLatBox(10.0, 50.0, 11.0, 51.0)),
+      },
+      policy);
+
+  SpaWriteParams params;
+  params.m_mapDataVersion = 370;
+  params.m_policyVersion = config.GetPolicyVersion();
+  params.m_isoCode = "FI";
+  params.m_mwmId = "sp037_overlay_cull";
+  std::vector<m2::PointD> samples = {MercatorFromLonLat(24.5, 60.5), MercatorFromLonLat(10.5, 50.5)};
+  WriteExplorationSidecar(path, areas, samples, policy, params);
+
+  auto loaded = TryLoadExplorationSidecar(path);
+  TEST_EQUAL(loaded.m_status, SpaLoadStatus::Ok, ());
+
+  auto all = BuildAreaOverlayGeometry(loaded.m_file, policy, {}, nullptr);
+  TEST_EQUAL(all.size(), 2u, ());
+
+  m2::RectD viewport(MercatorFromLonLat(24.5, 60.5), MercatorFromLonLat(24.5, 60.5));
+  viewport.Inflate(0.02, 0.02);
+  auto culled = BuildAreaOverlayGeometry(loaded.m_file, policy, {}, &viewport);
+  TEST_EQUAL(culled.size(), 1u, ());
+  TEST_EQUAL(culled[0].m_name, "Near", ());
+
+  RemoveIfExists(path);
+}
+
 UNIT_TEST(AreaOverlay_FillAlphaFromOpacityPct)
 {
   TEST_EQUAL(FillAlphaFromOpacityPct(0), 0, ());

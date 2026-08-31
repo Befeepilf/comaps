@@ -21,8 +21,10 @@
 
 #include "geometry/spline.hpp"
 
+#include "base/logging.hpp"
 #include "base/math.hpp"
 #include "base/string_utils.hpp"
+#include "base/timer.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -85,6 +87,8 @@ void ExplorationAreaOverlayBuilder::Build(ref_ptr<dp::GraphicsContext> context,
                                            std::vector<drape_ptr<DrapeApiRenderProperty>> & chromeProperties)
 {
   uint32_t constexpr kMaxSize = 5000;
+  base::Timer buildTimer;
+  LOG(LINFO, ("StreetPixels overlay gpu build start", "items", items.size()));
 
   for (auto const & item : items)
   {
@@ -235,5 +239,8 @@ void ExplorationAreaOverlayBuilder::Build(ref_ptr<dp::GraphicsContext> context,
         chromeProperties.push_back(std::move(property));
     }
   }
+  LOG(LINFO, ("StreetPixels overlay gpu build ms", buildTimer.ElapsedMilliseconds(), "items", items.size(),
+              "outlines", outlineProperties.size(), "fills", fillProperties.size(), "chrome",
+              chromeProperties.size()));
 }
 }  // namespace df

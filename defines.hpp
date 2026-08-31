@@ -10,6 +10,7 @@
 #define PIX_FILE_EXTENSION ".pix"
 #define SPA_FILE_EXTENSION ".spa"
 #define SPX_FILE_EXTENSION ".spx"
+#define ACC_FILE_EXTENSION ".acc"
 #define FONT_FILE_EXTENSION ".ttf"
 #define OSM2FEATURE_FILE_EXTENSION ".osm2ft"
 #define EXTENSION_TMP ".tmp"
