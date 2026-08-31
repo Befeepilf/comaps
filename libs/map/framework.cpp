@@ -416,6 +416,7 @@ void Framework::OnViewportChanged(ScreenBase const & screen)
   m_trafficManager.UpdateViewport(m_currentModelView);
   m_transitManager.UpdateViewport(m_currentModelView);
   m_isolinesManager.UpdateViewport(m_currentModelView);
+  GetStreetPixelsManager().SetOverlayViewport(screen.ClipRect());
 
   if (m_viewportChangedFn != nullptr)
     m_viewportChangedFn(screen);
@@ -1427,6 +1428,14 @@ void Framework::OnUpdateCurrentCountry(m2::PointD const & pt, int zoomLevel)
       m_currentCountryChanged(newCountryId);
   });
 
+  m2::RectD viewport = GetCurrentViewport();
+  if (!viewport.IsValid() || viewport.SizeX() <= 0.0 || !viewport.IsPointInside(pt))
+  {
+    viewport = m2::RectD(pt, pt);
+    viewport.Inflate(0.05, 0.05);
+  }
+  GetStreetPixelsManager().SetOverlayViewport(viewport);
+
   auto localFile = GetStorage().GetLatestLocalFile(newCountryId);
   GetStreetPixelsManager().OnUpdateCurrentCountry(newCountryId, localFile);
 }
@@ -2243,6 +2252,8 @@ void Framework::RefreshStreetPixelsFocusFromViewport()
 
 void Framework::RefreshStreetPixelsFocusFromPanEnd(ScreenBase const & screen)
 {
+  GetStreetPixelsManager().SetOverlayViewport(screen.ClipRect());
+  GetStreetPixelsManager().MaybeRefreshOverlayForViewport();
   RefreshStreetPixelsFocusAt(screen.GetOrg(), df::GetDrawTileScale(screen), true /* fromPanEnd */);
 }
 

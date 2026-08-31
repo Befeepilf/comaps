@@ -309,3 +309,49 @@ UNIT_TEST(AreaCompletion_AddExploredHealpixIncrementsAndCaps)
 
   RemoveIfExists(fx.m_path);
 }
+
+UNIT_TEST(AreaCompletion_SkipSentinelLeavesNeighbourhoodsExact)
+{
+  auto fx = MakeDistrictCityFixture();
+  auto resolver = ExplorationAreaResolver::TryLoad(fx.m_path, fx.m_universe, fx.m_params.m_mapDataVersion,
+                                                   fx.m_params.m_policyVersion);
+  TEST(resolver.has_value(), ());
+
+  auto full = AreaCompletionCache::Build(*resolver, fx.m_universe, fx.m_samples, {10});
+  auto assigned = AreaCompletionCache::Build(*resolver, fx.m_universe, fx.m_samples, {10}, false);
+  TEST_EQUAL(assigned.Get(0)->m_total, full.Get(0)->m_total, ());
+  TEST_EQUAL(assigned.Get(0)->m_explored, full.Get(0)->m_explored, ());
+  TEST_EQUAL(assigned.Get(1)->m_total, 0u, ());
+  TEST_EQUAL(full.Get(1)->m_total, 1u, ());
+
+  RemoveIfExists(fx.m_path);
+}
+
+UNIT_TEST(AreaCompletion_PersistRoundTripAndFingerprint)
+{
+  auto fx = MakeDistrictCityFixture();
+  auto resolver = ExplorationAreaResolver::TryLoad(fx.m_path, fx.m_universe, fx.m_params.m_mapDataVersion,
+                                                   fx.m_params.m_policyVersion);
+  TEST(resolver.has_value(), ());
+
+  auto cache = AreaCompletionCache::Build(*resolver, fx.m_universe, fx.m_samples, {10, 20});
+  std::string const accPath = AreaCompletionCachePath(GetPlatform().WritableDir(), "sp034_acc");
+  RemoveIfExists(accPath);
+  TEST(cache.Save(accPath), ());
+
+  auto loaded = TryLoadAreaCompletionCache(accPath);
+  TEST_EQUAL(static_cast<int>(loaded.m_status), static_cast<int>(AccLoadStatus::Ok), ());
+  TEST(loaded.m_cache.MatchesFingerprint(fx.m_params.m_mapDataVersion, fx.m_params.m_policyVersion,
+                                         fx.m_universe.size(), 2), ());
+  TEST_EQUAL(loaded.m_cache.Rows().size(), cache.Rows().size(), ());
+  TEST_EQUAL(loaded.m_cache.Get(0)->m_explored, 1u, ());
+  TEST_EQUAL(loaded.m_cache.Get(1)->m_explored, 1u, ());
+
+  TEST(loaded.m_cache.RecountExplored(*resolver, fx.m_universe, fx.m_samples, {10}, true), ());
+  TEST_EQUAL(loaded.m_cache.Get(0)->m_explored, 1u, ());
+  TEST_EQUAL(loaded.m_cache.Get(1)->m_explored, 0u, ());
+  TEST_EQUAL(loaded.m_cache.ExploredCount(), 1u, ());
+
+  RemoveIfExists(accPath);
+  RemoveIfExists(fx.m_path);
+}

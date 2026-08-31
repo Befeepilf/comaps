@@ -231,10 +231,14 @@ void BackendRenderer::AcceptMessage(ref_ptr<Message> message)
 
   case Message::Type::FinishReading:
   {
+    LOG(LINFO, ("StreetPixels FinishReading"));
     TOverlaysRenderData overlays;
     overlays.swap(m_overlays);
     m_commutator->PostMessage(ThreadsCommutator::RenderThread,
                               make_unique_dp<FlushOverlaysMessage>(std::move(overlays)), MessagePriority::Normal);
+    m_firstTileCoverageFlushed = true;
+    if (!m_pendingExplorationOverlay.empty())
+      BuildAndFlushExplorationOverlay(std::move(m_pendingExplorationOverlay));
     break;
   }
 
@@ -580,20 +584,18 @@ void BackendRenderer::AcceptMessage(ref_ptr<Message> message)
   case Message::Type::UpdateExplorationAreaOverlay:
   {
     ref_ptr<UpdateExplorationAreaOverlayMessage> msg = message;
-    CHECK(m_context != nullptr, ());
-    std::vector<drape_ptr<DrapeApiRenderProperty>> outlines;
-    std::vector<drape_ptr<DrapeApiRenderProperty>> fills;
-    std::vector<drape_ptr<DrapeApiRenderProperty>> chrome;
-    m_explorationAreaOverlayBuilder->Build(m_context, msg->AcceptItems(), m_texMng, outlines, fills, chrome);
-    m_commutator->PostMessage(ThreadsCommutator::RenderThread,
-                              make_unique_dp<FlushExplorationAreaOverlayMessage>(std::move(outlines), std::move(fills),
-                                                                               std::move(chrome)),
-                              MessagePriority::Normal);
+    if (!m_firstTileCoverageFlushed)
+    {
+      m_pendingExplorationOverlay = std::move(msg->AcceptItems());
+      break;
+    }
+    BuildAndFlushExplorationOverlay(std::move(msg->AcceptItems()));
     break;
   }
 
   case Message::Type::ClearExplorationAreaOverlay:
   {
+    m_pendingExplorationOverlay.clear();
     m_commutator->PostMessage(ThreadsCommutator::RenderThread, make_unique_dp<ClearExplorationAreaOverlayMessage>(),
                               MessagePriority::Normal);
     break;
@@ -740,6 +742,8 @@ void BackendRenderer::OnContextDestroy()
   m_metalineManager->Stop();
   m_texMng->Release();
   m_overlays.clear();
+  m_pendingExplorationOverlay.clear();
+  m_firstTileCoverageFlushed = false;
   m_trafficGenerator->ClearContextDependentResources();
 
   // Here we have to erase weak pointer to the context, since it
@@ -866,6 +870,19 @@ void BackendRenderer::FlushUserMarksRenderData(TUserMarksRenderData && renderDat
 {
   m_commutator->PostMessage(ThreadsCommutator::RenderThread,
                             make_unique_dp<FlushUserMarksMessage>(std::move(renderData)), MessagePriority::Normal);
+}
+
+void BackendRenderer::BuildAndFlushExplorationOverlay(std::vector<ExplorationAreaOverlayItem> items)
+{
+  CHECK(m_context != nullptr, ());
+  std::vector<drape_ptr<DrapeApiRenderProperty>> outlines;
+  std::vector<drape_ptr<DrapeApiRenderProperty>> fills;
+  std::vector<drape_ptr<DrapeApiRenderProperty>> chrome;
+  m_explorationAreaOverlayBuilder->Build(m_context, items, m_texMng, outlines, fills, chrome);
+  m_commutator->PostMessage(ThreadsCommutator::RenderThread,
+                            make_unique_dp<FlushExplorationAreaOverlayMessage>(std::move(outlines), std::move(fills),
+                                                                             std::move(chrome)),
+                            MessagePriority::Normal);
 }
 
 void BackendRenderer::CleanupOverlays(TileKey const & tileKey)

@@ -454,13 +454,16 @@ std::vector<AreaOverlayGeometry> BuildAreaOverlayGeometry(
 
   for (auto const * area : winners)
   {
-    BgMulti clipped = RingsToMulti(area->m_rings);
     m2::RectD bbox;
     for (auto const & ring : area->m_rings)
     {
       for (auto const & pt : ring)
         bbox.Add(pt);
     }
+    if (viewportOrNull != nullptr && !viewportOrNull->IsIntersect(bbox))
+      continue;
+
+    BgMulti clipped = RingsToMulti(area->m_rings);
     for (size_t i = 0; i < betterPolys.size(); ++i)
     {
       if (!bbox.IsIntersect(betterBounds[i]))
@@ -501,8 +504,6 @@ std::vector<AreaOverlayGeometry> BuildAreaOverlayGeometry(
     }
 
     if (geom.m_rings.empty())
-      continue;
-    if (viewportOrNull != nullptr && !viewportOrNull->IsIntersect(geom.m_bounds))
       continue;
 
     if (geom.m_triangles.size() >= 3)

@@ -757,7 +757,7 @@ void DrapeEngine::UpdateExplorationAreaOverlay(std::vector<df::ExplorationAreaOv
 {
   m_threadCommutator->PostMessage(ThreadsCommutator::ResourceUploadThread,
                                   make_unique_dp<UpdateExplorationAreaOverlayMessage>(std::move(items)),
-                                  MessagePriority::Normal);
+                                  MessagePriority::Low);
 }
 
 void DrapeEngine::SetExplorationAreaOverlayZoom(ExplorationAreaOverlayZoomRange const & range)

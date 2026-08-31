@@ -78,6 +78,16 @@ void MessageQueue::PushMessage(drape_ptr<Message> && message, MessagePriority pr
   }
   case MessagePriority::Low:
   {
+    if (message->GetType() == Message::Type::UpdateExplorationAreaOverlay)
+    {
+      for (auto it = m_lowPriorityMessages.begin(); it != m_lowPriorityMessages.end();)
+      {
+        if ((*it)->GetType() == Message::Type::UpdateExplorationAreaOverlay)
+          it = m_lowPriorityMessages.erase(it);
+        else
+          ++it;
+      }
+    }
     m_lowPriorityMessages.emplace_back(std::move(message));
     break;
   }

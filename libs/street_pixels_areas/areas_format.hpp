@@ -19,6 +19,10 @@ uint8_t constexpr kSpaUniverseOrderAscendingNest = 1;
 uint32_t constexpr kSpxMagic = 0x31585053u;
 uint32_t constexpr kSpxFormatVersion = 1;
 
+// Little-endian fourcc "ACC1" — durable area completion rows beside `.pix`.
+uint32_t constexpr kAccMagic = 0x31434341u;
+uint32_t constexpr kAccFormatVersion = 1;
+
 uint32_t constexpr kNoSubdivisionUint16 = std::numeric_limits<uint16_t>::max();
 uint32_t constexpr kNoSubdivisionUint32 = std::numeric_limits<uint32_t>::max();
 
