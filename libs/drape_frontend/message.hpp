@@ -70,6 +70,7 @@ public:
     UpdateExplorationAreaOverlay,
     ClearExplorationAreaOverlay,
     FlushExplorationAreaOverlay,
+    SetExplorationAreaOverlayZoom,
     ShowChoosePositionMark,
     SetKineticScrollEnabled,
     BlockTapEvents,

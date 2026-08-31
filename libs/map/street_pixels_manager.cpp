@@ -92,6 +92,12 @@
 #include <unordered_set>
 #include <utility>
 
+static_assert(street_pixels::kAreaOverlayRingRadiusPx == df::kExplorationAreaOverlayRingRadiusPx);
+static_assert(street_pixels::kDefaultAreaOverlayFillMinZoom == df::kExplorationAreaOverlayMinZoom);
+static_assert(street_pixels::kDefaultAreaOverlayFillMaxZoom == df::kExplorationAreaOverlayNeighbourhoodMaxZoom);
+static_assert(street_pixels::kDefaultAreaOverlayLabelMinZoom == df::kExplorationAreaOverlayLabelMinZoom);
+static_assert(street_pixels::kDefaultAreaOverlayLabelMaxZoom == df::kExplorationAreaOverlayMaxZoom);
+
 // File types:
 // .pix: list of explorable healpix ids; left most bit indicates if pixel has been explored
 // .pixa: bitmap of healpixels; each bit corresponds to index in the .pix file; used to calculate exploration stats by
@@ -113,6 +119,19 @@ double constexpr kRadiusRads = kExploreRadiusMeters / kEarthRadiusMeters;
 
 namespace
 {
+void ClampOverlayZoomRange(int & minZoom, int & maxZoom)
+{
+  minZoom = std::clamp(minZoom, street_pixels::kMinAreaOverlayZoomSetting, street_pixels::kMaxAreaOverlayZoomSetting);
+  maxZoom = std::clamp(maxZoom, street_pixels::kMinAreaOverlayZoomSetting, street_pixels::kMaxAreaOverlayZoomSetting);
+  if (minZoom > maxZoom)
+    maxZoom = minZoom;
+}
+
+df::ExplorationAreaOverlayZoomRange ZoomRangeFromPrefs(StreetPixelsManager::ExplorationAreaOverlayPrefs const & prefs)
+{
+  return {prefs.m_labelMinZoom, prefs.m_labelMaxZoom, prefs.m_fillMinZoom, prefs.m_fillMaxZoom};
+}
+
 int64_t OptionalCompactIndexLog(std::optional<uint32_t> const & v)
 {
   return v.has_value() ? static_cast<int64_t>(*v) : -1;
@@ -382,7 +401,114 @@ void StreetPixelsManager::SetEnabled(bool enabled)
 {
   ChangeState(StreetPixelsState{enabled, m_state.status});
   m_drapeEngine.SafeCall(&df::DrapeEngine::EnableStreetPixels, enabled);
+}
+
+void StreetPixelsManager::SetExplorationAreasEnabled(bool enabled)
+{
+  m_explorationAreasEnabled.store(enabled);
   m_drapeEngine.SafeCall(&df::DrapeEngine::EnableExplorationAreaOverlay, enabled);
+  if (!enabled)
+  {
+    m_drapeEngine.SafeCall(&df::DrapeEngine::ClearExplorationAreaOverlay);
+    return;
+  }
+  std::vector<df::ExplorationAreaOverlayItem> items;
+  {
+    std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+    items = m_overlayItems;
+  }
+  if (!items.empty())
+    m_drapeEngine.SafeCall(&df::DrapeEngine::UpdateExplorationAreaOverlay, std::move(items));
+}
+
+bool StreetPixelsManager::IsExplorationAreasEnabled() const
+{
+  return m_explorationAreasEnabled.load();
+}
+
+void StreetPixelsManager::SetExplorationAreaOverlayPrefs(ExplorationAreaOverlayPrefs const & prefs)
+{
+  std::vector<df::ExplorationAreaOverlayItem> items;
+  bool enabled = false;
+  bool restyle = false;
+  df::ExplorationAreaOverlayZoomRange zoom;
+  {
+    std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+    restyle = prefs.m_showName != m_overlayPrefs.m_showName || prefs.m_showPct != m_overlayPrefs.m_showPct ||
+              prefs.m_fontSize != m_overlayPrefs.m_fontSize || prefs.m_fillOpacityPct != m_overlayPrefs.m_fillOpacityPct;
+    m_overlayPrefs = prefs;
+    m_overlayPrefs.m_fontSize =
+        std::clamp(m_overlayPrefs.m_fontSize, street_pixels::kMinAreaOverlayFontSize,
+                   street_pixels::kMaxAreaOverlayFontSize);
+    m_overlayPrefs.m_fillOpacityPct = std::clamp(m_overlayPrefs.m_fillOpacityPct, 0, 100);
+    ClampOverlayZoomRange(m_overlayPrefs.m_labelMinZoom, m_overlayPrefs.m_labelMaxZoom);
+    ClampOverlayZoomRange(m_overlayPrefs.m_fillMinZoom, m_overlayPrefs.m_fillMaxZoom);
+    zoom = ZoomRangeFromPrefs(m_overlayPrefs);
+    if (restyle)
+    {
+      for (auto & item : m_overlayItems)
+        StyleOverlayItem(item);
+      RebuildOverlayLabelsUnlocked();
+      enabled = m_explorationAreasEnabled.load();
+      if (enabled)
+        items = m_overlayItems;
+    }
+  }
+  m_drapeEngine.SafeCall(&df::DrapeEngine::SetExplorationAreaOverlayZoom, zoom);
+  if (restyle && enabled && !items.empty())
+    m_drapeEngine.SafeCall(&df::DrapeEngine::UpdateExplorationAreaOverlay, std::move(items));
+}
+
+StreetPixelsManager::ExplorationAreaOverlayPrefs StreetPixelsManager::GetExplorationAreaOverlayPrefs() const
+{
+  std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+  return m_overlayPrefs;
+}
+
+void StreetPixelsManager::StyleOverlayItem(df::ExplorationAreaOverlayItem & item) const
+{
+  auto const style =
+      street_pixels::StyleForCompletion(item.m_fraction, street_pixels::AreaOverlayZoomBand::Neighbourhood);
+  item.m_completed = style.m_completed;
+  item.m_outlineColor = dp::Color(style.m_outline.m_r, style.m_outline.m_g, style.m_outline.m_b, style.m_outline.m_a);
+  item.m_ringColor = dp::Color(style.m_fill.m_r, style.m_fill.m_g, style.m_fill.m_b, 255);
+  item.m_outlineWidthPx = style.m_outlineWidthPx;
+  item.m_showCheck = style.m_showCheck;
+  if (style.m_showFill)
+    item.m_fillColor = dp::Color(style.m_fill.m_r, style.m_fill.m_g, style.m_fill.m_b,
+                                  street_pixels::FillAlphaFromOpacityPct(m_overlayPrefs.m_fillOpacityPct));
+  else
+    item.m_fillColor = dp::Color(0, 0, 0, 0);
+  if (style.m_showCheck)
+    item.m_checkPolyline = street_pixels::OverlayCheckDrawPath(style, item.m_labelPoint, item.m_bounds);
+  else
+    item.m_checkPolyline.clear();
+  item.m_fontSize = static_cast<float>(m_overlayPrefs.m_fontSize);
+  auto const chrome = street_pixels::MakeAreaOverlayChrome(m_overlayPrefs.m_showName, m_overlayPrefs.m_showPct,
+                                                            item.m_fontSize, item.m_name);
+  item.m_showName = chrome.m_showName;
+  item.m_showPct = chrome.m_showPct;
+  item.m_ringOffsetPx = chrome.m_ringOffsetPx;
+  item.m_percentText = chrome.m_showPct ? street_pixels::FormatAreaOverlayPercent(item.m_fraction) : std::string();
+}
+
+void StreetPixelsManager::RebuildOverlayLabelsUnlocked()
+{
+  std::vector<OverlayLabel> labels;
+  labels.reserve(m_overlayItems.size());
+  for (auto const & item : m_overlayItems)
+  {
+    if (!item.m_showName && !item.m_showPct)
+      continue;
+    auto const chrome =
+        street_pixels::MakeAreaOverlayChrome(item.m_showName, item.m_showPct, item.m_fontSize, item.m_name);
+    OverlayLabel label;
+    label.m_compactIndex = item.m_compactIndex;
+    label.m_labelPoint = item.m_labelPoint;
+    label.m_halfSizePx = chrome.m_halfSizePx;
+    labels.push_back(label);
+  }
+  m_overlayLabels = std::move(labels);
 }
 
 bool StreetPixelsManager::IsEnabled() const
@@ -393,6 +519,12 @@ bool StreetPixelsManager::IsEnabled() const
 void StreetPixelsManager::SetDrapeEngine(ref_ptr<df::DrapeEngine> engine)
 {
   m_drapeEngine.Set(engine);
+  ExplorationAreaOverlayPrefs prefs;
+  {
+    std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+    prefs = m_overlayPrefs;
+  }
+  m_drapeEngine.SafeCall(&df::DrapeEngine::SetExplorationAreaOverlayZoom, ZoomRangeFromPrefs(prefs));
 }
 
 void StreetPixelsManager::SetBookmarkManager(BookmarkManager * bmManager)
@@ -3065,11 +3197,16 @@ bool StreetPixelsManager::HasExplorationAreaAtPoint(m2::PointD const & mercator,
   return street_pixels::LookupExplorationAreaAtPoint(m_cachedFocusSpaFile, m_cachedFocusPolicy, mercator) != nullptr;
 }
 
-std::optional<uint32_t> StreetPixelsManager::HitOverlayLabel(m2::PointD const & mercator, ScreenBase const & screen) const
+std::optional<uint32_t> StreetPixelsManager::HitOverlayLabel(m2::PointD const & mercator, ScreenBase const & screen,
+                                                              int zoomLevel) const
 {
+  if (!m_explorationAreasEnabled.load())
+    return std::nullopt;
   std::vector<street_pixels::AreaLabelHitTarget> labels;
   {
     std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
+    if (!df::OverlayChromeVisible(zoomLevel, m_overlayPrefs.m_labelMinZoom, m_overlayPrefs.m_labelMaxZoom))
+      return std::nullopt;
     labels.reserve(m_overlayLabels.size());
     for (auto const & label : m_overlayLabels)
     {
@@ -3077,6 +3214,8 @@ std::optional<uint32_t> StreetPixelsManager::HitOverlayLabel(m2::PointD const & 
       target.m_compactIndex = label.m_compactIndex;
       target.m_labelPx = screen.GtoP(label.m_labelPoint);
       target.m_halfSizePx = label.m_halfSizePx;
+      if (target.m_halfSizePx.x <= 0.0 && target.m_halfSizePx.y <= 0.0)
+        continue;
       labels.push_back(target);
     }
   }
@@ -3494,48 +3633,36 @@ void StreetPixelsManager::PushExplorationAreaOverlayUnlocked(street_pixels::SpaF
 
   auto geometries = street_pixels::BuildAreaOverlayGeometry(file, policy, fractions, nullptr);
   std::vector<df::ExplorationAreaOverlayItem> items;
-  std::vector<OverlayLabel> labels;
   items.reserve(geometries.size());
-  labels.reserve(geometries.size());
   for (auto & geom : geometries)
   {
-    auto const style =
-        street_pixels::StyleForCompletion(geom.m_fraction, street_pixels::AreaOverlayZoomBand::Neighbourhood);
     df::ExplorationAreaOverlayItem item;
     item.m_compactIndex = geom.m_compactIndex;
     item.m_fraction = geom.m_fraction;
-    item.m_completed = style.m_completed;
     item.m_name = std::move(geom.m_name);
     item.m_labelPoint = geom.m_labelPoint;
     item.m_rings = std::move(geom.m_rings);
     item.m_triangles = std::move(geom.m_triangles);
     item.m_bounds = geom.m_bounds;
-    if (style.m_showFill)
-      item.m_fillColor = dp::Color(style.m_fill.m_r, style.m_fill.m_g, style.m_fill.m_b, style.m_fill.m_a);
-    else
-      item.m_fillColor = dp::Color(0, 0, 0, 0);
-    item.m_outlineColor =
-        dp::Color(style.m_outline.m_r, style.m_outline.m_g, style.m_outline.m_b, style.m_outline.m_a);
-    item.m_outlineWidthPx = style.m_outlineWidthPx;
-    item.m_showCheck = style.m_showCheck;
-    if (style.m_showCheck)
-      item.m_checkPolyline = street_pixels::OverlayCheckDrawPath(style, geom.m_labelPoint, geom.m_bounds);
-    if (!item.m_name.empty())
-    {
-      OverlayLabel label;
-      label.m_compactIndex = item.m_compactIndex;
-      label.m_labelPoint = item.m_labelPoint;
-      double const n = static_cast<double>(std::max<size_t>(1, strings::Utf8Length(item.m_name)));
-      label.m_halfSizePx = {std::max(24.0, n * 8.0), 20.0};
-      labels.push_back(label);
-    }
     items.push_back(std::move(item));
   }
+
+  std::vector<df::ExplorationAreaOverlayItem> gpuItems;
+  bool enabled = false;
   {
     std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
-    m_overlayLabels = std::move(labels);
+    for (auto & item : items)
+      StyleOverlayItem(item);
+    m_overlayItems = std::move(items);
+    RebuildOverlayLabelsUnlocked();
+    enabled = m_explorationAreasEnabled.load();
+    if (enabled)
+      gpuItems = m_overlayItems;
   }
-  m_drapeEngine.SafeCall(&df::DrapeEngine::UpdateExplorationAreaOverlay, std::move(items));
+  if (enabled)
+    m_drapeEngine.SafeCall(&df::DrapeEngine::UpdateExplorationAreaOverlay, std::move(gpuItems));
+  else
+    m_drapeEngine.SafeCall(&df::DrapeEngine::ClearExplorationAreaOverlay);
 }
 
 void StreetPixelsManager::ClearPixels()
@@ -3546,6 +3673,7 @@ void StreetPixelsManager::ClearPixels()
   {
     std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
     m_overlayLabels.clear();
+    m_overlayItems.clear();
   }
   {
     std::lock_guard<std::shared_mutex> lock(m_streetPixelsMutex);

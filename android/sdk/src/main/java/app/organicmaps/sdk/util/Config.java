@@ -34,6 +34,25 @@ public final class Config
   private static final String KEY_DOWNLOADER_AUTO = "AutoDownloadEnabled";
   private static final String KEY_PREF_ZOOM_BUTTONS = "ZoomButtonsEnabled";
   private static final String KEY_PREF_EXPLORATION_HAPTICS = "StreetPixels.ExplorationHaptics";
+  private static final String KEY_EXPLORATION_AREAS_SHOW_NAME = "ExplorationAreasShowName";
+  private static final String KEY_EXPLORATION_AREAS_SHOW_PCT = "ExplorationAreasShowPct";
+  private static final String KEY_EXPLORATION_AREAS_FONT_SIZE = "ExplorationAreasFontSize";
+  private static final String KEY_EXPLORATION_AREAS_FILL_OPACITY = "ExplorationAreasFillOpacity";
+  private static final String KEY_EXPLORATION_AREAS_LABEL_MIN_ZOOM = "ExplorationAreasLabelMinZoom";
+  private static final String KEY_EXPLORATION_AREAS_LABEL_MAX_ZOOM = "ExplorationAreasLabelMaxZoom";
+  private static final String KEY_EXPLORATION_AREAS_FILL_MIN_ZOOM = "ExplorationAreasFillMinZoom";
+  private static final String KEY_EXPLORATION_AREAS_FILL_MAX_ZOOM = "ExplorationAreasFillMaxZoom";
+
+  public static final int EXPLORATION_AREAS_FONT_SIZE_MIN = 10;
+  public static final int EXPLORATION_AREAS_FONT_SIZE_MAX = 30;
+  public static final int EXPLORATION_AREAS_FONT_SIZE_DEFAULT = 28;
+  public static final int EXPLORATION_AREAS_FILL_OPACITY_DEFAULT = 22;
+  public static final int EXPLORATION_AREAS_ZOOM_MIN = 1;
+  public static final int EXPLORATION_AREAS_ZOOM_MAX = 20;
+  public static final int EXPLORATION_AREAS_LABEL_MIN_ZOOM_DEFAULT = 13;
+  public static final int EXPLORATION_AREAS_LABEL_MAX_ZOOM_DEFAULT = 20;
+  public static final int EXPLORATION_AREAS_FILL_MIN_ZOOM_DEFAULT = 9;
+  public static final int EXPLORATION_AREAS_FILL_MAX_ZOOM_DEFAULT = 15;
   private static final String KEY_PREF_USE_GS = "UseGoogleServices";
 
   private static final String KEY_MISC_DISCLAIMER_ACCEPTED = "IsDisclaimerApproved";
@@ -204,6 +223,86 @@ public final class Config
   public static void setExplorationHapticsEnabled(boolean enabled)
   {
     setBool(KEY_PREF_EXPLORATION_HAPTICS, enabled);
+  }
+
+  public static boolean showExplorationAreaName()
+  {
+    return getBool(KEY_EXPLORATION_AREAS_SHOW_NAME, true);
+  }
+
+  public static void setShowExplorationAreaName(boolean show)
+  {
+    setBool(KEY_EXPLORATION_AREAS_SHOW_NAME, show);
+  }
+
+  public static boolean showExplorationAreaPercent()
+  {
+    return getBool(KEY_EXPLORATION_AREAS_SHOW_PCT, false);
+  }
+
+  public static void setShowExplorationAreaPercent(boolean show)
+  {
+    setBool(KEY_EXPLORATION_AREAS_SHOW_PCT, show);
+  }
+
+  public static int explorationAreaFontSize()
+  {
+    return getInt(KEY_EXPLORATION_AREAS_FONT_SIZE, EXPLORATION_AREAS_FONT_SIZE_DEFAULT);
+  }
+
+  public static void setExplorationAreaFontSize(int size)
+  {
+    setInt(KEY_EXPLORATION_AREAS_FONT_SIZE, size);
+  }
+
+  public static int explorationAreaFillOpacity()
+  {
+    return getInt(KEY_EXPLORATION_AREAS_FILL_OPACITY, EXPLORATION_AREAS_FILL_OPACITY_DEFAULT);
+  }
+
+  public static void setExplorationAreaFillOpacity(int opacity)
+  {
+    setInt(KEY_EXPLORATION_AREAS_FILL_OPACITY, opacity);
+  }
+
+  public static int explorationAreaLabelMinZoom()
+  {
+    return getInt(KEY_EXPLORATION_AREAS_LABEL_MIN_ZOOM, EXPLORATION_AREAS_LABEL_MIN_ZOOM_DEFAULT);
+  }
+
+  public static void setExplorationAreaLabelMinZoom(int zoom)
+  {
+    setInt(KEY_EXPLORATION_AREAS_LABEL_MIN_ZOOM, zoom);
+  }
+
+  public static int explorationAreaLabelMaxZoom()
+  {
+    return getInt(KEY_EXPLORATION_AREAS_LABEL_MAX_ZOOM, EXPLORATION_AREAS_LABEL_MAX_ZOOM_DEFAULT);
+  }
+
+  public static void setExplorationAreaLabelMaxZoom(int zoom)
+  {
+    setInt(KEY_EXPLORATION_AREAS_LABEL_MAX_ZOOM, zoom);
+  }
+
+  public static int explorationAreaFillMinZoom()
+  {
+    return getInt(KEY_EXPLORATION_AREAS_FILL_MIN_ZOOM, EXPLORATION_AREAS_FILL_MIN_ZOOM_DEFAULT);
+  }
+
+  public static void setExplorationAreaFillMinZoom(int zoom)
+  {
+    setInt(KEY_EXPLORATION_AREAS_FILL_MIN_ZOOM, zoom);
+  }
+
+  public static int explorationAreaFillMaxZoom()
+  {
+    return getInt(KEY_EXPLORATION_AREAS_FILL_MAX_ZOOM, EXPLORATION_AREAS_FILL_MAX_ZOOM_DEFAULT);
+  }
+
+  public static void setExplorationAreaFillMaxZoom(int zoom)
+  {
+    setInt(KEY_EXPLORATION_AREAS_FILL_MAX_ZOOM, zoom);
   }
 
   public static boolean isKeepScreenOnEnabled()

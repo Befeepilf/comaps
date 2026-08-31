@@ -44,6 +44,7 @@ set(SRC
   street_pixel_tests.cpp
   street_pixels_file_tests.cpp
   weekly_city_live_tests.cpp
+  overlay_layer_tests.cpp
   street_pixels_test_helpers.hpp
 )
 

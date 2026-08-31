@@ -13,6 +13,7 @@ public class LayersUtils
     availableLayers.add(Mode.ISOLINES);
     availableLayers.add(Mode.SUBWAY);
     availableLayers.add(Mode.STREET_PIXELS);
+    availableLayers.add(Mode.EXPLORATION_AREAS);
     return availableLayers;
   }
 }

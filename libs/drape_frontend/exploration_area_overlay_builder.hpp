@@ -21,6 +21,7 @@ public:
   void Build(ref_ptr<dp::GraphicsContext> context, std::vector<ExplorationAreaOverlayItem> const & items,
              ref_ptr<dp::TextureManager> textures,
              std::vector<drape_ptr<DrapeApiRenderProperty>> & outlineProperties,
-             std::vector<drape_ptr<DrapeApiRenderProperty>> & fillProperties);
+             std::vector<drape_ptr<DrapeApiRenderProperty>> & fillProperties,
+             std::vector<drape_ptr<DrapeApiRenderProperty>> & chromeProperties);
 };
 }  // namespace df

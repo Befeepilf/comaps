@@ -568,7 +568,8 @@ public class MapButtonsController extends Fragment implements LocationListener
       return;
     final boolean buttonSelected = TrafficManager.INSTANCE.isEnabled() || IsolinesManager.isEnabled()
                                 || SubwayManager.isEnabled() || Framework.nativeIsOutdoorsLayerEnabled()
-                                || StreetPixelsManager.isEnabled();
+                                || StreetPixelsManager.isEnabled()
+                                || StreetPixelsManager.areExplorationAreasEnabled();
     mToggleMapLayerButton.setHasActiveLayers(buttonSelected);
   }
 

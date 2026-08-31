@@ -69,6 +69,7 @@ std::string DebugPrint(Message::Type msgType)
   case Message::Type::UpdateExplorationAreaOverlay: return "UpdateExplorationAreaOverlay";
   case Message::Type::ClearExplorationAreaOverlay: return "ClearExplorationAreaOverlay";
   case Message::Type::FlushExplorationAreaOverlay: return "FlushExplorationAreaOverlay";
+  case Message::Type::SetExplorationAreaOverlayZoom: return "SetExplorationAreaOverlayZoom";
   case Message::Type::ShowChoosePositionMark: return "ShowChoosePositionMark";
   case Message::Type::SetKineticScrollEnabled: return "SetKineticScrollEnabled";
   case Message::Type::BlockTapEvents: return "BlockTapEvents";

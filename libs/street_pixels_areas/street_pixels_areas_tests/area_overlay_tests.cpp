@@ -2,6 +2,7 @@
 
 #include "street_pixels_areas/area_overlay.hpp"
 #include "street_pixels_areas/areas_writer.hpp"
+#include "street_pixels_areas/exploration_area_tap.hpp"
 #include "street_pixels_areas/exploration_filter.hpp"
 #include "street_pixels_areas/exploration_sidecar.hpp"
 #include "street_pixels_areas/street_pixels_areas_tests/test_helpers.hpp"
@@ -10,6 +11,7 @@
 #include "platform/platform.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <optional>
 #include <vector>
 
@@ -358,5 +360,85 @@ UNIT_TEST(AreaOverlay_SettlementFallbackForSentinel)
   TEST(!OverlayRingContains(*city, MercatorFromLonLat(24.5, 60.5)), ());
 
   RemoveIfExists(path);
+}
+
+UNIT_TEST(AreaOverlay_FillAlphaFromOpacityPct)
+{
+  TEST_EQUAL(FillAlphaFromOpacityPct(0), 0, ());
+  TEST_EQUAL(FillAlphaFromOpacityPct(22), 56, ());
+  TEST_EQUAL(FillAlphaFromOpacityPct(100), 255, ());
+  TEST_EQUAL(FillAlphaFromOpacityPct(-10), 0, ());
+  TEST_EQUAL(FillAlphaFromOpacityPct(200), 255, ());
+
+  auto const street = StyleForCompletion(0.5, AreaOverlayZoomBand::Street);
+  TEST(!street.m_showFill, ());
+  auto const neighbourhood = StyleForCompletion(0.5, AreaOverlayZoomBand::Neighbourhood);
+  TEST(neighbourhood.m_showFill, ());
+  TEST_EQUAL(neighbourhood.m_fill.m_a, 55, ());
+  TEST_EQUAL(street.m_fill.m_r, neighbourhood.m_fill.m_r, ());
+  TEST_EQUAL(street.m_fill.m_g, neighbourhood.m_fill.m_g, ());
+  TEST_EQUAL(street.m_fill.m_b, neighbourhood.m_fill.m_b, ());
+  TEST_EQUAL(street.m_fill.m_a, 0, ());
+  auto const streetDone = StyleForCompletion(1.0, AreaOverlayZoomBand::Street);
+  TEST(!streetDone.m_showFill, ());
+  TEST_EQUAL(streetDone.m_fill.m_r, 40, ());
+  TEST_EQUAL(streetDone.m_fill.m_g, 160, ());
+  TEST_EQUAL(streetDone.m_fill.m_b, 80, ());
+}
+
+UNIT_TEST(AreaOverlay_FormatPercent)
+{
+  TEST_EQUAL(FormatAreaOverlayPercent(0.0), "0%", ());
+  TEST_EQUAL(FormatAreaOverlayPercent(0.42), "42%", ());
+  TEST_EQUAL(FormatAreaOverlayPercent(1.0), "100%", ());
+  TEST_EQUAL(FormatAreaOverlayPercent(1.5), "100%", ());
+}
+
+UNIT_TEST(AreaOverlay_ChromeVisibility)
+{
+  auto const neither = MakeAreaOverlayChrome(false, false, 28.0f, "District");
+  TEST(!neither.m_showName, ());
+  TEST(!neither.m_showPct, ());
+  TEST_EQUAL(neither.m_halfSizePx.x, 0.0, ());
+  TEST_EQUAL(neither.m_halfSizePx.y, 0.0, ());
+
+  auto const nameOnly = MakeAreaOverlayChrome(true, false, 28.0f, "District");
+  TEST(nameOnly.m_showName, ());
+  TEST(!nameOnly.m_showPct, ());
+  TEST_GREATER(nameOnly.m_halfSizePx.x, 0.0, ());
+  TEST_GREATER(nameOnly.m_halfSizePx.y, 0.0, ());
+
+  auto const pctOnly = MakeAreaOverlayChrome(false, true, 28.0f, "District");
+  TEST(!pctOnly.m_showName, ());
+  TEST(pctOnly.m_showPct, ());
+  TEST_GREATER(pctOnly.m_halfSizePx.x, kAreaOverlayRingRadiusPx, ());
+  TEST_EQUAL(pctOnly.m_ringOffsetPx.x, 0.0f, ());
+  TEST_EQUAL(pctOnly.m_ringOffsetPx.y, 0.0f, ());
+
+  auto const both = MakeAreaOverlayChrome(true, true, 28.0f, "District");
+  TEST(both.m_showName, ());
+  TEST(both.m_showPct, ());
+  TEST_GREATER(both.m_halfSizePx.y, nameOnly.m_halfSizePx.y, ());
+  TEST_LESS(both.m_ringOffsetPx.y, 0.0f, ());
+
+  auto const emptyName = MakeAreaOverlayChrome(true, false, 28.0f, "");
+  TEST(!emptyName.m_showName, ());
+}
+
+UNIT_TEST(AreaOverlay_ChromeHitAabbCoversRing)
+{
+  auto const both = MakeAreaOverlayChrome(true, true, 28.0f, "District");
+  double const ringTop = std::abs(static_cast<double>(both.m_ringOffsetPx.y)) + kAreaOverlayRingRadiusPx;
+  TEST_GREATER_OR_EQUAL(both.m_halfSizePx.y, ringTop - 0.01, ());
+
+  std::vector<street_pixels::AreaLabelHitTarget> labels;
+  labels.push_back({1u, {100.0, 100.0}, both.m_halfSizePx});
+  m2::PointD const ringPx{100.0 + both.m_ringOffsetPx.x, 100.0 + both.m_ringOffsetPx.y};
+  TEST(street_pixels::HitExplorationAreaLabel(labels, ringPx).has_value(), ());
+
+  auto const nameOnly = MakeAreaOverlayChrome(true, false, 28.0f, "District");
+  std::vector<street_pixels::AreaLabelHitTarget> cityLabels;
+  cityLabels.push_back({1u, {100.0, 100.0}, nameOnly.m_halfSizePx});
+  TEST(!street_pixels::HitExplorationAreaLabel(cityLabels, ringPx).has_value(), ());
 }
 }  // namespace

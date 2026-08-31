@@ -8,6 +8,7 @@
 #include "geometry/point2d.hpp"
 
 #include "base/math.hpp"
+#include "base/string_utils.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -22,6 +23,50 @@
 
 namespace street_pixels
 {
+uint8_t FillAlphaFromOpacityPct(int opacityPct)
+{
+  int const c = std::clamp(opacityPct, 0, 100);
+  return static_cast<uint8_t>(std::lround(c * 2.55));
+}
+
+std::string FormatAreaOverlayPercent(double fraction)
+{
+  int const pct = static_cast<int>(std::lround(std::clamp(fraction, 0.0, 1.0) * 100.0));
+  return strings::to_string(pct) + "%";
+}
+
+AreaOverlayChrome MakeAreaOverlayChrome(bool showName, bool showPct, float fontSize, std::string const & name)
+{
+  AreaOverlayChrome chrome;
+  chrome.m_fontSize = std::clamp(fontSize, static_cast<float>(kMinAreaOverlayFontSize),
+                                 static_cast<float>(kMaxAreaOverlayFontSize));
+  chrome.m_showName = showName && !name.empty();
+  chrome.m_showPct = showPct;
+  double const scale = chrome.m_fontSize / static_cast<float>(kDefaultAreaOverlayFontSize);
+  double const nameHalfW =
+      chrome.m_showName
+          ? std::max(24.0, static_cast<double>(std::max<size_t>(1, strings::Utf8Length(name))) * 8.0 * scale)
+          : 0.0;
+  double const nameHalfH = chrome.m_showName ? static_cast<double>(chrome.m_fontSize) * 0.5 : 0.0;
+  if (chrome.m_showPct)
+  {
+    float const ringR = kAreaOverlayRingRadiusPx;
+    chrome.m_ringOffsetPx =
+        chrome.m_showName ? m2::PointF(0.0f, -(static_cast<float>(nameHalfH) + kAreaOverlayChromeGapPx + ringR))
+                          : m2::PointF(0.0f, 0.0f);
+    double const ringHalf = ringR + 2.0;
+    double const minY = std::min(chrome.m_showName ? -nameHalfH : 0.0,
+                                  static_cast<double>(chrome.m_ringOffsetPx.y) - ringHalf);
+    double const maxY = std::max(chrome.m_showName ? nameHalfH : 0.0,
+                                   static_cast<double>(chrome.m_ringOffsetPx.y) + ringHalf);
+    chrome.m_halfSizePx.x = std::max(nameHalfW, ringHalf);
+    chrome.m_halfSizePx.y = std::max(std::abs(minY), std::abs(maxY));
+  }
+  else if (chrome.m_showName)
+    chrome.m_halfSizePx = {nameHalfW, nameHalfH};
+  return chrome;
+}
+
 namespace
 {
 double Clamp01(double v)
@@ -229,6 +274,7 @@ AreaOverlayStyle StyleForCompletion(double fraction, AreaOverlayZoomBand band)
       break;
     case AreaOverlayZoomBand::Street:
       style.m_showFill = false;
+      style.m_fill = Rgba8{40, 160, 80, 0};
       style.m_outlineWidthPx = 4.0f;
       style.m_outline.m_a = 230;
       break;
@@ -261,6 +307,7 @@ AreaOverlayStyle StyleForCompletion(double fraction, AreaOverlayZoomBand band)
     break;
   case AreaOverlayZoomBand::Street:
     style.m_showFill = false;
+    style.m_fill = Rgba8{r, g, b, 0};
     style.m_outlineWidthPx = 3.0f;
     style.m_outline.m_a = 160;
     break;
