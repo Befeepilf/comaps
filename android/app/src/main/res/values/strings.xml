@@ -818,6 +818,7 @@
     <string name="bookmarks_empty_list_message">To save a place, tap a place on the map and then tap the star icon</string>
     <string name="category_desc_more">…more</string>
     <string name="export_file">Export KMZ</string>
+    <string name="export_file_kml">Export KML</string>
     <string name="export_file_gpx">Export GPX</string>
     <string name="delete_list">Delete list</string>
     <string name="speedcams_alert_title">Speed cameras</string>

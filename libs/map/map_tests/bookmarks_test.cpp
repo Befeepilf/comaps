@@ -1452,9 +1452,8 @@ UNIT_CLASS_TEST(Runner, ExportAll)
     TEST(base::DeleteFileX(indexPath), ());
     TEST(base::DeleteFileX(tmpPath), ());
   };
-  // We use KmlFileType::Text for both single and all tracks export. File structure is determined based on categories
-  // size
-  bmManager.PrepareFileForSharing(std::move(categories), checker, KmlFileType::Text);
+  // Multi-category export always produces a KMZ archive.
+  bmManager.PrepareFileForSharing(std::move(categories), checker, KmlFileType::Kmz);
 }
 
 UNIT_CLASS_TEST(Runner, ExportSingleUnicode)
@@ -1478,7 +1477,7 @@ UNIT_CLASS_TEST(Runner, ExportSingleUnicode)
     TEST(base::DeleteFileX(kmz), ());
     TEST(base::DeleteFileX(tmpPath), ());
   };
-  bmManager.PrepareFileForSharing(std::move(categories), checker, KmlFileType::Text);
+  bmManager.PrepareFileForSharing(std::move(categories), checker, KmlFileType::Kmz);
 }
 
 UNIT_CLASS_TEST(Runner, ExportSingleTrackKmz)
@@ -1494,6 +1493,7 @@ UNIT_CLASS_TEST(Runner, ExportSingleTrackKmz)
   {
     auto filePath = result.m_sharingPath;
     TEST(filePath.find("Some random route.kmz") != std::string::npos, ());
+    TEST_EQUAL(result.m_mimeType, "application/vnd.google-earth.kmz", ());
     ZipFileReader::FileList files;
     ZipFileReader::FilesList(filePath, files);
     std::string kmlFileName = "Some random route.kml";
@@ -1511,7 +1511,38 @@ UNIT_CLASS_TEST(Runner, ExportSingleTrackKmz)
   {
     auto track = bmManager.GetTrack(trackId);
     if (track->GetName().find("Some random route") != std::string::npos)
-      bmManager.PrepareTrackFileForSharing(track->GetId(), kmzChecker, KmlFileType::Text);
+      bmManager.PrepareTrackFileForSharing(track->GetId(), kmzChecker, KmlFileType::Kmz);
+  }
+}
+
+UNIT_CLASS_TEST(Runner, ExportSingleTrackKml)
+{
+  std::string const file = GetPlatform().TestsDataPathForFile("test_data/gpx/export_test.gpx");
+  BookmarkManager bmManager(BM_CALLBACKS);
+  bmManager.EnableTestMode(true);
+  BookmarkManager::KMLDataCollection kmlDataCollection;
+  kmlDataCollection.emplace_back(file, LoadKmlFile(file, KmlFileType::Gpx));
+  bmManager.CreateCategories(std::move(kmlDataCollection));
+
+  auto const kmlChecker = [](BookmarkManager::SharingResult const & result)
+  {
+    auto filePath = result.m_sharingPath;
+    TEST(filePath.find("Some random route.kml") != std::string::npos, ());
+    TEST(filePath.find(".kmz") == std::string::npos, ());
+    TEST_EQUAL(result.m_mimeType, "application/vnd.google-earth.kml+xml", ());
+    auto fileData = LoadKmlFile(filePath, KmlFileType::Text);
+    TEST(fileData != nullptr, ());
+    TEST_EQUAL(1, fileData->m_tracksData.size(), ());
+    TEST(base::DeleteFileX(filePath), ());
+  };
+
+  auto category = bmManager.GetUnsortedBmGroupsIdList()[0];
+  auto tracks = bmManager.GetTrackIds(category);
+  for (auto const & trackId : tracks)
+  {
+    auto track = bmManager.GetTrack(trackId);
+    if (track->GetName().find("Some random route") != std::string::npos)
+      bmManager.PrepareTrackFileForSharing(track->GetId(), kmlChecker, KmlFileType::Text);
   }
 }
 

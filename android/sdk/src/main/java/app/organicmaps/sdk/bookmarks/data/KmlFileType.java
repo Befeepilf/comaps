@@ -5,5 +5,6 @@ public enum KmlFileType
 {
   Text,
   Binary,
-  Gpx
+  Gpx,
+  Kmz
 }
