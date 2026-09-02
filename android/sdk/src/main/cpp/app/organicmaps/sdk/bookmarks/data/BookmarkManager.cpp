@@ -4,7 +4,6 @@
 #include "app/organicmaps/sdk/util/Distance.hpp"
 
 #include "map/bookmark_helpers.hpp"
-#include "map/explorer_pro.hpp"
 #include "map/place_page_info.hpp"
 
 #include "coding/zip_creator.hpp"
@@ -570,13 +569,6 @@ JNIEXPORT void JNICALL Java_app_organicmaps_sdk_bookmarks_data_BookmarkManager_n
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_bookmarks_data_BookmarkManager_nativePrepareTrackFileForSharing(
     JNIEnv * env, jclass, jlong trackId, jint kmlFileType)
 {
-  if (static_cast<KmlFileType>(kmlFileType) == KmlFileType::Gpx
-      && !explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxExport))
-  {
-    OnPreparedFileForSharing(env, BookmarkManager::SharingResult(kml::GroupIdCollection{},
-                                                                BookmarkManager::SharingResult::Code::FileError));
-    return;
-  }
   frm()->GetBookmarkManager().PrepareTrackFileForSharing(static_cast<kml::TrackId>(trackId),
                                                          [env](BookmarkManager::SharingResult const & result)
   { OnPreparedFileForSharing(env, result); }, static_cast<KmlFileType>(kmlFileType));
@@ -585,17 +577,6 @@ JNIEXPORT void JNICALL Java_app_organicmaps_sdk_bookmarks_data_BookmarkManager_n
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_bookmarks_data_BookmarkManager_nativePrepareFileForSharing(
     JNIEnv * env, jclass, jlongArray catIds, jint kmlFileType)
 {
-  if (static_cast<KmlFileType>(kmlFileType) == KmlFileType::Gpx
-      && !explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxExport))
-  {
-    auto const size = env->GetArrayLength(catIds);
-    kml::GroupIdCollection catIdsVector(size);
-    static_assert(sizeof(jlong) == sizeof(decltype(catIdsVector)::value_type));
-    env->GetLongArrayRegion(catIds, 0, size, reinterpret_cast<jlong *>(catIdsVector.data()));
-    OnPreparedFileForSharing(env, BookmarkManager::SharingResult(std::move(catIdsVector),
-                                                                BookmarkManager::SharingResult::Code::FileError));
-    return;
-  }
   auto const size = env->GetArrayLength(catIds);
   kml::GroupIdCollection catIdsVector(size);
   static_assert(sizeof(jlong) == sizeof(decltype(catIdsVector)::value_type));

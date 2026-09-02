@@ -100,7 +100,8 @@ void GpxGateResetCapabilities()
 
 bool GpxGateShouldWriteExport(bool isGpx)
 {
-  return !isGpx || explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxExport);
+  (void)isGpx;
+  return true;
 }
 
 bool GpxGateAllowImportBatch(size_t gpxCount)
@@ -183,30 +184,34 @@ UNIT_TEST(GpxGate_HandlerOpenPaints)
   TEST(fixture.Manager().IsPixelExploredForTesting(pixelA), ());
 }
 
-UNIT_TEST(GpxGate_ExportFourCell)
+UNIT_TEST(GpxGate_ExportAlwaysAllowed)
 {
   GpxGateResetCapabilities();
   {
     GpxGateEntitlementSourceScope scope(nullptr);
-    TEST(!GpxGateShouldWriteExport(true), ());
+    TEST(!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxExport), ());
+    TEST(GpxGateShouldWriteExport(true), ());
     TEST(GpxGateShouldWriteExport(false), ());
   }
   {
     GpxGateFakeEntitlementSource entitled(true);
     GpxGateEntitlementSourceScope scope(&entitled);
-    TEST(!GpxGateShouldWriteExport(true), ());
+    TEST(!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxExport), ());
+    TEST(GpxGateShouldWriteExport(true), ());
     TEST(GpxGateShouldWriteExport(false), ());
   }
   {
     GpxGateCapabilityAvailabilityScope availability(explorer_pro::Capability::GpxExport, true);
     GpxGateEntitlementSourceScope scope(nullptr);
-    TEST(!GpxGateShouldWriteExport(true), ());
+    TEST(!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxExport), ());
+    TEST(GpxGateShouldWriteExport(true), ());
     TEST(GpxGateShouldWriteExport(false), ());
   }
   {
     GpxGateCapabilityAvailabilityScope availability(explorer_pro::Capability::GpxExport, true);
     GpxGateFakeEntitlementSource entitled(true);
     GpxGateEntitlementSourceScope scope(&entitled);
+    TEST(explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxExport), ());
     TEST(GpxGateShouldWriteExport(true), ());
     TEST(GpxGateShouldWriteExport(false), ());
   }
