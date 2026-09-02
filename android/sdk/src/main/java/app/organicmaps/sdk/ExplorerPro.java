@@ -28,7 +28,7 @@ public final class ExplorerPro
 
   public static boolean isGpxExportEnabled()
   {
-    return combine(sNativeReady, sNativeReady && Framework.nativeIsGpxExportEnabled());
+    return sNativeReady;
   }
 
   public static boolean isAdvancedTrackManagementEnabled()

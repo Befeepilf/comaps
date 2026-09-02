@@ -53,6 +53,13 @@ public class ExplorerProGateTest
   }
 
   @Test
+  public void isGpxExportEnabled_openWhenNativeReadyRegardlessOfPro()
+  {
+    ExplorerPro.setNativeReady(true);
+    assertTrue(ExplorerPro.isGpxExportEnabled());
+  }
+
+  @Test
   public void isAdvancedTrackManagementEnabled_closedWhenNativeNotReady()
   {
     ExplorerPro.setNativeReady(false);
