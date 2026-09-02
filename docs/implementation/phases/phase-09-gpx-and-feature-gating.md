@@ -51,14 +51,14 @@ G1–G10 are **SPD-067–076**. Phase 9 exit is **Met with residuals**.
 | KML parse-failure log | `libs/kml/serdes.hpp` `DeserializerKml` | Same `LogXmlParseFailurePrefix` as GPX (size + 256-byte prefix). |
 | GPX tests | `libs/kml/kml_tests/gpx_tests.cpp` (binary **`kml_tests`**) | Substantial coverage: malformed, skip, entity, 10k/50k parse. Roundtrip goldens use `creator="Streifzug"`. |
 | Android import | `Factory.KmzKmlProcessor`, `BookmarkManager.importBookmarksFile`, Favorites Import, manifest VIEW/SEND `application/gpx` | **Gated.** `BookmarkManager.importBookmarksFile` returns false for `.gpx` when `!ExplorerPro.isGpxImportEnabled()`. Batch: `allowGpxInBatch`. `getBookmarksExtensions()` is lazy (JVM gate tests do not load JNI). `Factory.KmzKmlProcessor` still forwards VIEW/SEND/SEND_MULTIPLE; handler no-ops GPX when closed. Manifest GPX filters remain (G6). KML/KMZ bookmark import remains. |
-| Android export | `PlacePageView`, `BookmarksListFragment`, `BookmarkCategoriesFragment` `export_file_gpx` | **Gated.** Those surfaces add `export_file_gpx` only when `ExplorerPro.isGpxExportEnabled()`. C++ `ExportSingleFileGpx` still serialises; Android UI/JNI skip first. Desktop/Qt residual (SP-083). |
+| Android export | `PlacePageView`, `BookmarksListFragment`, `BookmarkCategoriesFragment` `export_file_gpx` | **Ungated (SPD-097).** Those surfaces add `export_file_gpx` when `ExplorerPro.isGpxExportEnabled()` (native-ready, not Pro). JNI `Prepare*FileForSharing` writes GPX without `Capability::GpxExport`. C++ `ExportSingleFileGpx` serialises. Import remains gated. |
 | Track-to-pixel replay | `StreetPixelsManager::UpdateExploredPixels`; dedicated `ImportHistoricalTrack` | `UpdateExploredPixels` is a no-op. Dedicated `ImportHistoricalTrack` samples 15 m per segment (`ComputeTrackPixels`), `MarkExploredPixelIds` (explored, never ever-live). Framework handler: GUI gate, then File-thread `RunHistoricalImportIfEnabled` (import + `RecordGpxImportUsage`). Tests call the helper synchronously. Direct `ImportHistoricalTrack` stays ungated (data rule). Live `OnLocationUpdate` remains the only free pixel writer. `ReloadBookmarkRoutine` loads gated GPX but does **not** pass `historicalTracks` (accepted residual). |
 | Processed-track ledger | `street_stats.db` `processed_tracks(geometry_hash, country_id)` | Unchanged: mercator x,y hash per country. Identical geometry skips. |
 | Imported marking | `.pix` ever-live bit (SPD-015 / SP-016) | Ever-live clear on first explore via dedicated path. Import cannot clear later live. No `source=imported` enum. |
 | Recency / weekly / upload | `LiveRecencyStore`, `WeeklyCityLiveStore`, `CompetitionUploadService` | Isolation asserted on `ImportHistoricalTrack` (SP-082) as a **data rule** (not wrapped in `IsCapabilityEnabled`). Four-cell Available×Entitled matrix keeps recency/weekly/ownership/pending clean. Live path and recording Finished only. |
 | Pro gate | `libs/map/explorer_pro.*` + JNI + Java `ExplorerPro` | `IsCapabilityEnabled` = available ∧ entitled. **Production call sites exist** (Framework handler, BookmarkManager load/share, Android menus/settings). BuildConfig `EXPLORER_PRO_*` default false; `-PenableExplorerProCapabilities=true` sets capabilities true. |
 | Entitlement | `StubEntitlementSource` / `DebugEntitlementSource` | Stub always false. `DebugEntitlementSource` / `InstallDebugEntitlementSource` / JNI grant compiled out unless `DEBUG`. Installed only when `EXPLORER_PRO_DEBUG_ENTITLE` and any capability (debug buildConfig; release/beta hardcoded false). Freeze after init. `UnfreezeConfigurationForTesting` remains. |
-| Settings GPX | `DataManagementSettingsFragment` + `GpxSettingsFragment` | Nested Data Management entry added only when `GpxSettingsVisibility.showGpxScreen`. Tool rows use **Enabled**; G8 info page uses **Available**. Public (all Available false) adds nothing at runtime. `prefs_gpx.xml` + English strings exist as resources (dump inflated tree, not aapt). |
+| Settings GPX | `DataManagementSettingsFragment` + `GpxSettingsFragment` | Nested Data Management entry added when `GpxSettingsVisibility.showGpxScreen`. Export row uses native-ready **Enabled** (**SPD-097**, always on after init). Import/batch use Pro **Enabled**; G8 info page uses **Available**. Public builds show the screen for export only. |
 | Monetisation analytics | `street_pixels::ExplorerProAnalytics` | Count-only uint64 (`Explore.ProInfoViewed`, `Explore.GpxImportUsage`, `Explore.GpxExportUsage`). Increment when matching capability is **Available**. Upload residual Phase 10. Not Sentry. |
 | Android billing | — | **Not found** (SPD-010). |
 
@@ -66,8 +66,9 @@ G1–G10 are **SPD-067–076**. Phase 9 exit is **Met with residuals**.
 abstraction **exists** (SP-005, 2026-07-27). Imported marking **exists**
 as ever-live-clear (SP-016). Sampling is 15 m, not 10 m (SP-019). Dedicated
 importer **exists** (`ImportHistoricalTrack`; catch-all `UpdateExploredPixels`
-is a no-op). GPX UX **is gated** on Android (SP-083/084); public-configured
-BuildConfig defaults are false. A debug grant path **exists** for internal
+is a no-op). GPX UX **is gated** for import on Android (SP-083/084); **GPX export is
+free (SPD-097)**. Public-configured BuildConfig defaults are false for
+Pro capabilities. A debug grant path **exists** for internal
 debug builds only; grant symbols are compiled out of non-debug Android.
 Isolation is asserted on the dedicated path (SP-082) regardless of gate.
 10k/50k RSS measured under 256 MiB; no chunking (SP-085). Worldwide; no
@@ -79,8 +80,8 @@ use the same prefix helper as GPX.
 - A dedicated GPX import pipeline distinct from live collection, which
   explores with ever-live clear (imported-only), never writes recency, and
   never enqueues a competition upload.
-- GPX import and export gated by build flag plus entitlement, with public V1
-  shipping the flag off.
+- GPX import gated by build flag plus entitlement, with public V1
+  shipping the flag off. GPX export is free (**SPD-097**).
 - No purchase action visible in public builds.
 - Competition isolation proven by test, not by convention.
 

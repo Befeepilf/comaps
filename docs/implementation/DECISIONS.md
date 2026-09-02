@@ -2012,7 +2012,8 @@ position). Closes OQ-23.
 **Consequences.**
 
 - `Capability::AdvancedTrackManagement` gates batch import;
-  `GpxImport` / `GpxExport` gate single-file tools.
+  `GpxImport` gates single-file import. **GPX export is not Pro-gated**
+  (**SPD-097**).
 - Multi-category export stays KMZ; it is not GPX usage (SPD-075).
 
 **Related documents.** Spec §29.1–§29.2, §30; OQ-23; SP-080; SP-083;
@@ -2688,6 +2689,36 @@ Closes OQ-49.
 - SP-100 is the entrypoint; SP-102 is rsync + static HTTP.
 
 **Related documents.** SPD-035; SPD-088; SP-098; SP-100; SP-102; OQ-49.
+
+---
+
+## SPD-097 — GPX export is a free feature
+
+**Decision.** GPX export of recorded tracks and bookmark lists is always
+available in free mode once native is ready. It is not gated by Explorer
+Pro availability or entitlement. GPX import, batch import, and the
+Explorer Pro information page remain Pro-gated.
+
+**Status.** Accepted.
+
+**Context.** Product-owner instruction 2026-09-02: restore GPX export;
+if it was an Explorer Pro surface, keep it available without Pro. Spec
+§4.1, §29.2, and §30 still describe export as Explorer Pro. This SPD
+records the divergence; the spec is not edited.
+
+**Consequences.**
+
+- `ExplorerPro.isGpxExportEnabled()` is native-ready, not
+  available ∧ entitled.
+- Android JNI `PrepareTrackFileForSharing` / `PrepareFileForSharing` do
+  not refuse `KmlFileType::Gpx`.
+- Public builds show Export GPX on track and list share sheets and the
+  settings export row. Import/batch/info stay hidden.
+- `Capability::GpxExport` remains for monetisation analytics (SPD-075):
+  export usage still increments only when that capability is **Available**.
+
+**Related documents.** Spec §4.1, §29.2, §30 (divergence); SPD-070;
+SPD-075; SP-083; SP-084.
 
 ---
 
