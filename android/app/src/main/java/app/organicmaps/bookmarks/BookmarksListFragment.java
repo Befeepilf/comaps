@@ -784,6 +784,8 @@ public class BookmarksListFragment extends BaseMwmRecyclerFragment<ConcatAdapter
       if (types.length > 0)
         items.add(new MenuBottomSheetItem(R.string.sort, R.drawable.ic_sort, this::onSortOptionSelected));
       items.add(new MenuBottomSheetItem(R.string.export_file, R.drawable.ic_file_kmz,
+                                        () -> onShareOptionSelected(KmlFileType.Kmz)));
+      items.add(new MenuBottomSheetItem(R.string.export_file_kml, R.drawable.ic_file_kml,
                                         () -> onShareOptionSelected(KmlFileType.Text)));
       if (ExplorerPro.isGpxExportEnabled())
       {
@@ -811,6 +813,8 @@ public class BookmarksListFragment extends BaseMwmRecyclerFragment<ConcatAdapter
     ArrayList<MenuBottomSheetItem> items = new ArrayList<>();
     items.add(new MenuBottomSheetItem(R.string.edit, R.drawable.ic_edit, this::onTrackEditActionSelected));
     items.add(new MenuBottomSheetItem(R.string.export_file, R.drawable.ic_file_kmz,
+                                      () -> onShareTrackSelected(track.getTrackId(), KmlFileType.Kmz)));
+    items.add(new MenuBottomSheetItem(R.string.export_file_kml, R.drawable.ic_file_kml,
                                       () -> onShareTrackSelected(track.getTrackId(), KmlFileType.Text)));
     if (ExplorerPro.isGpxExportEnabled())
     {

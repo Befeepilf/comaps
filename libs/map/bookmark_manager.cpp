@@ -54,6 +54,7 @@ size_t constexpr kMinCommonTypesCount = 3;
 double constexpr kNearDistanceInMeters = 20 * 1000.0;
 double constexpr kMyPositionTrackSnapInMeters = 20.0;
 
+std::string const kKMLMimeType = "application/vnd.google-earth.kml+xml";
 std::string const kKMZMimeType = "application/vnd.google-earth.kmz";
 std::string const kGPXMimeType = "application/gpx+xml";
 
@@ -93,6 +94,17 @@ std::string GetFileNameForExport(BookmarkManager::KMLDataCollectionPtr::element_
   if (fileName.empty())
     fileName = base::GetNameFromFullPathWithoutExt(kmlToShare.first);
   return fileName;
+}
+
+BookmarkManager::SharingResult ExportSingleFilePlainKml(
+    BookmarkManager::KMLDataCollectionPtr::element_type::value_type const & kmlToShare)
+{
+  std::string const fileName = GetFileNameForExport(kmlToShare);
+  auto filePath = base::JoinPath(GetPlatform().TmpDir(), fileName + std::string{kKmlExtension});
+  auto const categoryId = kmlToShare.second->m_categoryData.m_id;
+  if (!SaveKmlFileSafe(*kmlToShare.second, filePath, KmlFileType::Text))
+    return {{categoryId}, BookmarkManager::SharingResult::Code::FileError, "Bookmarks file does not exist."};
+  return {{categoryId}, std::move(filePath), kKMLMimeType};
 }
 
 BookmarkManager::SharingResult ExportSingleFileKml(
@@ -206,8 +218,10 @@ BookmarkManager::SharingResult GetFileForSharing(BookmarkManager::KMLDataCollect
     return ExportMultipleFiles(collection);
   switch (kmlFileType)
   {
-  case KmlFileType::Text: return ExportSingleFileKml(collection->front());
+  case KmlFileType::Text: return ExportSingleFilePlainKml(collection->front());
+  case KmlFileType::Kmz: return ExportSingleFileKml(collection->front());
   case KmlFileType::Gpx: return ExportSingleFileGpx(collection->front());
+  case KmlFileType::Binary:
   default:
     LOG(LERROR, ("Unexpected file type", kmlFileType));
     return {{collection->front().second->m_categoryData.m_id},
@@ -3289,7 +3303,7 @@ void BookmarkManager::PrepareAllFilesForSharing(SharingHandler && handler)
   CHECK_THREAD_CHECKER(m_threadChecker, ());
   ASSERT(handler, ());
   PrepareFileForSharing(decltype(m_unsortedBmGroupsIdList){m_unsortedBmGroupsIdList}, std::move(handler),
-                        KmlFileType::Text);
+                        KmlFileType::Kmz);
 }
 
 bool BookmarkManager::AreAllCategoriesEmpty() const

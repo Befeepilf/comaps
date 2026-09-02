@@ -190,7 +190,7 @@ void BookmarkDialog::OnExportClick()
       ask.addButton(tr("OK"), QMessageBox::NoRole);
       ask.exec();
     }
-  }, KmlFileType::Text);
+  }, KmlFileType::Kmz);
 }
 
 void BookmarkDialog::OnDeleteClick()

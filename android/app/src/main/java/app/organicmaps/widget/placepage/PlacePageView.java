@@ -1325,6 +1325,8 @@ public class PlacePageView extends Fragment
     Track track = (Track) mMapObject;
     ArrayList<MenuBottomSheetItem> items = new ArrayList<>();
     items.add(new MenuBottomSheetItem(R.string.export_file, R.drawable.ic_file_kmz,
+                                      () -> onShareTrackSelected(track.getTrackId(), KmlFileType.Kmz)));
+    items.add(new MenuBottomSheetItem(R.string.export_file_kml, R.drawable.ic_file_kml,
                                       () -> onShareTrackSelected(track.getTrackId(), KmlFileType.Text)));
     if (ExplorerPro.isGpxExportEnabled())
     {

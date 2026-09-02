@@ -412,6 +412,8 @@ public class BookmarkCategoriesFragment extends BaseMwmRecyclerFragment<Bookmark
                                         mSelectedCategory.isVisible() ? R.drawable.ic_hide : R.drawable.ic_show,
                                         () -> onShowActionSelected(mSelectedCategory)));
       items.add(new MenuBottomSheetItem(R.string.export_file, R.drawable.ic_file_kmz,
+                                        () -> onShareActionSelected(mSelectedCategory, KmlFileType.Kmz)));
+      items.add(new MenuBottomSheetItem(R.string.export_file_kml, R.drawable.ic_file_kml,
                                         () -> onShareActionSelected(mSelectedCategory, KmlFileType.Text)));
       if (ExplorerPro.isGpxExportEnabled())
       {
