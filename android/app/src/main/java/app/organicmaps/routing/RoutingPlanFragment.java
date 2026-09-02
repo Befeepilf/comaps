@@ -56,4 +56,9 @@ public class RoutingPlanFragment extends BaseMwmFragment
   {
     mPlanController.showAddFinishFrame();
   }
+
+  public boolean shouldStartRecordingOnRouteStart()
+  {
+    return mPlanController != null && mPlanController.shouldStartRecordingOnRouteStart();
+  }
 }

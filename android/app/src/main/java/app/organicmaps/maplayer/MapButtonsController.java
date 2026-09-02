@@ -45,6 +45,7 @@ import app.organicmaps.sdk.downloader.UpdateInfo;
 import app.organicmaps.sdk.location.LocationListener;
 import app.organicmaps.sdk.location.RecordingSession;
 import app.organicmaps.location.RecordingSessionUiModel;
+import app.organicmaps.routing.RoutePlanningUi;
 import app.organicmaps.sdk.maplayer.isolines.IsolinesManager;
 import app.organicmaps.sdk.maplayer.streetpixels.AreaMilestonePresentation;
 import app.organicmaps.sdk.maplayer.streetpixels.CompletionCardModel;
@@ -190,7 +191,8 @@ public class MapButtonsController extends Fragment implements LocationListener
           view -> mMapButtonClickListener.onMapButtonClick(MapButtons.toggleMapLayer));
       mToggleMapLayerButton.setVisibility(View.VISIBLE);
     }
-    mMapButtonsViewModel.setTopButtonsMarginTop(-1);
+    if (layoutMode != LayoutMode.planning)
+      mMapButtonsViewModel.setTopButtonsMarginTop(-1);
 
     mTrackRecordingStatusButton = mFrame.findViewById(R.id.track_recording_status);
     if (mTrackRecordingStatusButton != null)
@@ -383,7 +385,8 @@ public class MapButtonsController extends Fragment implements LocationListener
     case zoom: UiUtils.showIf(show && Config.showZoomButtons(), buttonView); break;
     case toggleMapLayer:
       if (mToggleMapLayerButton != null)
-        UiUtils.showIf(show && !isInNavigationMode(), mToggleMapLayerButton);
+        UiUtils.showIf(RoutePlanningUi.shouldShowLayersButton(show, RoutingController.get().isNavigating()),
+                       mToggleMapLayerButton);
       break;
     case myPosition:
       if (mNavMyPosition != null)
@@ -507,11 +510,21 @@ public class MapButtonsController extends Fragment implements LocationListener
 
   private void updateTopButtonsMargin(int margin)
   {
-    if (margin == -1 || mTrackRecordingStatusButton == null)
+    if (margin == -1)
       return;
-    ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) mTrackRecordingStatusButton.getLayoutParams();
+    applyTopMargin(mToggleMapLayerButton, margin);
+    applyTopMargin(mTrackRecordingStatusButton, margin);
+  }
+
+  private static void applyTopMargin(@Nullable View view, int margin)
+  {
+    if (view == null)
+      return;
+    ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
+    if (!(layoutParams instanceof ViewGroup.MarginLayoutParams params))
+      return;
     params.topMargin = margin;
-    mTrackRecordingStatusButton.setLayoutParams(params);
+    view.setLayoutParams(params);
   }
 
   @OptIn(markerClass = ExperimentalBadgeUtils.class)
@@ -1002,11 +1015,6 @@ public class MapButtonsController extends Fragment implements LocationListener
     if (!buttonHidden)
       updateButtonsVisibility();
     mMapButtonsViewModel.setBottomButtonsHeight(getBottomButtonsHeight());
-  }
-
-  private boolean isInNavigationMode()
-  {
-    return RoutingController.get().isPlanning() || RoutingController.get().isNavigating();
   }
 
   public void updateNavMyPositionButton(int newMode)

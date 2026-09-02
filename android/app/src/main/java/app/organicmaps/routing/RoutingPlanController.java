@@ -296,6 +296,11 @@ public class RoutingPlanController extends ToolbarController
       showRoutingOptionsView();
   }
 
+  public boolean shouldStartRecordingOnRouteStart()
+  {
+    return mRoutingBottomMenuController.shouldStartRecordingOnRouteStart();
+  }
+
   public void showAddStartFrame()
   {
     mRoutingBottomMenuController.showAddStartFrame();
