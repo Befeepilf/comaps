@@ -22,12 +22,10 @@ public class GpxSettingsVisibilityTest
   }
 
   @Test
-  public void showExportRow_fourCellAvailableTimesEntitled()
+  public void showExportRow_shownWhenEnabledRegardlessOfPro()
   {
-    assertFalse(GpxSettingsVisibility.showExportRow(enabled(false, false)));
-    assertFalse(GpxSettingsVisibility.showExportRow(enabled(false, true)));
-    assertFalse(GpxSettingsVisibility.showExportRow(enabled(true, false)));
-    assertTrue(GpxSettingsVisibility.showExportRow(enabled(true, true)));
+    assertFalse(GpxSettingsVisibility.showExportRow(false));
+    assertTrue(GpxSettingsVisibility.showExportRow(true));
   }
 
   @Test
@@ -73,9 +71,15 @@ public class GpxSettingsVisibilityTest
   }
 
   @Test
-  public void showGpxScreen_hiddenWhenPublic()
+  public void showGpxScreen_hiddenWhenNoRows()
   {
     assertFalse(GpxSettingsVisibility.showGpxScreen(false, false, false, false));
+  }
+
+  @Test
+  public void showGpxScreen_shownWhenOnlyExport()
+  {
+    assertTrue(GpxSettingsVisibility.showGpxScreen(false, true, false, false));
   }
 
   @Test
