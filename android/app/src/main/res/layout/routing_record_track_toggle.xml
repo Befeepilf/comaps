@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  android:id="@+id/record_track_on_start_row"
+  android:layout_width="wrap_content"
+  android:layout_height="wrap_content"
+  android:orientation="horizontal"
+  android:gravity="center_vertical">
+  <com.google.android.material.imageview.ShapeableImageView
+    android:layout_width="24dp"
+    android:layout_height="24dp"
+    android:layout_marginEnd="@dimen/margin_half"
+    android:contentDescription="@null"
+    app:srcCompat="@drawable/ic_track_recording_off"
+    app:tint="?android:textColorPrimary" />
+  <com.google.android.material.textview.MaterialTextView
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="@dimen/margin_half"
+    android:text="@string/planning_route_record_track"
+    android:textAppearance="@style/MwmTextAppearance.Body1"
+    android:textColor="?android:textColorPrimary" />
+  <com.google.android.material.materialswitch.MaterialSwitch
+    android:id="@+id/record_track_on_start"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:checked="false"
+    android:contentDescription="@string/planning_route_record_track" />
+</LinearLayout>

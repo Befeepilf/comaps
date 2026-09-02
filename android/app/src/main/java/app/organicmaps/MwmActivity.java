@@ -80,6 +80,7 @@ import app.organicmaps.routing.DirectionsPreviewBottomSheet;
 import app.organicmaps.routing.ManageRouteBottomSheet;
 import app.organicmaps.routing.NavigationController;
 import app.organicmaps.routing.NavigationService;
+import app.organicmaps.routing.RoutePlanningUi;
 import app.organicmaps.routing.RoutingBottomMenuListener;
 import app.organicmaps.routing.RoutingErrorDialogFragment;
 import app.organicmaps.routing.RoutingPlanFragment;
@@ -1693,6 +1694,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
       final int height = mRoutingPlanInplaceController.calcHeight();
       if (height != 0)
         offsetY = height;
+      updatePlanningLayersOffset();
     }
     final int orientation = getResources().getConfiguration().orientation;
     final boolean isTrackRecordingEnabled = RecordingSession.isActive();
@@ -1840,6 +1842,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     closeFloatingToolbarsAndPanels(true);
     mMapButtonsViewModel.setLayoutMode(MapButtonsController.LayoutMode.planning);
     refreshLightStatusBar();
+    updatePlanningLayersOffset();
   }
 
   @Override
@@ -1851,6 +1854,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     mMapButtonsViewModel.setSearchOption(null);
     mMapButtonsViewModel.setLayoutMode(MapButtonsController.LayoutMode.planning);
     refreshLightStatusBar();
+    updatePlanningLayersOffset();
   }
 
   @Override
@@ -2343,7 +2347,34 @@ public class MwmActivity extends BaseMwmFragmentActivity
     closeFloatingPanels();
     setFullscreen(false);
 
+    if (shouldStartRecordingWithRoute())
+      startTrackRecording();
+
     RoutingController.get().start();
+  }
+
+  private boolean shouldStartRecordingWithRoute()
+  {
+    if (mIsTabletLayout)
+    {
+      RoutingPlanFragment fragment = (RoutingPlanFragment) getFragment(RoutingPlanFragment.class);
+      return fragment != null && fragment.shouldStartRecordingOnRouteStart();
+    }
+    return mRoutingPlanInplaceController != null && mRoutingPlanInplaceController.shouldStartRecordingOnRouteStart();
+  }
+
+  private void updatePlanningLayersOffset()
+  {
+    if (mRoutingPlanInplaceController == null)
+      return;
+    int headerHeight = mRoutingPlanInplaceController.calcHeight();
+    int statusBar = 0;
+    if (mCurrentWindowInsets != null)
+      statusBar = mCurrentWindowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
+    int margin = RoutePlanningUi.layersTopMarginPx(headerHeight - statusBar,
+                                                   dimen(this, R.dimen.nav_frame_padding));
+    if (margin != -1)
+      mMapButtonsViewModel.setTopButtonsMarginTop(margin);
   }
 
   @Override

@@ -84,6 +84,13 @@
           android:layout_gravity="center_vertical" />
     </LinearLayout>
 
+    <include
+        layout="@layout/routing_record_track_toggle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_half"
+        android:layout_marginBottom="@dimen/margin_half" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

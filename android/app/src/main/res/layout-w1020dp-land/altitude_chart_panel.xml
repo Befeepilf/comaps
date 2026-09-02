@@ -120,6 +120,13 @@
         android:textColor="?android:textColorPrimary"
         android:textAppearance="@style/MwmTextAppearance.Body1"/>
 
+    <include
+      layout="@layout/routing_record_track_toggle"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginStart="@dimen/margin_base"
+      android:layout_gravity="center_vertical" />
+
     <com.google.android.material.button.MaterialButton
       android:id="@+id/start"
       style="@style/MwmWidget.M3.Button.Primary"
