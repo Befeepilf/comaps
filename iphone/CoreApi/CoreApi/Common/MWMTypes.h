@@ -23,7 +23,8 @@ typedef NS_ENUM(NSUInteger, MWMTheme) {
 typedef NS_ENUM(NSUInteger, MWMKmlFileType) {
   MWMKmlFileTypeText,
   MWMKmlFileTypeBinary,
-  MWMKmlFileTypeGpx
+  MWMKmlFileTypeGpx,
+  MWMKmlFileTypeKmz
 } NS_SWIFT_NAME(KmlFileType);
 
 typedef uint64_t MWMMarkID;

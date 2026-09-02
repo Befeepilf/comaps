@@ -164,7 +164,7 @@ public class LocalBackupManager implements BookmarkManager.BookmarksSharingListe
     long[] categoryIds = new long[categories.size()];
     for (int i = 0; i < categories.size(); i++)
       categoryIds[i] = categories.get(i).getId();
-    BookmarkManager.INSTANCE.prepareCategoriesForSharing(categoryIds, KmlFileType.Text);
+    BookmarkManager.INSTANCE.prepareCategoriesForSharing(categoryIds, KmlFileType.Kmz);
   }
 
   public interface Listener

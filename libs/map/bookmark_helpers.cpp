@@ -592,6 +592,7 @@ bool SaveKmlFile(kml::FileData & kmlData, std::string const & file, KmlFileType 
   case KmlFileType::Text:  // fallthrough
   case KmlFileType::Binary: return SaveKmlData(kmlData, writer, fileType);
   case KmlFileType::Gpx: return SaveGpxData(kmlData, writer);
+  case KmlFileType::Kmz:
   default:
   {
     LOG(LWARNING, ("Unexpected KmlFileType", fileType));

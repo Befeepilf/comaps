@@ -93,6 +93,8 @@ static KmlFileType convertFileTypeToCore(MWMKmlFileType fileType) {
       return KmlFileType::Binary;
     case MWMKmlFileTypeGpx:
       return KmlFileType::Gpx;
+    case MWMKmlFileTypeKmz:
+      return KmlFileType::Kmz;
   }
 }
 
