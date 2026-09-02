@@ -30,6 +30,7 @@ import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
 import app.organicmaps.sdk.Framework;
 import app.organicmaps.sdk.bookmarks.data.DistanceAndAzimut;
+import app.organicmaps.sdk.location.RecordingSession;
 import app.organicmaps.sdk.routing.RouteMarkData;
 import app.organicmaps.sdk.routing.RouteMarkType;
 import app.organicmaps.sdk.routing.RoutingController;
@@ -45,6 +46,7 @@ import app.organicmaps.widget.recycler.DotDividerItemDecoration;
 import app.organicmaps.widget.recycler.MultilineLayoutManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textview.MaterialTextView;
 import java.util.LinkedList;
 import java.util.List;
@@ -53,6 +55,7 @@ final class RoutingBottomMenuController implements View.OnClickListener
 {
   private static final String STATE_ALTITUDE_CHART_SHOWN = "altitude_chart_shown";
   private static final String STATE_ERROR = "error";
+  private static final String STATE_RECORD_TRACK_ON_START = "record_track_on_start";
 
   @NonNull
   private final Activity mContext;
@@ -84,6 +87,8 @@ final class RoutingBottomMenuController implements View.OnClickListener
   private final View mActionButton;
   @NonNull
   private final ShapeableImageView mActionIcon;
+  @Nullable
+  private final MaterialSwitch mRecordTrackOnStart;
   @NonNull
   private final DotDividerItemDecoration mTransitViewDecorator;
 
@@ -146,6 +151,9 @@ final class RoutingBottomMenuController implements View.OnClickListener
     mActionIcon = mActionButton.findViewById(R.id.iv__icon);
     UiUtils.hide(mAltitudeChartFrame, mActionFrame);
     mListener = listener;
+    mRecordTrackOnStart = altitudeChartFrame.findViewById(R.id.record_track_on_start);
+    if (mRecordTrackOnStart != null)
+      mRecordTrackOnStart.setChecked(false);
     int dividerRes = ThemeUtils.getResource(mContext, R.attr.transitStepDivider);
     Drawable dividerDrawable = ContextCompat.getDrawable(mContext, dividerRes);
     Resources res = mContext.getResources();
@@ -308,6 +316,12 @@ final class RoutingBottomMenuController implements View.OnClickListener
     showStartButton(show);
   }
 
+  boolean shouldStartRecordingOnRouteStart()
+  {
+    boolean toggleEnabled = mRecordTrackOnStart != null && mRecordTrackOnStart.isChecked();
+    return RoutePlanningUi.shouldStartRecordingOnRouteStart(toggleEnabled, RecordingSession.isActive());
+  }
+
   private void showError(@NonNull String message)
   {
     UiUtils.hide(mAltitudeChartFrame, mActionFrame, mTransitFrame);
@@ -325,6 +339,7 @@ final class RoutingBottomMenuController implements View.OnClickListener
   void saveRoutingPanelState(@NonNull Bundle outState)
   {
     outState.putBoolean(STATE_ALTITUDE_CHART_SHOWN, UiUtils.isVisible(mAltitudeChartFrame));
+    outState.putBoolean(STATE_RECORD_TRACK_ON_START, mRecordTrackOnStart != null && mRecordTrackOnStart.isChecked());
     if (UiUtils.isVisible(mError))
       outState.putString(STATE_ERROR, mError.getText().toString());
   }
@@ -333,6 +348,9 @@ final class RoutingBottomMenuController implements View.OnClickListener
   {
     if (state.getBoolean(STATE_ALTITUDE_CHART_SHOWN))
       showAltitudeChartAndRoutingDetails();
+
+    if (mRecordTrackOnStart != null)
+      mRecordTrackOnStart.setChecked(state.getBoolean(STATE_RECORD_TRACK_ON_START, false));
 
     String error = state.getString(STATE_ERROR);
     if (!TextUtils.isEmpty(error))
