@@ -37,6 +37,7 @@ from street_pixels.map_pipeline import load_default_ini_text  # noqa: E402
 from street_pixels.map_pipeline import pipeline_stage_names  # noqa: E402
 from street_pixels.map_pipeline import run_map_pipeline  # noqa: E402
 from street_pixels.map_pipeline import run_mapgen  # noqa: E402
+from street_pixels.map_pipeline import run_pix_derive  # noqa: E402
 
 
 def _touch_poly(directory, leaf_id):
@@ -556,6 +557,48 @@ class CommandConstructionTest(unittest.TestCase):
             self.assertIn("--mwm_dir", argv)
             self.assertNotIn("World.mwm", argv)
             self.assertNotIn(os.path.join(runtime["mwm_dir"], "World.mwm"), argv)
+
+    def test_pix_derive_sets_mwm_resource_env(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            data = os.path.join(tmp, "data")
+            os.makedirs(data)
+            with open(os.path.join(data, "classificator.txt"), "w", encoding="utf-8"):
+                pass
+            mwm_dir = os.path.join(tmp, "mwm")
+            os.makedirs(mwm_dir)
+            borders = _finland_borders(tmp)
+            plan = build_plan(
+                pbf="file:///tmp/finland.osm.pbf",
+                out=os.path.join(tmp, "out"),
+                borders_dir=borders,
+                omim_path=tmp,
+                work_dir=os.path.join(tmp, "work"),
+                dry_run=True,
+            )
+            runtime = {"mwm_dir": mwm_dir, "data_version": 260728}
+            with mock.patch("street_pixels.map_pipeline.run_command") as run_command:
+                run_pix_derive(plan, runtime)
+            env = run_command.call_args[1]["env"]
+            self.assertEqual(env["MWM_RESOURCES_DIR"], data)
+            self.assertEqual(env["MWM_WRITABLE_DIR"], data)
+
+    def test_pix_derive_fails_closed_without_classificator(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            mwm_dir = os.path.join(tmp, "mwm")
+            os.makedirs(mwm_dir)
+            borders = _finland_borders(tmp)
+            plan = build_plan(
+                pbf="file:///tmp/finland.osm.pbf",
+                out=os.path.join(tmp, "out"),
+                borders_dir=borders,
+                omim_path=tmp,
+                work_dir=os.path.join(tmp, "work"),
+                dry_run=True,
+            )
+            runtime = {"mwm_dir": mwm_dir, "data_version": 260728}
+            with self.assertRaises(MapPipelineError) as ctx:
+                run_pix_derive(plan, runtime)
+            self.assertIn("classificator.txt", str(ctx.exception))
 
     def test_spa_emit_argv_has_pix_borders_iso(self):
         with tempfile.TemporaryDirectory() as tmp:

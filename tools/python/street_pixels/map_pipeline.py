@@ -880,6 +880,24 @@ def tools_python_env():
     return env
 
 
+def omim_data_dir(plan):
+    return os.path.join(plan["omim_path"], "data")
+
+
+def desktop_tool_env(plan):
+    env = os.environ.copy()
+    data = omim_data_dir(plan)
+    env["MWM_RESOURCES_DIR"] = data
+    env["MWM_WRITABLE_DIR"] = data
+    return env
+
+
+def assert_omim_classificator(plan):
+    path = os.path.join(omim_data_dir(plan), "classificator.txt")
+    if not os.path.isfile(path):
+        raise MapPipelineError("classificator.txt not found: {}".format(path))
+
+
 def write_text(path, text):
     parent = os.path.dirname(path)
     if parent:
@@ -1027,8 +1045,9 @@ def run_pix_derive(plan, runtime):
         raise MapPipelineError(
             "pix_derive requires an MWM directory (run mapgen or pass --mwm-dir)"
         )
+    assert_omim_classificator(plan)
     os.makedirs(plan["pix_dir"], exist_ok=True)
-    run_command(build_pix_derive_argv(plan, runtime))
+    run_command(build_pix_derive_argv(plan, runtime), env=desktop_tool_env(plan))
 
 
 def run_rings(plan, runtime):
@@ -1054,7 +1073,7 @@ def run_spa_emit(plan, runtime):
     data_version = runtime["data_version"]
     if data_version is None:
         raise MapPipelineError("--data-version is required for spa_emit when countries.txt is absent")
-    run_command(build_spa_emit_argv(plan, runtime))
+    run_command(build_spa_emit_argv(plan, runtime), env=desktop_tool_env(plan))
 
 
 def run_assemble(plan, runtime):
