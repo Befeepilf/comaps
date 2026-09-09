@@ -45,6 +45,7 @@ from maps_generator.generator.stages import production_only
 from maps_generator.generator.stages import test_stage
 from maps_generator.generator.statistics import get_stages_info
 from maps_generator.utils.file import download_files
+from maps_generator.utils.file import is_downloadable_url
 from maps_generator.utils.file import is_verified
 from maps_generator.utils.file import make_symlink
 from maps_generator.utils.file import sign_file
@@ -79,27 +80,37 @@ class StageCoastline(Stage):
     def apply(self, env: Env, use_old_if_fail=True):
         coasts_geom = "WorldCoasts.geom"
         coasts_rawgeom = "WorldCoasts.rawgeom"
+        have_coasts = False
         try:
             coastline.make_coastline(env)
+            have_coasts = True
         except BadExitStatusError as e:
             if not use_old_if_fail:
                 raise e
 
-            logger.warning("Build coasts failed. Try to download the coasts...")
-            download_files(
-                {
-                    settings.PLANET_COASTS_GEOM_URL: os.path.join(
-                        env.paths.coastline_path, coasts_geom
-                    ),
-                    settings.PLANET_COASTS_RAWGEOM_URL: os.path.join(
-                        env.paths.coastline_path, coasts_rawgeom
-                    ),
-                }
-            )
+            if is_downloadable_url(settings.PLANET_COASTS_GEOM_URL):
+                logger.warning("Build coasts failed. Try to download the coasts...")
+                download_files(
+                    {
+                        settings.PLANET_COASTS_GEOM_URL: os.path.join(
+                            env.paths.coastline_path, coasts_geom
+                        ),
+                        settings.PLANET_COASTS_RAWGEOM_URL: os.path.join(
+                            env.paths.coastline_path, coasts_rawgeom
+                        ),
+                    }
+                )
+                have_coasts = True
+            else:
+                logger.warning(
+                    "Build coasts failed and PLANET_COASTS_URL is unset; "
+                    "continuing without coasts (ocean fill may be missing)"
+                )
 
-        for f in [coasts_geom, coasts_rawgeom]:
-            path = os.path.join(env.paths.coastline_path, f)
-            shutil.copy2(path, env.paths.intermediate_data_path)
+        if have_coasts:
+            for f in [coasts_geom, coasts_rawgeom]:
+                path = os.path.join(env.paths.coastline_path, f)
+                shutil.copy2(path, env.paths.intermediate_data_path)
 
 
 @outer_stage
@@ -135,7 +146,11 @@ class StageFeatures(Stage):
                 }
             )
         if is_accepted(env, StageCoastline):
-            extra.update({"emit_coasts": True})
+            coasts_geom_path = os.path.join(
+                env.paths.intermediate_data_path, "WorldCoasts.geom"
+            )
+            if os.path.isfile(coasts_geom_path):
+                extra.update({"emit_coasts": True})
         if is_accepted(env, StageIsolinesInfo):
             extra.update({"isolines_path": PathProvider.isolines_path()})
         extra.update({"addresses_path": PathProvider.addresses_path()})

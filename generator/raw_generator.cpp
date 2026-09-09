@@ -12,6 +12,9 @@
 #include "generator/translator_factory.hpp"
 #include "generator/translators_pool.hpp"
 
+#include "platform/platform.hpp"
+
+#include "base/logging.hpp"
 #include "base/timer.hpp"
 
 #include "defines.hpp"
@@ -203,8 +206,12 @@ RawGenerator::FinalProcessorPtr RawGenerator::CreateWorldFinalProcessor(bool cut
   std::string coastlineGeom;
   if (cutBordersByWater)
   {
-    // This file should exist or read exception will be thrown otherwise.
-    coastlineGeom = m_genInfo.GetIntermediateFileName(WORLD_COASTS_FILE_NAME, RAW_GEOM_FILE_EXTENSION);
+    auto const path =
+        m_genInfo.GetIntermediateFileName(WORLD_COASTS_FILE_NAME, RAW_GEOM_FILE_EXTENSION);
+    if (Platform::IsFileExistsByFullPath(path))
+      coastlineGeom = path;
+    else
+      LOG(LWARNING, ("WorldCoasts raw geometry is missing; World will not cut borders by water"));
   }
   auto finalProcessor = std::make_shared<WorldFinalProcessor>(m_genInfo.m_tmpDir, coastlineGeom);
 

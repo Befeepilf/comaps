@@ -31,6 +31,10 @@ logger = logging.getLogger("maps_generator")
 def is_file_uri(url: AnyStr) -> bool:
     return urlparse(url).scheme == "file"
 
+
+def is_downloadable_url(url: AnyStr) -> bool:
+    return bool(urlparse(url).scheme)
+
 def file_uri_to_path(url : AnyStr) -> AnyStr:
     file_uri = urlparse(url)
     file_path = file_uri.path
