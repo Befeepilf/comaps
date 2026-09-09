@@ -9,7 +9,7 @@ Builds::
     {out}/maps/{map_series}/{publish_version}/{leaf}.mwm        # if include-mwm
     {out}/inventory.json   # operator debug; SP-051 may ignore / health may read
 
-Reuses inject_spa_meta + file_sha1_base64; optional sign_file when --secret-key
+Reuses inject_spa_meta + file_sha1_base64; optional Ed25519 sign when --secret-key
 is set. Prefer hardlink then copy for binary payloads.
 """
 
@@ -22,6 +22,7 @@ import logging
 import os
 import shutil
 import struct
+import subprocess
 import sys
 import tempfile
 
@@ -38,6 +39,32 @@ _SPA1_MAGIC = 0x31415053
 
 class AssembleError(Exception):
     """Fail-closed assemble / verify error with a single actionable message."""
+
+
+def sign_rawin(file_path, key_path, signature_path=None):
+    if signature_path is None:
+        signature_path = file_path + ".sig"
+    proc = subprocess.run(
+        [
+            "openssl",
+            "pkeyutl",
+            "-sign",
+            "-inkey",
+            key_path,
+            "-rawin",
+            "-in",
+            file_path,
+            "-out",
+            signature_path,
+        ],
+        capture_output=True,
+        text=True,
+    )
+    if proc.returncode != 0:
+        raise AssembleError(
+            "signing {} failed: {}".format(file_path, proc.stderr.strip())
+        )
+    return signature_path
 
 
 def _get_leaf_nodes(root):
@@ -358,11 +385,9 @@ def write_publish_tree(
     logger.info("Wrote %s", countries_path)
 
     if secret_key:
-        from maps_generator.utils.file import sign_file
-
         if not os.path.isfile(secret_key):
             raise AssembleError("secret key not found: {}".format(secret_key))
-        sig_path = sign_file(countries_path, secret_key)
+        sig_path = sign_rawin(countries_path, secret_key)
         logger.info("Signed countries -> %s", sig_path)
 
     for leaf_id in advertised_ids:

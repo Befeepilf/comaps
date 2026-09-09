@@ -3,8 +3,8 @@ import json
 import os
 import sys
 
-from maps_generator.utils.file import sign_file
-from maps_generator.utils.file import verify_file
+from street_pixels.map_identity import sign_rawin
+from street_pixels.map_identity import verify_rawin
 
 from post_generation.hierarchy_to_countries import (
     hierarchy_to_countries as hierarchy_to_countries_,
@@ -79,10 +79,10 @@ The post_generation commands are:
             with open(args.output, "w") as f:
                 json.dump(countries, f, ensure_ascii=False, indent=1)
             if args.secret_key:
-                signature_path = sign_file(args.output, args.secret_key)
+                signature_path = sign_rawin(args.output, args.secret_key)
                 logger.info(f"Signed {args.output}")
                 if args.public_key:
-                    if verify_file(args.output, signature_path, args.public_key):
+                    if verify_rawin(args.output, signature_path, args.public_key):
                         logger.info(f"Verified {signature_path}")
                     else:
                         logger.error(f"Verification of {signature_path} with {args.public_key} failed!")

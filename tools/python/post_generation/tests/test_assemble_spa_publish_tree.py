@@ -5,6 +5,7 @@ import base64
 import hashlib
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -62,6 +63,31 @@ class AssembleSpaPublishTreeTest(unittest.TestCase):
         countries = self._countries(leaf, mwm_payload, _sha1_b64(mwm_payload))
         _write(countries_path, json.dumps(countries, indent=1) + "\n")
         return leaf, spa_dir, mwm_dir, out, countries_path
+
+    def test_secret_key_writes_sig(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            _leaf, spa_dir, mwm_dir, out, countries_path = self._fixture(tmp)
+            secret = os.path.join(tmp, "secret.pem")
+            subprocess.run(
+                ["openssl", "genpkey", "-algorithm", "Ed25519", "-out", secret],
+                check=True,
+                capture_output=True,
+            )
+            rc = assemble_spa_publish_tree(
+                countries_path=countries_path,
+                spa_dir=spa_dir,
+                mwm_dir=mwm_dir,
+                out=out,
+                map_series=self.SERIES,
+                data_version=self.DATA_V,
+                secret_key=secret,
+            )
+            self.assertEqual(0, rc)
+            sig = os.path.join(
+                out, "maps", self.SERIES, str(self.DATA_V), "countries.txt.sig"
+            )
+            self.assertTrue(os.path.isfile(sig))
+            self.assertGreater(os.path.getsize(sig), 0)
 
     def test_happy_path_layout_and_hashes(self):
         with tempfile.TemporaryDirectory() as tmp:
