@@ -49,8 +49,11 @@ warning. Do not fetch Streifzug map hosts or `cdn.organicmaps.app/subway.json`
 to complete them. Pass `--hotels-url`, `--srtm-path`, `--subway-url`,
 `--enable-wikipedia`, … when you have sources.
 
-`--from-stage` skips earlier pipeline stages so a failed spa emit does not
+`--from-stage` rebuilds from that stage onward so a failed spa emit does not
 rebuild MWMs. `--from-stage rsync` publishes an already-assembled `--out`.
+Re-running the same `--out` resumes: completed stages are skipped when outputs
+and the fingerprint still match. `--force` ignores checkpoints. Dry-run prints
+`resume skip:`.
 
 Default ini fragment: `var/etc/map_pipeline.ini` (`NODE_STORAGE: map`,
 `THREADS_COUNT: 4`).

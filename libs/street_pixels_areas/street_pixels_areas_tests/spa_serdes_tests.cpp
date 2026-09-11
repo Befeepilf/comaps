@@ -328,6 +328,52 @@ UNIT_TEST(SpaSerdes_NoThreeBoxOrNodeInventedInOutput)
   RemoveIfExists(path);
 }
 
+UNIT_TEST(SpaSerdes_EmptyAreasSectionRoundTrip)
+{
+  auto const policy = FinlandPolicy();
+  std::string const path = SpaPath("empty_areas");
+  RemoveIfExists(path);
+  SpaWriteParams params;
+  params.m_mapDataVersion = 1;
+  params.m_policyVersion = 1;
+  params.m_isoCode = "FI";
+  params.m_mwmId = "empty_areas";
+  std::vector<m2::PointD> samples = {MercatorFromLonLat(24.5, 60.5)};
+  WriteExplorationSidecar(path, {}, samples, policy, params);
+
+  FilesContainerR container(path);
+  TEST(container.IsExist(SPA_AREAS_FILE_TAG), ());
+
+  auto const loaded = ReadExplorationSidecar(path);
+  TEST_EQUAL(loaded.m_header.m_areaCount, 0u, ());
+  TEST_EQUAL(loaded.m_areas.size(), 0u, ());
+  TEST_EQUAL(loaded.m_assignments.size(), 1u, ());
+  TEST_EQUAL(loaded.m_assignments[0], NoSubdivisionSentinel(loaded.m_header.m_indexWidth), ());
+  TEST(VerifyDenseAssignments(loaded, samples, policy), ());
+  RemoveIfExists(path);
+}
+
+UNIT_TEST(SpaSerdes_ShouldSkipExistingSpa)
+{
+  auto const policy = FinlandPolicy();
+  std::string const path = SpaPath("skip_existing");
+  RemoveIfExists(path);
+  TEST(!ShouldSkipExistingSpa(path, 1, 1, "FI", "skip_existing"), ());
+
+  SpaWriteParams params;
+  params.m_mapDataVersion = 1;
+  params.m_policyVersion = 1;
+  params.m_isoCode = "FI";
+  params.m_mwmId = "skip_existing";
+  WriteExplorationSidecar(path, {}, {MercatorFromLonLat(24.5, 60.5)}, policy, params);
+
+  TEST(ShouldSkipExistingSpa(path, 1, 1, "FI", "skip_existing"), ());
+  TEST(!ShouldSkipExistingSpa(path, 2, 1, "FI", "skip_existing"), ());
+  TEST(!ShouldSkipExistingSpa(path, 1, 1, "DE", "skip_existing"), ());
+  TEST(!ShouldSkipExistingSpa(path, 1, 1, "FI", "other"), ());
+  RemoveIfExists(path);
+}
+
 UNIT_TEST(SpaSerdes_KeyingMapDataAndPolicyVersion)
 {
   auto const policy = FinlandPolicy();

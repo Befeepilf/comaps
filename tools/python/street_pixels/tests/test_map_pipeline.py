@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Unit tests for street_pixels map_pipeline (SP-100)."""
 
+import json
 import os
 import sys
 import tempfile
@@ -25,6 +26,7 @@ from street_pixels.map_pipeline import STAGE_PIX_DERIVE  # noqa: E402
 from street_pixels.map_pipeline import STAGE_RINGS  # noqa: E402
 from street_pixels.map_pipeline import STAGE_RSYNC  # noqa: E402
 from street_pixels.map_pipeline import STAGE_SPA_EMIT  # noqa: E402
+from street_pixels.map_pipeline import apply_resume  # noqa: E402
 from street_pixels.map_pipeline import build_mapgen_argv  # noqa: E402
 from street_pixels.map_pipeline import build_pix_derive_argv  # noqa: E402
 from street_pixels.map_pipeline import build_plan  # noqa: E402
@@ -33,11 +35,26 @@ from street_pixels.map_pipeline import build_rsync_argv  # noqa: E402
 from street_pixels.map_pipeline import build_spa_emit_argv  # noqa: E402
 from street_pixels.map_pipeline import ensure_planet_md5_url  # noqa: E402
 from street_pixels.map_pipeline import expand_countries  # noqa: E402
+from street_pixels.map_pipeline import resolve_border_prefix  # noqa: E402
+from street_pixels.map_pipeline import resolve_runtime_paths  # noqa: E402
 from street_pixels.map_pipeline import load_default_ini_text  # noqa: E402
 from street_pixels.map_pipeline import pipeline_stage_names  # noqa: E402
 from street_pixels.map_pipeline import run_map_pipeline  # noqa: E402
 from street_pixels.map_pipeline import run_mapgen  # noqa: E402
 from street_pixels.map_pipeline import run_pix_derive  # noqa: E402
+from street_pixels.map_pipeline import save_state  # noqa: E402
+
+
+FINLAND_LEAVES = (
+    "Finland_Southern Finland_Helsinki",
+    "Finland_Northern Finland",
+    "Finland_Eastern Finland_North",
+    "Finland_Eastern Finland_South",
+    "Finland_Southern Finland_Lappeenranta",
+    "Finland_Southern Finland_West",
+    "Finland_Western Finland_Jyvaskyla",
+    "Finland_Western Finland_Tampere",
+)
 
 
 def _touch_poly(directory, leaf_id):
@@ -47,21 +64,56 @@ def _touch_poly(directory, leaf_id):
     return path
 
 
+def _touch(path, contents="x"):
+    parent = os.path.dirname(path)
+    if parent:
+        os.makedirs(parent, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(contents)
+
+
+def _write_pbf(tmp):
+    pbf = os.path.join(tmp, "planet.osm.pbf")
+    _touch(pbf, "pbf")
+    _touch(pbf + ".md5", "deadbeef  planet.osm.pbf\n")
+    return pbf
+
+
 def _finland_borders(tmp):
     borders = os.path.join(tmp, "borders")
     os.makedirs(borders)
-    for leaf in (
-        "Finland_Southern Finland_Helsinki",
-        "Finland_Northern Finland",
-        "Finland_Eastern Finland_North",
-        "Finland_Eastern Finland_South",
-        "Finland_Southern Finland_Lappeenranta",
-        "Finland_Southern Finland_West",
-        "Finland_Western Finland_Jyvaskyla",
-        "Finland_Western Finland_Tampere",
-    ):
+    for leaf in FINLAND_LEAVES:
         _touch_poly(borders, leaf)
     return borders
+
+
+def _seed_generate_artifacts(tmp, leaves, include_spa=False, extra_spa=()):
+    out = os.path.join(tmp, "out")
+    work = out + ".work"
+    mwm_dir = os.path.join(work, "mapgen", "2026_09_10__00_00_00-sp100", "260910")
+    os.makedirs(mwm_dir, exist_ok=True)
+    _touch(os.path.join(mwm_dir, "countries.txt"), json.dumps({"v": 260910}))
+    _touch(os.path.join(mwm_dir, "World.mwm"))
+    pix_dir = os.path.join(work, "pix")
+    spa_dir = os.path.join(work, "spa")
+    os.makedirs(pix_dir, exist_ok=True)
+    os.makedirs(spa_dir, exist_ok=True)
+    for leaf in leaves:
+        _touch(os.path.join(mwm_dir, leaf + ".mwm"))
+        _touch(os.path.join(pix_dir, leaf + ".pix"))
+        if include_spa:
+            _touch(os.path.join(spa_dir, leaf + ".spa"))
+    for name in extra_spa:
+        _touch(os.path.join(spa_dir, name + ".spa"))
+    _touch(os.path.join(work, "rings.jsonl"), "{}\n")
+    pbf = _write_pbf(tmp)
+    return {
+        "out": out,
+        "work": work,
+        "mwm_dir": mwm_dir,
+        "countries_txt": os.path.join(mwm_dir, "countries.txt"),
+        "pbf": pbf,
+    }
 
 
 class StageGraphTest(unittest.TestCase):
@@ -361,6 +413,23 @@ class FromStageTest(unittest.TestCase):
             self.assertEqual([STAGE_SPA_EMIT, STAGE_ASSEMBLE], plan["stages"])
 
 
+class ResolveBorderPrefixTest(unittest.TestCase):
+    def test_keeps_matching_prefix(self):
+        self.assertEqual(
+            "Finland",
+            resolve_border_prefix(["World", "Finland_Northern Finland"], "Finland"),
+        )
+
+    def test_unique_root_when_prefix_misses(self):
+        self.assertEqual(
+            "Germany",
+            resolve_border_prefix(["World", "Germany_Berlin"], "Finland"),
+        )
+
+    def test_empty_means_all(self):
+        self.assertEqual("", resolve_border_prefix(["Germany_Berlin"], ""))
+
+
 class ExpandCountriesTest(unittest.TestCase):
     def test_finland_glob_and_world(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -539,6 +608,218 @@ class FromStageRuntimeTest(unittest.TestCase):
             self.assertFalse(os.path.isdir(out))
 
 
+class ResumeTest(unittest.TestCase):
+    def test_resume_skips_mapgen_pix_rings(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            seeded = _seed_generate_artifacts(tmp, FINLAND_LEAVES)
+            with mock.patch(
+                "street_pixels.map_pipeline.run_mapgen"
+            ) as mapgen, mock.patch(
+                "street_pixels.map_pipeline.run_pix_derive"
+            ) as pix, mock.patch(
+                "street_pixels.map_pipeline.run_rings"
+            ) as rings, mock.patch(
+                "street_pixels.map_pipeline.run_spa_emit"
+            ) as spa, mock.patch(
+                "street_pixels.map_pipeline.run_assemble"
+            ) as assemble:
+                plan = run_map_pipeline(
+                    pbf="file://" + seeded["pbf"],
+                    out=seeded["out"],
+                    borders_dir=borders,
+                    mwm_dir=seeded["mwm_dir"],
+                    countries_txt=seeded["countries_txt"],
+                    pix_derive_bin="/usr/bin/true",
+                    spa_emit_bin="/usr/bin/true",
+                )
+            mapgen.assert_not_called()
+            pix.assert_not_called()
+            rings.assert_not_called()
+            spa.assert_called_once()
+            assemble.assert_called_once()
+            self.assertEqual(
+                [STAGE_MAPGEN, STAGE_PIX_DERIVE, STAGE_RINGS],
+                plan["resume_skip"],
+            )
+
+    def test_finland_spa_leftovers_do_not_complete_germany(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = os.path.join(tmp, "borders")
+            os.makedirs(borders)
+            _touch_poly(borders, "Germany_Berlin")
+            seeded = _seed_generate_artifacts(
+                tmp,
+                ["Germany_Berlin"],
+                extra_spa=["Finland_Southern Finland_Helsinki"],
+            )
+            plan = build_plan(
+                pbf="file://" + seeded["pbf"],
+                out=seeded["out"],
+                countries="World,Germany_*",
+                borders_dir=borders,
+                mwm_dir=seeded["mwm_dir"],
+                countries_txt=seeded["countries_txt"],
+                dry_run=True,
+            )
+            apply_resume(plan, resolve_runtime_paths(plan))
+            self.assertNotIn(STAGE_SPA_EMIT, plan["resume_skip"])
+            self.assertIn(STAGE_SPA_EMIT, plan["stages"])
+
+    def test_pbf_md5_mismatch_does_not_skip_mapgen(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            seeded = _seed_generate_artifacts(tmp, FINLAND_LEAVES)
+            plan = build_plan(
+                pbf="file://" + seeded["pbf"],
+                out=seeded["out"],
+                borders_dir=borders,
+                mwm_dir=seeded["mwm_dir"],
+                countries_txt=seeded["countries_txt"],
+                dry_run=True,
+            )
+            runtime = resolve_runtime_paths(plan)
+            fingerprint = dict(plan.get("fingerprint") or {})
+            fingerprint.update(
+                {
+                    "countries": list(plan["countries"]),
+                    "pbf_md5": "other",
+                    "iso": plan["iso"],
+                    "border_prefix": plan["border_prefix"],
+                    "policy_sha256": "x",
+                    "map_series": plan["map_series"],
+                    "include_mwm": True,
+                    "data_version": 260910,
+                    "mapgen_skip": list(plan["mapgen_skip"]),
+                    "mapgen_production": False,
+                }
+            )
+            save_state(
+                plan["state_path"],
+                {"fingerprint": fingerprint, "mwm_dir": seeded["mwm_dir"]},
+            )
+            apply_resume(plan, runtime)
+            self.assertNotIn(STAGE_MAPGEN, plan["resume_skip"])
+            self.assertIn(STAGE_MAPGEN, plan["stages"])
+
+    def test_countries_mismatch_does_not_skip_mapgen(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            seeded = _seed_generate_artifacts(tmp, FINLAND_LEAVES)
+            plan = build_plan(
+                pbf="file://" + seeded["pbf"],
+                out=seeded["out"],
+                borders_dir=borders,
+                mwm_dir=seeded["mwm_dir"],
+                countries_txt=seeded["countries_txt"],
+                dry_run=True,
+            )
+            runtime = resolve_runtime_paths(plan)
+            fingerprint = dict(plan.get("fingerprint") or {})
+            fingerprint.update(
+                {
+                    "countries": ["World", "Germany_Berlin"],
+                    "pbf_md5": "deadbeef  planet.osm.pbf",
+                    "iso": plan["iso"],
+                    "border_prefix": plan["border_prefix"],
+                    "policy_sha256": "x",
+                    "map_series": plan["map_series"],
+                    "include_mwm": True,
+                    "data_version": 260910,
+                    "mapgen_skip": list(plan["mapgen_skip"]),
+                    "mapgen_production": False,
+                }
+            )
+            save_state(
+                plan["state_path"],
+                {"fingerprint": fingerprint, "mwm_dir": seeded["mwm_dir"]},
+            )
+            apply_resume(plan, runtime)
+            self.assertNotIn(STAGE_MAPGEN, plan["resume_skip"])
+            self.assertIn(STAGE_MAPGEN, plan["stages"])
+
+    def test_force_runs_mapgen_when_artifacts_exist(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            seeded = _seed_generate_artifacts(tmp, FINLAND_LEAVES)
+            with mock.patch(
+                "street_pixels.map_pipeline.run_mapgen"
+            ) as mapgen, mock.patch(
+                "street_pixels.map_pipeline.run_pix_derive"
+            ), mock.patch(
+                "street_pixels.map_pipeline.run_rings"
+            ), mock.patch(
+                "street_pixels.map_pipeline.run_spa_emit"
+            ), mock.patch(
+                "street_pixels.map_pipeline.run_assemble"
+            ):
+                run_map_pipeline(
+                    pbf="file://" + seeded["pbf"],
+                    out=seeded["out"],
+                    borders_dir=borders,
+                    mwm_dir=seeded["mwm_dir"],
+                    countries_txt=seeded["countries_txt"],
+                    pix_derive_bin="/usr/bin/true",
+                    spa_emit_bin="/usr/bin/true",
+                    force=True,
+                )
+            mapgen.assert_called_once()
+
+    def test_mapgen_argv_continue_when_incomplete_sp100(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            out = os.path.join(tmp, "out")
+            work = out + ".work"
+            os.makedirs(os.path.join(work, "mapgen", "2026_01_01__00_00_00-sp100"))
+            pbf = _write_pbf(tmp)
+            plan = build_plan(
+                pbf="file://" + pbf,
+                out=out,
+                work_dir=work,
+                borders_dir=borders,
+                dry_run=True,
+            )
+            apply_resume(plan, resolve_runtime_paths(plan))
+            self.assertTrue(plan["mapgen_continue"])
+            self.assertIn("-c", build_mapgen_argv(plan))
+
+    def test_force_complete_mapgen_omits_continue(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            seeded = _seed_generate_artifacts(tmp, FINLAND_LEAVES)
+            plan = build_plan(
+                pbf="file://" + seeded["pbf"],
+                out=seeded["out"],
+                borders_dir=borders,
+                mwm_dir=seeded["mwm_dir"],
+                countries_txt=seeded["countries_txt"],
+                force=True,
+                dry_run=True,
+            )
+            apply_resume(plan, resolve_runtime_paths(plan))
+            self.assertFalse(plan["mapgen_continue"])
+            self.assertNotIn("-c", build_mapgen_argv(plan))
+            self.assertIn(STAGE_MAPGEN, plan["stages"])
+
+    def test_dry_run_lists_skipped_stages(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            seeded = _seed_generate_artifacts(tmp, FINLAND_LEAVES)
+            plan = run_map_pipeline(
+                pbf="file://" + seeded["pbf"],
+                out=seeded["out"],
+                borders_dir=borders,
+                mwm_dir=seeded["mwm_dir"],
+                countries_txt=seeded["countries_txt"],
+                dry_run=True,
+            )
+            self.assertEqual(
+                [STAGE_MAPGEN, STAGE_PIX_DERIVE, STAGE_RINGS],
+                plan["resume_skip"],
+            )
+            self.assertEqual([STAGE_SPA_EMIT, STAGE_ASSEMBLE], plan["stages"])
+
+
 class CommandConstructionTest(unittest.TestCase):
     def test_pix_derive_argv_uses_mwm_dir_not_world_leaf(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -616,6 +897,24 @@ class CommandConstructionTest(unittest.TestCase):
             self.assertIn("--borders_dir=", joined)
             self.assertIn("--iso=", joined)
             self.assertIn("--mode=production", joined)
+            self.assertIn("--border_prefix=Finland", argv)
+
+    def test_border_prefix_follows_germany_countries(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = os.path.join(tmp, "borders")
+            os.makedirs(borders)
+            _touch_poly(borders, "Germany_Berlin")
+            _touch_poly(borders, "Germany_Thuringia")
+            plan = build_plan(
+                pbf="file:///tmp/germany.osm.pbf",
+                out=os.path.join(tmp, "out"),
+                countries="World,Germany_*",
+                borders_dir=borders,
+                dry_run=True,
+            )
+            self.assertEqual("Germany", plan["border_prefix"])
+            argv = build_spa_emit_argv(plan, {"data_version": 260728})
+            self.assertIn("--border_prefix=Germany", argv)
 
     def test_rings_argv_uses_extract_script_and_script_exists(self):
         self.assertTrue(os.path.isfile(EXTRACT_RINGS_SCRIPT))

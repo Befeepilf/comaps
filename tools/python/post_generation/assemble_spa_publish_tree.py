@@ -171,6 +171,15 @@ def _filter_spa_allowlist(countries, allowlist):
             leaf.pop("spa_sha1_base64", None)
 
 
+def _downloadable_mwm_ids(countries):
+    ids = []
+    for leaf in _get_leaf_nodes(countries):
+        leaf_id = leaf.get("id")
+        if leaf_id and "s" in leaf:
+            ids.append(leaf_id)
+    return ids
+
+
 def _verify_spa_against_dir(countries, spa_dir, data_version):
     """Fail closed if injected spa size/hash disagree with on-disk files."""
     advertised = []
@@ -287,8 +296,11 @@ def build_inventory(
         leaf_id = leaf.get("id")
         if not leaf_id:
             continue
-        if leaf_id not in advertised_set and "spa" not in leaf:
-            # Skip unadvertised leaves unless they somehow have spa keys.
+        if (
+            leaf_id not in advertised_set
+            and "spa" not in leaf
+            and "s" not in leaf
+        ):
             continue
         entry = {
             "id": leaf_id,
@@ -397,7 +409,7 @@ def write_publish_tree(
         logger.info("Placed spa %s", dst)
 
     if include_mwm:
-        for leaf_id in advertised_ids:
+        for leaf_id in _downloadable_mwm_ids(countries):
             src = os.path.join(mwm_dir, "{}.mwm".format(leaf_id))
             dst = os.path.join(vdir, "{}.mwm".format(leaf_id))
             hardlink_or_copy(src, dst)
@@ -477,10 +489,16 @@ def verify_existing_tree(
         advertised.append(leaf_id)
         logger.info("verify-only: spa ok %s", leaf_id)
 
-        if include_mwm:
+    if include_mwm:
+        for leaf_id in _downloadable_mwm_ids(countries):
             mwm_path = os.path.join(vdir, "{}.mwm".format(leaf_id))
             if not os.path.isfile(mwm_path):
                 raise AssembleError("missing mwm in tree: {}".format(mwm_path))
+            leaf = None
+            for candidate in _get_leaf_nodes(countries):
+                if candidate.get("id") == leaf_id:
+                    leaf = candidate
+                    break
             msize = os.path.getsize(mwm_path)
             mdigest = file_sha1_base64(mwm_path)
             if msize != leaf.get("s") or mdigest != leaf.get("sha1_base64"):
@@ -567,7 +585,7 @@ def assemble_spa_publish_tree(
         )
 
     if include_mwm:
-        _verify_mwm_against_dir(countries, mwm_dir, advertised_ids)
+        _verify_mwm_against_dir(countries, mwm_dir, _downloadable_mwm_ids(countries))
 
     inventory = build_inventory(
         map_series=map_series,
@@ -593,7 +611,8 @@ def assemble_spa_publish_tree(
     ]
     for leaf_id in advertised_ids:
         plan_lines.append("  spa: {}.spa".format(leaf_id))
-        if include_mwm:
+    if include_mwm:
+        for leaf_id in _downloadable_mwm_ids(countries):
             plan_lines.append("  mwm: {}.mwm".format(leaf_id))
     if secret_key:
         plan_lines.append("  sign: countries.txt.sig with {}".format(secret_key))

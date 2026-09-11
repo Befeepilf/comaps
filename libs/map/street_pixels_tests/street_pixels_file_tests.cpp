@@ -443,6 +443,18 @@ UNIT_TEST(StreetPixelsFile_MayRecoverByDeriveOnlyCorrupt)
   TEST(street_pixels_file::MayRecoverByDerive(street_pixels_file::FileKind::Corrupt), ());
 }
 
+UNIT_TEST(StreetPixelsFile_ShouldSkipExistingPix)
+{
+  std::string const path = TestPixPath("sp_skip_existing.pix");
+  RemoveIfExists(path);
+  TEST(!street_pixels_file::ShouldSkipExistingPix(path, 260910), ());
+  WriteHeaderedRawWords(path, 260910, {1}, street_pixels_file::kFormatVersionV2);
+  TEST(street_pixels_file::ShouldSkipExistingPix(path, 260910), ());
+  TEST(!street_pixels_file::ShouldSkipExistingPix(path, 1), ());
+  TEST(!street_pixels_file::ShouldSkipExistingPix(path, 0), ());
+  RemoveIfExists(path);
+}
+
 UNIT_TEST(StreetPixelsFile_MigrateNonLegacyLeavesFileIntact)
 {
   std::string const path = TestPixPath("sp015_migrate_nonlegacy.pix");

@@ -6,7 +6,12 @@
 #include "coding/files_container.hpp"
 #include "coding/reader.hpp"
 
+#include "base/exception.hpp"
+
 #include "defines.hpp"
+
+#include <exception>
+#include <optional>
 
 namespace street_pixels
 {
@@ -47,5 +52,34 @@ SpaFile ReadExplorationSidecar(std::string const & path)
       MYTHROW(SpaFormatException, ("Assignment points at non-assignable area", value));
   }
   return file;
+}
+
+std::optional<SpaHeader> TryReadSpaHeader(std::string const & path)
+{
+  try
+  {
+    FilesContainerR container(path);
+    FilesContainerR::TReader reader = container.GetReader(SPA_HEADER_FILE_TAG);
+    ReaderSource src(reader);
+    return ReadSpaHeader(src);
+  }
+  catch (RootException const &)
+  {
+    return std::nullopt;
+  }
+  catch (std::exception const &)
+  {
+    return std::nullopt;
+  }
+}
+
+bool ShouldSkipExistingSpa(std::string const & path, int64_t mapDataVersion, uint32_t policyVersion,
+                           std::string const & iso, std::string const & mwmId)
+{
+  auto const header = TryReadSpaHeader(path);
+  if (!header)
+    return false;
+  return header->m_mapDataVersion == mapDataVersion && header->m_policyVersion == policyVersion &&
+         header->m_isoCode == iso && header->m_mwmId == mwmId;
 }
 }  // namespace street_pixels

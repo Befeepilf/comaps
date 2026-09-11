@@ -1,5 +1,7 @@
 #include "map/street_pixels_pix_derive.hpp"
 
+#include "map/street_pixels_file.hpp"
+
 #include "indexer/classificator_loader.hpp"
 
 #include "platform/platform.hpp"
@@ -101,6 +103,14 @@ int main(int argc, char ** argv)
   int exitCode = 0;
   for (auto const & mwmPath : mwmPaths)
   {
+    std::string const leafId = base::GetNameFromFullPathWithoutExt(mwmPath);
+    std::string const existingPix = base::JoinPath(FLAGS_out_dir, leafId + PIX_FILE_EXTENSION);
+    if (street_pixels_file::ShouldSkipExistingPix(existingPix, FLAGS_map_data_version))
+    {
+      std::cout << "leaf=" << leafId << " skip existing\n";
+      continue;
+    }
+
     auto const result =
         street_pixels::DeriveAndWritePixFile(mwmPath, FLAGS_out_dir, FLAGS_map_data_version);
     if (result.m_status == street_pixels::PixDeriveStatus::Ok)

@@ -282,10 +282,10 @@ on the builder.
 ## 9. Check the tree
 
 ```bash
-OUT=/var/sp-maps/publish
+OUT=/tmp/sp-out
 python3 - <<'PY'
 import json, os, sys
-out = os.environ.get("OUT", "/var/sp-maps/publish")
+out = os.environ.get("OUT", "/tmp/sp-out")
 maps = json.load(open(os.path.join(out, "meta", "maps.json")))
 series = maps["map-series"]["2026.06.28"]
 assert series["status"] == "active", maps
@@ -308,14 +308,20 @@ PY
 `countries.txt` for each Finland leaf must advertise `"spa"` and
 `spa_sha1_base64`. World is not a leaf for `.spa`.
 
-`--from-stage` skips earlier stages after a failure (for example spa emit
-must not rebuild MWMs). `--from-stage rsync` publishes an already-assembled
-`--out`.
+`--out` must be the same directory as the original generate. Work is `{out}.work`
+(so `/tmp/sp-out.work` here). A different `--out` creates an empty new work dir.
+
+Re-running the same `--out` **resumes**: completed stages are skipped when their
+outputs exist and the fingerprint still matches (countries, PBF `.md5`, iso,
+border prefix, policy). Dry-run prints `resume skip:`. `--from-stage spa_emit`
+rebuilds spa and later even if those files exist. `--force` ignores checkpoints
+and runs every stage in the graph. Delete `{out}.work/mapgen` for a clean
+mapgen; an incomplete mapgen under `*-sp100` is continued with `maps_generator -c`.
 
 ```bash
 PYTHONPATH=. python3 -m street_pixels map_pipeline \
   --pbf file:///var/sp-maps/finland-latest.osm.pbf \
-  --out /var/sp-maps/publish \
+  --out /tmp/sp-out \
   --from-stage spa_emit \
   --secret-key /path/to/countries_ed25519_secret.pem
 ```
@@ -358,7 +364,7 @@ Generate stays on the builder. Rsync the `--out` tree to the VPS document
 root (parent of `maps/` and `meta/`):
 
 ```bash
-rsync -a --delete-delay /var/sp-maps/publish/ user@vps:/var/www/street-pixels/
+rsync -a --delete-delay /tmp/sp-out/ user@vps:/var/www/street-pixels/
 ```
 
 `--delete-delay` makes dest match `--out`. If `--out` holds only the new
@@ -409,7 +415,7 @@ Rebuild the APK. The in-tree example stays `https://maps.example.invalid/`.
 | `--skip-coast` rejected | World is in the expanded country list. Leave `--skip-coast` off when generating World. |
 | CoMaps host refused | Expected. Drop `--cdn-base` / `--allow-comaps-origin`. Fix `--pbf`. |
 | Extra feed skipped with warning | Independent source missing. Supply `--hotels-url` (etc.) or accept the skip. Do not fetch CoMaps to fill it. |
-| spa emit failed after long mapgen | `--from-stage spa_emit` (or `pix_derive` / `rings`). |
+| spa emit failed after long mapgen | Re-run the same `--out` (resume skips mapgen/pix/rings). `--from-stage spa_emit` rebuilds spa. `--force` ignores checkpoints. |
 | Phone rejects `countries.txt` | Channel A: `COUNTRIES_TXT_SIGNATURE_HEX` must be the public key for `--secret-key`. Rebuild the APK after editing `private.h`. |
 | SHA mismatch on download | Origin must not gzip `.mwm` / `.spa` / `.sig` / `.txt`. |
 | Dest symlink replaced by rsync | Dest path must have a trailing slash (the CLI adds one if you omit it). |

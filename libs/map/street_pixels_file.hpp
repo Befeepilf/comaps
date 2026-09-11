@@ -70,6 +70,7 @@ Header ReadHeader(uint8_t const * data);
 ProbeResult Probe(uint8_t const * data, uint64_t size);
 ProbeResult ProbeFile(std::string const & path);
 bool MayRecoverByDerive(FileKind kind);
+bool ShouldSkipExistingPix(std::string const & path, int64_t expectedMapDataVersion);
 
 void WriteHeader(Writer & writer, int64_t mapDataVersion, uint16_t formatVersion = kFormatVersionV2,
                  uint16_t flags = kFlagsHasHeaderBit, uint32_t magic = kMagic);

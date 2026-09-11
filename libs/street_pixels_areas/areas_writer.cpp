@@ -64,7 +64,11 @@ void WriteExplorationSidecar(std::string const & path, std::vector<ExplorationAr
     auto w = container.GetWriter(SPA_HEADER_FILE_TAG);
     WriteSpaHeader(*w, header);
   }
-  container.Write(areasBytes, SPA_AREAS_FILE_TAG);
+  {
+    auto w = container.GetWriter(SPA_AREAS_FILE_TAG);
+    if (!areasBytes.empty())
+      w->Write(areasBytes.data(), areasBytes.size());
+  }
   {
     auto w = container.GetWriter(SPA_ASSIGN_FILE_TAG);
     WriteAssignSection(*w, assignments, header.m_indexWidth);

@@ -281,6 +281,13 @@ int RunProduction(CountryConfig const & config, CountryPolicy const & policy)
 
   for (auto const & leaf : leaves)
   {
+    std::string const outPath = base::JoinPath(FLAGS_out_dir, leaf.m_leafId + SPA_FILE_EXTENSION);
+    if (ShouldSkipExistingSpa(outPath, FLAGS_map_data_version, config.GetPolicyVersion(), FLAGS_iso, leaf.m_leafId))
+    {
+      std::cout << "leaf=" << leaf.m_leafId << " skip existing\n";
+      continue;
+    }
+
     std::vector<m2::RegionD> regions;
     if (!LoadPolyFileAsMercatorRegions(leaf.m_polyPath, regions))
     {
@@ -319,7 +326,6 @@ int RunProduction(CountryConfig const & config, CountryPolicy const & policy)
     params.m_policyVersion = config.GetPolicyVersion();
     params.m_isoCode = FLAGS_iso;
     params.m_mwmId = leaf.m_leafId;
-    std::string const outPath = base::JoinPath(FLAGS_out_dir, leaf.m_leafId + SPA_FILE_EXTENSION);
 
     bool const isHelsinki = (leaf.m_leafId == FLAGS_helsinki_leaf);
     std::cout << "leaf=" << leaf.m_leafId << " |U|=" << universe->size() << " areas_admitted=" << stats.m_admitted

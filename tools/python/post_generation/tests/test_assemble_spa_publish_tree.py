@@ -89,6 +89,36 @@ class AssembleSpaPublishTreeTest(unittest.TestCase):
             self.assertTrue(os.path.isfile(sig))
             self.assertGreater(os.path.getsize(sig), 0)
 
+    def test_world_mwm_copied_without_spa(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            leaf, spa_dir, mwm_dir, out, countries_path = self._fixture(tmp)
+            world_bytes = b"world-mwm-bytes"
+            _write(os.path.join(mwm_dir, "World.mwm"), world_bytes)
+            with open(countries_path) as f:
+                countries = json.load(f)
+            countries["g"].insert(
+                0,
+                {
+                    "id": "World",
+                    "s": len(world_bytes),
+                    "sha1_base64": _sha1_b64(world_bytes),
+                },
+            )
+            _write(countries_path, json.dumps(countries, indent=1) + "\n")
+            rc = assemble_spa_publish_tree(
+                countries_path=countries_path,
+                spa_dir=spa_dir,
+                mwm_dir=mwm_dir,
+                out=out,
+                map_series=self.SERIES,
+                data_version=self.DATA_V,
+            )
+            self.assertEqual(0, rc)
+            vdir = os.path.join(out, "maps", self.SERIES, str(self.DATA_V))
+            self.assertTrue(os.path.isfile(os.path.join(vdir, "World.mwm")))
+            self.assertFalse(os.path.isfile(os.path.join(vdir, "World.spa")))
+            self.assertTrue(os.path.isfile(os.path.join(vdir, "{}.spa".format(leaf))))
+
     def test_happy_path_layout_and_hashes(self):
         with tempfile.TemporaryDirectory() as tmp:
             leaf, spa_dir, mwm_dir, out, countries_path = self._fixture(tmp)

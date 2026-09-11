@@ -255,6 +255,18 @@ def expand_countries(selector, borders_dir):
     return matched
 
 
+def resolve_border_prefix(expanded, requested):
+    if requested == "":
+        return ""
+    leaves = [c for c in expanded if c not in (WORLD_NAME, WORLD_COASTS_NAME)]
+    if requested and any(c == requested or c.startswith(requested + "_") for c in leaves):
+        return requested
+    roots = sorted({c.split("_", 1)[0] for c in leaves})
+    if len(roots) == 1:
+        return roots[0]
+    return requested
+
+
 def preflight_skip_coast(skip_coast, expanded_countries):
     expanded = list(expanded_countries)
     if skip_coast and WORLD_NAME in expanded:
@@ -657,6 +669,7 @@ def build_plan(
     border_prefix="Finland",
     include_mwm=True,
     dry_run=False,
+    force=False,
 ):
     pbf_url = normalize_pbf_url(pbf)
     out_abs = os.path.abspath(out)
@@ -705,6 +718,7 @@ def build_plan(
     expanded = preflight_skip_coast(skip_coast, expanded)
     if not expanded:
         raise MapPipelineError("expanded country set is empty")
+    border_prefix = resolve_border_prefix(expanded, border_prefix)
 
     skip_stages, extra_warnings, production = plan_extra_skips(
         hotels_url=hotels_url,
@@ -817,6 +831,10 @@ def build_plan(
         "planet_md5_explicit": operator_md5_url,
         "mapgen_config": mapgen_config,
         "dry_run": bool(dry_run),
+        "from_stage": from_stage,
+        "force": bool(force),
+        "resume_skip": [],
+        "mapgen_continue": False,
         "node_storage": "map",
         "vps_generate_unsupported": True,
     }
@@ -824,7 +842,10 @@ def build_plan(
 
 def print_plan(plan):
     print("Street Pixels map_pipeline (SP-100)")
-    print("  stages: {}".format(" → ".join(plan["stages"])))
+    print("  stages: {}".format(" → ".join(plan["stages"]) or "(none)"))
+    print("  resume skip: {}".format(",".join(plan.get("resume_skip") or []) or "(none)"))
+    print("  force: {}".format(bool(plan.get("force"))))
+    print("  mapgen continue: {}".format(bool(plan.get("mapgen_continue"))))
     print("  pbf: {}".format(plan["pbf_url"]))
     print("  countries selector: {}".format(plan["countries_selector"]))
     print("  expanded countries: {}".format(",".join(plan["countries"])))
@@ -843,6 +864,8 @@ def print_plan(plan):
     print("  rings: {}".format(plan["rings"]))
     print("  spa_dir: {}".format(plan["spa_dir"]))
     print("  policy: {}".format(plan["policy"]))
+    print("  iso: {}".format(plan["iso"]))
+    print("  border_prefix: {}".format(plan["border_prefix"]))
     print("  borders: {}".format(plan["borders_dir"]))
     print("  map_series: {}".format(plan["map_series"]))
     print("  data_version: {}".format(plan["data_version"] or "(from countries.txt)"))
@@ -944,6 +967,215 @@ def resolve_runtime_paths(plan):
     }
 
 
+STAGE_FINGERPRINT_KEYS = {
+    STAGE_MAPGEN: ("countries", "pbf_md5", "mapgen_skip", "mapgen_production"),
+    STAGE_PIX_DERIVE: (
+        "countries",
+        "pbf_md5",
+        "mapgen_skip",
+        "mapgen_production",
+        "data_version",
+    ),
+    STAGE_RINGS: ("pbf_md5",),
+    STAGE_SPA_EMIT: (
+        "iso",
+        "border_prefix",
+        "policy_sha256",
+        "data_version",
+        "countries",
+    ),
+}
+
+MWM_EXTENSION = ".mwm"
+PIX_EXTENSION = ".pix"
+SPA_EXTENSION = ".spa"
+
+
+def exploration_leaves(plan):
+    return [c for c in plan["countries"] if c not in (WORLD_NAME, WORLD_COASTS_NAME)]
+
+
+def _file_sha256(path):
+    if not path or not os.path.isfile(path):
+        return ""
+    digest = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def read_pbf_md5_text(plan):
+    path = file_url_to_path(plan.get("planet_md5_url") or "")
+    if not path:
+        pbf = plan.get("pbf_path")
+        if pbf:
+            path = pbf + ".md5"
+    if path and os.path.isfile(path):
+        with open(path, "r", encoding="utf-8") as f:
+            return f.read().strip()
+    return None
+
+
+def input_fingerprint(plan, runtime=None):
+    runtime = runtime or {}
+    data_version = runtime.get("data_version")
+    if data_version is None:
+        data_version = plan.get("data_version")
+    if data_version is not None:
+        data_version = int(data_version)
+    return {
+        "countries": list(plan["countries"]),
+        "pbf_md5": read_pbf_md5_text(plan),
+        "iso": plan["iso"],
+        "border_prefix": plan["border_prefix"],
+        "policy_sha256": _file_sha256(plan["policy"]),
+        "map_series": plan["map_series"],
+        "include_mwm": bool(plan["include_mwm"]),
+        "data_version": data_version,
+        "mapgen_skip": list(plan["mapgen_skip"]),
+        "mapgen_production": bool(plan["mapgen_production"]),
+    }
+
+
+def fingerprint_matches(stage, current, stored):
+    keys = STAGE_FINGERPRINT_KEYS.get(stage)
+    if not keys:
+        return False
+    if not stored:
+        if "pbf_md5" in keys and not current.get("pbf_md5"):
+            return False
+        if "data_version" in keys and current.get("data_version") is None:
+            return False
+        return True
+    for key in keys:
+        if current.get(key) != stored.get(key):
+            return False
+    return True
+
+
+def _leaf_exists(directory, leaf, ext):
+    return bool(directory) and os.path.isfile(os.path.join(directory, leaf + ext))
+
+
+def stage_artifacts_ready(stage, plan, runtime):
+    leaves = exploration_leaves(plan)
+    mwm_dir = runtime.get("mwm_dir")
+    pix_dir = runtime.get("pix_dir") or plan["pix_dir"]
+    spa_dir = runtime.get("spa_dir") or plan["spa_dir"]
+    rings = runtime.get("rings") or plan["rings"]
+    countries_txt = runtime.get("countries_txt")
+    if stage == STAGE_MAPGEN:
+        if not countries_txt or not os.path.isfile(countries_txt):
+            return False
+        if not mwm_dir or not os.path.isdir(mwm_dir):
+            return False
+        if WORLD_NAME in plan["countries"] and not _leaf_exists(
+            mwm_dir, WORLD_NAME, MWM_EXTENSION
+        ):
+            return False
+        return all(_leaf_exists(mwm_dir, leaf, MWM_EXTENSION) for leaf in leaves)
+    if stage == STAGE_PIX_DERIVE:
+        return all(_leaf_exists(pix_dir, leaf, PIX_EXTENSION) for leaf in leaves)
+    if stage == STAGE_RINGS:
+        return bool(rings) and os.path.isfile(rings) and os.path.getsize(rings) > 0
+    if stage == STAGE_SPA_EMIT:
+        return all(_leaf_exists(spa_dir, leaf, SPA_EXTENSION) for leaf in leaves)
+    return False
+
+
+def stage_complete(stage, plan, runtime, fingerprint=None):
+    if stage in (STAGE_ASSEMBLE, STAGE_RSYNC):
+        return False
+    current = fingerprint if fingerprint is not None else input_fingerprint(plan, runtime)
+    stored = load_state(plan["state_path"]).get("fingerprint")
+    if not fingerprint_matches(stage, current, stored):
+        return False
+    return stage_artifacts_ready(stage, plan, runtime)
+
+
+def has_sp100_build(mapgen_out):
+    if not mapgen_out or not os.path.isdir(mapgen_out):
+        return False
+    for name in os.listdir(mapgen_out):
+        path = os.path.join(mapgen_out, name)
+        if os.path.isdir(path) and name.endswith("-sp100"):
+            return True
+    return False
+
+
+def apply_resume(plan, runtime):
+    fingerprint = input_fingerprint(plan, runtime)
+    plan["fingerprint"] = fingerprint
+    force = bool(plan.get("force"))
+    from_stage = plan.get("from_stage")
+    if force or from_stage:
+        plan["resume_skip"] = []
+        plan["mapgen_continue"] = (
+            STAGE_MAPGEN in plan["stages"]
+            and not stage_complete(STAGE_MAPGEN, plan, runtime, fingerprint)
+            and has_sp100_build(plan["mapgen_out"])
+        )
+        return plan
+    skipped = []
+    remaining = []
+    skipping = True
+    for stage in plan["stages"]:
+        if skipping and stage_complete(stage, plan, runtime, fingerprint):
+            skipped.append(stage)
+            continue
+        skipping = False
+        remaining.append(stage)
+    plan["stages"] = remaining
+    plan["resume_skip"] = skipped
+    plan["mapgen_continue"] = STAGE_MAPGEN in remaining and has_sp100_build(
+        plan["mapgen_out"]
+    )
+    return plan
+
+
+def _merge_runtime_into_state(state, plan, runtime):
+    runtime = runtime or {}
+    for key in (
+        "mwm_dir",
+        "countries_txt",
+        "data_version",
+        "pbf_path",
+        "pix_dir",
+        "spa_dir",
+        "rings",
+    ):
+        value = runtime.get(key)
+        if value is None:
+            value = plan.get(key)
+        if value is not None:
+            state[key] = value
+    return state
+
+
+def persist_fingerprint(plan, runtime):
+    state = load_state(plan["state_path"])
+    completed = list(state.get("completed_stages") or [])
+    for stage in plan.get("resume_skip") or []:
+        if stage not in completed:
+            completed.append(stage)
+    state["completed_stages"] = completed
+    state["fingerprint"] = plan.get("fingerprint") or input_fingerprint(plan, runtime)
+    save_state(plan["state_path"], _merge_runtime_into_state(state, plan, runtime))
+
+
+def mark_stage_complete(plan, runtime, stage):
+    state = load_state(plan["state_path"])
+    completed = list(state.get("completed_stages") or [])
+    if stage not in completed:
+        completed.append(stage)
+    state["completed_stages"] = completed
+    fingerprint = input_fingerprint(plan, runtime)
+    plan["fingerprint"] = fingerprint
+    state["fingerprint"] = fingerprint
+    save_state(plan["state_path"], _merge_runtime_into_state(state, plan, runtime))
+
+
 def build_mapgen_argv(plan):
     argv = [
         sys.executable,
@@ -960,6 +1192,8 @@ def build_mapgen_argv(plan):
         argv.append("--production")
     if plan["mapgen_skip"]:
         argv.extend(["--skip", ",".join(plan["mapgen_skip"])])
+    if plan.get("mapgen_continue"):
+        argv.append("-c")
     return argv
 
 
@@ -1026,15 +1260,18 @@ def run_mapgen(plan):
     if os.path.isfile(countries_txt):
         data_version = read_data_version_from_countries(countries_txt)
     pbf_path = discover_planet_pbf(plan["mapgen_out"]) or plan["pbf_path"]
-    state = {
-        "mwm_dir": mwm_dir,
-        "countries_txt": countries_txt,
-        "data_version": data_version,
-        "pbf_path": pbf_path,
-        "pix_dir": plan["pix_dir"],
-        "spa_dir": plan["spa_dir"],
-        "rings": plan["rings"],
-    }
+    state = load_state(plan["state_path"])
+    state.update(
+        {
+            "mwm_dir": mwm_dir,
+            "countries_txt": countries_txt,
+            "data_version": data_version,
+            "pbf_path": pbf_path,
+            "pix_dir": plan["pix_dir"],
+            "spa_dir": plan["spa_dir"],
+            "rings": plan["rings"],
+        }
+    )
     save_state(plan["state_path"], state)
     return state
 
@@ -1133,16 +1370,20 @@ def run_stage(stage, plan, runtime):
 def run_map_pipeline(**kwargs):
     dry_run = bool(kwargs.pop("dry_run", False))
     plan = build_plan(dry_run=dry_run, **kwargs)
+    runtime = resolve_runtime_paths(plan)
+    apply_resume(plan, runtime)
     print_plan(plan)
     if dry_run:
         return plan
     os.makedirs(plan["work_dir"], exist_ok=True)
+    persist_fingerprint(plan, runtime)
     write_text(plan["ini_path"], plan["ini_text"])
     runtime = resolve_runtime_paths(plan)
     for stage in plan["stages"]:
         logger.info("stage %s: start", stage)
         run_stage(stage, plan, runtime)
         runtime = resolve_runtime_paths(plan)
+        mark_stage_complete(plan, runtime, stage)
         logger.info("stage %s: done", stage)
     print("OK: {}".format(plan["out"]))
     return plan
@@ -1188,7 +1429,12 @@ def build_arg_parser():
         "--from-stage",
         choices=list(ALL_STAGES),
         default=None,
-        help="Skip earlier pipeline stages (mapgen, pix_derive, rings, spa_emit, assemble, rsync)",
+        help="Rebuild from this stage onward (mapgen, pix_derive, rings, spa_emit, assemble, rsync)",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Ignore resume checkpoints and run every stage in the graph",
     )
     parser.add_argument(
         "--skip-coast",
@@ -1242,7 +1488,11 @@ def build_arg_parser():
     parser.add_argument("--rings", default=None, help="Override rings JSONL path")
     parser.add_argument("--countries-txt", default=None, help="Existing countries.txt when skipping mapgen")
     parser.add_argument("--mapgen-config", default=None, help="Existing maps_generator ini (still origin-checked)")
-    parser.add_argument("--border-prefix", default="Finland", help="spa_emit_tool --border_prefix (default Finland)")
+    parser.add_argument(
+        "--border-prefix",
+        default="Finland",
+        help="spa_emit_tool --border_prefix (default: unique root of --countries, else Finland)",
+    )
     parser.add_argument(
         "--include-mwm",
         action=argparse.BooleanOptionalAction,
@@ -1300,6 +1550,7 @@ def main(argv=None):
             border_prefix=args.border_prefix,
             include_mwm=args.include_mwm,
             dry_run=args.dry_run,
+            force=args.force,
         )
     except (MapPipelineError, AssembleError) as exc:
         logger.error("%s", exc)

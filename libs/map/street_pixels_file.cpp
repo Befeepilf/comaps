@@ -119,6 +119,14 @@ bool MayRecoverByDerive(FileKind kind)
   return kind == FileKind::Corrupt;
 }
 
+bool ShouldSkipExistingPix(std::string const & path, int64_t expectedMapDataVersion)
+{
+  if (expectedMapDataVersion == 0)
+    return false;
+  auto const probe = ProbeFile(path);
+  return probe.kind == FileKind::HeaderedV2 && probe.header.mapDataVersion == expectedMapDataVersion;
+}
+
 void WriteHeader(Writer & writer, int64_t mapDataVersion, uint16_t formatVersion, uint16_t flags, uint32_t magic)
 {
   WriteToSink(writer, magic);
