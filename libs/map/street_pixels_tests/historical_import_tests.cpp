@@ -1,9 +1,12 @@
 #include "testing/testing.hpp"
 
+#include "map/bookmark_helpers.hpp"
 #include "map/recording_session.hpp"
 #include "map/street_pixels_manager.hpp"
 #include "map/street_pixels_tests/street_pixels_test_helpers.hpp"
 #include "map/street_stats_db.hpp"
+
+#include "coding/reader.hpp"
 
 #include "geometry/mercator.hpp"
 #include "geometry/point_with_altitude.hpp"
@@ -22,6 +25,7 @@
 #include <fstream>
 #include <initializer_list>
 #include <limits>
+#include <sstream>
 #include <string>
 #include <sys/resource.h>
 #include <vector>
@@ -70,6 +74,18 @@ kml::MultiGeometry::LineT ShortLineAt(double lat, double lon)
   auto const [lat2, lon2] = street_pixels_tests::OffsetLatLonByMeters(lat, lon, 0.0, 10.0);
   return {geometry::PointWithAltitude(mercator::FromLatLon(lat, lon)),
           geometry::PointWithAltitude(mercator::FromLatLon(lat2, lon2))};
+}
+
+std::string KmlLineStringAt(double lat, double lon)
+{
+  auto const [lat2, lon2] = street_pixels_tests::OffsetLatLonByMeters(lat, lon, 0.0, 10.0);
+  std::ostringstream oss;
+  oss.precision(12);
+  oss << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+      << "<kml xmlns=\"http://earth.google.com/kml/2.2\"><Document>"
+      << "<Placemark><LineString><coordinates>" << lon << "," << lat << ",0 " << lon2 << "," << lat2
+      << ",0</coordinates></LineString></Placemark></Document></kml>";
+  return oss.str();
 }
 
 geometry::PointWithAltitude PointAt(double lat, double lon)
@@ -149,6 +165,28 @@ UNIT_TEST(HistoricalImport_FirstImportEverLiveClear)
   fixture.SetupPixels({{pixelA, false}});
 
   size_t const marked = fixture.Manager().ImportHistoricalTrack({ShortLineAt(lat, lon)});
+
+  TEST_GREATER(marked, 0, ());
+  TEST(fixture.Manager().IsPixelExploredForTesting(pixelA), ());
+  TEST(!fixture.Manager().IsPixelEverLiveForTesting(pixelA), ());
+}
+
+UNIT_TEST(HistoricalImport_KmlLineStringPaintsImported)
+{
+  HistoricalImportBreadcrumbCleanup cleanup;
+  HistoricalImportFixture fixture;
+  auto const [lat, lon] = street_pixels_tests::LatLonForPixelId(street_pixels_tests::PixelIdForLatLon(48.2, 16.37));
+  auto const pixelA = street_pixels_tests::PixelIdForLatLon(lat, lon);
+  fixture.SetupPixels({{pixelA, false}});
+
+  auto const body = KmlLineStringAt(lat, lon);
+  auto data = LoadKmlData(MemReader(body.data(), body.size()), KmlFileType::Text);
+  TEST(data, ());
+  TEST(!data->m_tracksData.empty(), ());
+
+  size_t marked = 0;
+  for (auto const & track : data->m_tracksData)
+    marked += fixture.Manager().ImportHistoricalTrack(track.m_geometry.m_lines);
 
   TEST_GREATER(marked, 0, ());
   TEST(fixture.Manager().IsPixelExploredForTesting(pixelA), ());

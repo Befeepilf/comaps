@@ -68,13 +68,19 @@ void ExplorerProAnalytics::ResetForTesting()
   settings::Delete(kGpxExportUsageKey);
 }
 
+void RunHistoricalImport(StreetPixelsManager & manager,
+                         std::vector<kml::MultiGeometry::LineT> const & segments)
+{
+  manager.ImportHistoricalTrack(segments);
+  ExplorerProAnalytics::RecordGpxImportUsage();
+}
+
 void RunHistoricalImportIfEnabled(StreetPixelsManager & manager,
                                   std::vector<kml::MultiGeometry::LineT> const & segments)
 {
   if (!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport))
     return;
-  manager.ImportHistoricalTrack(segments);
-  ExplorerProAnalytics::RecordGpxImportUsage();
+  RunHistoricalImport(manager, segments);
 }
 
 std::string DebugPrint(ExplorerProAnalyticsSnapshot const & snapshot)

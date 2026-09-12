@@ -38,6 +38,8 @@ public:
   static void ResetForTesting();
 };
 
+void RunHistoricalImport(StreetPixelsManager & manager,
+                         std::vector<kml::MultiGeometry::LineT> const & segments);
 void RunHistoricalImportIfEnabled(StreetPixelsManager & manager,
                                   std::vector<kml::MultiGeometry::LineT> const & segments);
 

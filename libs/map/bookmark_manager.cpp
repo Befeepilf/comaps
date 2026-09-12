@@ -2190,11 +2190,8 @@ void BookmarkManager::LoadBookmarkRoutine(std::string const & filePath, bool isT
           base::DeleteFileX(kmlFileToLoad);
         else
         {
-          if (ext == kGpxExtension)
-          {
-            for (auto const & track : kmlData->m_tracksData)
-              historicalTracks.push_back(track.m_geometry.m_lines);
-          }
+          for (auto const & track : kmlData->m_tracksData)
+            historicalTracks.push_back(track.m_geometry.m_lines);
           collection->emplace_back(std::move(kmlFileToLoad), std::move(kmlData));
         }
       }

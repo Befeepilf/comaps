@@ -184,6 +184,23 @@ UNIT_TEST(GpxGate_HandlerOpenPaints)
   TEST(fixture.Manager().IsPixelExploredForTesting(pixelA), ());
 }
 
+UNIT_TEST(GpxGate_UngatedImportPaintsWhenClosed)
+{
+  GpxGateBreadcrumbCleanup cleanup;
+  GpxGateResetCapabilities();
+  GpxGateEntitlementSourceScope scope(nullptr);
+  TEST(!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport), ());
+
+  GpxGateFixture fixture;
+  auto const [lat, lon] = street_pixels_tests::LatLonForPixelId(street_pixels_tests::PixelIdForLatLon(48.2, 16.37));
+  auto const pixelA = street_pixels_tests::PixelIdForLatLon(lat, lon);
+  fixture.Manager().SetStreetPixelsForTesting(street_pixels_tests::MakePixelSet({{pixelA, false}}));
+
+  street_pixels::RunHistoricalImport(fixture.Manager(), {ShortLineAt(lat, lon)});
+
+  TEST(fixture.Manager().IsPixelExploredForTesting(pixelA), ());
+}
+
 UNIT_TEST(GpxGate_ExportAlwaysAllowed)
 {
   GpxGateResetCapabilities();

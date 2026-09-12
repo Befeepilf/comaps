@@ -538,11 +538,9 @@ Framework::Framework(FrameworkParams const & params, bool loadMaps)
   m_bmManager->SetHistoricalTrackImportHandler(
       [this](std::vector<kml::MultiGeometry::LineT> const & segments)
       {
-        if (!explorer_pro::IsCapabilityEnabled(explorer_pro::Capability::GpxImport))
-          return;
         auto * manager = &GetStreetPixelsManager();
         GetPlatform().RunTask(Platform::Thread::File, [manager, segments]()
-        { street_pixels::RunHistoricalImportIfEnabled(*manager, segments); });
+        { street_pixels::RunHistoricalImport(*manager, segments); });
       });
   m_streetPixelsManager->SetCompletionCardGeneratedHandler(
       [] { street_pixels::CompletionCardAnalytics::RecordGenerated(); });
