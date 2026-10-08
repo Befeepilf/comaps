@@ -10,11 +10,19 @@ NS_SWIFT_NAME(SettingsBridge)
 + (BOOL)autoDownloadEnabled;
 + (void)setAutoDownloadEnabled:(BOOL)autoDownloadEnabled;
 
++ (NSString *)customMapDownloadUrl;
++ (void)setCustomMapDownloadUrl:(NSString *)customMapDownloadUrl;
++ (void)applyCustomMapDownloadUrl;
++ (NSString *)mapSeries;
+
 + (MWMUnits)measurementUnits;
 + (void)setMeasurementUnits:(MWMUnits)measurementUnits;
 
 + (BOOL)zoomButtonsEnabled;
 + (void)setZoomButtonsEnabled:(BOOL)zoomButtonsEnabled;
+
++ (BOOL)showBookmarkLabels;
++ (void)setShowBookmarkLabels:(BOOL)show;
 
 + (MWMTheme)theme;
 + (void)setTheme:(MWMTheme)theme;
@@ -29,8 +37,8 @@ NS_SWIFT_NAME(SettingsBridge)
 + (NSString *)spotlightLocaleLanguageId;
 + (void)setSpotlightLocaleLanguageId:(NSString *)spotlightLocaleLanguageId;
 
-+ (BOOL)largeFontSize;
-+ (void)setLargeFontSize:(BOOL)largeFontSize;
++ (double)fontScaleFactor;
++ (void)setFontScaleFactor:(double)fontScaleFactor;
 
 + (NSDictionary<NSString *, NSString *> *)availableMapLanguages;
 + (NSString *)mapLanguageCode;

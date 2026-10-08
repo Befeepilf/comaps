@@ -79,6 +79,23 @@ import Combine
             SettingsBridge.setAutoDownloadEnabled(newValue)
         }
     }
+
+
+    /// The custom server used for map downloads
+    static var customMapDownloadUrl: String {
+        get {
+            return SettingsBridge.customMapDownloadUrl()
+        }
+        set {
+            SettingsBridge.setCustomMapDownloadUrl(newValue)
+        }
+    }
+
+
+    /// The map series used by this app version
+    static var mapSeries: String {
+        return SettingsBridge.mapSeries()
+    }
     
     
     /// The current mobile data policy
@@ -124,13 +141,13 @@ import Combine
     }
     
     
-    /// If an increased font size should be used for map labels
-    @objc static var hasIncreasedFontsize: Bool {
+    /// Font scale factor for map labels
+    @objc static var fontScaleFactor: Double {
         get {
-            return SettingsBridge.largeFontSize()
+            return SettingsBridge.fontScaleFactor()
         }
         set {
-            SettingsBridge.setLargeFontSize(newValue)
+            SettingsBridge.setFontScaleFactor(newValue)
         }
     }
     
@@ -216,6 +233,16 @@ import Combine
             } else {
                 SettingsBridge.setTheme(MWMTheme.auto)
             }
+        }
+    }
+    
+    /// If bookmark labels are shown
+    static var showBookmarkLabels: Bool {
+        get {
+            return SettingsBridge.showBookmarkLabels()
+        }
+        set {
+            SettingsBridge.setShowBookmarkLabels(newValue)
         }
     }
     

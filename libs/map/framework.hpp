@@ -403,6 +403,8 @@ public:
   m2::PointD GetMinDistanceBetweenResults() const override;
 
 private:
+  void UpdateBookmarkLabels();
+
   void ActivateMapSelection();
   void InvalidateUserMarks();
 
@@ -544,7 +546,7 @@ public:
   /// Returns the elevation profile data of the currently recorded track.
   /// To get the data on the every track recording state update, this function should be called after receiving the
   /// callback from the `SetTrackRecordingUpdateHandler`.
-  static ElevationInfo const & GetTrackRecordingElevationInfo();
+  static ElevationInfo GetTrackRecordingElevationInfo();
 
   void SetupMeasurementSystem();
 
@@ -801,12 +803,15 @@ public:
   localisation::AlternativeMapLanguageHandling GetAlternativeMapLanguageHandling();
   void SetAlternativeMapLanguageHandling(localisation::AlternativeMapLanguageHandling const alternativeMapLanguageHandling = localisation::AlternativeMapLanguageHandling::LocalOnly);
 
-  void SetLargeFontsSize(bool isLargeSize);
-  bool LoadLargeFontsSize();
+  void SetFontScaleFactor(double scaleFactor);
+  double LoadFontScaleFactor();
 
   bool LoadAutoZoom();
   void AllowAutoZoom(bool allowAutoZoom);
   void SaveAutoZoom(bool allowAutoZoom);
+
+  static bool GetShowBookmarkLabels();
+  void SetShowBookmarkLabels(bool show);
 
   // Direct access to managers only for legacy Android listener support. So please dont use directly anymore!
   TrafficManager & GetTrafficManager();

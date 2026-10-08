@@ -66,7 +66,7 @@
     <string name="navigation_stop_button">Deter</string>
     <string name="mobile_data_option_ask">Preguntar sempre</string>
     <string name="traffic_update_maps_text">Para mostrar os datos de tráfico, deben actualizarse os mapas</string>
-    <string name="big_font">Aumentar tamaño do texto no mapa</string>
+    <string name="increase_font_size">Aumentar tamaño do texto no mapa</string>
     <string name="traffic_update_app">Por favor, actualice CoMaps</string>
     <string name="prefs_languages_information_off_link">Para obter máis información, consulte esta guía</string>
     <string name="prefs_group_privacy">Privacidade</string>
@@ -586,7 +586,7 @@
     <string name="ruler">Regra</string>
     <string name="bookmark_color">Cor do Favorito</string>
     <string name="dialog_report_error_missing_folder">A localización seleccionada non é accesible ou non se pode escribir nela. Elixe outra por favor.</string>
-    <string name="dialog_report_error_with_logs">Envíanos un informe co fallo:\n - \"Activa o rexistro\" nos axustes\n - reproduce o problema\n - na pantalla \"Sobre e Axuda\" preme en \"Informar dun problema\" e envía un correo ou á mensaxería\n - desactiva o rexistro</string>
+    <string name="dialog_report_error_with_logs">Envíanos un informe co fallo:\n - \"Activa o rexistro\" nos axustes\n - reproduce o problema\n - na pantalla \"Sobre e Axuda\" preme en \"Informar dun problema\" e envía un correo ou á mensaxaría\n - desactiva o rexistro</string>
     <string name="pref_backup_now_summary">Crear unha copia agora mesmo</string>
     <string name="pref_backup_location_summary_initial">Primeiro elixe un cartafol e concede permiso de acceso</string>
     <string name="pref_backup_title">Copia de seguridade de Favoritos</string>

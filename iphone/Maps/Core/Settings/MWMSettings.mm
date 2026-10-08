@@ -6,6 +6,9 @@
 #include <CoreApi/Framework.h>
 #include <CoreApi/Logger.h>
 
+#include "platform/platform.hpp"
+#include "private.h"
+
 using namespace power_management;
 
 namespace
@@ -20,6 +23,7 @@ NSString * const kThemeMode = @"ThemeMode";
 NSString * const kSpotlightLocaleLanguageId = @"SpotlightLocaleLanguageId";
 NSString * const kUDTrackWarningAlertWasShown = @"TrackWarningAlertWasShown";
 NSString * const kiCLoudSynchronizationEnabledKey = @"iCLoudSynchronizationEnabled";
+NSString * const kCustomMapDownloadUrlKey = @"CustomMapDownloadUrl";
 NSString * const kUDFileLoggingEnabledKey = @"FileLoggingEnabledKey";
 }  // namespace
 
@@ -67,6 +71,37 @@ NSString * const kUDFileLoggingEnabledKey = @"FileLoggingEnabledKey";
   settings::Set(kAutoDownloadEnabledKey, static_cast<bool>(autoDownloadEnabled));
 }
 
++ (NSString *)customMapDownloadUrl
+{
+  NSString * url = [NSUserDefaults.standardUserDefaults stringForKey:kCustomMapDownloadUrlKey] ?: @"";
+  url = [url stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+  if (url.length > 0 && ![url hasSuffix:@"/"])
+    url = [url stringByAppendingString:@"/"];
+  return url;
+}
+
++ (void)setCustomMapDownloadUrl:(NSString *)customMapDownloadUrl
+{
+  NSString * url = [customMapDownloadUrl stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+  if (url.length > 0 && ![url hasSuffix:@"/"])
+    url = [url stringByAppendingString:@"/"];
+
+  [NSUserDefaults.standardUserDefaults setObject:url forKey:kCustomMapDownloadUrlKey];
+  [self applyCustomMapDownloadUrl];
+}
+
++ (void)applyCustomMapDownloadUrl
+{
+  std::string url = self.customMapDownloadUrl.UTF8String;
+  GetPlatform().SetCustomMapServerUrl(url);
+  GetFramework().GetStorage().ResetMapDownloadMetaConfig();
+}
+
++ (NSString *)mapSeries
+{
+  return @MAP_SERIES;
+}
+
 + (MWMUnits)measurementUnits
 {
   auto units = measurement_utils::Units::Metric;
@@ -90,6 +125,16 @@ NSString * const kUDFileLoggingEnabledKey = @"FileLoggingEnabledKey";
 + (void)setZoomButtonsEnabled:(BOOL)zoomButtonsEnabled
 {
   settings::Set(kZoomButtonsEnabledKey, static_cast<bool>(zoomButtonsEnabled));
+}
+
++ (BOOL)showBookmarkLabels
+{
+  return GetFramework().GetShowBookmarkLabels();
+}
+
++ (void)setShowBookmarkLabels:(BOOL)show
+{
+  GetFramework().SetShowBookmarkLabels(show);
 }
 
 + (MWMTheme)theme
@@ -166,10 +211,13 @@ NSString * const kUDFileLoggingEnabledKey = @"FileLoggingEnabledKey";
   [ud setObject:spotlightLocaleLanguageId forKey:kSpotlightLocaleLanguageId];
 }
 
-+ (BOOL)largeFontSize { return GetFramework().LoadLargeFontsSize(); }
-+ (void)setLargeFontSize:(BOOL)largeFontSize
++ (double)fontScaleFactor
 {
-  GetFramework().SetLargeFontsSize(static_cast<bool>(largeFontSize));
+  return GetFramework().LoadFontScaleFactor();
+}
++ (void)setFontScaleFactor:(double)fontScaleFactor
+{
+  GetFramework().SetFontScaleFactor(static_cast<double>(fontScaleFactor));
 }
 
 + (NSDictionary<NSString *, NSString *> *)availableMapLanguages;

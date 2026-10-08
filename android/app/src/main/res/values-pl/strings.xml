@@ -525,17 +525,17 @@
     <string name="accept">Zaakceptuj</string>
     <!-- For the first routing -->
     <string name="decline">Odrzuć</string>
-    <string name="mobile_data_dialog">Wykorzystać dane mobilne, aby wyświetlić dane szczegółowe?</string>
+    <string name="mobile_data_dialog">Wykorzystać dane mobilne?</string>
     <string name="mobile_data_option_always">Stosuj zawsze</string>
     <string name="mobile_data_option_today">Tylko dzisiaj</string>
     <string name="mobile_data_option_not_today">Nie stosuj dzisiaj</string>
     <string name="mobile_data">Dane mobilne</string>
     <!-- NOTE to translators: please synchronize your translation with the English one. -->
-    <string name="mobile_data_description">Dane mobilne są wymagane do powiadomień o aktualizacji map i wysyłania edycji</string>
+    <string name="mobile_data_description">Dane mobilne są wymagane do powiadomień o aktualizacji map, wysyłania edycji oraz przekierowania do edytora recenzji</string>
     <string name="mobile_data_option_never">Nigdy nie stosuj</string>
     <string name="mobile_data_option_ask">Zawsze pytaj</string>
     <string name="traffic_update_maps_text">Aby wyświetlić dane o ruchu, mapy muszą zostać zaktualizowane.</string>
-    <string name="big_font">Powiększ rozmiar czcionki na mapie</string>
+    <string name="increase_font_size">Powiększ rozmiar czcionki na mapie</string>
     <string name="traffic_update_app">Zaktualizuj CoMaps</string>
     <!-- "traffic" as in "road congestion" -->
     <string name="traffic_data_unavailable">Dane o ruchu są niedostępne</string>
@@ -782,9 +782,9 @@
     <string name="pref_tts_no_system_tts">Nie znaleziono ustawień syntezy mowy, czy Twoje urządzenie na pewno je obsługuje?</string>
     <string name="drive_through">Przejazd</string>
     <string name="clear_the_search">Wyczyść wyszukiwanie</string>
-    <string name="zoom_in">Powiększ</string>
+    <string name="zoom_in">Przybliż</string>
     <!-- Accessibility text for the zoom-out button on the map -->
-    <string name="zoom_out">Pomniejsz</string>
+    <string name="zoom_out">Oddal</string>
     <!-- Restaurant or other food place's menu URL field in the Editor -->
     <string name="website_menu">Link do menu</string>
     <!-- Button in the Place Page which opens a restaurant or other food place's menu in a browser -->
@@ -991,4 +991,17 @@
     <string name="capacity_charging_no">Brak stanowisk postojowych z ładowarką</string>
     <string name="permission_read_navigation_label">Odczytuj dane nawigacyjne CoMaps</string>
     <string name="permission_read_navigation_description">Odczytuj na żywo informacje nawigacyjne, takie jak nadchodzące zakręty lub nazwa drogi, na której się znajdujesz</string>
+    <string name="place_reviews_title">Recenzje miejsca</string>
+    <string name="place_reviews">Recenzje %1$s</string>
+    <string name="rating_stars_description">liczba gwiazdek: %.1f</string>
+    <string name="reviews_by_mangrove">Recenzje z Mangrove</string>
+    <string name="add_review">Dodaj recenzję przez %1$s</string>
+    <string name="add_review_url_resolution_failed">Nie odnaleziono miejsca na najnowszej OpenStreetMap.</string>
+    <string name="add_review_url_resolution_failed_dev">Nie odnaleziono miejsca na OpenStreetMap DEV.</string>
+    <string name="internet_unavailable">Brak połączenia z Internetem</string>
+    <string name="stars_1">1 gwiazdka</string>
+    <string name="stars_2">2 gwiazdki</string>
+    <string name="stars_3">3 gwiazdki</string>
+    <string name="stars_4">4 gwiazdki</string>
+    <string name="stars_5">5 gwiazdek</string>
 </resources>

@@ -23,9 +23,6 @@ final class NavigationControlView: SolidTouchView, MWMTextToSpeechObserver {
 
   @IBOutlet private weak var ttsButton: UIButton! {
     didSet {
-      ttsButton.setImage(UIImage(systemName: "speaker.slash"), for: .normal)
-      ttsButton.setImage(UIImage(systemName: "speaker.wave.2"), for: .selected)
-      ttsButton.setImage(UIImage(systemName: "speaker.wave.2"), for: [.selected, .highlighted])
       onTTSStatusUpdated()
     }
   }
@@ -67,6 +64,7 @@ final class NavigationControlView: SolidTouchView, MWMTextToSpeechObserver {
 
       dimBackground.setVisible(isExtended, completion: nil)
       extendedView.isHidden = !isExtended
+      mapPositionButton.isHidden = isExtended
       superview!.animateConstraints(animations: {
         if (self.isExtended) {
           self.notExtendedConstraint.isActive = false
@@ -249,7 +247,6 @@ final class NavigationControlView: SolidTouchView, MWMTextToSpeechObserver {
   @IBAction
   private func extendAction() {
     isExtended = !isExtended
-    mapPositionButton.isHidden = isExtended
     refreshDiminishTimer()
   }
 
@@ -318,7 +315,18 @@ final class NavigationControlView: SolidTouchView, MWMTextToSpeechObserver {
     guard MWMRouter.isRoutingActive() else { return }
     ttsButton.isHidden = !MWMTextToSpeech.isTTSEnabled()
     if !ttsButton.isHidden {
-      ttsButton.isSelected = MWMTextToSpeech.tts().active
+      let image: UIImage?
+      switch MWMTextToSpeech.tts().navigationSoundMode {
+      case .voiceGuidance:
+        image = UIImage(systemName: "speaker.wave.2")
+      case .speedCameraWarningsOnly:
+        image = UIImage(named: "speedcamera")
+      case .muted:
+        image = UIImage(systemName: "speaker.slash")
+      @unknown default:
+        image = UIImage(systemName: "speaker.wave.2")
+      }
+      ttsButton.setImage(image, for: .normal)
     }
     refreshDiminishTimer()
   }

@@ -38,7 +38,9 @@
 #include "geometry/mercator.hpp"
 #include "geometry/point_with_altitude.hpp"
 
+#include "indexer/feature_decl.hpp"
 #include "indexer/feature_altitude.hpp"
+#include "indexer/map_object.hpp"
 #include "indexer/validate_and_format_contacts.hpp"
 
 #include "routing/following_info.hpp"
@@ -829,6 +831,11 @@ void Framework::SetupMeasurementSystem()
 place_page::Info & Framework::GetPlacePageInfo()
 {
   return m_work.GetCurrentPlacePageInfo();
+}
+
+osm::MapObject Framework::GetMapObjectByID(FeatureID const & featureId) const
+{
+  return m_work.GetMapObjectByID(featureId);
 }
 
 bool Framework::IsAutoRetryDownloadFailed()
@@ -1912,4 +1919,14 @@ JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeMemoryWarning(JN
   return frm()->MemoryWarning();
 }
 
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_Framework_nativeSetShowBookmarkLabels(JNIEnv *, jclass,
+                                                                                       jboolean show)
+{
+  frm()->SetShowBookmarkLabels(show);
+}
+
+JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_Framework_nativeGetShowBookmarkLabels(JNIEnv *, jclass)
+{
+  return Framework::GetShowBookmarkLabels();
+}
 }  // extern "C"

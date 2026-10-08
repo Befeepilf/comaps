@@ -387,6 +387,11 @@
 "share_with_friends" = "Share with friends";
 "editor_report_problem_send_button" = "Send";
 "autodownload" = "Auto-download maps";
+"custom_map_server" = "Custom Map Server";
+"custom_map_server_message" = "Override the default map download server used for map downloads. Leave empty to use the default CoMaps map server.";
+"custom_map_server_error_scheme" = "The URL must start with http:// or https://";
+"custom_map_server_map_series" = "This version of CoMaps is using map series %@.";
+"not_set" = "Not set";
 /* Voice */
 "voice" = "Voice";
 "voice_explanation" = "It's possible to pick a better voice in the system settings under *Accessibility*, *Read & Speak*, *Voices*.";
@@ -579,7 +584,9 @@
 "mobile_data_option_never" = "Never Use";
 "mobile_data_option_ask" = "Always Ask";
 "traffic_update_maps_text" = "To display traffic data, maps must be updated.";
-"big_font" = "Increase size for map labels";
+"pref_font_size" = "Font size for map labels";
+/* Short label for pref_font_size */
+"font_size" = "Font size";
 /* "traffic" as in road congestion */
 "traffic_update_app_message" = "To display traffic data, the application must be updated.";
 /* "traffic" as in "road congestion" */
@@ -657,6 +664,8 @@
 "power_managment_setting_never" = "Never";
 "power_managment_setting_auto" = "When battery is low";
 "power_managment_setting_manual_max" = "Always";
+/* Settings/Favourite Labels */
+"bookmarks_text_placement_title" = "Show names of favorites on map";
 "enable_logging_warning_message" = "Enable this option temporarily to record and manually send detailed diagnostic logs about your issue to us using \"Report a bug\" in the Help dialog. Logs may include location info.";
 "driving_options_title" = "Routing options";
 /* Recommended length for CarPlay and Android Auto is around 25-27 characters */
@@ -814,6 +823,8 @@
 "mode_driving" = "Driving";
 /* Label for the public transport mode */
 "mode_public-transport" = "Public Transport";
+/* Accessibility hint for the selected map mode */
+"mode_options_accessibility_hint" = "Shows options for this mode";
 /* Label for the toggle to show the traffic in the driving mode */
 "mode_option_traffic" = "Show Traffic";
 /* Label for the toggle to show the transit lines in the public transport mode */
@@ -919,3 +930,13 @@
 /* To indicate the number of charging spaces */
 "capacity_charging_yes" = "Has spaces with chargers";
 "capacity_charging_no" = "No spaces with chargers";
+/* Official 1-star rating of places such as hotels or restaurants */
+"stars_1" = "1-star";
+/* Official 2-star rating of places such as hotels or restaurants */
+"stars_2" = "2-star";
+/* Official 3-star rating of places such as hotels or restaurants */
+"stars_3" = "3-star";
+/* Official 4-star rating of places such as hotels or restaurants */
+"stars_4" = "4-star";
+/* Official 5-star rating of places such as hotels or restaurants */
+"stars_5" = "5-star";

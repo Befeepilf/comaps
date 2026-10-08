@@ -568,7 +568,6 @@
 "mobile_data_option_never" = "从不使用";
 "mobile_data_option_ask" = "总是询问";
 "traffic_update_maps_text" = "要显示交通数据，必须更新地图。";
-"big_font" = "增大地图上的字体大小";
 /* "traffic" as in road congestion */
 "traffic_update_app_message" = "要显示交通数据，必须更新应用。";
 /* "traffic" as in "road congestion" */
@@ -643,7 +642,7 @@
 "power_managment_description" = "如果开启省电模式，本应用将根据手机的当前电量关闭耗电功能。";
 "power_managment_setting_never" = "从不";
 "power_managment_setting_auto" = "当电量低时";
-"power_managment_setting_manual_max" = "最大程度省电";
+"power_managment_setting_manual_max" = "始终";
 "enable_logging_warning_message" = "临时启用此选项，以便使用“报告错误”功能在帮助对话框中记录并手动发送详细诊断日志给我们。日志可能包含位置信息。";
 "driving_options_title" = "路线选项";
 /* Recommended length for CarPlay and Android Auto is around 25-27 characters */
@@ -895,3 +894,17 @@
 "zoom_out" = "缩小";
 "record_track" = "录制轨迹";
 "recording_track" = "正在录制轨迹";
+"bookmarks_text_placement_title" = "在地图上显示收藏的名称";
+"pref_font_size" = "地图标签的字体大小";
+"font_size" = "字体大小";
+"mode_options_accessibility_hint" = "显示此模式的选项";
+"stars_5" = "5星";
+"custom_map_server_error_scheme" = "URL 必须以 http:// 或 https:// 开头";
+"stars_4" = "4星";
+"stars_2" = "2星";
+"custom_map_server_map_series" = "此版本的 CoMaps 正在使用地图系列 %@。";
+"not_set" = "未设置";
+"custom_map_server" = "自定义地图服务器";
+"stars_3" = "3星";
+"stars_1" = "1星";
+"custom_map_server_message" = "覆盖用于地图下载的默认地图下载服务器。留空则使用默认的 CoMaps 地图服务器。";

@@ -131,6 +131,7 @@ std::string_view constexpr kContourLinesKey = "HasContourLinesLayer";
 std::string_view constexpr kOutdoorKey = "HasOutdoorLayer";
 std::string_view constexpr kTrafficSimplifiedColorsKey = "TrafficSimplifiedColors";
 std::string_view constexpr kLargeFontsSize = "LargeFontsSize";
+std::string_view constexpr kFontScaleFactor = "FontScaleFactor";
 std::string_view constexpr kPreferredGraphicsAPI = "PreferredGraphicsAPI";
 std::string_view constexpr kShowDebugInfo = "DebugInfo";
 std::string_view constexpr kScreenViewport = "ScreenClipRect";
@@ -141,7 +142,6 @@ std::string_view constexpr kOldTransitSchemeEnabledKey = "TransitSchemeEnabled";
 std::string_view constexpr kOldIsolinesEnabledKey = "IsolinesEnabled";
 std::string_view constexpr kOldOutdoorsEnabledKey = "OutdoorsEnabled";
 
-auto constexpr kLargeFontsScaleFactor = 1.6;
 size_t constexpr kMaxTrafficCacheSizeBytes = 64 /* Mb */ * 1024 * 1024;
 double constexpr kCloseDistance = 1.0;
 
@@ -736,7 +736,8 @@ void Framework::FillPointInfo(place_page::Info & info, m2::PointD const & mercat
   auto const fid = GetFeatureAtPoint(mercator, std::move(matcher));
   if (fid.IsValid())
   {
-    m_featuresFetcher.GetDataSource().ReadFeature([&](FeatureType & ft) {
+    m_featuresFetcher.GetDataSource().ReadFeature([&](FeatureType & ft)
+    {
       FillInfoFromFeatureType(ft, info);
       // If all types are either deprecated or unsupported (new maps in older app),
       // then act like its just a map point without features.
@@ -771,7 +772,6 @@ void Framework::FillPostcodeInfo(string const & postcode, m2::PointD const & mer
 
 void Framework::FillInfoFromFeatureType(FeatureType & ft, place_page::Info & info) const
 {
-
   auto const featureStatus = osm::Editor::Instance().GetFeatureStatus(ft.GetID());
   ASSERT_NOT_EQUAL(featureStatus, FeatureStatus::Deleted, ("Deleted features cannot be selected from UI."));
   info.SetFeatureStatus(featureStatus);
@@ -1567,7 +1567,7 @@ void Framework::CreateDrapeEngine(ref_ptr<dp::GraphicsContextFactory> contextFac
   auto const hasContourLines = HasContourLinesLayer();
 
   auto const simplifiedTrafficColors = m_trafficManager.HasSimplifiedColorScheme();
-  auto const fontsScaleFactor = LoadLargeFontsSize() ? kLargeFontsScaleFactor : 1.0;
+  auto const fontsScaleFactor = LoadFontScaleFactor();
 
   df::DrapeEngine::Params p(
       params.m_apiVersion, contextFactory, dp::Viewport(0, 0, params.m_surfaceWidth, params.m_surfaceHeight),
@@ -1750,7 +1750,7 @@ void Framework::SetTrackRecordingUpdateHandler(TrackRecordingUpdateHandler && tr
     m_trackRecordingUpdateHandler(GpsTracker::Instance().GetTrackStatistics());
 }
 
-ElevationInfo const & Framework::GetTrackRecordingElevationInfo()
+ElevationInfo Framework::GetTrackRecordingElevationInfo()
 {
   return GpsTracker::Instance().GetElevationInfo();
 }
@@ -1846,6 +1846,7 @@ void Framework::SetMapStyle(MapStyle mapStyle, bool const forceRerendering)
   if (m_drapeEngine != nullptr)
     m_drapeEngine->UpdateMapStyle(forceRerendering);
   InvalidateUserMarks();
+  UpdateBookmarkLabels();
   UpdateMinBuildingsTapZoom();
 }
 
@@ -2035,6 +2036,11 @@ place_page::Info & Framework::GetCurrentPlacePageInfo()
   return *m_currentPlacePageInfo;
 }
 
+void Framework::UpdateBookmarkLabels()
+{
+  m_bmManager->UpdateBookmarkLabels();
+}
+
 void Framework::ActivateMapSelection()
 {
   if (!m_currentPlacePageInfo)
@@ -2090,7 +2096,7 @@ void Framework::DeactivateMapSelection()
 
 void Framework::DeactivateMapSelectionCircle(bool restoreViewport)
 {
-  if (m_drapeEngine != nullptr)
+  if (m_drapeEngine)
     m_drapeEngine->DeselectObject(restoreViewport);
 }
 
@@ -2553,19 +2559,20 @@ void Framework::Load3dMode(bool & allow3d, bool & allow3dBuildings)
     allow3dBuildings = true;
 }
 
-bool Framework::LoadLargeFontsSize()
+double Framework::LoadFontScaleFactor()
 {
   bool isLargeSize;
+  double scaleFactor;
   if (!settings::Get(kLargeFontsSize, isLargeSize))
     isLargeSize = false;
-  return isLargeSize;
+  if (!settings::Get(kFontScaleFactor, scaleFactor))
+    scaleFactor = isLargeSize ? 1.6 : 1.0;
+  return scaleFactor;
 }
 
-void Framework::SetLargeFontsSize(bool isLargeSize)
+void Framework::SetFontScaleFactor(double scaleFactor)
 {
-  settings::Set(kLargeFontsSize, isLargeSize);
-
-  double const scaleFactor = isLargeSize ? kLargeFontsScaleFactor : 1.0;
+  settings::Set(kFontScaleFactor, scaleFactor);
 
   ASSERT(m_drapeEngine.get() != nullptr, ());
   m_drapeEngine->SetFontScaleFactor(scaleFactor);
@@ -2611,6 +2618,19 @@ void Framework::AllowAutoZoom(bool allowAutoZoom)
 void Framework::SaveAutoZoom(bool allowAutoZoom)
 {
   settings::Set(kAllowAutoZoom, allowAutoZoom);
+}
+
+bool Framework::GetShowBookmarkLabels()
+{
+  bool show = true;
+  settings::TryGet(settings::kShowBookmarkLabels, show);
+  return show;
+}
+
+void Framework::SetShowBookmarkLabels(bool show)
+{
+  settings::Set(settings::kShowBookmarkLabels, show);
+  UpdateBookmarkLabels();
 }
 
 void Framework::SwitchToMapAppearance(MapAppearance const mapAppearance)
@@ -2730,8 +2750,11 @@ MapMode Framework::CurrentMapMode()
     mapMode = MapMode::Driving;
   else if (mapModeValue == "PublicTransport")
     mapMode = MapMode::PublicTransport;
+#ifdef OMIM_OS_ANDROID
+  // Default mode is only shipped on Android
   else if (mapModeValue == "Default")
     mapMode = MapMode::Default;
+#endif
 
   return mapMode;
 }
