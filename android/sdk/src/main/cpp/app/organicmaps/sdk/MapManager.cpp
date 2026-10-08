@@ -303,8 +303,12 @@ JNIEXPORT void JNICALL Java_app_organicmaps_sdk_downloader_MapManager_nativeGetA
   auto const & ciBuilder = CountryItemBuilder::Instance(env);
   jstring id = static_cast<jstring>(env->GetObjectField(item, ciBuilder.m_Id));
 
+  auto const countryId = jni::ToNativeString(env, id);
+  if (!GetStorage().IsNode(countryId))
+    return;
+
   storage::NodeAttrs attrs;
-  GetStorage().GetNodeAttrs(jni::ToNativeString(env, id), attrs);
+  GetStorage().GetNodeAttrs(countryId, attrs);
 
   UpdateItem(env, item, attrs);
 }

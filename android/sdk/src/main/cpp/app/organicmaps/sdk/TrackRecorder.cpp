@@ -35,7 +35,10 @@ JNIEXPORT void JNICALL Java_app_organicmaps_sdk_location_TrackRecorder_nativeSta
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_location_TrackRecorder_nativeStopTrackRecording(JNIEnv * env,
                                                                                                 jclass clazz)
 {
-  frm()->StopTrackRecording();
+  Framework * const f = frm();
+  if (f == nullptr)
+    return;
+  f->StopTrackRecording();
 }
 
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_location_TrackRecorder_nativeSaveTrackRecordingWithName(JNIEnv * env,
@@ -54,6 +57,7 @@ JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_location_TrackRecorder_nativ
 JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_location_TrackRecorder_nativeIsTrackRecordingEnabled(JNIEnv * env,
                                                                                                          jclass clazz)
 {
-  return frm()->IsTrackRecordingEnabled();
+  Framework * const f = frm();
+  return f != nullptr && f->IsTrackRecordingEnabled();
 }
 }

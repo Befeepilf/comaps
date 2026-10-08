@@ -107,7 +107,7 @@ static_assert(sizeof(int) >= 4, "Size of jint in less than 4 bytes.");
 
 ::Framework * frm()
 {
-  return g_framework->NativeFramework();
+  return g_framework ? g_framework->NativeFramework() : nullptr;
 }
 
 namespace
