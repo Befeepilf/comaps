@@ -47,7 +47,8 @@ void RegionsSparseGraph::LoadRegionsSparseGraph()
 
   ReaderSource<FilesContainerR::TReader> reader(mwmValue.m_cont.GetReader(ROUTING_WORLD_FILE_TAG));
   CrossBorderGraphSerializer::Deserialize(m_graph, reader, m_numMwmIds);
-  ASSERT(!m_graph.m_segments.empty(), ());
+  if (m_graph.m_segments.empty())
+    LOG(LWARNING, ("No cross-border segments match the registered mwm set."));
 }
 
 std::optional<FakeEnding> RegionsSparseGraph::GetFakeEnding(m2::PointD const & point) const

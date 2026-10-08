@@ -180,7 +180,7 @@ void CrossBorderGraphSerializer::Deserialize(CrossBorderGraph & graph, Source & 
     mwmNameHashes.emplace(mwmNameHash);
   }
 
-  auto readSegEnding = [&](CrossBorderSegmentEnding & ending)
+  auto readSegEnding = [&](CrossBorderSegmentEnding & ending) -> bool
   {
     double const lat = Uint32ToDouble(ReadPrimitiveFromSource<uint32_t>(src), ms::LatLon::kMinLat, ms::LatLon::kMaxLat,
                                       kBitsForDouble);
@@ -196,9 +196,11 @@ void CrossBorderGraphSerializer::Deserialize(CrossBorderGraph & graph, Source & 
 
     auto const & mwmHash = *it;
     auto itHash = hashToMwmId.find(mwmHash);
-    CHECK(itHash != hashToMwmId.end(), (mwmHash));
+    if (itHash == hashToMwmId.end())
+      return false;
 
     ending.m_numMwmId = itHash->second;
+    return true;
   };
 
   for (size_t i = 0; i < header.m_numRoads; ++i)
@@ -218,8 +220,10 @@ void CrossBorderGraphSerializer::Deserialize(CrossBorderGraph & graph, Source & 
       seg.m_weight /= kDouble2Int;
     }
 
-    readSegEnding(seg.m_start);
-    readSegEnding(seg.m_end);
+    bool const startKnown = readSegEnding(seg.m_start);
+    bool const endKnown = readSegEnding(seg.m_end);
+    if (!startKnown || !endKnown)
+      continue;
 
     graph.AddCrossBorderSegment(segId, seg);
   }

@@ -137,4 +137,39 @@ UNIT_TEST(CrossBorderGraph_SerDes)
   TestEqualMwm(graph1.m_mwms, graph2.m_mwms);
   TestEqualSegments(graph1.m_segments, graph2.m_segments);
 }
+
+UNIT_TEST(CrossBorderGraph_DesWithUnknownMwm)
+{
+  std::string const fileName = "CrossBorderGraph_DesWithUnknownMwm.test";
+
+  storage::Storage storage;
+  std::shared_ptr<NumMwmIds> numMwmIds = CreateNumMwmIds(storage);
+
+  CrossBorderGraph graph1;
+  FillGraphWithTestInfo(graph1, numMwmIds);
+
+  {
+    FilesContainerW cont(fileName, FileWriter::OP_WRITE_TRUNCATE);
+    auto writer = cont.GetWriter(ROUTING_WORLD_FILE_TAG);
+    CrossBorderGraphSerializer::Serialize(graph1, writer, numMwmIds);
+  }
+
+  auto partialMwmIds = std::make_shared<NumMwmIds>();
+  partialMwmIds->RegisterFile(platform::CountryFile("Belgium_Flemish Brabant"));
+  partialMwmIds->RegisterFile(platform::CountryFile("Belgium_Limburg"));
+  partialMwmIds->RegisterFile(platform::CountryFile("Netherlands_Limburg"));
+
+  FilesContainerR cont(fileName);
+  auto src = std::make_unique<FilesContainerR::TReader>(cont.GetReader(ROUTING_WORLD_FILE_TAG));
+  ReaderSource<FilesContainerR::TReader> reader(*src);
+
+  CrossBorderGraph graph2;
+  CrossBorderGraphSerializer::Deserialize(graph2, reader, partialMwmIds);
+
+  TEST_EQUAL(graph2.m_segments.size(), 2, ());
+  TEST(graph2.m_segments.find(10) != graph2.m_segments.end(), ());
+  TEST(graph2.m_segments.find(20) != graph2.m_segments.end(), ());
+  TEST(graph2.m_segments.find(30) == graph2.m_segments.end(), ());
+  TEST_EQUAL(graph2.m_mwms.size(), 3, ());
+}
 }  // namespace routing
