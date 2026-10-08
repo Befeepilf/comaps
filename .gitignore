@@ -221,3 +221,11 @@ tools/unix/maps/settings.sh
 
 # Sentry Config File
 sentry.properties
+
+# Certs
+*.pem
+*.acc
+*.db
+/data/bookmarks/
+/data/countries.bak.txt
+/omim-build-debug/
