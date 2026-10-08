@@ -2722,6 +2722,42 @@ SPD-075; SP-083; SP-084.
 
 ---
 
+## SPD-098 — Parseable `.spa` stamp mismatch still draws rings
+
+**Decision.** A parseable leaf `.spa` whose `map_data_version` does not equal
+the installed MWM version **still draws exploration-area rings**. Assignment-
+backed percentages, sparse `.spx` writes, ACC persistence, and competition
+chrome stay **fail-closed** unless the sidecar is **universe-compatible**:
+`assignments.size()` equals the current `.pix` universe and the sidecar
+`policy_version` equals the live country-config `policy_version`. Compatible
+stamp mismatch (same emit, wrong catalog integer) is treated as a full match.
+Incompatible mismatch shows a short badge error and a details sheet (update /
+re-download the map). Missing or corrupt sidecars stay the existing empty
+“no selected exploration area” state (SPD-031 / spec §31).
+
+**Status.** Accepted.
+
+**Context.** Product-owner instruction 2026-09-12 after Channel A catalog
+bumps left Helsinki/Hamburg `.spa` headers one day behind `countries.txt`
+while the pixel universe was unchanged. Strict stamp equality hid areas that
+were still geometrically valid. SPD-021 / SPD-029 continue to govern
+assignment persistence and competition: those surfaces must not use a dense
+assign column against a different universe.
+
+**Consequences.**
+
+- Overlay rings load from a parseable sidecar without stamp equality.
+- `ExplorationAreaResolver` / `.spx` / ACC / badge % run on stamp mismatch
+  only when universe size and live policy match.
+- Incompatible mismatch sets `FocusedAreaProgress.m_sidecarIncompatible`;
+  Android shows an error badge and a details sheet with an Update map action.
+- Do not invent rings from missing or corrupt files.
+
+**Related documents.** Spec §8.6, §31; SPD-021, SPD-022, SPD-029, SPD-031;
+SP-034; SP-105.
+
+---
+
 ## 15. Recorded open questions (not decisions)
 
 These are carried from existing project documents. They are listed so they are

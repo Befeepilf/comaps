@@ -311,12 +311,18 @@ PY
 `--out` must be the same directory as the original generate. Work is `{out}.work`
 (so `/tmp/sp-out.work` here). A different `--out` creates an empty new work dir.
 
+Pass `--data-version YYMMDD` (or let the pipeline freeze the first `countries.txt`
+`v` / oldest `*-sp100` build / today) so a multi-day run does not stamp a new
+calendar version on later mapgen/spa_emit. That value becomes maps_generator
+`--build_name 20YY_MM_DD__00_00_00-sp100`.
+
 Re-running the same `--out` **resumes**: completed stages are skipped when their
 outputs exist and the fingerprint still matches (countries, PBF `.md5`, iso,
-border prefix, policy). Dry-run prints `resume skip:`. `--from-stage spa_emit`
+border prefix, policy, data_version). Dry-run prints `resume skip:`. `--from-stage spa_emit`
 rebuilds spa and later even if those files exist. `--force` ignores checkpoints
-and runs every stage in the graph. Delete `{out}.work/mapgen` for a clean
-mapgen; an incomplete mapgen under `*-sp100` is continued with `maps_generator -c`.
+and runs every stage in the graph, still in the pinned build directory. Delete
+`{out}.work/mapgen` for a clean mapgen; an incomplete mapgen under the pinned
+`*-sp100` name is continued with `maps_generator -c <build_name>`.
 
 ```bash
 PYTHONPATH=. python3 -m street_pixels map_pipeline \

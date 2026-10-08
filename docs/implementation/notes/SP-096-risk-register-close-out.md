@@ -103,7 +103,7 @@ listing brand copy.
 | `google` applicationId | `app.comaps.google` (`applicationIdSuffix '.google'`) | same file |
 | Other flavors | `web` (no suffix), `fdroid` → `.fdroid`, `huawei` → `.huawei` | same; Huawei/web **not** V1 gates |
 | Build types | `debug` (`.debug` + debug keystore), `release`, `beta` (`.test`) | same |
-| Debug signing | `android/app/comaps-debug.keystore`, alias `Streifzug Debug` | `signingConfigs.debug` |
+| Debug signing | `android/app/comaps-debug.keystore`, alias `CoMaps Debug` | `signingConfigs.debug` |
 | Release signing | `secure.properties.release` → `signingConfigs.release` | Gradle |
 | Beta/test signing | `secure.properties.test` → `signingConfigs.test` | Gradle |
 | Play publish task | `./gradlew bundleGoogleRelease publishGoogleReleaseBundle` | `.forgejo/workflows/android-release.yaml` |
