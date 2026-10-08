@@ -760,6 +760,11 @@
     <string name="street_pixels_no_exploration_area">No selected exploration area</string>
     <string name="street_pixels_no_exploration_area_title">No selected exploration area</string>
     <string name="street_pixels_no_exploration_area_message">Personal pixels still work. Area percentage and competition are unavailable until a supported settlement, administrative subdivision, or place boundary is present.</string>
+    <string name="street_pixels_sidecar_mismatch_badge">Area data doesn\'t match this map</string>
+    <string name="street_pixels_sidecar_mismatch_title">Exploration data is out of date</string>
+    <string name="street_pixels_sidecar_mismatch_message">The installed map and its exploration areas don\'t match, so percentages and rankings are hidden. Streets you already explored are still saved. Update or re-download this map to restore area progress.</string>
+    <string name="street_pixels_sidecar_mismatch_incomplete">If area download failed, retry from Settings → Data management.</string>
+    <string name="street_pixels_sidecar_mismatch_action">Update map</string>
     <string name="street_pixels_waiting_for_gps">Waiting for a more accurate GPS signal</string>
     <string name="street_pixels_location_denied">Location access is needed to record exploration automatically.</string>
     <string name="street_pixels_first_run_title">Explore the streets around you</string>

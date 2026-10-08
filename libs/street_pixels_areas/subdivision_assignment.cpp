@@ -125,6 +125,21 @@ std::optional<SubdivisionAssignmentTable> SubdivisionAssignmentTable::TryLoad(
   return SubdivisionAssignmentTable(std::move(loaded.m_file), std::move(universeAscendingNest));
 }
 
+std::optional<SubdivisionAssignmentTable> SubdivisionAssignmentTable::TryLoadMatchingUniverse(
+    std::string const & path, std::vector<int64_t> universeAscendingNest, uint32_t expectedPolicyVersion)
+{
+  auto loaded = TryLoadAndVerifyPolicyExplorationSidecar(path, expectedPolicyVersion);
+  if (loaded.m_status != SpaLoadStatus::Ok)
+    return std::nullopt;
+
+  if (!SidecarMatchesUniverse(loaded.m_file, universeAscendingNest.size(), expectedPolicyVersion))
+    return std::nullopt;
+  if (!IsStrictlyAscending(universeAscendingNest))
+    return std::nullopt;
+
+  return SubdivisionAssignmentTable(std::move(loaded.m_file), std::move(universeAscendingNest));
+}
+
 ExplorationArea const * SubdivisionAssignmentTable::LookupBySlot(size_t slot) const
 {
   return LookupSubdivisionBySlot(m_file, slot);

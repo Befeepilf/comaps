@@ -342,6 +342,8 @@ private:
   void ChangeState(StreetPixelsState newState);
   void NotifyFocusedAreaProgressIfChanged();
   bool LoadFocusSidecar(std::string const & spaPath, int64_t mapDataVersion);
+  bool FocusSidecarIsCompatible() const;
+  void MarkSidecarIncompatible();
 
   storage::CountryId m_countryId;
   mutable std::mutex m_countryIdMutex;
@@ -425,6 +427,7 @@ private:
   void RebuildOverlayLabelsUnlocked();
   void RefreshFocusedAreaFractionUnlocked();
   void ClearFocusedAreaUnlocked();
+  void MarkSidecarIncompatibleUnlocked();
   std::string ComposeCompetitionLineForOsm(uint64_t osmId, std::string const & displayName = {}) const;
 
   struct OverlayLabel
@@ -494,6 +497,7 @@ private:
   std::string m_cachedFocusSpaPath;
   int64_t m_cachedFocusSpaVersion = 0;
   bool m_cachedFocusSpaValid = false;
+  bool m_cachedFocusSpaCompatible = false;
   street_pixels::SpaFile m_cachedFocusSpaFile;
   street_pixels::CountryPolicy m_cachedFocusPolicy;
 

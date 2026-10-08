@@ -36,6 +36,12 @@ SpaLoadResult TryLoadExplorationSidecar(std::string const & path);
 SpaLoadResult TryLoadAndVerifyExplorationSidecar(std::string const & path, int64_t expectedMapDataVersion,
                                                  uint32_t expectedPolicyVersion);
 
+// Like TryLoadAndVerify, but ignores map_data_version (SPD-098 stamp mismatch).
+SpaLoadResult TryLoadAndVerifyPolicyExplorationSidecar(std::string const & path, uint32_t expectedPolicyVersion);
+
+// Size + policy only. SPA does not store pixel ids.
+bool SidecarMatchesUniverse(SpaFile const & file, size_t universeSize, uint32_t expectedPolicyVersion);
+
 uint64_t StableOsmId(ExplorationArea const & area);
 
 // Stored OSM name only. Never falls back to MWM leaf / country id.

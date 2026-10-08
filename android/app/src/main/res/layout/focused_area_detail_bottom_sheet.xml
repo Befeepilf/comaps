@@ -41,6 +41,18 @@
     tools:text="Personal pixels still work."
     tools:visibility="visible" />
 
+  <com.google.android.material.button.MaterialButton
+    android:id="@+id/focused_area_detail_action"
+    style="@style/MwmWidget.M3.Button.Primary"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/margin_base"
+    android:layout_marginEnd="@dimen/margin_base"
+    android:layout_marginBottom="@dimen/margin_base"
+    android:text="@string/street_pixels_sidecar_mismatch_action"
+    android:visibility="gone"
+    tools:visibility="visible" />
+
   <LinearLayout
     android:id="@+id/competition_block"
     android:layout_width="match_parent"

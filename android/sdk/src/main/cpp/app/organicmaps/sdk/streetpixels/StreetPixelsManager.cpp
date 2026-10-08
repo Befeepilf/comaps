@@ -34,7 +34,7 @@ static jobject ToJavaFocusedAreaProgress(JNIEnv * env, street_pixels::FocusedAre
 {
   static jclass const progressClass =
       jni::GetGlobalClassRef(env, "app/organicmaps/sdk/maplayer/streetpixels/FocusedAreaProgress");
-  static jmethodID const ctor = jni::GetConstructorID(env, progressClass, "(ZZZZZIJLjava/lang/String;DZ)V");
+  static jmethodID const ctor = jni::GetConstructorID(env, progressClass, "(ZZZZZIJLjava/lang/String;DZZ)V");
   jni::TScopedLocalRef const jName(env, jni::ToJavaString(env, progress.m_displayName));
   return env->NewObject(progressClass, ctor, static_cast<jboolean>(progress.m_hasFocus),
                         static_cast<jboolean>(progress.m_fractionValid),
@@ -43,7 +43,8 @@ static jobject ToJavaFocusedAreaProgress(JNIEnv * env, street_pixels::FocusedAre
                         static_cast<jboolean>(progress.m_noExplorationArea),
                         static_cast<jint>(progress.m_compactIndex), static_cast<jlong>(progress.m_osmId),
                         jName.get(), static_cast<jdouble>(progress.m_fraction),
-                        static_cast<jboolean>(progress.m_previouslyCompleted));
+                        static_cast<jboolean>(progress.m_previouslyCompleted),
+                        static_cast<jboolean>(progress.m_sidecarIncompatible));
 }
 
 static void StreetPixelsStateChanged(bool enabled, StreetPixelsManager::StreetPixelsStatus status,

@@ -106,6 +106,16 @@ std::optional<ExplorationAreaResolver> ExplorationAreaResolver::TryLoad(
   return ExplorationAreaResolver(std::move(*loaded));
 }
 
+std::optional<ExplorationAreaResolver> ExplorationAreaResolver::TryLoadMatchingUniverse(
+    std::string const & path, std::vector<int64_t> universeAscendingNest, uint32_t expectedPolicyVersion)
+{
+  auto loaded = SubdivisionAssignmentTable::TryLoadMatchingUniverse(path, std::move(universeAscendingNest),
+                                                                    expectedPolicyVersion);
+  if (!loaded.has_value())
+    return std::nullopt;
+  return ExplorationAreaResolver(std::move(*loaded));
+}
+
 ExplorationArea const * ExplorationAreaResolver::LookupBySlot(size_t slot,
                                                               m2::PointD const & sampleCentre) const
 {

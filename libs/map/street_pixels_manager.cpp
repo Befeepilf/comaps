@@ -288,11 +288,26 @@ double ExploredRatioOrZero(ExploredMatchCounts const & counts)
   return static_cast<double>(counts.exploredMatched) / static_cast<double>(counts.matched);
 }
 
-street_pixels::CountryPolicy LoadCountryPolicyByIso(std::string const & isoCode)
+street_pixels::CountryConfig LoadCountryConfig()
 {
   std::string json;
   GetPlatform().GetReader(street_pixels::kCountryPoliciesRelativePath)->ReadAsString(json);
-  return street_pixels::CountryConfig::LoadFromString(json).GetByIso(isoCode);
+  return street_pixels::CountryConfig::LoadFromString(json);
+}
+
+street_pixels::CountryPolicy LoadCountryPolicyByIso(std::string const & isoCode)
+{
+  return LoadCountryConfig().GetByIso(isoCode);
+}
+
+uint32_t LoadCountryPolicyVersion()
+{
+  return LoadCountryConfig().GetPolicyVersion();
+}
+
+std::string PixPathBesideSpa(std::string const & spaPath)
+{
+  return GetPlatform().WritablePathForFile(base::GetNameFromFullPathWithoutExt(spaPath) + ".pix");
 }
 
 void AppendEverLiveFromScan(std::optional<street_pixels_file::ExploredEverLiveMap> const & scanned,
@@ -361,11 +376,11 @@ bool StreetPixelsManager::LoadFocusSidecar(std::string const & spaPath, int64_t 
   }
 
   auto sidecar = street_pixels::TryLoadExplorationSidecar(spaPath);
-  if (sidecar.m_status != street_pixels::SpaLoadStatus::Ok ||
-      sidecar.m_file.m_header.m_mapDataVersion != mapDataVersion)
+  if (sidecar.m_status != street_pixels::SpaLoadStatus::Ok)
   {
     std::lock_guard<std::mutex> lock(m_focusCacheMutex);
     m_cachedFocusSpaValid = false;
+    m_cachedFocusSpaCompatible = false;
     return false;
   }
 
@@ -379,6 +394,14 @@ bool StreetPixelsManager::LoadFocusSidecar(std::string const & spaPath, int64_t 
     loadedPolicy = street_pixels::CountryConfig::UnconfiguredPolicy();
   }
 
+  bool compatible = sidecar.m_file.m_header.m_mapDataVersion == mapDataVersion;
+  if (!compatible)
+  {
+    auto const universe = street_pixels_file::ScanUniverseAscending(PixPathBesideSpa(spaPath));
+    compatible = universe.has_value() && street_pixels::SidecarMatchesUniverse(
+                                             sidecar.m_file, universe->size(), LoadCountryPolicyVersion());
+  }
+
   {
     std::lock_guard<std::mutex> lock(m_focusCacheMutex);
     m_cachedFocusSpaPath = spaPath;
@@ -386,8 +409,15 @@ bool StreetPixelsManager::LoadFocusSidecar(std::string const & spaPath, int64_t 
     m_cachedFocusSpaFile = std::move(sidecar.m_file);
     m_cachedFocusPolicy = loadedPolicy;
     m_cachedFocusSpaValid = true;
+    m_cachedFocusSpaCompatible = compatible;
   }
   return true;
+}
+
+bool StreetPixelsManager::FocusSidecarIsCompatible() const
+{
+  std::lock_guard<std::mutex> lock(m_focusCacheMutex);
+  return m_cachedFocusSpaCompatible;
 }
 
 void StreetPixelsManager::ChangeState(StreetPixelsState newState)
@@ -1799,11 +1829,38 @@ void StreetPixelsManager::RefreshSparseAssignmentsBestEffortUnlocked(storage::Co
     InvalidateAreaCompletionCache();
     return;
   }
-  if (sidecar.m_file.m_header.m_mapDataVersion != mapDataVersion)
+
+  base::Timer earlyOverlayTimer;
+  PushExplorationAreaOverlayUnlocked(sidecar.m_file);
+  LOG(LINFO, ("StreetPixels overlay early push ms", earlyOverlayTimer.ElapsedMilliseconds(), countryId));
+
+  base::Timer refreshTimer;
+  auto const universe = street_pixels_file::ScanUniverseAscending(pixPath);
+  auto const exploredMap = street_pixels_file::ScanExploredEverLive(pixPath);
+  LOG(LINFO, ("StreetPixels refresh pix scan ms", refreshTimer.ElapsedMilliseconds(), countryId));
+  if (!universe || !exploredMap)
   {
-    LOG(LINFO, ("Sparse assignment refresh deferred; sidecar map-data mismatch", countryId,
-                sidecar.m_file.m_header.m_mapDataVersion, mapDataVersion));
+    LOG(LWARNING, ("Sparse assignment refresh skipped; .pix unreadable", countryId));
     InvalidateAreaCompletionCache();
+    return;
+  }
+
+  bool const stampMatch = sidecar.m_file.m_header.m_mapDataVersion == mapDataVersion;
+  bool const compatible =
+      stampMatch || street_pixels::SidecarMatchesUniverse(sidecar.m_file, universe->size(),
+                                                          LoadCountryPolicyVersion());
+  {
+    std::lock_guard<std::mutex> lock(m_focusCacheMutex);
+    if (m_cachedFocusSpaValid && m_cachedFocusSpaPath == spaPath)
+      m_cachedFocusSpaCompatible = compatible;
+  }
+  if (!compatible)
+  {
+    LOG(LINFO, ("Sparse assignment refresh rings-only; sidecar universe mismatch", countryId,
+                sidecar.m_file.m_header.m_mapDataVersion, mapDataVersion, "assign",
+                sidecar.m_file.m_assignments.size(), "universe", universe->size()));
+    InvalidateAreaCompletionCache();
+    MarkSidecarIncompatible();
     return;
   }
 
@@ -1820,21 +1877,6 @@ void StreetPixelsManager::RefreshSparseAssignmentsBestEffortUnlocked(storage::Co
       std::lock_guard<std::mutex> lock(m_areaCompletionMutex);
       m_areaCompletionCache = std::move(loaded.m_cache);
     }
-  }
-
-  base::Timer earlyOverlayTimer;
-  PushExplorationAreaOverlayUnlocked(sidecar.m_file);
-  LOG(LINFO, ("StreetPixels overlay early push ms", earlyOverlayTimer.ElapsedMilliseconds(), countryId));
-
-  base::Timer refreshTimer;
-  auto const universe = street_pixels_file::ScanUniverseAscending(pixPath);
-  auto const exploredMap = street_pixels_file::ScanExploredEverLive(pixPath);
-  LOG(LINFO, ("StreetPixels refresh pix scan ms", refreshTimer.ElapsedMilliseconds(), countryId));
-  if (!universe || !exploredMap)
-  {
-    LOG(LWARNING, ("Sparse assignment refresh skipped; .pix unreadable", countryId));
-    InvalidateAreaCompletionCache();
-    return;
   }
 
   auto prior = street_pixels::TryLoadSparseAssignmentStore(spxPath);
@@ -3144,6 +3186,22 @@ void StreetPixelsManager::ClearFocusedAreaUnlocked()
   m_focusedAreaProgress.m_noExplorationArea = true;
 }
 
+void StreetPixelsManager::MarkSidecarIncompatibleUnlocked()
+{
+  m_focusedAreaProgress = street_pixels::FocusedAreaProgress{};
+  m_focusedAreaProgress.m_sidecarIncompatible = true;
+}
+
+void StreetPixelsManager::MarkSidecarIncompatible()
+{
+  {
+    std::lock_guard<std::mutex> lock(m_focusedAreaMutex);
+    MarkSidecarIncompatibleUnlocked();
+    m_explicitFocusSticky = false;
+  }
+  NotifyFocusedAreaProgressIfChanged();
+}
+
 street_pixels::FocusedAreaProgress StreetPixelsManager::GetFocusedAreaProgress() const
 {
   std::lock_guard<std::mutex> lock(m_focusedAreaMutex);
@@ -3292,6 +3350,11 @@ bool StreetPixelsManager::SelectFocusedAreaAtPoint(m2::PointD const & mercator, 
     ClearFocusedArea();
     return false;
   }
+  if (!FocusSidecarIsCompatible())
+  {
+    MarkSidecarIncompatible();
+    return false;
+  }
 
   std::optional<uint32_t> compactIndex;
   {
@@ -3336,6 +3399,11 @@ bool StreetPixelsManager::ApplyFocusSelection(street_pixels::FocusSelectionReque
     if (!LoadFocusSidecar(spaPath, mapDataVersion))
     {
       ClearFocusedArea();
+      return false;
+    }
+    if (!FocusSidecarIsCompatible())
+    {
+      MarkSidecarIncompatible();
       return false;
     }
   }
@@ -3419,6 +3487,13 @@ bool StreetPixelsManager::RefreshFocusFromViewport(m2::PointD const & mapCentre,
     LOG(LINFO, ("StreetPixels focusRefresh", "path", "sidecarLoadFailed", "recording", recordingActive,
                 "drawScale", drawScale, "atCityScale", street_pixels::IsCityScaleDrawScale(drawScale)));
     ClearFocusedArea();
+    return false;
+  }
+  if (!FocusSidecarIsCompatible())
+  {
+    LOG(LINFO, ("StreetPixels focusRefresh", "path", "sidecarIncompatible", "recording", recordingActive,
+                "drawScale", drawScale, "atCityScale", street_pixels::IsCityScaleDrawScale(drawScale)));
+    MarkSidecarIncompatible();
     return false;
   }
 
@@ -3536,31 +3611,31 @@ bool StreetPixelsManager::TryFocusAtPoint(m2::PointD const & mercator, std::stri
   req.m_recordingActive = false;
   req.m_atCityScale = false;
 
-  auto sidecar = street_pixels::TryLoadExplorationSidecar(spaPath);
-  if (sidecar.m_status != street_pixels::SpaLoadStatus::Ok ||
-      sidecar.m_file.m_header.m_mapDataVersion != mapDataVersion)
+  if (!LoadFocusSidecar(spaPath, mapDataVersion))
   {
     ClearFocusedArea();
     return false;
   }
-
-  street_pixels::CountryPolicy policy;
-  try
+  if (!FocusSidecarIsCompatible())
   {
-    policy = LoadCountryPolicyByIso(sidecar.m_file.m_header.m_isoCode);
-  }
-  catch (RootException const &)
-  {
-    policy = street_pixels::CountryConfig::UnconfiguredPolicy();
+    MarkSidecarIncompatible();
+    return false;
   }
 
-  auto const * area = street_pixels::LookupExplorationAreaAtPoint(sidecar.m_file, policy, mercator);
-  if (area == nullptr)
+  std::optional<uint32_t> compactIndex;
+  {
+    std::lock_guard<std::mutex> lock(m_focusCacheMutex);
+    auto const * area =
+        street_pixels::LookupExplorationAreaAtPoint(m_cachedFocusSpaFile, m_cachedFocusPolicy, mercator);
+    if (area != nullptr)
+      compactIndex = area->m_compactIndex;
+  }
+  if (!compactIndex.has_value())
   {
     ClearFocusedArea();
     return false;
   }
-  req.m_mapCentreAreaCompactIndex = area->m_compactIndex;
+  req.m_mapCentreAreaCompactIndex = compactIndex;
   return ApplyFocusSelection(req, spaPath, mapDataVersion);
 }
 
@@ -3603,15 +3678,21 @@ bool StreetPixelsManager::RebuildAreaCompletionCacheUnlocked(storage::CountryId 
 
   base::Timer spaTimer;
   auto sidecar = street_pixels::TryLoadExplorationSidecar(spaPath);
-  if (sidecar.m_status != street_pixels::SpaLoadStatus::Ok ||
-      sidecar.m_file.m_header.m_mapDataVersion != mapDataVersion)
+  if (sidecar.m_status != street_pixels::SpaLoadStatus::Ok)
+  {
+    failClosed();
+    return false;
+  }
+  bool const stampMatch = sidecar.m_file.m_header.m_mapDataVersion == mapDataVersion;
+  if (!stampMatch &&
+      !street_pixels::SidecarMatchesUniverse(sidecar.m_file, universe->size(), LoadCountryPolicyVersion()))
   {
     failClosed();
     return false;
   }
 
   auto resolver = street_pixels::ExplorationAreaResolver::TryLoad(
-      spaPath, *universe, mapDataVersion, sidecar.m_file.m_header.m_policyVersion);
+      spaPath, *universe, sidecar.m_file.m_header.m_mapDataVersion, sidecar.m_file.m_header.m_policyVersion);
   LOG(LINFO, ("StreetPixels rebuild spa+resolver ms", spaTimer.ElapsedMilliseconds(), countryId));
   if (!resolver)
   {
@@ -3815,6 +3896,7 @@ void StreetPixelsManager::ClearPixels()
   {
     std::lock_guard<std::mutex> lock(m_focusCacheMutex);
     m_cachedFocusSpaValid = false;
+    m_cachedFocusSpaCompatible = false;
     m_cachedFocusSpaFile = {};
     m_cachedFocusPolicy = {};
     m_hasLastFocusRefresh = false;

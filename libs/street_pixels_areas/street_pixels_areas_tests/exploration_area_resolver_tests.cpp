@@ -268,6 +268,17 @@ UNIT_TEST(ExplorationAreaResolver_FailClosedAndLayering)
                                                  fx.m_params.m_policyVersion);
   TEST(!badMap.has_value(), ());
 
+  auto matched = ExplorationAreaResolver::TryLoadMatchingUniverse(fx.m_path, fx.m_universe,
+                                                                  fx.m_params.m_policyVersion);
+  TEST(matched.has_value(), ());
+  auto const * matchedTown = matched->LookupByHealpix(100, fx.m_samples[0]);
+  TEST(matchedTown != nullptr, ());
+  TEST_EQUAL(matchedTown->m_name, "Town", ());
+
+  auto matchedBadSize =
+      ExplorationAreaResolver::TryLoadMatchingUniverse(fx.m_path, {1}, fx.m_params.m_policyVersion);
+  TEST(!matchedBadSize.has_value(), ());
+
   auto badPolicy = ExplorationAreaResolver::TryLoad(fx.m_path, fx.m_universe, fx.m_params.m_mapDataVersion,
                                                     fx.m_params.m_policyVersion + 1);
   TEST(!badPolicy.has_value(), ());

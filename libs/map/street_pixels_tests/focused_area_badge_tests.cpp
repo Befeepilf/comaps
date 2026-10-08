@@ -243,8 +243,61 @@ UNIT_TEST(FocusedAreaBadge_NoAreaSignalNeverUsesMwmId)
   TEST(!progress.m_areaCompleted, ());
   TEST(progress.m_displayName.empty(), ());
   TEST(progress.m_displayName != fx.leaf, ());
+  TEST(!progress.m_sidecarIncompatible, ());
 
   CleanupFab(fx);
+}
+
+UNIT_TEST(FocusedAreaBadge_StampMismatchMatchingUniverseKeepsFraction)
+{
+  auto fx = MakeFabFixture("sp105_stamp_ok");
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  TEST(manager.RebuildAreaCompletionCache(fx.leaf, fx.spaPath, fx.mapDataVersion + 1), ());
+  TEST(manager.SetFocusedArea(0, fx.spaPath), ());
+  auto progress = manager.GetFocusedAreaProgress();
+  TEST(progress.m_fractionValid, ());
+  TEST(!progress.m_sidecarIncompatible, ());
+  TEST_EQUAL(progress.m_displayName, "District", ());
+
+  TEST(manager.TryFocusAtPoint(fx.districtCentre, fx.spaPath, fx.mapDataVersion + 1), ());
+  TEST(!manager.GetFocusedAreaProgress().m_sidecarIncompatible, ());
+  TEST(manager.GetFocusedAreaProgress().m_hasFocus, ());
+
+  CleanupFab(fx);
+}
+
+UNIT_TEST(FocusedAreaBadge_StampMismatchDifferentUniverseSetsIncompatible)
+{
+  auto fx = MakeFabFixture("sp105_stamp_bad");
+  std::set<int64_t> bigger = {fx.districtId, fx.cityOnlyId, fx.outsideId, fx.outsideId + 1};
+  TEST(street_pixels_file::SaveRematchedUniverse(fx.pixPath, bigger, {}, fx.mapDataVersion), ());
+
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  TEST(!manager.RebuildAreaCompletionCache(fx.leaf, fx.spaPath, fx.mapDataVersion + 1), ());
+  TEST(!manager.TryFocusAtPoint(fx.districtCentre, fx.spaPath, fx.mapDataVersion + 1), ());
+  auto progress = manager.GetFocusedAreaProgress();
+  TEST(progress.m_sidecarIncompatible, ());
+  TEST(!progress.m_fractionValid, ());
+  TEST(!progress.m_hasFocus, ());
+  TEST(!progress.m_noExplorationArea, ());
+  TEST(!Platform::IsFileExistsByFullPath(street_pixels::SparseAssignmentPath(GetPlatform().WritableDir(), fx.leaf)),
+       ());
+
+  CleanupFab(fx);
+}
+
+UNIT_TEST(FocusedAreaBadge_MissingSidecarIsEmptyNotIncompatible)
+{
+  FrozenDataSource dataSource;
+  StreetPixelsManager manager(dataSource);
+  std::string const missing = FabPath("sp105_missing.spa");
+  TEST(!manager.TryFocusAtPoint(mercator::FromLatLon(60.5, 24.5), missing, 42), ());
+  auto progress = manager.GetFocusedAreaProgress();
+  TEST(progress.m_noExplorationArea, ());
+  TEST(!progress.m_sidecarIncompatible, ());
+  TEST(!progress.m_hasFocus, ());
 }
 
 UNIT_TEST(FocusedAreaBadge_TryFocusAtPointDistrict)

@@ -1,6 +1,7 @@
 package app.organicmaps.maplayer.streetpixels;
 
 import android.app.Dialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,8 +18,10 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
+import app.organicmaps.downloader.DownloaderActivity;
 import app.organicmaps.settings.CompetitionEmptyState;
 import app.organicmaps.sdk.Framework;
+import app.organicmaps.sdk.downloader.MapManager;
 import app.organicmaps.sdk.maplayer.streetpixels.CompetitionAreaChrome;
 import app.organicmaps.sdk.maplayer.streetpixels.CompetitionRankingRow;
 import app.organicmaps.sdk.maplayer.streetpixels.CompetitionWeeklyChrome;
@@ -27,6 +30,7 @@ import app.organicmaps.sdk.maplayer.streetpixels.StreetPixelsManager;
 import app.organicmaps.util.UiUtils;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textview.MaterialTextView;
 import java.util.Locale;
 import java.util.Objects;
@@ -40,6 +44,8 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
   private static final String ARG_AREA_COMPLETED = "area_completed";
   private static final String ARG_PREVIOUSLY_COMPLETED = "previously_completed";
   private static final String ARG_EMPTY = "empty";
+  private static final String ARG_MISMATCH = "mismatch";
+  private static final String ARG_INCOMPLETE = "incomplete";
   private static final String ARG_OSM_ID = "osm_id";
   private static final String ARG_CITY_SUMMARY = "city_summary";
 
@@ -70,6 +76,34 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
     sheet.setArguments(args);
     dismissIfShowing(fm);
     sheet.show(fm, TAG);
+  }
+
+  public static void showMismatch(@NonNull FragmentManager fm, boolean incompleteSpa)
+  {
+    FocusedAreaDetailBottomSheet sheet = new FocusedAreaDetailBottomSheet();
+    Bundle args = new Bundle();
+    args.putBoolean(ARG_MISMATCH, true);
+    args.putBoolean(ARG_INCOMPLETE, incompleteSpa);
+    sheet.setArguments(args);
+    dismissIfShowing(fm);
+    sheet.show(fm, TAG);
+  }
+
+  public static void showForProgress(@NonNull FragmentManager fm, @NonNull FocusedAreaProgress progress)
+  {
+    if (progress.sidecarIncompatible)
+    {
+      String[] ids = MapManager.nativeGetIncompleteSpaCountries();
+      showMismatch(fm, ids != null && ids.length > 0);
+      return;
+    }
+    if (progress.noExplorationArea || !progress.hasFocus || progress.displayName.isEmpty())
+    {
+      showEmpty(fm);
+      return;
+    }
+    show(fm, progress.displayName, progress.fractionValid, progress.fraction, progress.areaCompleted,
+         progress.previouslyCompleted, progress.osmId, progress.citySummary);
   }
 
   public static void dismissIfShowing(@NonNull FragmentManager fm)
@@ -111,7 +145,34 @@ public class FocusedAreaDetailBottomSheet extends BottomSheetDialogFragment
     MaterialTextView nameView = view.findViewById(R.id.focused_area_detail_name);
     MaterialTextView percentView = view.findViewById(R.id.focused_area_detail_percent);
     MaterialTextView bodyView = view.findViewById(R.id.focused_area_detail_body);
+    MaterialButton actionButton = view.findViewById(R.id.focused_area_detail_action);
     View competitionBlock = view.findViewById(R.id.competition_block);
+
+    if (args.getBoolean(ARG_MISMATCH, false))
+    {
+      Log.i("StreetPixels", "sheet bind mismatch");
+      nameView.setText(R.string.street_pixels_sidecar_mismatch_title);
+      percentView.setText("");
+      CharSequence body = getString(R.string.street_pixels_sidecar_mismatch_message);
+      if (args.getBoolean(ARG_INCOMPLETE, false))
+        body = body + "\n\n" + getString(R.string.street_pixels_sidecar_mismatch_incomplete);
+      bodyView.setText(body);
+      UiUtils.show(bodyView);
+      if (actionButton != null)
+      {
+        UiUtils.show(actionButton);
+        actionButton.setOnClickListener(v -> {
+          startActivity(new Intent(requireContext(), DownloaderActivity.class));
+          dismissAllowingStateLoss();
+        });
+      }
+      if (competitionBlock != null)
+        UiUtils.hide(competitionBlock);
+      return;
+    }
+
+    if (actionButton != null)
+      UiUtils.hide(actionButton);
 
     if (args.getBoolean(ARG_EMPTY, false))
     {

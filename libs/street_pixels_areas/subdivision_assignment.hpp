@@ -42,6 +42,9 @@ public:
                                                            std::vector<int64_t> universeAscendingNest,
                                                            int64_t expectedMapDataVersion,
                                                            uint32_t expectedPolicyVersion);
+  static std::optional<SubdivisionAssignmentTable> TryLoadMatchingUniverse(std::string const & path,
+                                                                          std::vector<int64_t> universeAscendingNest,
+                                                                          uint32_t expectedPolicyVersion);
 
   SpaFile const & GetFile() const { return m_file; }
   std::vector<int64_t> const & Universe() const { return m_universe; }

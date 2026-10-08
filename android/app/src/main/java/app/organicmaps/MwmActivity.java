@@ -1239,15 +1239,9 @@ public class MwmActivity extends BaseMwmFragmentActivity
           "sheet open hasFocus=" + progress.hasFocus + " fractionValid=" + progress.fractionValid
               + " citySummary=" + progress.citySummary + " compactIndex=" + progress.compactIndex
               + " fraction=" + progress.fraction + " areaCompleted=" + progress.areaCompleted
-              + " noExplorationArea=" + progress.noExplorationArea);
-    if (progress.hasFocus && !TextUtils.isEmpty(progress.displayName))
-    {
-      FocusedAreaDetailBottomSheet.show(getSupportFragmentManager(), progress.displayName, progress.fractionValid,
-                                        progress.fraction, progress.areaCompleted, progress.previouslyCompleted,
-                                        progress.osmId, progress.citySummary);
-      return;
-    }
-    FocusedAreaDetailBottomSheet.showEmpty(getSupportFragmentManager());
+              + " noExplorationArea=" + progress.noExplorationArea
+              + " sidecarIncompatible=" + progress.sidecarIncompatible);
+    FocusedAreaDetailBottomSheet.showForProgress(getSupportFragmentManager(), progress);
   }
 
   private void onRecordingSessionStateChanged(@RecordingSession.State int previous, @RecordingSession.State int current)

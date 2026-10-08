@@ -175,6 +175,23 @@ UNIT_TEST(ExplorationSidecar_VersionMismatchIsEmptySafe)
   RemoveIfExists(fx.m_path);
 }
 
+UNIT_TEST(ExplorationSidecar_PolicyVerifyIgnoresMapStamp)
+{
+  auto fx = MakeFixture();
+
+  auto const ok = TryLoadAndVerifyPolicyExplorationSidecar(fx.m_path, fx.m_params.m_policyVersion);
+  TEST_EQUAL(ok.m_status, SpaLoadStatus::Ok, (DebugPrint(ok.m_status)));
+  TEST(SidecarMatchesUniverse(ok.m_file, ok.m_file.m_assignments.size(), fx.m_params.m_policyVersion), ());
+  TEST(!SidecarMatchesUniverse(ok.m_file, ok.m_file.m_assignments.size() + 1, fx.m_params.m_policyVersion), ());
+  TEST(!SidecarMatchesUniverse(ok.m_file, ok.m_file.m_assignments.size(), fx.m_params.m_policyVersion + 1), ());
+
+  auto const badPolicy = TryLoadAndVerifyPolicyExplorationSidecar(fx.m_path, fx.m_params.m_policyVersion + 1);
+  TEST_EQUAL(badPolicy.m_status, SpaLoadStatus::VersionMismatch, (DebugPrint(badPolicy.m_status)));
+  TEST(badPolicy.m_file.m_assignments.empty(), ());
+
+  RemoveIfExists(fx.m_path);
+}
+
 UNIT_TEST(ExplorationSidecar_DisplayNameNeverFallsBackToMwmId)
 {
   auto fx = MakeFixture();

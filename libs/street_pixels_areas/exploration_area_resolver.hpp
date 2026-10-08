@@ -51,6 +51,9 @@ public:
                                                         std::vector<int64_t> universeAscendingNest,
                                                         int64_t expectedMapDataVersion,
                                                         uint32_t expectedPolicyVersion);
+  static std::optional<ExplorationAreaResolver> TryLoadMatchingUniverse(std::string const & path,
+                                                                       std::vector<int64_t> universeAscendingNest,
+                                                                       uint32_t expectedPolicyVersion);
 
   ExplorationAreaResolver(ExplorationAreaResolver const &) = delete;
   ExplorationAreaResolver & operator=(ExplorationAreaResolver const &) = delete;

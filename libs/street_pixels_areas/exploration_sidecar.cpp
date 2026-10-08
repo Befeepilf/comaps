@@ -82,6 +82,27 @@ SpaLoadResult TryLoadAndVerifyExplorationSidecar(std::string const & path, int64
   return result;
 }
 
+SpaLoadResult TryLoadAndVerifyPolicyExplorationSidecar(std::string const & path, uint32_t expectedPolicyVersion)
+{
+  SpaLoadResult result = TryLoadExplorationSidecar(path);
+  if (result.m_status != SpaLoadStatus::Ok)
+    return result;
+
+  if (result.m_file.m_header.m_policyVersion != expectedPolicyVersion)
+  {
+    LOG(LWARNING, ("Exploration sidecar policy mismatch", path, result.m_file.m_header.m_policyVersion,
+                   expectedPolicyVersion));
+    result.m_file = SpaFile{};
+    result.m_status = SpaLoadStatus::VersionMismatch;
+  }
+  return result;
+}
+
+bool SidecarMatchesUniverse(SpaFile const & file, size_t universeSize, uint32_t expectedPolicyVersion)
+{
+  return file.m_header.m_policyVersion == expectedPolicyVersion && file.m_assignments.size() == universeSize;
+}
+
 uint64_t StableOsmId(ExplorationArea const & area)
 {
   return area.m_osmId;

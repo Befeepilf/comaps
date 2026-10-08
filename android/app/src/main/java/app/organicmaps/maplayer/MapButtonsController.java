@@ -271,15 +271,9 @@ public class MapButtonsController extends Fragment implements LocationListener
               "sheet open hasFocus=" + progress.hasFocus + " fractionValid=" + progress.fractionValid
                   + " citySummary=" + progress.citySummary + " compactIndex=" + progress.compactIndex
                   + " fraction=" + progress.fraction + " areaCompleted=" + progress.areaCompleted
-                  + " noExplorationArea=" + progress.noExplorationArea);
-        if (progress.noExplorationArea || !progress.hasFocus || TextUtils.isEmpty(progress.displayName))
-        {
-          FocusedAreaDetailBottomSheet.showEmpty(getParentFragmentManager());
-          return;
-        }
-        FocusedAreaDetailBottomSheet.show(getParentFragmentManager(), progress.displayName, progress.fractionValid,
-                                          progress.fraction, progress.areaCompleted, progress.previouslyCompleted,
-                                          progress.osmId, progress.citySummary);
+                  + " noExplorationArea=" + progress.noExplorationArea
+                  + " sidecarIncompatible=" + progress.sidecarIncompatible);
+        FocusedAreaDetailBottomSheet.showForProgress(getParentFragmentManager(), progress);
       });
     }
     mGpsWaitingBadge = mFrame.findViewById(R.id.gps_waiting_badge);
@@ -638,7 +632,13 @@ public class MapButtonsController extends Fragment implements LocationListener
     Context ctx = getContext();
     if (ctx == null || mExplorationBadge == null)
       return;
-    if (progress.hasFocus && !TextUtils.isEmpty(progress.displayName))
+    if (progress.sidecarIncompatible)
+    {
+      Log.i("StreetPixels", "badge sidecarIncompatible");
+      mExplorationBadge.setText(R.string.street_pixels_sidecar_mismatch_badge);
+      showButton(true, MapButtons.explorationBanner);
+    }
+    else if (progress.hasFocus && !TextUtils.isEmpty(progress.displayName))
     {
       Log.i("StreetPixels",
             "badge hasFocus=" + progress.hasFocus + " fractionValid=" + progress.fractionValid
