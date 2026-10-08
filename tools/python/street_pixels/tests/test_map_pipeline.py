@@ -28,11 +28,13 @@ from street_pixels.map_pipeline import STAGE_RSYNC  # noqa: E402
 from street_pixels.map_pipeline import STAGE_SPA_EMIT  # noqa: E402
 from street_pixels.map_pipeline import apply_resume  # noqa: E402
 from street_pixels.map_pipeline import build_mapgen_argv  # noqa: E402
+from street_pixels.map_pipeline import build_name_to_data_version  # noqa: E402
 from street_pixels.map_pipeline import build_pix_derive_argv  # noqa: E402
 from street_pixels.map_pipeline import build_plan  # noqa: E402
 from street_pixels.map_pipeline import build_rings_argv  # noqa: E402
 from street_pixels.map_pipeline import build_rsync_argv  # noqa: E402
 from street_pixels.map_pipeline import build_spa_emit_argv  # noqa: E402
+from street_pixels.map_pipeline import data_version_to_build_name  # noqa: E402
 from street_pixels.map_pipeline import ensure_planet_md5_url  # noqa: E402
 from street_pixels.map_pipeline import expand_countries  # noqa: E402
 from street_pixels.map_pipeline import resolve_border_prefix  # noqa: E402
@@ -780,10 +782,15 @@ class ResumeTest(unittest.TestCase):
                 dry_run=True,
             )
             apply_resume(plan, resolve_runtime_paths(plan))
+            self.assertEqual(260101, plan["data_version"])
+            self.assertEqual("2026_01_01__00_00_00-sp100", plan["mapgen_build_name"])
             self.assertTrue(plan["mapgen_continue"])
-            self.assertIn("-c", build_mapgen_argv(plan))
+            argv = build_mapgen_argv(plan)
+            self.assertIn("-c", argv)
+            self.assertIn("2026_01_01__00_00_00-sp100", argv)
+            self.assertIn("--build_name", argv)
 
-    def test_force_complete_mapgen_omits_continue(self):
+    def test_force_complete_mapgen_keeps_pinned_build_name(self):
         with tempfile.TemporaryDirectory() as tmp:
             borders = _finland_borders(tmp)
             seeded = _seed_generate_artifacts(tmp, FINLAND_LEAVES)
@@ -798,8 +805,38 @@ class ResumeTest(unittest.TestCase):
             )
             apply_resume(plan, resolve_runtime_paths(plan))
             self.assertFalse(plan["mapgen_continue"])
-            self.assertNotIn("-c", build_mapgen_argv(plan))
+            argv = build_mapgen_argv(plan)
+            self.assertNotIn("-c", argv)
+            self.assertIn("--build_name", argv)
+            self.assertIn("2026_09_10__00_00_00-sp100", argv)
             self.assertIn(STAGE_MAPGEN, plan["stages"])
+
+    def test_data_version_round_trip_build_name(self):
+        self.assertEqual(
+            "2026_09_11__00_00_00-sp100", data_version_to_build_name(260911)
+        )
+        self.assertEqual(
+            260911, build_name_to_data_version("2026_09_11__00_00_00-sp100")
+        )
+
+    def test_explicit_data_version_pins_mapgen_build_name(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            borders = _finland_borders(tmp)
+            pbf = _write_pbf(tmp)
+            plan = build_plan(
+                pbf="file://" + pbf,
+                out=os.path.join(tmp, "out"),
+                borders_dir=borders,
+                data_version=260909,
+                dry_run=True,
+            )
+            apply_resume(plan, resolve_runtime_paths(plan))
+            self.assertEqual(260909, plan["data_version"])
+            self.assertEqual("2026_09_09__00_00_00-sp100", plan["mapgen_build_name"])
+            argv = build_mapgen_argv(plan)
+            self.assertIn("--build_name", argv)
+            self.assertIn("2026_09_09__00_00_00-sp100", argv)
+            self.assertNotIn("-c", argv)
 
     def test_dry_run_lists_skipped_stages(self):
         with tempfile.TemporaryDirectory() as tmp:

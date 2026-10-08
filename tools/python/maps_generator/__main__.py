@@ -45,6 +45,13 @@ def parse_options():
         help="Suffix of the name of a build directory.",
     )
     parser.add_argument(
+        "--build_name",
+        default="",
+        type=str,
+        help="Use this build directory name. Does not imply --continue. "
+        "mwm_version is the date prefix (YYMMDD).",
+    )
+    parser.add_argument(
         "--countries",
         type=str,
         default="",
@@ -119,10 +126,17 @@ def main():
     # Processing of 'continue' option.
     # If 'continue' is set maps generation is continued from the last build
     # that is found automatically.
-    build_name = None
+    build_name = options.build_name or None
     continue_ = getattr(options, "continue")
-    if continue_ is None or continue_:
+    if not build_name and (continue_ is None or continue_):
         d = find_last_build_dir(continue_)
+        if d is None:
+            raise ContinueError(
+                "The build cannot continue: the last build directory was not found."
+            )
+        build_name = d
+    elif build_name and (continue_ is None or continue_):
+        d = find_last_build_dir(build_name)
         if d is None:
             raise ContinueError(
                 "The build cannot continue: the last build directory was not found."

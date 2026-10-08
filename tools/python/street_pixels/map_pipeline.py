@@ -7,6 +7,7 @@ prepare_spa_debug_root is not this path.
 from __future__ import annotations
 
 import argparse
+import datetime
 import fnmatch
 import hashlib
 import json
@@ -37,6 +38,8 @@ DEFAULT_MAP_SERIES = "2026.06.28"
 DEFAULT_COUNTRIES = "World,Finland_*"
 DEFAULT_ISO = "FI"
 DEFAULT_THREADS = 4
+MAPGEN_SUFFIX = "sp100"
+MAPGEN_BUILD_TS = "%Y_%m_%d__%H_%M_%S"
 DEFAULT_POLICY = os.path.join(
     _REPO_ROOT, "data", "street_pixels", "country_policies.json"
 )
@@ -569,16 +572,22 @@ def ensure_planet_md5_url(pbf_url, planet_md5_url, dry_run):
     return pbf_url + ".md5"
 
 
-def discover_mwm_dir(mapgen_out):
+def discover_mwm_dir(mapgen_out, build_name=None):
     if not mapgen_out or not os.path.isdir(mapgen_out):
         return None
     builds = []
+    if build_name:
+        pinned = os.path.join(mapgen_out, build_name)
+        if os.path.isdir(pinned):
+            builds.append(pinned)
     for name in os.listdir(mapgen_out):
         path = os.path.join(mapgen_out, name)
-        if os.path.isdir(path):
+        if os.path.isdir(path) and path not in builds:
             builds.append(path)
-    builds.sort()
-    for build in reversed(builds):
+    if not build_name:
+        builds.sort()
+        builds = list(reversed(builds))
+    for build in builds:
         for name in sorted(os.listdir(build)):
             path = os.path.join(build, name)
             if os.path.isdir(path) and os.path.isfile(
@@ -612,6 +621,53 @@ def read_data_version_from_countries(countries_path):
     with open(countries_path, "r", encoding="utf-8") as f:
         payload = json.load(f)
     return int(payload["v"])
+
+
+def data_version_to_build_name(data_version, suffix=MAPGEN_SUFFIX):
+    raw = "{:06d}".format(int(data_version))
+    if len(raw) != 6:
+        raise MapPipelineError(
+            "data_version must be YYMMDD, got {}".format(data_version)
+        )
+    return "20{}_{}_{}__00_00_00-{}".format(raw[0:2], raw[2:4], raw[4:6], suffix)
+
+
+def build_name_to_data_version(build_name):
+    date_str = os.path.basename(build_name).split("-", 1)[0]
+    dt = datetime.datetime.strptime(date_str, MAPGEN_BUILD_TS)
+    return int(dt.strftime("%y%m%d"))
+
+
+def discover_sp100_build_names(mapgen_out):
+    if not mapgen_out or not os.path.isdir(mapgen_out):
+        return []
+    names = []
+    suffix = "-" + MAPGEN_SUFFIX
+    for name in os.listdir(mapgen_out):
+        path = os.path.join(mapgen_out, name)
+        if os.path.isdir(path) and name.endswith(suffix):
+            names.append(name)
+    names.sort()
+    return names
+
+
+def pin_mapgen_identity(plan, runtime, default_today=False):
+    version = plan.get("data_version")
+    if version is None:
+        version = runtime.get("data_version")
+    if version is None:
+        names = discover_sp100_build_names(plan.get("mapgen_out"))
+        if names:
+            version = build_name_to_data_version(names[0])
+    if version is None and default_today:
+        version = int(datetime.date.today().strftime("%y%m%d"))
+    if version is None:
+        return plan
+    version = int(version)
+    plan["data_version"] = version
+    runtime["data_version"] = version
+    plan["mapgen_build_name"] = data_version_to_build_name(version)
+    return plan
 
 
 def default_omim_path():
@@ -835,6 +891,7 @@ def build_plan(
         "force": bool(force),
         "resume_skip": [],
         "mapgen_continue": False,
+        "mapgen_build_name": None,
         "node_storage": "map",
         "vps_generate_unsupported": True,
     }
@@ -846,6 +903,7 @@ def print_plan(plan):
     print("  resume skip: {}".format(",".join(plan.get("resume_skip") or []) or "(none)"))
     print("  force: {}".format(bool(plan.get("force"))))
     print("  mapgen continue: {}".format(bool(plan.get("mapgen_continue"))))
+    print("  mapgen build_name: {}".format(plan.get("mapgen_build_name") or "(datetime.now)"))
     print("  pbf: {}".format(plan["pbf_url"]))
     print("  countries selector: {}".format(plan["countries_selector"]))
     print("  expanded countries: {}".format(",".join(plan["countries"])))
@@ -868,7 +926,7 @@ def print_plan(plan):
     print("  border_prefix: {}".format(plan["border_prefix"]))
     print("  borders: {}".format(plan["borders_dir"]))
     print("  map_series: {}".format(plan["map_series"]))
-    print("  data_version: {}".format(plan["data_version"] or "(from countries.txt)"))
+    print("  data_version: {}".format(plan["data_version"] or "(today / countries.txt)"))
     print("  pix_derive_tool: {}".format(plan["pix_derive_bin"]))
     print("  spa_emit_tool: {}".format(plan["spa_emit_bin"]))
     print("  rsync_dest: {}".format(plan["rsync_dest"] or "(none)"))
@@ -944,7 +1002,7 @@ def resolve_runtime_paths(plan):
     state = load_state(plan["state_path"])
     mwm_dir = plan["mwm_dir"] or state.get("mwm_dir")
     if not mwm_dir:
-        mwm_dir = discover_mwm_dir(plan["mapgen_out"])
+        mwm_dir = discover_mwm_dir(plan["mapgen_out"], plan.get("mapgen_build_name"))
     countries_txt = plan["countries_txt"] or state.get("countries_txt")
     if not countries_txt and mwm_dir:
         candidate = os.path.join(mwm_dir, "countries.txt")
@@ -1095,16 +1153,18 @@ def stage_complete(stage, plan, runtime, fingerprint=None):
 
 
 def has_sp100_build(mapgen_out):
-    if not mapgen_out or not os.path.isdir(mapgen_out):
-        return False
-    for name in os.listdir(mapgen_out):
-        path = os.path.join(mapgen_out, name)
-        if os.path.isdir(path) and name.endswith("-sp100"):
-            return True
-    return False
+    return bool(discover_sp100_build_names(mapgen_out))
+
+
+def pinned_mapgen_build_exists(plan):
+    name = plan.get("mapgen_build_name")
+    if name:
+        return os.path.isdir(os.path.join(plan["mapgen_out"], name))
+    return has_sp100_build(plan["mapgen_out"])
 
 
 def apply_resume(plan, runtime):
+    pin_mapgen_identity(plan, runtime)
     fingerprint = input_fingerprint(plan, runtime)
     plan["fingerprint"] = fingerprint
     force = bool(plan.get("force"))
@@ -1114,7 +1174,7 @@ def apply_resume(plan, runtime):
         plan["mapgen_continue"] = (
             STAGE_MAPGEN in plan["stages"]
             and not stage_complete(STAGE_MAPGEN, plan, runtime, fingerprint)
-            and has_sp100_build(plan["mapgen_out"])
+            and pinned_mapgen_build_exists(plan)
         )
         return plan
     skipped = []
@@ -1128,8 +1188,8 @@ def apply_resume(plan, runtime):
         remaining.append(stage)
     plan["stages"] = remaining
     plan["resume_skip"] = skipped
-    plan["mapgen_continue"] = STAGE_MAPGEN in remaining and has_sp100_build(
-        plan["mapgen_out"]
+    plan["mapgen_continue"] = STAGE_MAPGEN in remaining and pinned_mapgen_build_exists(
+        plan
     )
     return plan
 
@@ -1186,14 +1246,19 @@ def build_mapgen_argv(plan):
         "--countries",
         plan["countries_arg"],
         "--suffix",
-        "sp100",
+        MAPGEN_SUFFIX,
     ]
+    build_name = plan.get("mapgen_build_name")
+    if build_name:
+        argv.extend(["--build_name", build_name])
     if plan["mapgen_production"]:
         argv.append("--production")
     if plan["mapgen_skip"]:
         argv.extend(["--skip", ",".join(plan["mapgen_skip"])])
     if plan.get("mapgen_continue"):
         argv.append("-c")
+        if build_name:
+            argv.append(build_name)
     return argv
 
 
@@ -1247,8 +1312,11 @@ def run_mapgen(plan):
         )
         ini_text = set_ini_option(ini_text, "PLANET_MD5_URL", md5_url)
     write_text(plan["ini_path"], ini_text)
+    build_name = plan.get("mapgen_build_name")
+    if build_name:
+        os.makedirs(os.path.join(plan["mapgen_out"], build_name), exist_ok=True)
     run_command(build_mapgen_argv(plan), cwd=_TOOLS_PYTHON, env=tools_python_env())
-    mwm_dir = discover_mwm_dir(plan["mapgen_out"])
+    mwm_dir = discover_mwm_dir(plan["mapgen_out"], plan.get("mapgen_build_name"))
     if not mwm_dir:
         raise MapPipelineError(
             "maps_generator finished but no MWM directory with countries.txt was found under {}".format(
@@ -1257,8 +1325,16 @@ def run_mapgen(plan):
         )
     countries_txt = os.path.join(mwm_dir, "countries.txt")
     data_version = plan["data_version"]
+    generated = None
     if os.path.isfile(countries_txt):
-        data_version = read_data_version_from_countries(countries_txt)
+        generated = read_data_version_from_countries(countries_txt)
+        if data_version is not None and int(data_version) != int(generated):
+            raise MapPipelineError(
+                "countries.txt v {} does not match pinned data_version {}".format(
+                    generated, data_version
+                )
+            )
+        data_version = generated
     pbf_path = discover_planet_pbf(plan["mapgen_out"]) or plan["pbf_path"]
     state = load_state(plan["state_path"])
     state.update(
@@ -1371,6 +1447,7 @@ def run_map_pipeline(**kwargs):
     dry_run = bool(kwargs.pop("dry_run", False))
     plan = build_plan(dry_run=dry_run, **kwargs)
     runtime = resolve_runtime_paths(plan)
+    pin_mapgen_identity(plan, runtime, default_today=True)
     apply_resume(plan, runtime)
     print_plan(plan)
     if dry_run:
@@ -1419,7 +1496,8 @@ def build_arg_parser():
         "--data-version",
         type=int,
         default=None,
-        help="map_data_version / countries v (default: read from generated countries.txt)",
+        help="YYMMDD for countries v / .pix / .spa. Freeze this for multi-day runs "
+        "(default: existing work dir, then countries.txt, then today)",
     )
     parser.add_argument("--iso", default=DEFAULT_ISO, help="ISO 3166-1 alpha-2 (default FI)")
     parser.add_argument("--policy", default=None, help="country_policies.json path")
