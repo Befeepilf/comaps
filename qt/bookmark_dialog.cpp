@@ -18,7 +18,10 @@
 
 namespace qt
 {
-using namespace std::placeholders;
+namespace
+{
+BookmarkDialog * g_activeBookmarkDialog = nullptr;
+}
 
 BookmarkDialog::BookmarkDialog(QWidget * parent, Framework & framework)
   : QDialog(parent, Qt::WindowTitleHint | Qt::WindowSystemMenuHint)
@@ -62,12 +65,41 @@ BookmarkDialog::BookmarkDialog(QWidget * parent, Framework & framework)
   setWindowTitle(tr("Bookmarks and tracks"));
   resize(700, 600);
 
-  BookmarkManager::AsyncLoadingCallbacks callbacks;
-  callbacks.m_onStarted = std::bind(&BookmarkDialog::OnAsyncLoadingStarted, this);
-  callbacks.m_onFinished = std::bind(&BookmarkDialog::OnAsyncLoadingFinished, this);
-  callbacks.m_onFileSuccess = std::bind(&BookmarkDialog::OnAsyncLoadingFileSuccess, this, _1, _2);
-  callbacks.m_onFileError = std::bind(&BookmarkDialog::OnAsyncLoadingFileError, this, _1, _2);
-  m_framework.GetBookmarkManager().SetAsyncLoadingCallbacks(std::move(callbacks));
+  g_activeBookmarkDialog = this;
+
+  static bool registered = false;
+  if (!registered)
+  {
+    registered = true;
+    BookmarkManager::AsyncLoadingCallbacks callbacks;
+    callbacks.m_onStarted = []()
+    {
+      if (g_activeBookmarkDialog != nullptr)
+        g_activeBookmarkDialog->OnAsyncLoadingStarted();
+    };
+    callbacks.m_onFinished = []()
+    {
+      if (g_activeBookmarkDialog != nullptr)
+        g_activeBookmarkDialog->OnAsyncLoadingFinished();
+    };
+    callbacks.m_onFileSuccess = [](std::string const & fileName, bool isTemporaryFile)
+    {
+      if (g_activeBookmarkDialog != nullptr)
+        g_activeBookmarkDialog->OnAsyncLoadingFileSuccess(fileName, isTemporaryFile);
+    };
+    callbacks.m_onFileError = [](std::string const & fileName, bool isTemporaryFile)
+    {
+      if (g_activeBookmarkDialog != nullptr)
+        g_activeBookmarkDialog->OnAsyncLoadingFileError(fileName, isTemporaryFile);
+    };
+    m_framework.GetBookmarkManager().AddAsyncLoadingCallbacks(std::move(callbacks));
+  }
+}
+
+BookmarkDialog::~BookmarkDialog()
+{
+  if (g_activeBookmarkDialog == this)
+    g_activeBookmarkDialog = nullptr;
 }
 
 void BookmarkDialog::OnAsyncLoadingStarted()
