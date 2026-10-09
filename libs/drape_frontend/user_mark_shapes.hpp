@@ -23,6 +23,7 @@
 
 #include <limits>
 #include <memory>
+#include <vector>
 
 #include "3party/ankerl/unordered_dense.h"
 
@@ -85,6 +86,8 @@ struct UserLineRenderParams
   DepthLayer m_depthLayer = DepthLayer::UserLineLayer;
   std::vector<LineLayer> m_layers;
   std::vector<m2::SharedSpline> m_splines;
+  std::vector<m2::PointD> m_triangles;
+  m2::RectD m_triangleRect;
 };
 
 using UserMarksRenderCollection = ankerl::unordered_dense::map<kml::MarkId, drape_ptr<UserMarkRenderParams>>;
@@ -107,6 +110,8 @@ using TUserMarksRenderData = std::vector<UserMarkRenderData>;
 
 void ProcessSplineSegmentRects(m2::SharedSpline const & spline, double maxSegmentLength,
                                std::function<bool(m2::RectD const & segmentRect)> const & func);
+
+std::vector<m2::PointD> TessellateRings(std::vector<std::vector<m2::PointD>> const & rings);
 
 void CacheUserMarks(ref_ptr<dp::GraphicsContext> context, TileKey const & tileKey, ref_ptr<dp::TextureManager> textures,
                     kml::MarkIdCollection const & marksId, UserMarksRenderCollection const & renderParams,

@@ -11,8 +11,10 @@
 #include "geometry/parametrized_segment.hpp"
 #include "geometry/point_with_altitude.hpp"
 #include "geometry/rect_intersect.hpp"
+#include "geometry/region2d.hpp"
 
 #include "base/assert.hpp"
+#include "base/math.hpp"
 
 #include <utility>
 
@@ -147,6 +149,34 @@ void Track::UpdateSelectionInfo(m2::RectD const & touchRect, TrackSelectionInfo 
       auto const segDistInMeters = mercator::DistanceOnEarth(line[ptIndex].GetPoint(), closestPoint);
       info.m_distFromBegM = segDistInMeters + GetLengthMetersImpl(lineIndex, ptIndex);
     }
+  }
+
+  if (!m_data.IsPolygon())
+    return;
+
+  m2::PointD const center = touchRect.Center();
+  double const fillSquareDist = (math::Pow2(touchRect.SizeX()) + math::Pow2(touchRect.SizeY())) / 4.0;
+  if (fillSquareDist >= info.m_squareDist)
+    return;
+
+  size_t ringsContainingCenter = 0;
+  for (auto const & line : m_data.m_geometry.m_lines)
+  {
+    std::vector<m2::PointD> points;
+    points.reserve(line.size());
+    for (auto const & pt : line)
+      points.push_back(pt.GetPoint());
+
+    if (m2::RegionD(std::move(points)).Contains(center))
+      ++ringsContainingCenter;
+  }
+
+  if (ringsContainingCenter % 2 == 1)
+  {
+    info.m_squareDist = fillSquareDist;
+    info.m_trackId = m_data.m_id;
+    info.m_trackPoint = center;
+    info.m_distFromBegM = 0.0;
   }
 }
 

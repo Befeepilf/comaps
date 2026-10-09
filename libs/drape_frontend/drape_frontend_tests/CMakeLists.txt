@@ -6,6 +6,7 @@ set(SRC
   path_text_test.cpp
   stylist_tests.cpp
   user_event_stream_tests.cpp
+  user_mark_shapes_tests.cpp
 )
 
 omim_add_test(${PROJECT_NAME} ${SRC})

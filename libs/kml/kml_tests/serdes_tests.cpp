@@ -958,3 +958,84 @@ UNIT_TEST(Kml_ParseFailure_DoesNotLogWholePayload)
   TEST_LESS(capture.Text().size(), 1024, (capture.Text().size()));
   TEST(capture.Text().find("size_bytes") != std::string::npos, (capture.Text()));
 }
+
+UNIT_TEST(Kml_Polygons_With_Holes)
+{
+  std::string_view constexpr input = R"(<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Placemark>
+    <name>Zone</name>
+    <Style><PolyStyle><color>7f0000ff</color></PolyStyle></Style>
+    <MultiGeometry>
+      <Polygon>
+        <outerBoundaryIs><LinearRing><coordinates>0,0,0 1,0,0 1,1,0 0,1,0 0,0,0</coordinates></LinearRing></outerBoundaryIs>
+      </Polygon>
+      <Polygon>
+        <outerBoundaryIs><LinearRing><coordinates>10,10,0 14,10,0 14,14,0 10,14,0 10,10,0</coordinates></LinearRing></outerBoundaryIs>
+        <innerBoundaryIs><LinearRing><coordinates>11,11,0 13,11,0 13,13,0 11,13,0 11,11,0</coordinates></LinearRing></innerBoundaryIs>
+      </Polygon>
+    </MultiGeometry>
+  </Placemark>
+</kml>)";
+
+  kml::FileData fData;
+  TEST_NO_THROW({ kml::DeserializerKml(fData).Deserialize(MemReader(input)); }, ());
+
+  TEST(fData.m_bookmarksData.empty(), ());
+  TEST_EQUAL(fData.m_tracksData.size(), 1, ());
+  auto const & track = fData.m_tracksData[0];
+  TEST(track.IsPolygon(), ());
+  TEST(track.HasPolygonFill(), ());
+  TEST_EQUAL(track.m_geometry.m_lines.size(), 3, ());
+  TEST_EQUAL(track.m_properties.at(kml::kRingRolesProperty), "ooi", ());
+  TEST_EQUAL(track.m_layers.size(), 1, ());
+  TEST_EQUAL(track.m_layers[0].m_color.m_rgba, 0xFF00007F, ());
+
+  std::string buffer;
+  {
+    MemWriter<decltype(buffer)> sink(buffer);
+    kml::SerializerKml ser(fData);
+    ser.Serialize(sink);
+  }
+  TEST(buffer.find("<MultiGeometry>") != std::string::npos, (buffer));
+  TEST(buffer.find("<innerBoundaryIs>") != std::string::npos, (buffer));
+  TEST(buffer.find("<LineString>") == std::string::npos, (buffer));
+
+  kml::FileData fData2;
+  TEST_NO_THROW({ kml::DeserializerKml(fData2).Deserialize(MemReader(buffer)); }, ());
+  TEST_EQUAL(fData2.m_tracksData.size(), 1, ());
+  auto const & track2 = fData2.m_tracksData[0];
+  TEST(track2.IsPolygon(), ());
+  TEST_EQUAL(track2.m_geometry.m_lines.size(), 3, ());
+  TEST_EQUAL(track2.m_properties.at(kml::kRingRolesProperty), "ooi", ());
+  for (size_t i = 0; i < 3; ++i)
+    TEST_EQUAL(track2.m_geometry.m_lines[i].size(), track.m_geometry.m_lines[i].size(), (i));
+}
+
+UNIT_TEST(Kml_Polygon_Without_Fill)
+{
+  std::string_view constexpr input = R"(<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Placemark>
+    <name>Outline</name>
+    <Style>
+      <LineStyle><color>ff00ff00</color></LineStyle>
+      <PolyStyle><fill>0</fill></PolyStyle>
+    </Style>
+    <Polygon>
+      <outerBoundaryIs><LinearRing><coordinates>0,0,0 1,0,0 1,1,0 0,0,0</coordinates></LinearRing></outerBoundaryIs>
+    </Polygon>
+  </Placemark>
+</kml>)";
+
+  kml::FileData fData;
+  TEST_NO_THROW({ kml::DeserializerKml(fData).Deserialize(MemReader(input)); }, ());
+
+  TEST_EQUAL(fData.m_tracksData.size(), 1, ());
+  auto const & track = fData.m_tracksData[0];
+  TEST(track.IsPolygon(), ());
+  TEST(!track.HasPolygonFill(), ());
+  TEST_EQUAL(track.m_properties.at(kml::kPolygonFillProperty), "0", ());
+  TEST_EQUAL(track.m_layers.size(), 1, ());
+  TEST_EQUAL(track.m_layers[0].m_color.m_rgba, 0x00FF00FF, ());
+}

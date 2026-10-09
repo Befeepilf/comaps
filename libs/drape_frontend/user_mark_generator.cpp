@@ -133,6 +133,10 @@ void UserMarkGenerator::UpdateIndex(kml::MarkGroupId groupId)
           return true;
         });
       }
+
+      if (!params.m_triangles.empty())
+        CalcTilesCoverage(params.m_triangleRect, zoomLevel,
+                          [&](int tileX, int tileY) { tiles.emplace(tileX, tileY, zoomLevel); });
     }
 
     for (auto const & tileKey : tiles)

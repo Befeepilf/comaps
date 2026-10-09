@@ -63,7 +63,7 @@ void AreaShape::DrawArea(ref_ptr<dp::GraphicsContext> context, ref_ptr<dp::Batch
     vertexes.emplace_back(ToShapeVertex3(vertex), uv);
 
   auto const areaProgram = m_params.m_color.GetAlpha() == 255 ? gpu::Program::Area : gpu::Program::TransparentArea;
-  auto state = CreateRenderState(areaProgram, DepthLayer::GeometryLayer);
+  auto state = CreateRenderState(areaProgram, m_params.m_depthLayer);
   state.SetDepthTestEnabled(m_params.m_depthTestEnabled);
   state.SetColorTexture(texture);
 

@@ -66,6 +66,7 @@ public:
   void SetColor(dp::Color color);
   float GetWidth(size_t layerIndex) const override;
   float GetDepth(size_t layerIndex) const override;
+  bool HasPolygonFill() const override { return m_data.HasPolygonFill(); }
   void ForEachGeometry(GeometryFnT && fn) const override;
 
   void Attach(kml::MarkGroupId groupId);

@@ -426,6 +426,13 @@ struct MultiGeometry
   size_t GetNumberOfLinesWithTimestamps() const;
 };
 
+inline constexpr char const * kGeometryProperty = "geometry";
+inline constexpr char const * kPolygonGeometry = "polygon";
+inline constexpr char const * kRingRolesProperty = "ringRoles";
+inline constexpr char const * kPolygonFillProperty = "polygonFill";
+inline constexpr char kOuterRingRole = 'o';
+inline constexpr char kInnerRingRole = 'i';
+
 struct TrackData
 {
   DECLARE_VISITOR_AND_DEBUG_PRINT(TrackData, visitor(m_id, "id"), visitor(m_localId, "localId"),
@@ -446,6 +453,18 @@ struct TrackData
   }
 
   bool operator!=(TrackData const & data) const { return !operator==(data); }
+
+  bool IsPolygon() const
+  {
+    auto const it = m_properties.find(kGeometryProperty);
+    return it != m_properties.end() && it->second == kPolygonGeometry;
+  }
+
+  bool HasPolygonFill() const
+  {
+    auto const it = m_properties.find(kPolygonFillProperty);
+    return IsPolygon() && (it == m_properties.end() || it->second != "0");
+  }
 
   // Unique id (it will not be serialized in text files).
   TrackId m_id = kInvalidTrackId;

@@ -532,6 +532,64 @@ void SaveTrackGeometry(Writer & writer, MultiGeometry const & geom)
   SaveGxTracks(writer, geom);
 }
 
+void SaveRing(Writer & writer, MultiGeometry::LineT const & line, std::string_view indent, std::string_view boundaryTag)
+{
+  writer << indent << "<" << boundaryTag << "><LinearRing><coordinates>" << PointToLineString(line[0]);
+  for (size_t pointIndex = 1; pointIndex < line.size(); ++pointIndex)
+    writer << " " << PointToLineString(line[pointIndex]);
+  if (line.front().GetPoint() != line.back().GetPoint())
+    writer << " " << PointToLineString(line.front());
+  writer << "</coordinates></LinearRing></" << boundaryTag << ">\n";
+}
+
+void SavePolygons(Writer & writer, TrackData const & trackData)
+{
+  auto const & lines = trackData.m_geometry.m_lines;
+
+  std::string roles(lines.size(), kOuterRingRole);
+  auto const rolesIt = trackData.m_properties.find(kRingRolesProperty);
+  if (rolesIt != trackData.m_properties.end() && rolesIt->second.size() == lines.size())
+    roles = rolesIt->second;
+
+  size_t polygonsCount = 0;
+  for (size_t i = 0; i < lines.size(); ++i)
+    if (i == 0 || roles[i] != kInnerRingRole)
+      ++polygonsCount;
+
+  bool const isMulti = polygonsCount > 1;
+  std::string_view const polygonIndent = isMulti ? kIndent8 : kIndent4;
+  if (isMulti)
+    writer << kIndent4 << "<MultiGeometry>\n";
+
+  bool isPolygonOpen = false;
+  for (size_t i = 0; i < lines.size(); ++i)
+  {
+    if (lines[i].empty())
+    {
+      LOG(LERROR, ("Unexpected empty ring"));
+      continue;
+    }
+
+    if (!isPolygonOpen || roles[i] != kInnerRingRole)
+    {
+      if (isPolygonOpen)
+        writer << polygonIndent << "</Polygon>\n";
+      writer << polygonIndent << "<Polygon>\n";
+      isPolygonOpen = true;
+      SaveRing(writer, lines[i], std::string(polygonIndent) + std::string(kIndent2), "outerBoundaryIs");
+    }
+    else
+    {
+      SaveRing(writer, lines[i], std::string(polygonIndent) + std::string(kIndent2), "innerBoundaryIs");
+    }
+  }
+
+  if (isPolygonOpen)
+    writer << polygonIndent << "</Polygon>\n";
+  if (isMulti)
+    writer << kIndent4 << "</MultiGeometry>\n";
+}
+
 void SaveTrackExtendedData(Writer & writer, TrackData const & trackData)
 {
   writer << kIndent4 << kExtendedDataHeader;
@@ -586,7 +644,10 @@ void SaveTrackData(Writer & writer, TrackData const & trackData)
   if (trackData.m_timestamp != Timestamp())
     writer << kIndent4 << "<TimeStamp><when>" << TimestampToString(trackData.m_timestamp) << "</when></TimeStamp>\n";
 
-  SaveTrackGeometry(writer, trackData.m_geometry);
+  if (trackData.IsPolygon())
+    SavePolygons(writer, trackData);
+  else
+    SaveTrackGeometry(writer, trackData.m_geometry);
   SaveTrackExtendedData(writer, trackData);
 
   writer << kIndent2 << "</Placemark>\n";
@@ -673,6 +734,9 @@ void KmlParser::ResetPoint()
   m_timestamp = {};
 
   m_color = 0;
+  m_polyColor = 0;
+  m_polyFill = true;
+  m_ringRoles.clear();
   m_styleId.clear();
   m_mapStyleId.clear();
   m_styleUrlKey.clear();
@@ -731,6 +795,31 @@ void KmlParser::ParseLineString(std::string const & s)
     m_geometry.m_lines.push_back(std::move(line));
     m_geometry.m_timestamps.emplace_back();
   }
+}
+
+void KmlParser::ParseLinearRing(std::string const & s, char role)
+{
+  size_t const linesCount = m_geometry.m_lines.size();
+  ParseLineString(s);
+  if (m_geometry.m_lines.size() > linesCount)
+    m_ringRoles.push_back(role);
+}
+
+void KmlParser::ApplyPolygonData()
+{
+  if (m_ringRoles.empty() || m_ringRoles.size() != m_geometry.m_lines.size())
+    return;
+
+  bool const hasColor = (m_polyColor & 0xFF) != 0;
+  m_properties[kGeometryProperty] = kPolygonGeometry;
+  m_properties[kRingRolesProperty] = m_ringRoles;
+  if (!m_polyFill || (m_polyColor != 0 && !hasColor))
+    m_properties[kPolygonFillProperty] = "0";
+
+  if (m_trackLayers.empty())
+    m_trackLayers.push_back(GetDefaultTrackLayer());
+  if (m_polyFill && hasColor)
+    m_trackLayers.front().m_color.m_rgba = m_polyColor;
 }
 
 bool KmlParser::MakeValid()
@@ -810,6 +899,20 @@ bool KmlParser::GetColorForStyle(std::string const & styleUrl, uint32_t & color)
   // Remove leading '#' symbol
   auto const it = m_styleUrl2Color.find(styleUrl.substr(1));
   if (it != m_styleUrl2Color.cend())
+  {
+    color = it->second;
+    return true;
+  }
+  return false;
+}
+
+bool KmlParser::GetPolyColorForStyle(std::string const & styleUrl, uint32_t & color) const
+{
+  if (styleUrl.empty())
+    return false;
+
+  auto const it = m_styleUrl2PolyColor.find(styleUrl.substr(1));
+  if (it != m_styleUrl2PolyColor.cend())
   {
     color = it->second;
     return true;
@@ -928,6 +1031,8 @@ void KmlParser::Pop(std::string_view tag)
   {
     if (MakeValid())
     {
+      ApplyPolygonData();
+
       if (GEOMETRY_TYPE_POINT == m_geometryType)
       {
         BookmarkData data;
@@ -999,6 +1104,9 @@ void KmlParser::Pop(std::string_view tag)
       {
         m_styleUrl2Color[m_styleId] = m_color;
         m_styleUrl2Width[m_styleId] = m_trackWidth;
+        m_styleUrl2PolyColor[m_styleId] = m_polyColor;
+        m_polyColor = 0;
+        m_polyFill = true;
         m_color = 0;
         m_trackWidth = kDefaultTrackWidth;
       }
@@ -1221,6 +1329,12 @@ void KmlParser::CharData(std::string & value)
           std::string const styleId = m_mapStyle2Style[value.substr(1)];
           if (!styleId.empty())
             GetColorForStyle(styleId, m_color);
+        }
+        if (!GetPolyColorForStyle(value, m_polyColor))
+        {
+          std::string const styleId = m_mapStyle2Style[value.substr(1)];
+          if (!styleId.empty())
+            GetPolyColorForStyle(styleId, m_polyColor);
         }
         TrackLayer layer;
         layer.m_lineWidth = GetTrackWidthForStyle(value);

@@ -1,5 +1,6 @@
 #include "drape_frontend/user_mark_shapes.hpp"
 
+#include "drape_frontend/area_shape.hpp"
 #include "drape_frontend/colored_symbol_shape.hpp"
 #include "drape_frontend/line_shape.hpp"
 #include "drape_frontend/map_shape.hpp"
@@ -33,7 +34,10 @@
 
 #include <array>
 #include <cmath>
+#include <memory>
 #include <vector>
+
+#include "3party/libtess2/Include/tesselator.h"
 
 namespace df
 {
@@ -524,6 +528,109 @@ void ProcessSplineSegmentRects(m2::SharedSpline const & spline, double maxSegmen
   }
 }
 
+std::vector<m2::PointD> TessellateRings(std::vector<std::vector<m2::PointD>> const & rings)
+{
+  int constexpr kCoordinatesPerVertex = 2;
+  int constexpr kVerticesInPolygon = 3;
+
+  auto const deleter = [](TESStesselator * tess) { tessDeleteTess(tess); };
+  std::unique_ptr<TESStesselator, decltype(deleter)> tess(tessNewTess(nullptr), deleter);
+
+  size_t contoursCount = 0;
+  for (auto const & ring : rings)
+  {
+    size_t pointsCount = ring.size();
+    if (pointsCount > 1 && ring.front() == ring.back())
+      --pointsCount;
+    if (pointsCount < 3)
+      continue;
+
+    tessAddContour(tess.get(), kCoordinatesPerVertex, ring.data(), sizeof(m2::PointD), static_cast<int>(pointsCount));
+    ++contoursCount;
+  }
+
+  if (contoursCount == 0)
+    return {};
+
+  if (tessTesselate(tess.get(), TESS_WINDING_ODD, TESS_POLYGONS, kVerticesInPolygon, kCoordinatesPerVertex, nullptr) ==
+      0)
+    return {};
+
+  int const elementsCount = tessGetElementCount(tess.get());
+  TESSreal const * vertices = tessGetVertices(tess.get());
+  TESSindex const * elements = tessGetElements(tess.get());
+
+  std::vector<m2::PointD> triangles;
+  triangles.reserve(static_cast<size_t>(elementsCount) * kVerticesInPolygon);
+  for (int i = 0; i < elementsCount * kVerticesInPolygon; ++i)
+  {
+    auto const vertexIndex = static_cast<size_t>(elements[i]) * kCoordinatesPerVertex;
+    triangles.emplace_back(vertices[vertexIndex], vertices[vertexIndex + 1]);
+  }
+  return triangles;
+}
+
+namespace
+{
+float constexpr kPolygonFillDepth = -10.0f;
+
+void CacheUserPolygonFill(ref_ptr<dp::GraphicsContext> context, TileKey const & tileKey,
+                          ref_ptr<dp::TextureManager> textures, UserLineRenderParams const & renderInfo,
+                          dp::Batcher & batcher)
+{
+  if (renderInfo.m_triangles.empty() || renderInfo.m_layers.empty())
+    return;
+
+  m2::RectD const tileRect = tileKey.GetGlobalRect();
+  if (!renderInfo.m_triangleRect.IsIntersect(tileRect))
+    return;
+
+  std::vector<m2::PointD> clipped;
+  auto const clipFunctor = [&clipped](m2::PointD const & p1, m2::PointD const & p2, m2::PointD const & p3)
+  {
+    clipped.push_back(p1);
+    clipped.push_back(p2);
+    clipped.push_back(p3);
+  };
+
+  for (size_t i = 0; i + 2 < renderInfo.m_triangles.size(); i += 3)
+  {
+    auto const & p1 = renderInfo.m_triangles[i];
+    auto const & p2 = renderInfo.m_triangles[i + 1];
+    auto const & p3 = renderInfo.m_triangles[i + 2];
+
+    m2::PointD const v1 = p2 - p1;
+    m2::PointD const v2 = p3 - p1;
+    if (v1.IsAlmostZero() || v2.IsAlmostZero())
+      continue;
+
+    double constexpr kEps = 1e-7;
+    double const crossProduct = m2::CrossProduct(v1.Normalize(), v2.Normalize());
+    if (fabs(crossProduct) < kEps)
+      continue;
+
+    if (crossProduct < 0)
+      m2::ClipTriangleByRect(tileRect, p1, p2, p3, clipFunctor);
+    else
+      m2::ClipTriangleByRect(tileRect, p1, p3, p2, clipFunctor);
+  }
+
+  if (clipped.empty())
+    return;
+
+  AreaViewParams params;
+  params.m_tileCenter = tileRect.Center();
+  params.m_depth = kPolygonFillDepth;
+  params.m_depthLayer = renderInfo.m_depthLayer;
+  params.m_depthTestEnabled = true;
+  params.m_minVisibleScale = 1;
+  params.m_color = renderInfo.m_layers.front().m_color;
+
+  BuildingOutline noOutline;
+  AreaShape(std::move(clipped), std::move(noOutline), params).Draw(context, make_ref(&batcher), textures);
+}
+}  // namespace
+
 void CacheUserLines(ref_ptr<dp::GraphicsContext> context, TileKey const & tileKey, ref_ptr<dp::TextureManager> textures,
                     kml::TrackIdCollection const & linesId, UserLinesRenderCollection const & renderParams,
                     dp::Batcher & batcher)
@@ -551,6 +658,8 @@ void CacheUserLines(ref_ptr<dp::GraphicsContext> context, TileKey const & tileKe
       continue;
 
     UserLineRenderParams const & renderInfo = *it->second;
+
+    CacheUserPolygonFill(context, tileKey, textures, renderInfo, batcher);
 
     // Spline is a shared_ptr here, can reassign later.
     for (auto spline : renderInfo.m_splines)

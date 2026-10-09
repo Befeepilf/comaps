@@ -237,6 +237,7 @@ target_link_libraries(${PROJECT_NAME}
   PRIVATE
     cppjansson
     editor
+    tess2
 )
 
 omim_add_test_subdirectory(drape_frontend_tests)
