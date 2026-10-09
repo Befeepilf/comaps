@@ -1474,14 +1474,17 @@ void StreetPixelsManager::CleanupStreetPixelsUnlocked(storage::CountryId const &
 {
   LOG(LINFO, ("Cleaning up street pixels files for", countryId));
 
+  bool isActiveCountry = false;
   {
     std::lock_guard<std::mutex> lock(m_countryIdMutex);
     if (m_countryId == countryId)
     {
       m_countryId.clear();
-      ClearPixels();
+      isActiveCountry = true;
     }
   }
+  if (isActiveCountry)
+    ClearPixels();
 
   street_stats::StreetStatsDB::Instance().DeleteMwmData(countryId);
 
